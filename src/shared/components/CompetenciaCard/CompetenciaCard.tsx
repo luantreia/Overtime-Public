@@ -25,7 +25,16 @@ const badgeStyles = {
 } as const;
 
 const CompetenciaCard = ({ competencia, variante = 'proximamente', actions, onClick }: CompetenciaCardProps) => {
+  // Defensa contra datos corruptos
+  if (!competencia) return null;
+
+  // Asegurar que siempre tengamos un estilo de badge válido
   const badge = badgeStyles[variante] || badgeStyles.proximamente;
+
+  // Si por alguna razón badge sigue siendo undefined (imposible teóricamente), fallback de emergencia
+  if (!badge) {
+    return null;
+  }
 
   const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
     if (!onClick) return;
