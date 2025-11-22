@@ -1,0 +1,62 @@
+import { fetchWithAuth } from '../../../utils/apiClient';
+
+export interface Jugador {
+  id: string;
+  nombre: string;
+  numero?: number;
+  posicion?: string;
+  equipoId?: string;
+  equipo?: {
+    id: string;
+    nombre: string;
+  };
+  imagen?: string;
+  activo?: boolean;
+  [key: string]: any;
+}
+
+export class JugadorService {
+  private static readonly API_ENDPOINT = '/jugadores';
+
+  static async getAll(filters?: Record<string, any>): Promise<Jugador[]> {
+    const queryParams = new URLSearchParams();
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          queryParams.append(key, String(value));
+        }
+      });
+    }
+
+    const url = queryParams.toString() ? `${this.API_ENDPOINT}?${queryParams}` : this.API_ENDPOINT;
+    return fetchWithAuth<Jugador[]>(url);
+  }
+
+  static async getById(id: string): Promise<Jugador> {
+    return fetchWithAuth<Jugador>(`${this.API_ENDPOINT}/${id}`);
+  }
+
+  static async create(data: Omit<Jugador, 'id'>): Promise<Jugador> {
+    return fetchWithAuth<Jugador>(`${this.API_ENDPOINT}`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async update(id: string, data: Partial<Jugador>): Promise<Jugador> {
+    return fetchWithAuth<Jugador>(`${this.API_ENDPOINT}/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async delete(id: string): Promise<void> {
+    return fetchWithAuth<void>(`${this.API_ENDPOINT}/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  static async getByEquipoId(equipoId: string): Promise<Jugador[]> {
+    return fetchWithAuth<Jugador[]>(`${this.API_ENDPOINT}?equipoId=${equipoId}`);
+  }
+}
