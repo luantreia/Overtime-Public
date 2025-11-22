@@ -6,6 +6,7 @@ import { PartidoService, Partido } from '../services/partidoService';
 import { CompetenciaService, Competencia } from '../../competencias/services/competenciaService';
 import { TemporadaService, Temporada } from '../../competencias/services/temporadaService';
 import { FaseService, Fase } from '../../competencias/services/faseService';
+import { EquipoService, Equipo } from '../../equipos/services/equipoService';
 import { TablaPosiciones } from '../../../shared/components/TablaPosiciones/TablaPosiciones';
 
 const Partidos: React.FC = () => {
@@ -13,7 +14,7 @@ const Partidos: React.FC = () => {
   const [competenciaId, setCompetenciaId] = useState('');
   const [temporadaId, setTemporadaId] = useState('');
   const [faseId, setFaseId] = useState('');
-  const [equipo, setEquipo] = useState('');
+  const [equipoId, setEquipoId] = useState('');
   const [fecha, setFecha] = useState('');
   const [estado, setEstado] = useState('');
   const [esAmistoso, setEsAmistoso] = useState(false);
@@ -22,10 +23,12 @@ const Partidos: React.FC = () => {
   const [competencias, setCompetencias] = useState<Competencia[]>([]);
   const [temporadas, setTemporadas] = useState<Temporada[]>([]);
   const [fases, setFases] = useState<Fase[]>([]);
+  const [equipos, setEquipos] = useState<Equipo[]>([]);
 
-  // Cargar competencias al inicio
+  // Cargar competencias y equipos al inicio
   useEffect(() => {
     CompetenciaService.getAll().then(setCompetencias).catch(console.error);
+    EquipoService.getAll().then(setEquipos).catch(console.error);
   }, []);
 
   // Cargar temporadas cuando cambia competencia
@@ -53,13 +56,13 @@ const Partidos: React.FC = () => {
     if (competenciaId) filters.competencia = competenciaId;
     if (temporadaId) filters.temporada = temporadaId;
     if (faseId) filters.fase = faseId;
-    if (equipo) filters.equipo = equipo; // Backend debe soportar búsqueda por nombre o ID
+    if (equipoId) filters.equipo = equipoId;
     if (fecha) filters.fecha = fecha;
     if (estado) filters.estado = estado;
     if (esAmistoso) filters.tipo = 'amistoso';
 
     return PartidoService.getAll(filters);
-  }, [competenciaId, temporadaId, faseId, equipo, fecha, estado, esAmistoso]);
+  }, [competenciaId, temporadaId, faseId, equipoId, fecha, estado, esAmistoso]);
 
   const { data: partidos, loading, error, refetch } = useEntity<Partido[]>(fetchPartidos);
   const [selectedPartido, setSelectedPartido] = useState<Partido | null>(null);
@@ -121,13 +124,16 @@ const Partidos: React.FC = () => {
               ))}
             </select>
 
-            <input
-              type="text"
-              placeholder="Buscar equipo..."
-              value={equipo}
-              onChange={(e) => setEquipo(e.target.value)}
+            <select
+              value={equipoId}
+              onChange={(e) => setEquipoId(e.target.value)}
               className="rounded-lg border-slate-300 text-sm"
-            />
+            >
+              <option value="">Todos los equipos</option>
+              {equipos.map((e) => (
+                <option key={e.id} value={e.id}>{e.nombre}</option>
+              ))}
+            </select>
 
             <input
               type="date"

@@ -2,23 +2,40 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../../app/providers/AuthContext';
 import api, { PublicInsights } from '../../../shared/api/client';
+import { PartidoService, Partido } from '../../partidos/services/partidoService';
+import { CompetenciaService, Competencia } from '../../competencias/services/competenciaService';
+import PartidoCard from '../../../shared/components/PartidoCard';
+import { CompetenciaCard } from '../../../shared/components';
 
 const LandingPage: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const [insights, setInsights] = useState<PublicInsights | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  const [partidosRecientes, setPartidosRecientes] = useState<Partido[]>([]);
+  const [partidosProximos, setPartidosProximos] = useState<Partido[]>([]);
+  const [competencias, setCompetencias] = useState<Competencia[]>([]);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const data = await api.insights();
+        const [insightsData, recientes, proximos, comps] = await Promise.all([
+          api.insights(),
+          PartidoService.getFinalizados(),
+          PartidoService.getProximos(),
+          CompetenciaService.getAll()
+        ]);
+        
         if (!mounted) return;
-        setInsights(data);
+        setInsights(insightsData);
+        setPartidosRecientes(recientes.slice(0, 10));
+        setPartidosProximos(proximos.slice(0, 10));
+        setCompetencias(comps);
       } catch (e: any) {
         if (!mounted) return;
-        setError(e?.message || 'Error cargando insights');
+        setError(e?.message || 'Error cargando datos');
       } finally {
         if (mounted) setLoading(false);
       }
@@ -71,30 +88,82 @@ const LandingPage: React.FC = () => {
           )}
         </div>
       </section>
-
-      {/* Stats Section */}
-      <section className="px-4 py-16">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-12 text-center">
-            <h2 className="mb-4 text-3xl font-bold text-slate-900">Estadísticas de la comunidad</h2>
-            <p className="text-lg text-slate-600">Únete a una comunidad creciente de jugadores y equipos</p>
+      
+      {/* partidos recientes Section (10partidos) */}    
+      <section className="px-4 py-12 bg-white">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-2xl font-bold text-slate-900">Resultados Recientes</h2>
+            <Link to="/partidos" className="text-brand-600 hover:text-brand-700 font-medium">
+              Ver todos →
+            </Link>
           </div>
+          
+          {partidosRecientes.length > 0 ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {partidosRecientes.map(partido => (
+                <PartidoCard 
+                  key={partido.id || partido._id} 
+                  partido={partido} 
+                  variante="resultado" 
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="text-slate-500 text-center py-8">No hay resultados recientes.</p>
+          )}
+        </div>
+      </section>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-            <h3 className="mb-6 text-xl font-semibold text-slate-800">Números actuales</h3>
-
-            {loading && <p className="text-slate-500">Cargando estadísticas…</p>}
-            {error && <p className="text-rose-600">{error}</p>}
-
-            {insights && (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                <StatCard label="Jugadores" value={insights.totals.jugadores} icon="👤" />
-                <StatCard label="Equipos" value={insights.totals.equipos} icon="👥" />
-                <StatCard label="Partidos" value={insights.totals.partidos} icon="⚽" />
-                <StatCard label="Organizaciones" value={insights.totals.organizaciones} icon="🏢" />
-              </div>
-            )}
+      {/* Proximos partidos Section (10partidos)*/}
+      <section className="px-4 py-12 bg-slate-50">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-2xl font-bold text-slate-900">Próximos Partidos</h2>
+            <Link to="/partidos" className="text-brand-600 hover:text-brand-700 font-medium">
+              Ver calendario →
+            </Link>
           </div>
+          
+          {partidosProximos.length > 0 ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {partidosProximos.map(partido => (
+                <PartidoCard 
+                  key={partido.id || partido._id} 
+                  partido={partido} 
+                  variante="proximo" 
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="text-slate-500 text-center py-8">No hay partidos programados próximamente.</p>
+          )}
+        </div>
+      </section>
+
+      {/* competencias Section */}
+      <section className="px-4 py-12 bg-white">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-2xl font-bold text-slate-900">Competencias</h2>
+            <Link to="/competencias" className="text-brand-600 hover:text-brand-700 font-medium">
+              Ver todas →
+            </Link>
+          </div>
+          
+          {competencias.length > 0 ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {competencias.map(competencia => (
+                <CompetenciaCard 
+                  key={competencia.id || competencia._id} 
+                  competencia={competencia} 
+                  variante={competencia.estado as any || 'proximamente'} 
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="text-slate-500 text-center py-8">No hay competencias activas.</p>
+          )}
         </div>
       </section>
 

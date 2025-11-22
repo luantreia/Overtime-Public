@@ -59,6 +59,11 @@ const CompetenciaCard = ({ competencia, variante = 'proximamente', actions, onCl
           {competencia.descripcion && (
             <p className="text-sm text-slate-500">{competencia.descripcion}</p>
           )}
+          {competencia.organizacion && (
+            <p className="mt-1 text-sm font-medium text-brand-600">
+              Org: {competencia.organizacion.nombre || 'Desconocida'}
+            </p>
+          )}
         </div>
         <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${badge.className}`}>
           {badge.label}

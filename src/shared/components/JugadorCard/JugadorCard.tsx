@@ -40,8 +40,23 @@ const JugadorCard = ({ jugador, variante = 'activo', actions, onClick }: Jugador
       tabIndex={onClick ? 0 : undefined}
       onKeyDown={handleKeyDown}
     >
-      <header className="flex items-start justify-between gap-4">
-        <div>
+      <div className="flex items-center gap-4">
+        <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-full bg-slate-100">
+          {jugador.imagen ? (
+            <img
+              src={jugador.imagen}
+              alt={jugador.nombre}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-slate-200 text-slate-400">
+              <svg className="h-8 w-8" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            </div>
+          )}
+        </div>
+        <div className="flex-1">
           <p className="text-xs uppercase tracking-wide text-slate-400">
             {jugador.posicion || 'Sin posición'}
           </p>
@@ -51,14 +66,11 @@ const JugadorCard = ({ jugador, variante = 'activo', actions, onClick }: Jugador
           {jugador.numero && (
             <p className="text-sm text-slate-500">Camiseta #{jugador.numero}</p>
           )}
-          {jugador.posicion && (
-            <p className="text-xs text-slate-400">{jugador.posicion}</p>
-          )}
         </div>
         <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${badge.className}`}>
           {badge.label}
         </span>
-      </header>
+      </div>
 
       {jugador.equipo && (
         <div className="rounded-xl bg-slate-50 px-4 py-3 text-sm">

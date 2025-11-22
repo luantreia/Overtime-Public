@@ -25,7 +25,6 @@ const App: React.FC = () => (
         <Route path="/jugadores" element={<Jugadores />} />
         <Route path="/equipos" element={<Equipos />} />
         <Route path="/competencias" element={<Competencias />} />
-        <Route path="/organizaciones" element={<Organizaciones />} />
         <Route path="/partidos" element={<Partidos />} />
         <Route path="/perfil" element={
           <ProtectedRoute>

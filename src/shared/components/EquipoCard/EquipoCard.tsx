@@ -28,8 +28,16 @@ const EquipoCard = ({ equipo, actions, onClick }: EquipoCardProps) => {
     >
       <header className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-100 font-semibold text-brand-600">
-            {equipo.nombre.slice(0, 2).toUpperCase()}
+          <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-100 font-semibold text-brand-600">
+            {equipo.imagen ? (
+              <img
+                src={equipo.imagen}
+                alt={equipo.nombre}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <span className="text-xl">{equipo.nombre.slice(0, 2).toUpperCase()}</span>
+            )}
           </div>
           <div>
             <h3 className="text-lg font-semibold text-slate-900">{equipo.nombre}</h3>
