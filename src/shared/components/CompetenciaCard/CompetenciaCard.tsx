@@ -25,7 +25,7 @@ const badgeStyles = {
 } as const;
 
 const CompetenciaCard = ({ competencia, variante = 'proximamente', actions, onClick }: CompetenciaCardProps) => {
-  const badge = badgeStyles[variante];
+  const badge = badgeStyles[variante] || badgeStyles.proximamente;
 
   const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
     if (!onClick) return;
