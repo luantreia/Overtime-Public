@@ -60,6 +60,15 @@ export interface SolicitudJugador {
     origen?: 'equipo' | 'jugador';
 }
 
+export interface SetPartido {
+    _id: string;
+    numeroSet: number;
+    estadoSet: string;
+    ganadorSet: string;
+    marcadorLocal?: number;
+    marcadorVisitante?: number;
+}
+
 export interface Partido {
     id: string;
     _id?: string;
@@ -89,5 +98,6 @@ export interface Partido {
     imagen?: string;
     modoEstadisticas?: any;
     modoVisualizacion?: any;
+    sets?: SetPartido[];
     [key: string]: any;
 }

@@ -120,7 +120,7 @@ const NotificacionesPage = () => {
 
   const filtradas = useMemo(() => {
     if (!jugadorSeleccionado) return [] as SolicitudEdicion[];
-    const byJugador = (s: SolicitudEdicion) => perteneceAlJugador(s, jugadorSeleccionado.id);
+    const byJugador = (s: SolicitudEdicion) => perteneceAlJugador(s, jugadorSeleccionado.id || '');
     const byCat = (s: SolicitudEdicion) => (fCategoria === 'Todas' ? true : categoriaDeTipo((s as any).tipo) === fCategoria);
     const byQ = (s: SolicitudEdicion) => {
       if (!q) return true;
