@@ -45,6 +45,16 @@ const Navbar: React.FC = () => {
           {isAuthenticated ? (
             <>
               <NavLink
+                to="/solicitudes"
+                className={({ isActive }) =>
+                  `rounded-lg px-3 py-2 transition-colors ${
+                    isActive ? 'bg-indigo-100 text-indigo-700' : 'hover:bg-slate-100'
+                  }`
+                }
+              >
+                Mis Solicitudes
+              </NavLink>
+              <NavLink
                 to="/perfil"
                 className={({ isActive }) =>
                   `rounded-lg px-3 py-2 transition-colors ${

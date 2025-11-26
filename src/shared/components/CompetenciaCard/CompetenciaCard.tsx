@@ -28,8 +28,11 @@ const CompetenciaCard = ({ competencia, variante = 'proximamente', actions, onCl
   // Defensa contra datos corruptos
   if (!competencia) return null;
 
+  // Validar que variante sea una clave válida, si no usar proximamente
+  const validVariante = (variante && variante in badgeStyles) ? variante : 'proximamente';
+  
   // Asegurar que siempre tengamos un estilo de badge válido
-  const badge = badgeStyles[variante] || badgeStyles.proximamente;
+  const badge = badgeStyles[validVariante];
 
   // Si por alguna razón badge sigue siendo undefined (imposible teóricamente), fallback de emergencia
   if (!badge) {

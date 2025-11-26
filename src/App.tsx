@@ -5,8 +5,8 @@ import LandingPage from './features/dashboard/pages/LandingPage';
 import { Jugadores } from './features/jugadores';
 import { Equipos } from './features/equipos';
 import { Competencias } from './features/competencias';
-import { Organizaciones } from './features/organizaciones';
 import { Partidos } from './features/partidos';
+import { SolicitudesPage } from './features/solicitudes';
 import { Perfil } from './features/perfil';
 import LoginPage from './features/auth/pages/LoginPage';
 import RegisterPage from './features/auth/pages/RegisterPage';
@@ -26,6 +26,11 @@ const App: React.FC = () => (
         <Route path="/equipos" element={<Equipos />} />
         <Route path="/competencias" element={<Competencias />} />
         <Route path="/partidos" element={<Partidos />} />
+        <Route path="/solicitudes" element={
+          <ProtectedRoute>
+            <SolicitudesPage />
+          </ProtectedRoute>
+        } />
         <Route path="/perfil" element={
           <ProtectedRoute>
             <Perfil />

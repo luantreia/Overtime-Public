@@ -1,3 +1,3 @@
-// Exportaciones del módulo de solicitudes de edición
+export { default as SolicitudesPage } from './pages/SolicitudesPage';
 export * from './services/solicitudesEdicionService';
-export * from '../../types/solicitudesEdicion';
+export * from '../../shared/types/solicitudesEdicion';
