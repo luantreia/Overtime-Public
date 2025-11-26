@@ -49,11 +49,13 @@ const Jugadores: React.FC = () => {
           </div>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {jugadores.map((jugador) => (
+            {jugadores.map((jugador) => {
+              const jugadorId = jugador._id || jugador.id;
+              return (
               <JugadorCard
-                key={jugador.id}
+                key={jugadorId}
                 jugador={jugador}
-                variante={jugador.activo ? 'activo' : 'inactivo'}
+                variante="activo"
                 actions={
                   <button
                     onClick={() => console.log('Ver detalles de', jugador.nombre)}
@@ -63,7 +65,8 @@ const Jugadores: React.FC = () => {
                   </button>
                 }
               />
-            ))}
+            );
+            })}
           </div>
         )}
       </div>

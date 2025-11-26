@@ -1,17 +1,19 @@
 import { fetchWithAuth } from '../../../utils/apiClient';
 
 export interface Jugador {
-  id: string;
+  _id?: string;
+  id?: string;
   nombre: string;
-  numero?: number;
-  posicion?: string;
-  equipoId?: string;
-  equipo?: {
-    id: string;
-    nombre: string;
-  };
-  imagen?: string;
-  activo?: boolean;
+  alias?: string;
+  fechaNacimiento: string | Date;
+  genero?: 'masculino' | 'femenino' | 'otro';
+  foto?: string;
+  nacionalidad?: string;
+  creadoPor?: string;
+  administradores?: string[];
+  edad?: number;
+  createdAt?: string;
+  updatedAt?: string;
   [key: string]: any;
 }
 
@@ -36,7 +38,7 @@ export class JugadorService {
     return fetchWithAuth<Jugador>(`${this.API_ENDPOINT}/${id}`);
   }
 
-  static async create(data: Omit<Jugador, 'id'>): Promise<Jugador> {
+  static async create(data: Omit<Jugador, '_id' | 'id' | 'createdAt' | 'updatedAt'>): Promise<Jugador> {
     return fetchWithAuth<Jugador>(`${this.API_ENDPOINT}`, {
       method: 'POST',
       body: JSON.stringify(data),
@@ -54,9 +56,5 @@ export class JugadorService {
     return fetchWithAuth<void>(`${this.API_ENDPOINT}/${id}`, {
       method: 'DELETE',
     });
-  }
-
-  static async getByEquipoId(equipoId: string): Promise<Jugador[]> {
-    return fetchWithAuth<Jugador[]>(`${this.API_ENDPOINT}?equipoId=${equipoId}`);
   }
 }

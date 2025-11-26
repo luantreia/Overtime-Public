@@ -1,5 +1,6 @@
 import type { KeyboardEvent, ReactNode } from 'react';
 import type { Jugador } from '../../../features/jugadores/services/jugadorService';
+import { formatDate } from '../../../utils/formatDate';
 
 export interface JugadorCardProps {
   jugador: Jugador;
@@ -20,7 +21,12 @@ const badgeStyles = {
 } as const;
 
 const JugadorCard = ({ jugador, variante = 'activo', actions, onClick }: JugadorCardProps) => {
+  if (!jugador) return null;
+  
   const badge = badgeStyles[variante];
+  const fotoUrl = jugador.foto;
+  const edad = jugador.edad ? `${jugador.edad} años` : null;
+  const fechaNacimiento = jugador.fechaNacimiento ? formatDate(jugador.fechaNacimiento) : null;
 
   const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
     if (!onClick) return;
@@ -42,9 +48,9 @@ const JugadorCard = ({ jugador, variante = 'activo', actions, onClick }: Jugador
     >
       <div className="flex items-center gap-4">
         <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-full bg-slate-100">
-          {jugador.imagen ? (
+          {fotoUrl ? (
             <img
-              src={jugador.imagen}
+              src={fotoUrl}
               alt={jugador.nombre}
               className="h-full w-full object-cover"
             />
@@ -58,13 +64,13 @@ const JugadorCard = ({ jugador, variante = 'activo', actions, onClick }: Jugador
         </div>
         <div className="flex-1">
           <p className="text-xs uppercase tracking-wide text-slate-400">
-            {jugador.posicion || 'Sin posición'}
+            {jugador.genero ? jugador.genero.charAt(0).toUpperCase() + jugador.genero.slice(1) : 'Sin género'}
           </p>
           <h3 className="text-lg font-semibold text-slate-900">
             {jugador.nombre}
           </h3>
-          {jugador.numero && (
-            <p className="text-sm text-slate-500">Camiseta #{jugador.numero}</p>
+          {jugador.alias && (
+            <p className="text-sm text-slate-500">Alias: {jugador.alias}</p>
           )}
         </div>
         <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${badge.className}`}>
@@ -72,10 +78,26 @@ const JugadorCard = ({ jugador, variante = 'activo', actions, onClick }: Jugador
         </span>
       </div>
 
-      {jugador.equipo && (
-        <div className="rounded-xl bg-slate-50 px-4 py-3 text-sm">
-          <p className="font-semibold text-slate-700">Equipo</p>
-          <p className="text-slate-900">{jugador.equipo.nombre}</p>
+      {(edad || fechaNacimiento) && (
+        <div className="rounded-xl bg-slate-50 px-4 py-3 text-sm space-y-1">
+          {edad && (
+            <div>
+              <p className="font-semibold text-slate-700">Edad</p>
+              <p className="text-slate-900">{edad}</p>
+            </div>
+          )}
+          {fechaNacimiento && (
+            <div>
+              <p className="font-semibold text-slate-700">Fecha de nacimiento</p>
+              <p className="text-slate-900">{fechaNacimiento}</p>
+            </div>
+          )}
+          {jugador.nacionalidad && (
+            <div>
+              <p className="font-semibold text-slate-700">Nacionalidad</p>
+              <p className="text-slate-900">{jugador.nacionalidad}</p>
+            </div>
+          )}
         </div>
       )}
 
