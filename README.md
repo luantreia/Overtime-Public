@@ -1,22 +1,19 @@
-# Overtime Public (TypeScript)
+# Overtime Public Page (Actualizada TS)
 
-Frontend público de Overtime migrado a TypeScript.
+El portal público de cara a la comunidad y fans. Es la "vitrina" del ecosistema.
 
-## Requisitos
-- Node 18+
+## 🚀 Funcionalidades Principales
+- **Landing Page**: Presentación de la liga/organización.
+- **Resultados y Tablas**: Visualización de fixtures, posiciones y estadísticas.
+- **Perfiles Públicos**: Vista de jugadores y equipos.
+- **Autenticación**: Login/Registro para usuarios que luego derivan a sus paneles (Manager/DT).
+- **Dashboard Usuario**: Acceso rápido a notificaciones y perfil personal.
 
-## Variables de entorno
-Crea un archivo `.env` basado en `.env.example`:
+## 🛠 Tech Stack
+- **Framework**: React
+- **Lenguaje**: TypeScript
+- **Estilos**: Tailwind CSS
 
-```
-REACT_APP_API_URL=http://localhost:5000/api
-```
-
-## Scripts
-- `npm install`
-- `npm start`
-- `npm run build`
-
-## Notas
-- Cliente HTTP tipado en `src/utils/apiClient.ts`.
-- Tailwind habilitado (ver `tailwind.config.js`).
+## ⚡ Setup
+1. `npm install`
+2. `npm start`

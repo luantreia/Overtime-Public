@@ -4,7 +4,7 @@ import Navbar from './app/layout/Navbar';
 import LandingPage from './features/dashboard/pages/LandingPage';
 import { Jugadores } from './features/jugadores';
 import { Equipos } from './features/equipos';
-import { Competencias } from './features/competencias';
+import { Competencias, CompetenciaDetalle } from './features/competencias';
 import { Partidos } from './features/partidos';
 import { SolicitudesPage } from './features/solicitudes';
 import { Perfil } from './features/perfil';
@@ -25,6 +25,7 @@ const App: React.FC = () => (
         <Route path="/jugadores" element={<Jugadores />} />
         <Route path="/equipos" element={<Equipos />} />
         <Route path="/competencias" element={<Competencias />} />
+        <Route path="/competencias/:id" element={<CompetenciaDetalle />} />
         <Route path="/partidos" element={<Partidos />} />
         <Route path="/solicitudes" element={
           <ProtectedRoute>

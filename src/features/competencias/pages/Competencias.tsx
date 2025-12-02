@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { CompetenciaCard } from '../../../shared/components';
 import { useEntity } from '../../../shared/hooks';
 import { CompetenciaService, type Competencia } from '../services/competenciaService';
@@ -20,6 +21,7 @@ const mapEstadoVariante = (estado: any): 'proximamente' | 'en_curso' | 'finaliza
 };
 
 const Competencias: React.FC = () => {
+  const navigate = useNavigate();
   const { data: competencias, loading, error, refetch } = useEntity<Competencia[]>(
     useCallback(() => CompetenciaService.getAll(), [])
   );
@@ -72,7 +74,7 @@ const Competencias: React.FC = () => {
                 variante={mapEstadoVariante(competencia.estado)}
                 actions={
                   <button
-                    onClick={() => console.log('Ver detalles de', competencia.nombre)}
+                    onClick={() => navigate(`/competencias/${competencia.id}`)}
                     className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm text-white hover:bg-brand-700"
                   >
                     Ver detalles
