@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useEntity } from '../../../shared/hooks';
 import { CompetenciaService, type Competencia } from '../services/competenciaService';
 import { RankedService, type LeaderboardItem } from '../services/rankedService';
+import { PartidoService, type Partido } from '../../partidos/services/partidoService';
+import PartidoCard from '../../../shared/components/PartidoCard/PartidoCard';
 
 const CompetenciaDetalle: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -12,6 +14,10 @@ const CompetenciaDetalle: React.FC = () => {
   // State for Leaderboard
   const [leaderboard, setLeaderboard] = useState<LeaderboardItem[]>([]);
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
+
+  // State for Partidos
+  const [partidos, setPartidos] = useState<Partido[]>([]);
+  const [loadingPartidos, setLoadingPartidos] = useState(false);
 
   const { data: competencia, loading, error } = useEntity<Competencia>(
     useCallback(() => {
@@ -23,6 +29,9 @@ const CompetenciaDetalle: React.FC = () => {
   useEffect(() => {
     if (competencia && (competencia as any).rankedEnabled && activeTab === 'leaderboard') {
       loadLeaderboard();
+    }
+    if (competencia && activeTab === 'partidos') {
+      loadPartidos();
     }
   }, [competencia, activeTab]);
 
@@ -45,6 +54,19 @@ const CompetenciaDetalle: React.FC = () => {
       console.error('Error loading leaderboard:', err);
     } finally {
       setLoadingLeaderboard(false);
+    }
+  };
+
+  const loadPartidos = async () => {
+    if (!competencia) return;
+    setLoadingPartidos(true);
+    try {
+      const res = await PartidoService.getByCompetenciaId(competencia.id);
+      setPartidos(res);
+    } catch (err) {
+      console.error('Error loading partidos:', err);
+    } finally {
+      setLoadingPartidos(false);
     }
   };
 
@@ -120,6 +142,16 @@ const CompetenciaDetalle: React.FC = () => {
             >
               Información
             </button>
+            <button
+              onClick={() => setActiveTab('partidos')}
+              className={`${
+                activeTab === 'partidos'
+                  ? 'border-brand-500 text-brand-600'
+                  : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
+              } whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium`}
+            >
+              Partidos
+            </button>
             {isRanked && (
               <button
                 onClick={() => setActiveTab('leaderboard')}
@@ -132,7 +164,6 @@ const CompetenciaDetalle: React.FC = () => {
                 Leaderboard
               </button>
             )}
-            {/* Add Partidos tab later */}
           </nav>
         </div>
 
@@ -155,6 +186,27 @@ const CompetenciaDetalle: React.FC = () => {
                   <dd className="mt-1 text-sm text-slate-900">{(competencia as any).organizacion?.nombre || 'N/A'}</dd>
                 </div>
               </dl>
+            </div>
+          )}
+
+          {activeTab === 'partidos' && (
+            <div className="p-6">
+              {loadingPartidos ? (
+                <div className="p-12 text-center">
+                  <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-brand-600 border-t-transparent"></div>
+                  <p className="mt-2 text-sm text-slate-500">Cargando partidos...</p>
+                </div>
+              ) : partidos.length === 0 ? (
+                <div className="p-12 text-center text-slate-500">
+                  No hay partidos programados para esta competencia.
+                </div>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {partidos.map((partido) => (
+                    <PartidoCard key={partido.id} partido={partido} />
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
