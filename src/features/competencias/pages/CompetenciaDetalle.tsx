@@ -44,14 +44,12 @@ const CompetenciaDetalle: React.FC = () => {
     }
   }, [competencia, activeTab]);
 
-  // Effect to load phases when season changes
+  // Effect to load phases or leaderboard when season changes
   useEffect(() => {
-    if (selectedTemporada) {
-      if (activeTab === 'leaderboard') {
-        loadLeaderboard();
-      } else {
-        loadFases(selectedTemporada);
-      }
+    if (activeTab === 'leaderboard') {
+      loadLeaderboard();
+    } else if (selectedTemporada) {
+      loadFases(selectedTemporada);
     } else {
       setFases([]);
       setSelectedFase('');
@@ -407,7 +405,7 @@ const CompetenciaDetalle: React.FC = () => {
                   onChange={(e) => setSelectedTemporada(e.target.value)}
                   className="block w-full rounded-md border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 border"
                 >
-                  {temporadas.length === 0 && <option value="">No hay temporadas</option>}
+                  <option value="">Histórico Global</option>
                   {temporadas.map((t) => (
                     <option key={t._id} value={t._id}>{t.nombre}</option>
                   ))}
@@ -421,7 +419,7 @@ const CompetenciaDetalle: React.FC = () => {
                 </div>
               ) : leaderboard.length === 0 ? (
                 <div className="p-12 text-center text-slate-500">
-                  No hay datos de ranking disponibles para esta temporada.
+                  No hay datos de ranking disponibles para esta selección.
                 </div>
               ) : (
                 <div className="overflow-x-auto">
