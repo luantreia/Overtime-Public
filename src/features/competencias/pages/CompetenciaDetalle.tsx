@@ -60,11 +60,13 @@ const CompetenciaDetalle: React.FC = () => {
   useEffect(() => {
     if (selectedFase) {
       loadFaseData(selectedFase);
+    } else if (selectedTemporada && activeTab === 'partidos') {
+      loadTemporadaMatches(selectedTemporada);
     } else {
       setFaseDetails(null);
       setFasePartidos([]);
     }
-  }, [selectedFase]);
+  }, [selectedFase, selectedTemporada, activeTab]);
 
   const loadLeaderboard = async () => {
     if (!competencia) return;
@@ -114,6 +116,8 @@ const CompetenciaDetalle: React.FC = () => {
       // Select the last one by default
       if (res.length > 0) {
         setSelectedFase(res[res.length - 1]._id);
+      } else {
+        setSelectedFase('');
       }
     } catch (err) {
       console.error('Error loading fases:', err);
@@ -134,6 +138,19 @@ const CompetenciaDetalle: React.FC = () => {
       setFasePartidos(matches);
     } catch (err) {
       console.error('Error loading fase data:', err);
+    } finally {
+      setLoadingResultados(false);
+    }
+  };
+
+  const loadTemporadaMatches = async (temporadaId: string) => {
+    setLoadingResultados(true);
+    try {
+      setFaseDetails(null);
+      const matches = await PartidoService.getAll({ temporadaId });
+      setFasePartidos(matches);
+    } catch (err) {
+      console.error('Error loading temporada matches:', err);
     } finally {
       setLoadingResultados(false);
     }
@@ -294,7 +311,7 @@ const CompetenciaDetalle: React.FC = () => {
                     className="block w-full rounded-md border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 border"
                     disabled={!selectedTemporada || fases.length === 0}
                   >
-                    {fases.length === 0 && <option value="">No hay fases</option>}
+                    <option value="">Todas las fases</option>
                     {fases.map((f) => (
                       <option key={f._id} value={f._id}>{f.nombre}</option>
                     ))}
@@ -307,13 +324,13 @@ const CompetenciaDetalle: React.FC = () => {
                   <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-brand-600 border-t-transparent"></div>
                   <p className="mt-2 text-sm text-slate-500">Cargando partidos...</p>
                 </div>
-              ) : !selectedFase ? (
+              ) : !selectedFase && !selectedTemporada ? (
                 <div className="p-12 text-center text-slate-500">
-                  Selecciona una temporada y una fase para ver los partidos.
+                  Selecciona una temporada para ver los partidos.
                 </div>
               ) : fasePartidos.length === 0 ? (
                 <div className="p-12 text-center text-slate-500">
-                  No hay partidos registrados en esta fase.
+                  No hay partidos registrados.
                 </div>
               ) : (
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
