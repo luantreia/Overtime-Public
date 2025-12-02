@@ -26,11 +26,13 @@ export class CompetenciaService {
     }
 
     const url = queryParams.toString() ? `${this.API_ENDPOINT}?${queryParams}` : this.API_ENDPOINT;
-    return fetchWithAuth<Competencia[]>(url);
+    const data = await fetchWithAuth<any[]>(url);
+    return data.map(item => ({ ...item, id: item._id || item.id }));
   }
 
   static async getById(id: string): Promise<Competencia> {
-    return fetchWithAuth<Competencia>(`${this.API_ENDPOINT}/${id}`);
+    const data = await fetchWithAuth<any>(`${this.API_ENDPOINT}/${id}`);
+    return { ...data, id: data._id || data.id };
   }
 
   static async create(data: Omit<Competencia, 'id'>): Promise<Competencia> {

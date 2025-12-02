@@ -72,9 +72,13 @@ const Competencias: React.FC = () => {
                 key={competencia.id}
                 competencia={competencia}
                 variante={mapEstadoVariante(competencia.estado)}
+                onClick={() => navigate(`/competencias/${competencia.id}`)}
                 actions={
                   <button
-                    onClick={() => navigate(`/competencias/${competencia.id}`)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/competencias/${competencia.id}`);
+                    }}
                     className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm text-white hover:bg-brand-700"
                   >
                     Ver detalles
