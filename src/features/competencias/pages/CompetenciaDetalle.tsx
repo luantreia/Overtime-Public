@@ -19,10 +19,6 @@ const CompetenciaDetalle: React.FC = () => {
   const [leaderboard, setLeaderboard] = useState<LeaderboardItem[]>([]);
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
 
-  // State for Partidos
-  const [partidos, setPartidos] = useState<Partido[]>([]);
-  const [loadingPartidos, setLoadingPartidos] = useState(false);
-
   // State for Resultados (Temporadas/Fases)
   const [temporadas, setTemporadas] = useState<Temporada[]>([]);
   const [selectedTemporada, setSelectedTemporada] = useState<string>('');
@@ -43,10 +39,7 @@ const CompetenciaDetalle: React.FC = () => {
     if (competencia && (competencia as any).rankedEnabled && activeTab === 'leaderboard') {
       loadLeaderboard();
     }
-    if (competencia && activeTab === 'partidos') {
-      loadPartidos();
-    }
-    if (competencia && activeTab === 'resultados') {
+    if (competencia && (activeTab === 'partidos' || activeTab === 'resultados')) {
       loadTemporadas();
     }
   }, [competencia, activeTab]);
@@ -90,19 +83,6 @@ const CompetenciaDetalle: React.FC = () => {
       console.error('Error loading leaderboard:', err);
     } finally {
       setLoadingLeaderboard(false);
-    }
-  };
-
-  const loadPartidos = async () => {
-    if (!competencia) return;
-    setLoadingPartidos(true);
-    try {
-      const res = await PartidoService.getByCompetenciaId(competencia.id);
-      setPartidos(res);
-    } catch (err) {
-      console.error('Error loading partidos:', err);
-    } finally {
-      setLoadingPartidos(false);
     }
   };
 
@@ -287,44 +267,55 @@ const CompetenciaDetalle: React.FC = () => {
 
           {activeTab === 'partidos' && (
             <div className="p-6">
-              {loadingPartidos ? (
+              <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                <div className="w-full sm:w-1/3">
+                  <label htmlFor="temporada-partidos" className="block text-sm font-medium text-slate-700 mb-1">Temporada</label>
+                  <select
+                    id="temporada-partidos"
+                    value={selectedTemporada}
+                    onChange={(e) => setSelectedTemporada(e.target.value)}
+                    className="block w-full rounded-md border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 border"
+                  >
+                    {temporadas.length === 0 && <option value="">No hay temporadas</option>}
+                    {temporadas.map((t) => (
+                      <option key={t._id} value={t._id}>{t.nombre}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="w-full sm:w-1/3">
+                  <label htmlFor="fase-partidos" className="block text-sm font-medium text-slate-700 mb-1">Fase</label>
+                  <select
+                    id="fase-partidos"
+                    value={selectedFase}
+                    onChange={(e) => setSelectedFase(e.target.value)}
+                    className="block w-full rounded-md border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 border"
+                    disabled={!selectedTemporada || fases.length === 0}
+                  >
+                    {fases.length === 0 && <option value="">No hay fases</option>}
+                    {fases.map((f) => (
+                      <option key={f._id} value={f._id}>{f.nombre}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {loadingResultados ? (
                 <div className="p-12 text-center">
                   <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-brand-600 border-t-transparent"></div>
                   <p className="mt-2 text-sm text-slate-500">Cargando partidos...</p>
                 </div>
-              ) : partidos.length === 0 ? (
+              ) : !selectedFase ? (
                 <div className="p-12 text-center text-slate-500">
-                  No hay partidos programados para esta competencia.
+                  Selecciona una temporada y una fase para ver los partidos.
+                </div>
+              ) : fasePartidos.length === 0 ? (
+                <div className="p-12 text-center text-slate-500">
+                  No hay partidos registrados en esta fase.
                 </div>
               ) : (
-                <div className="space-y-8">
-                  {Object.entries(
-                    partidos.reduce((acc, partido) => {
-                      const temporada = partido.fase?.temporada?.nombre || 'Temporada Regular';
-                      const fase = partido.fase?.nombre || 'Partidos Generales';
-                      
-                      if (!acc[temporada]) acc[temporada] = {};
-                      if (!acc[temporada][fase]) acc[temporada][fase] = [];
-                      
-                      acc[temporada][fase].push(partido);
-                      return acc;
-                    }, {} as Record<string, Record<string, Partido[]>>)
-                  ).map(([temporada, fases]) => (
-                    <div key={temporada}>
-                      <h3 className="text-xl font-bold text-slate-800 mb-4 border-b pb-2">{temporada}</h3>
-                      <div className="space-y-6">
-                        {Object.entries(fases).map(([fase, matches]) => (
-                          <div key={fase}>
-                            <h4 className="text-lg font-semibold text-slate-700 mb-3 pl-2 border-l-4 border-brand-500">{fase}</h4>
-                            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                              {matches.map((partido) => (
-                                <PartidoCard key={partido.id} partido={partido} />
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {fasePartidos.map((partido) => (
+                    <PartidoCard key={partido.id} partido={partido} />
                   ))}
                 </div>
               )}
