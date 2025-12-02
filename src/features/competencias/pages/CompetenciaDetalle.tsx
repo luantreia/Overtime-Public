@@ -37,7 +37,7 @@ const CompetenciaDetalle: React.FC = () => {
 
   useEffect(() => {
     if (competencia && (competencia as any).rankedEnabled && activeTab === 'leaderboard') {
-      loadLeaderboard();
+      loadTemporadas();
     }
     if (competencia && (activeTab === 'partidos' || activeTab === 'resultados')) {
       loadTemporadas();
@@ -47,12 +47,16 @@ const CompetenciaDetalle: React.FC = () => {
   // Effect to load phases when season changes
   useEffect(() => {
     if (selectedTemporada) {
-      loadFases(selectedTemporada);
+      if (activeTab === 'leaderboard') {
+        loadLeaderboard();
+      } else {
+        loadFases(selectedTemporada);
+      }
     } else {
       setFases([]);
       setSelectedFase('');
     }
-  }, [selectedTemporada]);
+  }, [selectedTemporada, activeTab]);
 
   // Effect to load phase details and matches when phase changes
   useEffect(() => {
@@ -76,6 +80,7 @@ const CompetenciaDetalle: React.FC = () => {
         modalidad,
         categoria,
         competition: competencia.id,
+        season: selectedTemporada || undefined,
         limit: 50
       });
       setLeaderboard(res.items);
@@ -393,7 +398,22 @@ const CompetenciaDetalle: React.FC = () => {
           )}
 
           {activeTab === 'leaderboard' && (
-            <div className="p-0">
+            <div className="p-6">
+              <div className="mb-6 w-full sm:w-1/3">
+                <label htmlFor="temporada-leaderboard" className="block text-sm font-medium text-slate-700 mb-1">Temporada</label>
+                <select
+                  id="temporada-leaderboard"
+                  value={selectedTemporada}
+                  onChange={(e) => setSelectedTemporada(e.target.value)}
+                  className="block w-full rounded-md border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 border"
+                >
+                  {temporadas.length === 0 && <option value="">No hay temporadas</option>}
+                  {temporadas.map((t) => (
+                    <option key={t._id} value={t._id}>{t.nombre}</option>
+                  ))}
+                </select>
+              </div>
+
               {loadingLeaderboard ? (
                 <div className="p-12 text-center">
                   <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-brand-600 border-t-transparent"></div>
@@ -401,7 +421,7 @@ const CompetenciaDetalle: React.FC = () => {
                 </div>
               ) : leaderboard.length === 0 ? (
                 <div className="p-12 text-center text-slate-500">
-                  No hay datos de ranking disponibles aún.
+                  No hay datos de ranking disponibles para esta temporada.
                 </div>
               ) : (
                 <div className="overflow-x-auto">
