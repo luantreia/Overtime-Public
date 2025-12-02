@@ -17,6 +17,17 @@ export interface Partido {
   resultado?: string;
   competenciaId?: string;
   faseId?: string;
+  etapa?: 'octavos' | 'cuartos' | 'semifinal' | 'final' | 'tercer_puesto' | 'repechaje' | 'otro';
+  fase?: {
+    _id: string;
+    nombre: string;
+    tipo: string;
+    orden: number;
+    temporada?: {
+      _id: string;
+      nombre: string;
+    };
+  };
   imagen?: string;
   [key: string]: any;
 }
@@ -64,6 +75,10 @@ export class PartidoService {
 
   static async getByCompetenciaId(competenciaId: string): Promise<Partido[]> {
     return fetchWithAuth<Partido[]>(`${this.API_ENDPOINT}?competenciaId=${competenciaId}`);
+  }
+
+  static async getByFaseId(faseId: string): Promise<Partido[]> {
+    return fetchWithAuth<Partido[]>(`${this.API_ENDPOINT}?fase=${faseId}`);
   }
 
   static async getByEstado(estado: string): Promise<Partido[]> {
