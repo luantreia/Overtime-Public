@@ -150,7 +150,7 @@ const CompetenciaDetalle: React.FC = () => {
       setFaseDetails(null);
       const matches = await PartidoService.getAll({ 
         temporadaId,
-        competenciaId: competencia.id 
+        competencia: competencia.id 
       });
       setFasePartidos(matches);
     } catch (err) {
