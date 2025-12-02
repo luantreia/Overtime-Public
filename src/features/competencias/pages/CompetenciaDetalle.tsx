@@ -144,10 +144,14 @@ const CompetenciaDetalle: React.FC = () => {
   };
 
   const loadTemporadaMatches = async (temporadaId: string) => {
+    if (!competencia) return;
     setLoadingResultados(true);
     try {
       setFaseDetails(null);
-      const matches = await PartidoService.getAll({ temporadaId });
+      const matches = await PartidoService.getAll({ 
+        temporadaId,
+        competenciaId: competencia.id 
+      });
       setFasePartidos(matches);
     } catch (err) {
       console.error('Error loading temporada matches:', err);
