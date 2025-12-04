@@ -1,6 +1,6 @@
 // Public page API client (no auth required for most endpoints)
 interface ApiConfig { baseUrl?: string; getToken?: () => string | null }
-const defaultConfig: ApiConfig = { baseUrl: process.env.REACT_APP_API_BASE || '/api', getToken: () => localStorage.getItem('auth_token') };
+const defaultConfig: ApiConfig = { baseUrl: 'https://overtime-ddyl.onrender.com/api', getToken: () => localStorage.getItem('auth_token') };
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
 async function request<T>(path: string, options: { method?: HttpMethod; body?: any; auth?: boolean; config?: ApiConfig } = {}): Promise<T> {
   const { method = 'GET', body, auth = false, config = defaultConfig } = options;
