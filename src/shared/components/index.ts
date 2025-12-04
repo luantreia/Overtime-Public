@@ -9,4 +9,5 @@ export { EmptyState, type EmptyStateProps } from './EmptyState';
 export { default as JugadorCard, type JugadorCardProps } from './JugadorCard';
 export { default as EquipoCard, type EquipoCardProps } from './EquipoCard';
 export { default as CompetenciaCard, type CompetenciaCardProps } from './CompetenciaCard';
+export { default as OrganizacionCard, type OrganizacionCardProps } from './OrganizacionCard';
 export { default as PartidoCard, type PartidoCardProps } from './PartidoCard';
