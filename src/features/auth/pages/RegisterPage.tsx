@@ -34,8 +34,15 @@ const RegisterPage: React.FC = () => {
       return;
     }
 
-    if (formData.password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres');
+    // Validaciones según backend: mínimo 8, mayúscula, minúscula y número
+    const password = formData.password;
+    if (password.length < 8) {
+      setError('La contraseña debe tener al menos 8 caracteres');
+      setLoading(false);
+      return;
+    }
+    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/\d/.test(password)) {
+      setError('La contraseña debe incluir mayúscula, minúscula y número');
       setLoading(false);
       return;
     }
@@ -52,11 +59,16 @@ const RegisterPage: React.FC = () => {
 
       navigate('/');
     } catch (err: any) {
-      const message = err?.message || 'Error al registrar usuario';
+      let message = err?.message || 'Error al registrar usuario';
+      // Si el backend devuelve errores de validación, mostrar el primero
+      const details = err?.details;
+      if (details && Array.isArray(details.errors) && details.errors.length > 0) {
+        message = details.errors[0].message || message;
+      }
       setError(message);
       addToast({
         type: 'error',
-        title: 'Error',
+        title: 'Error en registro',
         message
       });
     } finally {
@@ -111,7 +123,7 @@ const RegisterPage: React.FC = () => {
               value={formData.password}
               onChange={handleChange}
               required
-              placeholder="Mínimo 6 caracteres"
+              placeholder="Mínimo 8 caracteres, con mayúscula, minúscula y número"
             />
           </div>
 
