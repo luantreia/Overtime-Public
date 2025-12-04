@@ -45,8 +45,20 @@ export class PartidoService {
       });
     }
 
+    // Ensure we get enough items since backend paginates by default
+    if (!queryParams.has('limit')) {
+      queryParams.append('limit', '1000');
+    }
+
     const url = queryParams.toString() ? `${this.API_ENDPOINT}?${queryParams}` : this.API_ENDPOINT;
-    return fetchWithAuth<Partido[]>(url);
+    const response = await fetchWithAuth<any>(url);
+    
+    if (Array.isArray(response)) {
+      return response;
+    } else if (response && Array.isArray(response.items)) {
+      return response.items;
+    }
+    return [];
   }
 
   static async getPaginated(options?: { page?: number; limit?: number; filters?: Record<string, any> }): Promise<{ items: Partido[]; page: number; limit: number; total: number }> {
@@ -94,15 +106,15 @@ export class PartidoService {
   }
 
   static async getByCompetenciaId(competenciaId: string): Promise<Partido[]> {
-    return fetchWithAuth<Partido[]>(`${this.API_ENDPOINT}?competenciaId=${competenciaId}`);
+    return this.getAll({ competenciaId });
   }
 
   static async getByFaseId(faseId: string): Promise<Partido[]> {
-    return fetchWithAuth<Partido[]>(`${this.API_ENDPOINT}?fase=${faseId}`);
+    return this.getAll({ fase: faseId });
   }
 
   static async getByEstado(estado: string): Promise<Partido[]> {
-    return fetchWithAuth<Partido[]>(`${this.API_ENDPOINT}?estado=${estado}`);
+    return this.getAll({ estado });
   }
 
   static async getProximos(): Promise<Partido[]> {
