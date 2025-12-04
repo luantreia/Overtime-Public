@@ -230,15 +230,17 @@ const Partidos: React.FC = () => {
                 partido={partido}
                 variante={partido.estado === 'finalizado' ? 'resultado' : 'proximo'}
                 actions={
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleShowStats(partido);
-                    }}
-                    className="rounded-lg bg-slate-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-700 transition-colors"
-                  >
-                    📊 Stats
-                  </button>
+                  partido.sets && partido.sets.length > 0 ? (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleShowStats(partido);
+                      }}
+                      className="rounded-lg bg-slate-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-700 transition-colors"
+                    >
+                      📊 Stats
+                    </button>
+                  ) : null
                 }
               />
             ))}
