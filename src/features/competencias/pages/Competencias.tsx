@@ -29,7 +29,7 @@ const Competencias: React.FC = () => {
   const { data: entidades, loading, error, refetch } = useEntity<Organizacion[] | Competencia[]>(
     useCallback(() => {
       if (selectedOrganizacion) {
-        return CompetenciaService.getAll({ organizacion: selectedOrganizacion.id });
+        return CompetenciaService.getAll();
       } else {
         return OrganizacionService.getAll();
       }
@@ -95,7 +95,7 @@ const Competencias: React.FC = () => {
           </div>
         ) : selectedOrganizacion ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {(entidades as Competencia[]).map((competencia) => (
+            {(entidades as Competencia[]).filter(c => c.organizacion?._id === selectedOrganizacion.id).map((competencia) => (
               <CompetenciaCard
                 key={competencia.id}
                 competencia={competencia}

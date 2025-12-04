@@ -19,7 +19,7 @@ export const api = {
   insights: () => request<PublicInsights>(`/public/insights`),
   publicJugadores: (page = 1, pageSize = 20) => request<{ data: any[]; meta: any }>(`/public/jugadores?page=${page}&pageSize=${pageSize}`),
   publicEquipos: (page = 1, pageSize = 20) => request<{ data: any[]; meta: any }>(`/public/equipos?page=${page}&pageSize=${pageSize}`),
-  register: (payload: { nombre: string; email: string; password: string }) => request<{ user: any; accessToken: string; refreshToken: string }>(`/auth/register`, { method: 'POST', body: payload }),
+  register: (payload: { nombre: string; email: string; password: string }) => request<{ user: any; accessToken: string; refreshToken: string }>(`/auth/registro`, { method: 'POST', body: payload }),
   solicitarCrearEntidad: (payload: { tipo: string; nombre: string }) => request<SolicitudEdicion>(`/solicitud-edicion`, { method: 'POST', body: { tipo: `usuario-crear-${payload.tipo}`, entidad: payload.tipo, datosPropuestos: { nombre: payload.nombre } }, auth: true }),
   solicitarAdminEntidad: (payload: { tipo: string; entidadId: string }) => request<SolicitudEdicion>(`/solicitud-edicion`, { method: 'POST', body: { tipo: `usuario-solicitar-admin-${payload.tipo}`, entidad: payload.tipo, entidadId: payload.entidadId }, auth: true }),
 };

@@ -22,7 +22,7 @@ const LandingPage: React.FC = () => {
     (async () => {
       try {
         const [insightsData, recientes, proximos, comps] = await Promise.all([
-          api.insights(),
+          api.insights().catch(() => null), // Handle insights error gracefully
           PartidoService.getFinalizados(),
           PartidoService.getProximos(),
           CompetenciaService.getAll()
