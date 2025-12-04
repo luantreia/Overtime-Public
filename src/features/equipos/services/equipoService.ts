@@ -28,9 +28,21 @@ export class EquipoService {
         }
       });
     }
+    
+    // Ensure we get enough items since backend paginates by default
+    if (!queryParams.has('limit')) {
+      queryParams.append('limit', '1000');
+    }
 
     const url = queryParams.toString() ? `${this.API_ENDPOINT}?${queryParams}` : this.API_ENDPOINT;
-    return fetchWithAuth<Equipo[]>(url);
+    const response = await fetchWithAuth<any>(url);
+    
+    if (Array.isArray(response)) {
+      return response;
+    } else if (response && Array.isArray(response.items)) {
+      return response.items;
+    }
+    return [];
   }
 
   static async getPaginated(options?: { page?: number; limit?: number; filters?: Record<string, any> }): Promise<{ items: Equipo[]; page: number; limit: number; total: number }> {
