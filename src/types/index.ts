@@ -76,18 +76,22 @@ export interface Partido {
     equipoLocal?: {
         id: string;
         nombre: string;
+        escudo?: string;
     };
     equipoVisitante?: {
         id: string;
         nombre: string;
+        escudo?: string;
     };
     fecha?: string;
     hora?: string;
-    estado?: 'proximamente' | 'en_curso' | 'finalizado';
+    estado?: 'programado' | 'en_juego' | 'finalizado' | 'cancelado' | 'proximamente' | 'en_curso';
     resultado?: {
         puntosEquipo: number;
         puntosRival: number;
     } | string;
+    marcadorLocal?: number;
+    marcadorVisitante?: number;
     competencia?: {
         nombre: string;
     };
