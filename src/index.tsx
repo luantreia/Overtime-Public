@@ -5,6 +5,7 @@ import './index.css';
 import App from './App';
 import { AuthProvider } from './app/providers/AuthContext';
 import { ToastProvider } from './shared/components/Toast/ToastProvider';
+import { SolicitudesProvider } from './app/providers/SolicitudesContext';
 
 const container = document.getElementById('root');
 if (container) {
@@ -14,7 +15,9 @@ if (container) {
       <BrowserRouter>
         <AuthProvider>
           <ToastProvider>
-            <App />
+            <SolicitudesProvider>
+              <App />
+            </SolicitudesProvider>
           </ToastProvider>
         </AuthProvider>
       </BrowserRouter>
