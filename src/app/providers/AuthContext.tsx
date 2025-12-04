@@ -7,6 +7,7 @@ import api from '../../shared/api/client';
 interface AuthContextType {
   user: Usuario | null;
   isAuthenticated: boolean;
+  isLoading: boolean;
   login: (user: Usuario, accessToken: string, refreshToken: string) => void;
   register: (nombre: string, email: string, password: string) => Promise<void>;
   logout: () => void;
@@ -18,6 +19,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUserState] = useState<Usuario | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const login = useCallback((userData: Usuario, accessToken: string, refreshToken: string) => {
     setUserState(userData);
@@ -48,9 +50,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [logout]);
 
+  React.useEffect(() => {
+    const initAuth = async () => {
+      const { accessToken } = getAuthTokens();
+      if (accessToken) {
+        try {
+          const profile = await getProfile();
+          setUserState(profile);
+        } catch (error) {
+          console.error('Error restoring session:', error);
+          setAuthTokens({ accessToken: null, refreshToken: null });
+          setUserState(null);
+        }
+      }
+      setIsLoading(false);
+    };
+
+    initAuth();
+  }, []);
+
   const value: AuthContextType = {
     user,
     isAuthenticated: !!user,
+    isLoading,
     login,
     register,
     logout,

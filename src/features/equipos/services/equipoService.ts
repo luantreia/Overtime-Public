@@ -11,6 +11,7 @@ export interface Equipo {
   };
   miembros?: number;
   imagen?: string;
+  escudo?: string;
   activo?: boolean;
   [key: string]: any;
 }
@@ -30,6 +31,26 @@ export class EquipoService {
 
     const url = queryParams.toString() ? `${this.API_ENDPOINT}?${queryParams}` : this.API_ENDPOINT;
     return fetchWithAuth<Equipo[]>(url);
+  }
+
+  static async getPaginated(options?: { page?: number; limit?: number; filters?: Record<string, any> }): Promise<{ items: Equipo[]; page: number; limit: number; total: number }> {
+    const queryParams = new URLSearchParams();
+    const page = options?.page ?? 1;
+    const limit = options?.limit ?? 20;
+    queryParams.append('page', String(page));
+    queryParams.append('limit', String(limit));
+
+    const filters = options?.filters;
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          queryParams.append(key, String(value));
+        }
+      });
+    }
+
+    const url = `${this.API_ENDPOINT}?${queryParams.toString()}`;
+    return fetchWithAuth<{ items: Equipo[]; page: number; limit: number; total: number }>(url);
   }
 
   static async getById(id: string): Promise<Equipo> {

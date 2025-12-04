@@ -12,7 +12,7 @@ const links = [
 ];
 
 const Navbar: React.FC = () => {
-  const { isAuthenticated, logout, user } = useAuth();
+  const { isAuthenticated, logout, user, isLoading } = useAuth();
   // feature flags removed
 
   return (
@@ -42,7 +42,9 @@ const Navbar: React.FC = () => {
             </NavLink>
           ))}
 
-          {isAuthenticated ? (
+          {isLoading ? (
+            <div className="h-9 w-24 animate-pulse rounded-lg bg-slate-200"></div>
+          ) : isAuthenticated ? (
             <>
               <NavLink
                 to="/solicitudes"

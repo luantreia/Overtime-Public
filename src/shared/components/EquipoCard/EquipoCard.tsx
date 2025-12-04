@@ -16,9 +16,20 @@ const EquipoCard = ({ equipo, actions, onClick }: EquipoCardProps) => {
     }
   };
 
+  const initials = equipo.nombre
+    ? equipo.nombre
+        .split(' ')
+        .map((chunk) => chunk[0])
+        .slice(0, 2)
+        .join('')
+        .toUpperCase()
+    : '';
+
+  const imageSrc = equipo.escudo || equipo.imagen;
+
   return (
     <article
-      className={`flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-card transition ${
+      className={`relative aspect-square overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-card transition ${
         onClick ? 'cursor-pointer hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40' : ''
       }`}
       onClick={onClick}
@@ -26,43 +37,39 @@ const EquipoCard = ({ equipo, actions, onClick }: EquipoCardProps) => {
       tabIndex={onClick ? 0 : undefined}
       onKeyDown={handleKeyDown}
     >
-      <header className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-100 font-semibold text-brand-600">
-            {equipo.imagen ? (
-              <img
-                src={equipo.imagen}
-                alt={equipo.nombre}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <span className="text-xl">{equipo.nombre.slice(0, 2).toUpperCase()}</span>
-            )}
-          </div>
+      {imageSrc ? (
+        <img
+          src={imageSrc}
+          alt={`Escudo de ${equipo.nombre}`}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center bg-slate-300 text-white">
+          <span className="text-4xl font-semibold tracking-wide">{initials}</span>
+        </div>
+      )}
+
+      <div className="absolute inset-0 bg-black/10" />
+
+      {actions && (
+        <div className="absolute top-4 right-4 flex gap-2">
+          {actions}
+        </div>
+      )}
+
+      <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-4 text-white">
+        <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-slate-900">{equipo.nombre}</h3>
-            {equipo.descripcion && (
-              <p className="text-sm text-slate-500">{equipo.descripcion}</p>
+            <h3 className="text-lg font-semibold">{equipo.nombre}</h3>
+            {equipo.ciudad && (
+              <p className="text-sm opacity-90">{equipo.ciudad}</p>
+            )}
+            {equipo.organizacion?.nombre && (
+              <p className="text-xs uppercase tracking-wide opacity-75">{equipo.organizacion.nombre}</p>
             )}
           </div>
         </div>
-      </header>
-
-      {equipo.organizacion && (
-        <div className="rounded-xl bg-slate-50 px-4 py-3 text-sm">
-          <p className="font-semibold text-slate-700">Organización</p>
-          <p className="text-slate-900">{equipo.organizacion.nombre}</p>
-        </div>
-      )}
-
-      {equipo.ciudad && (
-        <div className="rounded-xl bg-slate-50 px-4 py-3 text-sm">
-          <p className="font-semibold text-slate-700">Ciudad</p>
-          <p className="text-slate-900">{equipo.ciudad}</p>
-        </div>
-      )}
-
-      {actions ? <div className="mt-auto flex flex-wrap gap-2">{actions}</div> : null}
+      </div>
     </article>
   );
 };

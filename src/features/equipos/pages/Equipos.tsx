@@ -1,12 +1,28 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { EquipoCard } from '../../../shared/components';
 import { useEntity } from '../../../shared/hooks';
 import { EquipoService, type Equipo } from '../services/equipoService';
 
 const Equipos: React.FC = () => {
-  const { data: equipos, loading, error, refetch } = useEntity<Equipo[]>(
-    useCallback(() => EquipoService.getAll(), [])
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const { data: paged, loading, error, refetch } = useEntity<{ items: Equipo[]; page: number; limit: number; total: number } | Equipo[]>(
+    useCallback(() => EquipoService.getPaginated({ page, limit }), [page, limit])
   );
+  const equipos = useMemo(() => {
+    if (!paged) return [];
+    if (Array.isArray(paged)) {
+      const start = (page - 1) * limit;
+      return paged.slice(start, start + limit);
+    }
+    return paged.items ?? [];
+  }, [paged, page, limit]);
+  const total = useMemo(() => {
+    if (!paged) return 0;
+    if (Array.isArray(paged)) return paged.length;
+    return paged.total ?? equipos.length;
+  }, [paged, equipos.length]);
+  const totalPages = useMemo(() => (limit > 0 ? Math.max(1, Math.ceil(total / limit)) : 1), [total, limit]);
 
   if (loading) {
     return (
@@ -65,6 +81,40 @@ const Equipos: React.FC = () => {
             ))}
           </div>
         )}
+
+        <div className="mt-8 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-slate-600">Mostrar</span>
+            <select
+              value={limit}
+              onChange={(e) => { setPage(1); setLimit(parseInt(e.target.value)); }}
+              className="rounded-lg border border-slate-300 text-sm px-2 py-1"
+            >
+              <option value={12}>12</option>
+              <option value={20}>20</option>
+              <option value={36}>36</option>
+              <option value={44}>44</option>
+            </select>
+            <span className="text-sm text-slate-600">por página</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+              disabled={page <= 1}
+              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 disabled:opacity-50"
+            >
+              ← Anterior
+            </button>
+            <span className="text-sm text-slate-700">Página {page} de {totalPages}</span>
+            <button
+              onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+              disabled={page >= totalPages}
+              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 disabled:opacity-50"
+            >
+              Siguiente →
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { EstadisticasPartidoModal } from '../../../shared/components/EstadisticasPartidoModal';
 import PartidoCard from '../../../shared/components/PartidoCard';
 import { useEntity } from '../../../shared/hooks';
@@ -64,7 +64,35 @@ const Partidos: React.FC = () => {
     return PartidoService.getAll(filters);
   }, [competenciaId, temporadaId, faseId, equipoId, fecha, estado, esAmistoso]);
 
-  const { data: partidos, loading, error, refetch } = useEntity<Partido[]>(fetchPartidos);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const fetchPartidosPaginated = useCallback(() => {
+    return PartidoService.getPaginated({ page, limit, filters: {
+      competencia: competenciaId || undefined,
+      temporada: temporadaId || undefined,
+      fase: faseId || undefined,
+      equipo: equipoId || undefined,
+      fecha: fecha || undefined,
+      estado: estado || undefined,
+      tipo: esAmistoso ? 'amistoso' : undefined,
+    }});
+  }, [page, limit, competenciaId, temporadaId, faseId, equipoId, fecha, estado, esAmistoso]);
+
+  const { data: paged, loading, error, refetch } = useEntity<{ items: Partido[]; page: number; limit: number; total: number } | Partido[]>(fetchPartidosPaginated);
+  const partidos = useMemo(() => {
+    if (!paged) return [];
+    if (Array.isArray(paged)) {
+      const start = (page - 1) * limit;
+      return paged.slice(start, start + limit);
+    }
+    return paged.items ?? [];
+  }, [paged, page, limit]);
+  const total = useMemo(() => {
+    if (!paged) return 0;
+    if (Array.isArray(paged)) return paged.length;
+    return paged.total ?? partidos.length;
+  }, [paged, partidos.length]);
+  const totalPages = useMemo(() => (limit > 0 ? Math.max(1, Math.ceil(total / limit)) : 1), [total, limit]);
   const [selectedPartido, setSelectedPartido] = useState<Partido | null>(null);
   const [showStatsModal, setShowStatsModal] = useState(false);
 
@@ -220,6 +248,41 @@ const Partidos: React.FC = () => {
             <p className="text-slate-500">No hay partidos disponibles con estos filtros</p>
           </div>
         )}
+
+        {/* Pagination controls */}
+        <div className="mt-8 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-slate-600">Mostrar</span>
+            <select
+              value={limit}
+              onChange={(e) => { setPage(1); setLimit(parseInt(e.target.value)); }}
+              className="rounded-lg border border-slate-300 text-sm px-2 py-1"
+            >
+              <option value={12}>12</option>
+              <option value={20}>20</option>
+              <option value={36}>36</option>
+              <option value={44}>44</option>
+            </select>
+            <span className="text-sm text-slate-600">por página</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page <= 1}
+              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 disabled:opacity-50"
+            >
+              ← Anterior
+            </button>
+            <span className="text-sm text-slate-700">Página {page} de {totalPages}</span>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages}
+              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 disabled:opacity-50"
+            >
+              Siguiente →
+            </button>
+          </div>
+        </div>
       </div>
 
       {selectedPartido && (

@@ -88,84 +88,6 @@ const LandingPage: React.FC = () => {
           )}
         </div>
       </section>
-      
-      {/* partidos recientes Section (10partidos) */}    
-      <section className="px-4 py-12 bg-white">
-        <div className="mx-auto max-w-7xl">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-bold text-slate-900">Resultados Recientes</h2>
-            <Link to="/partidos" className="text-brand-600 hover:text-brand-700 font-medium">
-              Ver todos →
-            </Link>
-          </div>
-          
-          {partidosRecientes.length > 0 ? (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {partidosRecientes.map(partido => (
-                <PartidoCard 
-                  key={partido.id || partido._id} 
-                  partido={partido} 
-                  variante="resultado" 
-                />
-              ))}
-            </div>
-          ) : (
-            <p className="text-slate-500 text-center py-8">No hay resultados recientes.</p>
-          )}
-        </div>
-      </section>
-
-      {/* Proximos partidos Section (10partidos)*/}
-      <section className="px-4 py-12 bg-slate-50">
-        <div className="mx-auto max-w-7xl">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-bold text-slate-900">Próximos Partidos</h2>
-            <Link to="/partidos" className="text-brand-600 hover:text-brand-700 font-medium">
-              Ver calendario →
-            </Link>
-          </div>
-          
-          {partidosProximos.length > 0 ? (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {partidosProximos.map(partido => (
-                <PartidoCard 
-                  key={partido.id || partido._id} 
-                  partido={partido} 
-                  variante="proximo" 
-                />
-              ))}
-            </div>
-          ) : (
-            <p className="text-slate-500 text-center py-8">No hay partidos programados próximamente.</p>
-          )}
-        </div>
-      </section>
-
-      {/* competencias Section */}
-      <section className="px-4 py-12 bg-white">
-        <div className="mx-auto max-w-7xl">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-bold text-slate-900">Competencias</h2>
-            <Link to="/competencias" className="text-brand-600 hover:text-brand-700 font-medium">
-              Ver todas →
-            </Link>
-          </div>
-          
-          {competencias.length > 0 ? (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {competencias.map(competencia => (
-                <CompetenciaCard 
-                  key={competencia.id || competencia._id} 
-                  competencia={competencia} 
-                  variante={competencia.estado as any || 'proximamente'} 
-                />
-              ))}
-            </div>
-          ) : (
-            <p className="text-slate-500 text-center py-8">No hay competencias activas.</p>
-          )}
-        </div>
-      </section>
 
       {/* Features Section */}
       <section className="bg-white px-4 py-16">
@@ -180,7 +102,7 @@ const LandingPage: React.FC = () => {
               title="Explorar contenido"
               description="Navega por jugadores, equipos, competencias y partidos. Toda la información está disponible públicamente."
               icon="🔍"
-              available={!isAuthenticated}
+              available={isAuthenticated}
             />
 
             <FeatureCard
@@ -208,7 +130,7 @@ const LandingPage: React.FC = () => {
               title="Ver estadísticas"
               description="Accede a estadísticas detalladas de partidos, sets y rendimiento de jugadores y equipos."
               icon="📊"
-              available={!isAuthenticated}
+              available={isAuthenticated}
             />
 
             <FeatureCard
