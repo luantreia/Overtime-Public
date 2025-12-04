@@ -81,11 +81,15 @@ const Partidos: React.FC = () => {
   const { data: paged, loading, error, refetch } = useEntity<{ items: Partido[]; page: number; limit: number; total: number } | Partido[]>(fetchPartidosPaginated);
   const partidos = useMemo(() => {
     if (!paged) return [];
+    let items: Partido[] = [];
     if (Array.isArray(paged)) {
       const start = (page - 1) * limit;
-      return paged.slice(start, start + limit);
+      items = paged.slice(start, start + limit);
+    } else {
+      items = paged.items ?? [];
     }
-    return paged.items ?? [];
+    
+    return items;
   }, [paged, page, limit]);
   const total = useMemo(() => {
     if (!paged) return 0;
@@ -124,7 +128,7 @@ const Partidos: React.FC = () => {
             >
               <option value="">Todas las competencias</option>
               {competencias.map((c) => (
-                <option key={c.id || c._id} value={c.id || c._id}>{c.nombre}</option>
+                <option key={c.id || c._id || Math.random()} value={c.id || c._id}>{c.nombre}</option>
               ))}
             </select>
 
@@ -136,7 +140,7 @@ const Partidos: React.FC = () => {
             >
               <option value="">Todas las temporadas</option>
               {temporadas.map((t) => (
-                <option key={t._id} value={t._id}>{t.nombre}</option>
+                <option key={t._id || Math.random()} value={t._id}>{t.nombre}</option>
               ))}
             </select>
 
@@ -148,7 +152,7 @@ const Partidos: React.FC = () => {
             >
               <option value="">Todas las fases</option>
               {fases.map((f) => (
-                <option key={f._id} value={f._id}>{f.nombre}</option>
+                <option key={f._id || Math.random()} value={f._id}>{f.nombre}</option>
               ))}
             </select>
 
@@ -159,7 +163,7 @@ const Partidos: React.FC = () => {
             >
               <option value="">Todos los equipos</option>
               {equipos.map((e) => (
-                <option key={e.id} value={e.id}>{e.nombre}</option>
+                <option key={e.id || Math.random()} value={e.id}>{e.nombre}</option>
               ))}
             </select>
 
