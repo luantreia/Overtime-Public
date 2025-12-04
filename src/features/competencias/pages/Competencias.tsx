@@ -29,7 +29,7 @@ const Competencias: React.FC = () => {
   const { data: entidades, loading, error, refetch } = useEntity<Organizacion[] | Competencia[]>(
     useCallback(() => {
       if (selectedOrganizacion) {
-        return CompetenciaService.getAll();
+        return CompetenciaService.getAll({ organizacion: selectedOrganizacion.id });
       } else {
         return OrganizacionService.getAll();
       }
@@ -87,74 +87,56 @@ const Competencias: React.FC = () => {
           </p>
         </div>
 
-        {(() => {
-          if (!entidades || entidades.length === 0) {
-            return (
-              <div className="text-center py-12">
-                <p className="text-slate-500">
-                  {selectedOrganizacion ? 'No hay competencias disponibles para esta organización' : 'No hay organizaciones disponibles'}
-                </p>
-              </div>
-            );
-          }
-
-          if (selectedOrganizacion) {
-            const filteredCompetencias = (entidades as Competencia[]).filter(c => c.organizacion?.id === selectedOrganizacion.id);
-            if (filteredCompetencias.length === 0) {
-              return (
-                <div className="text-center py-12">
-                  <p className="text-slate-500">No hay competencias disponibles para esta organización</p>
-                </div>
-              );
-            }
-            return (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {filteredCompetencias.map((competencia) => (
-                  <CompetenciaCard
-                    key={competencia.id}
-                    competencia={competencia}
-                    variante={mapEstadoVariante(competencia.estado)}
-                    onClick={() => navigate(`/competencias/${competencia.id}`)}
-                    actions={
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/competencias/${competencia.id}`);
-                        }}
-                        className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm text-white hover:bg-brand-700"
-                      >
-                        Ver detalles
-                      </button>
-                    }
-                  />
-                ))}
-              </div>
-            );
-          }
-
-          return (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {(entidades as Organizacion[]).map((organizacion) => (
-                <OrganizacionCard
-                  key={organizacion.id}
-                  organizacion={organizacion}
-                  onClick={() => setSelectedOrganizacion(organizacion)}
-                  actions={
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedOrganizacion(organizacion);
-                      }}
-                      className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm text-white hover:bg-brand-700"
-                    >
-                      Ver competencias
-                    </button>
-                  }
-                />
-              ))}
-            </div>
-          );
-        })()}
+        {!entidades || entidades.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-slate-500">
+              {selectedOrganizacion ? 'No hay competencias disponibles para esta organización' : 'No hay organizaciones disponibles'}
+            </p>
+          </div>
+        ) : selectedOrganizacion ? (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {(entidades as Competencia[]).map((competencia) => (
+              <CompetenciaCard
+                key={competencia.id}
+                competencia={competencia}
+                variante={mapEstadoVariante(competencia.estado)}
+                onClick={() => navigate(`/competencias/${competencia.id}`)}
+                actions={
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/competencias/${competencia.id}`);
+                    }}
+                    className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm text-white hover:bg-brand-700"
+                  >
+                    Ver detalles
+                  </button>
+                }
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {(entidades as Organizacion[]).map((organizacion) => (
+              <OrganizacionCard
+                key={organizacion.id}
+                organizacion={organizacion}
+                onClick={() => setSelectedOrganizacion(organizacion)}
+                actions={
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedOrganizacion(organizacion);
+                    }}
+                    className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm text-white hover:bg-brand-700"
+                  >
+                    Ver competencias
+                  </button>
+                }
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
