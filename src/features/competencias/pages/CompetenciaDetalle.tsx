@@ -472,7 +472,7 @@ const CompetenciaDetalle: React.FC = () => {
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="text-sm font-medium text-slate-900">{item.playerName || item.playerId}</div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-900">{item.rating}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-900">{item.rating.toFixed(3)}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{item.matchesPlayed}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                               {item.lastDelta ? (
@@ -505,7 +505,7 @@ const CompetenciaDetalle: React.FC = () => {
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="text-lg font-bold text-slate-900">{item.rating}</div>
+                            <div className="text-lg font-bold text-slate-900">{item.rating.toFixed(3)}</div>
                             <div className="text-xs text-slate-500">ELO</div>
                           </div>
                         </div>
