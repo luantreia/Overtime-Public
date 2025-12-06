@@ -35,6 +35,8 @@ const CompetenciaDetalle: React.FC = () => {
     }, [id])
   );
 
+  const isRanked = competencia ? (competencia as any).rankedEnabled === true : false;
+
   useEffect(() => {
     if (competencia && (competencia as any).rankedEnabled && activeTab === 'leaderboard') {
       loadTemporadas();
@@ -43,6 +45,13 @@ const CompetenciaDetalle: React.FC = () => {
       loadTemporadas();
     }
   }, [competencia, activeTab]);
+
+  // Effect to reset activeTab if 'resultados' is selected but competition is ranked
+  useEffect(() => {
+    if (isRanked && activeTab === 'resultados') {
+      setActiveTab('info');
+    }
+  }, [isRanked, activeTab]);
 
   // Effect to load phases or leaderboard when season changes
   useEffect(() => {
@@ -184,8 +193,6 @@ const CompetenciaDetalle: React.FC = () => {
     );
   }
 
-  const isRanked = (competencia as any).rankedEnabled === true;
-
   return (
     <div className="min-h-screen bg-slate-50 py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -242,16 +249,18 @@ const CompetenciaDetalle: React.FC = () => {
             >
               Partidos
             </button>
-            <button
-              onClick={() => setActiveTab('resultados')}
-              className={`${
-                activeTab === 'resultados'
-                  ? 'border-brand-500 text-brand-600'
-                  : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
-              } whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium`}
-            >
-              Resultados
-            </button>
+            {!isRanked && (
+              <button
+                onClick={() => setActiveTab('resultados')}
+                className={`${
+                  activeTab === 'resultados'
+                    ? 'border-brand-500 text-brand-600'
+                    : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
+                } whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium`}
+              >
+                Resultados
+              </button>
+            )}
             {isRanked && (
               <button
                 onClick={() => setActiveTab('leaderboard')}
