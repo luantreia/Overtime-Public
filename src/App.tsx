@@ -1,47 +1,50 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './app/layout/Navbar';
-import LandingPage from './features/dashboard/pages/LandingPage';
-import { Jugadores } from './features/jugadores';
-import { Equipos } from './features/equipos';
-import { Competencias, CompetenciaDetalle } from './features/competencias';
-import { Partidos } from './features/partidos';
-import { SolicitudesPage } from './features/solicitudes';
-import { Perfil } from './features/perfil';
-import LoginPage from './features/auth/pages/LoginPage';
-import RegisterPage from './features/auth/pages/RegisterPage';
 import ProtectedRoute from './app/routes/ProtectedRoute';
 import { FeatureFlagsProvider } from './shared/config/featureFlags';
+
+// Lazy load components
+const LandingPage = lazy(() => import('./features/dashboard/pages/LandingPage'));
+const Jugadores = lazy(() => import('./features/jugadores/pages/Jugadores'));
+const Equipos = lazy(() => import('./features/equipos/pages/Equipos'));
+const Competencias = lazy(() => import('./features/competencias/pages/Competencias'));
+const CompetenciaDetalle = lazy(() => import('./features/competencias/pages/CompetenciaDetalle'));
+const Partidos = lazy(() => import('./features/partidos/pages/Partidos'));
+const SolicitudesPage = lazy(() => import('./features/solicitudes/pages/SolicitudesPage'));
+const Perfil = lazy(() => import('./features/perfil/pages/PerfilPage'));
+const LoginPage = lazy(() => import('./features/auth/pages/LoginPage'));
+const RegisterPage = lazy(() => import('./features/auth/pages/RegisterPage'));
 
 const App: React.FC = () => (
   <FeatureFlagsProvider>
   <div className="App">
     <Navbar />
     <div className="mx-auto max-w-6xl px-4 py-6">
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/jugadores" element={<Jugadores />} />
-        <Route path="/equipos" element={<Equipos />} />
-        <Route path="/competencias" element={<Competencias />} />
-        <Route path="/competencias/:id" element={<CompetenciaDetalle />} />
-        <Route path="/partidos" element={<Partidos />} />
-        <Route path="/solicitudes" element={
-          <ProtectedRoute>
-            <SolicitudesPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/perfil" element={
-          <ProtectedRoute>
-            <Perfil />
-          </ProtectedRoute>
-        } />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <Suspense fallback={<div className="flex min-h-screen items-center justify-center"><div className="text-center"><div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600 mx-auto"></div><p className="text-slate-600">Cargando...</p></div></div>}>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/jugadores" element={<Jugadores />} />
+          <Route path="/equipos" element={<Equipos />} />
+          <Route path="/competencias" element={<Competencias />} />
+          <Route path="/competencias/:id" element={<CompetenciaDetalle />} />
+          <Route path="/partidos" element={<Partidos />} />
+          <Route path="/solicitudes" element={
+            <ProtectedRoute>
+              <SolicitudesPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/perfil" element={
+            <ProtectedRoute>
+              <Perfil />
+            </ProtectedRoute>
+          } />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
     </div>
   </div>
   </FeatureFlagsProvider>
-);
-
-export default App;
+);export default App;
