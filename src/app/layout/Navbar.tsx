@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../providers/AuthContext';
 // removed feature flag usage
 
@@ -32,19 +31,17 @@ const Navbar: React.FC = () => {
 
         {/* Botón hamburguesa para móviles */}
         <button
-          className="md:hidden"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          aria-label="Toggle menu"
+          className="inline-flex items-center rounded-md border border-slate-300 p-2 text-slate-700 hover:bg-slate-50 lg:hidden"
+          onClick={() => setIsMenuOpen((v) => !v)}
+          aria-label="Abrir menú"
         >
-          {isMenuOpen ? (
-            <XMarkIcon className="h-6 w-6 text-slate-600" />
-          ) : (
-            <Bars3Icon className="h-6 w-6 text-slate-600" />
-          )}
+          <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M3 5h14a1 1 0 100-2H3a1 1 0 000 2zm14 4H3a1 1 0 000 2h14a1 1 0 100-2zm0 6H3a1 1 0 000 2h14a1 1 0 100-2z" clipRule="evenodd"/>
+          </svg>
         </button>
 
         {/* Nav desktop */}
-        <nav className="hidden md:flex flex-wrap items-center gap-2 text-sm font-medium text-slate-600">
+        <nav className="hidden flex-1 items-center justify-center gap-2 text-sm font-medium text-slate-600 lg:flex">
           {links.map(({ to, label }) => (
             <NavLink
               key={to}
@@ -110,16 +107,8 @@ const Navbar: React.FC = () => {
 
         {/* Menú móvil */}
         {isMenuOpen && (
-          <div className="fixed inset-0 z-50 md:hidden">
-            <div className="fixed inset-0 bg-black bg-opacity-25" onClick={() => setIsMenuOpen(false)}></div>
-            <div className="fixed right-0 top-0 h-full w-64 bg-white shadow-lg">
-              <div className="flex items-center justify-between p-4 border-b border-slate-200">
-                <span className="font-semibold text-slate-900">Menú</span>
-                <button onClick={() => setIsMenuOpen(false)}>
-                  <XMarkIcon className="h-6 w-6 text-slate-600" />
-                </button>
-              </div>
-              <nav className="flex flex-col p-4 space-y-2">
+          <div className="border-t border-slate-200 bg-white px-4 py-3 lg:hidden">
+            <div className="flex flex-col gap-2">
                 {links.map(({ to, label }) => (
                   <NavLink
                     key={to}
@@ -138,7 +127,7 @@ const Navbar: React.FC = () => {
                 {isLoading ? (
                   <div className="h-9 w-24 animate-pulse rounded-lg bg-slate-200"></div>
                 ) : isAuthenticated ? (
-                  <>
+                  <div className="mt-2 flex items-center justify-between gap-3">
                     <NavLink
                       to="/solicitudes"
                       className={({ isActive }) =>
@@ -166,30 +155,29 @@ const Navbar: React.FC = () => {
                         logout();
                         setIsMenuOpen(false);
                       }}
-                      className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900 text-left"
+                      className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
                     >
                       Cerrar sesión
                     </button>
-                  </>
-                ) : (
-                  <>
-                    <NavLink
-                      to="/login"
-                      className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Iniciar sesión
-                    </NavLink>
-                    <NavLink
-                      to="/register"
-                      className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-indigo-700"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Registrarse
-                    </NavLink>
-                  </>
-                )}
-              </nav>
+                  </div>
+              ) : (
+                <div className="mt-2 flex items-center gap-3">
+                  <NavLink
+                    to="/login"
+                    className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Iniciar sesión
+                  </NavLink>
+                  <NavLink
+                    to="/register"
+                    className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-indigo-700"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Registrarse
+                  </NavLink>
+                </div>
+              )}
             </div>
           </div>
         )}
