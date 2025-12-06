@@ -17,7 +17,7 @@ const Navbar: React.FC = () => {
   // feature flags removed
 
   return (
-    <header className="border-b border-slate-200 bg-white/70 backdrop-blur">
+    <header className="relative border-b border-slate-200 bg-white/70 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <div className="flex items-center gap-3">
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 font-bold text-white shadow">
@@ -107,7 +107,7 @@ const Navbar: React.FC = () => {
 
         {/* Menú móvil */}
         {isMenuOpen && (
-          <div className="border-t border-slate-200 bg-white px-4 py-3 lg:hidden">
+          <div className="absolute top-full left-0 right-0 z-50 border-t border-slate-200 bg-white px-4 py-3 lg:hidden">
             <div className="flex flex-col gap-2">
                 {links.map(({ to, label }) => (
                   <NavLink
