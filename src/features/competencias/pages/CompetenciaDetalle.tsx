@@ -452,42 +452,81 @@ const CompetenciaDetalle: React.FC = () => {
                   No hay datos de ranking disponibles para esta selección.
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-slate-200">
-                    <thead className="bg-slate-50">
-                      <tr>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">#</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Jugador</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Rating (ELO)</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Partidos</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Tendencia</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-slate-200">
-                      {leaderboard.map((item, index) => (
-                        <tr key={item.playerId} className="hover:bg-slate-50">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{index + 1}</td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-slate-900">{item.playerName || item.playerId}</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-900">{item.rating}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{item.matchesPlayed}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                <>
+                  {/* Vista de tabla para desktop */}
+                  <div className="hidden md:block overflow-x-auto">
+                    <table className="min-w-full divide-y divide-slate-200">
+                      <thead className="bg-slate-50">
+                        <tr>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">#</th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Jugador</th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Rating (ELO)</th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Partidos</th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Tendencia</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-slate-200">
+                        {leaderboard.map((item, index) => (
+                          <tr key={item.playerId} className="hover:bg-slate-50">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{index + 1}</td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm font-medium text-slate-900">{item.playerName || item.playerId}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-900">{item.rating}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{item.matchesPlayed}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              {item.lastDelta ? (
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                                  item.lastDelta > 0 ? 'bg-green-100 text-green-800' : item.lastDelta < 0 ? 'bg-red-100 text-red-800' : 'bg-slate-100 text-slate-800'
+                                }`}>
+                                  {item.lastDelta > 0 ? '+' : ''}{item.lastDelta}
+                                </span>
+                              ) : (
+                                <span className="text-slate-400">-</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Vista de cards para móviles */}
+                  <div className="md:hidden space-y-4">
+                    {leaderboard.map((item, index) => (
+                      <div key={item.playerId} className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-3">
+                            <span className="inline-flex items-center justify-center w-8 h-8 bg-slate-100 text-slate-600 rounded-full text-sm font-bold">
+                              {index + 1}
+                            </span>
+                            <div>
+                              <div className="text-sm font-medium text-slate-900">{item.playerName || item.playerId}</div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-lg font-bold text-slate-900">{item.rating}</div>
+                            <div className="text-xs text-slate-500">ELO</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-4">
+                            <span className="text-slate-500">Partidos: {item.matchesPlayed}</span>
                             {item.lastDelta ? (
                               <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
                                 item.lastDelta > 0 ? 'bg-green-100 text-green-800' : item.lastDelta < 0 ? 'bg-red-100 text-red-800' : 'bg-slate-100 text-slate-800'
                               }`}>
-                                {item.lastDelta > 0 ? '+' : ''}{item.lastDelta}
+                                Tendencia: {item.lastDelta > 0 ? '+' : ''}{item.lastDelta}
                               </span>
                             ) : (
-                              <span className="text-slate-400">-</span>
+                              <span className="text-slate-400">Sin cambios</span>
                             )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
               )}
             </div>
           )}
