@@ -577,43 +577,48 @@ const CompetenciaDetalle: React.FC = () => {
                         .toUpperCase();
                         
                       return (
-                        <div key={playerId} className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-3">
-                              <span className="inline-flex items-center justify-center w-8 h-8 bg-slate-100 text-slate-600 rounded-full text-sm font-bold">
+                        <div key={playerId} className="bg-white border border-slate-200 rounded-lg p-3 shadow-sm">
+                          <div className="flex items-center gap-3">
+                            {/* Foto con Badge de Ranking */}
+                            <div className="relative w-12 h-12 flex-shrink-0">
+                              <img 
+                                src={playerFoto || `https://api.deportes.puebla.gob.mx/images/players/${playerId}.jpg`}
+                                alt={item.playerName || 'Jugador'}
+                                className="absolute inset-0 w-12 h-12 rounded-full object-cover bg-slate-100 border border-slate-200 shadow-md z-10"
+                                onError={(e) => { (e.target as HTMLImageElement).classList.add('hidden'); }}
+                              />
+                              <div className="absolute inset-0 w-12 h-12 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-sm font-bold border border-brand-200">
+                                {initials}
+                              </div>
+                              <div className="absolute -top-1 -left-1 w-5 h-5 bg-slate-800 text-white text-[10px] font-bold rounded-full flex items-center justify-center z-20 border border-white shadow-sm">
                                 {index + 1}
-                              </span>
-                              <div className="flex items-center gap-2">
-                                <div className="relative w-12 h-12 flex-shrink-0">
-                                  <img 
-                                    src={playerFoto || `https://api.deportes.puebla.gob.mx/images/players/${playerId}.jpg`}
-                                    alt={item.playerName || 'Jugador'}
-                                    className="absolute inset-0 w-12 h-12 rounded-full object-cover bg-slate-100 border border-slate-200 shadow-md z-10"
-                                    onError={(e) => { (e.target as HTMLImageElement).classList.add('hidden'); }}
-                                  />
-                                  <div className="absolute inset-0 w-12 h-12 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-sm font-bold border border-brand-200">
-                                    {initials}
-                                  </div>
-                                </div>
-                                <div className="text-sm font-medium text-slate-900">{item.playerName || playerId}</div>
                               </div>
                             </div>
-                            <div className="text-right">
-                              <div className="text-lg font-bold text-slate-900">{item.rating.toFixed(3)}</div>
-                              <div className="text-xs text-slate-500">ELO</div>
+
+                            {/* Info Principal */}
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-bold text-slate-900 truncate">
+                                {item.playerName || playerId}
+                              </div>
+                              <div className="text-[11px] text-slate-500 mt-0.5">
+                                {item.matchesPlayed} {item.matchesPlayed === 1 ? 'partido' : 'partidos'} jugados
+                              </div>
                             </div>
-                          </div>
-                          <div className="flex items-center justify-between text-sm">
-                            <div className="flex items-center gap-4">
-                              <span className="text-slate-500">Partidos: {item.matchesPlayed}</span>
+
+                            {/* ELO y Tendencia */}
+                            <div className="text-right flex-shrink-0">
+                              <div className="text-sm font-black text-slate-900 leading-none">
+                                {item.rating.toFixed(3)}
+                              </div>
+                              <div className="text-[9px] text-slate-500 font-medium mb-1 uppercase tracking-wider">ELO</div>
                               {item.lastDelta !== undefined ? (
-                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                                  item.lastDelta > 0 ? 'bg-green-100 text-green-800' : item.lastDelta < 0 ? 'bg-red-100 text-red-800' : 'bg-slate-100 text-slate-800'
+                                <div className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                                  item.lastDelta > 0 ? 'bg-green-100 text-green-700' : item.lastDelta < 0 ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'
                                 }`}>
-                                  Tendencia: {item.lastDelta > 0 ? '+' : ''}{Number(item.lastDelta).toFixed(3)}
-                                </span>
+                                  {item.lastDelta > 0 ? '+' : ''}{Number(item.lastDelta).toFixed(3)}
+                                </div>
                               ) : (
-                                <span className="text-slate-400">Sin cambios</span>
+                                <div className="text-[10px] text-slate-400">---</div>
                               )}
                             </div>
                           </div>
