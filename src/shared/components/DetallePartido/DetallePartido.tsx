@@ -339,9 +339,6 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
           </div>
         </div>
       )}
-          </div>
-        </div>
-      )}
 
       {/* Información Adicional */}
       <div className="border-t border-slate-200 pt-4 sm:pt-6">
