@@ -41,7 +41,7 @@ export class EquipoService {
     }
 
     const url = queryParams.toString() ? `${this.API_ENDPOINT}?${queryParams}` : this.API_ENDPOINT;
-    const response = await fetchWithAuth<any>(url);
+    const response = await fetchWithAuth<any>(url, { useAuth: false });
     
     if (Array.isArray(response)) {
       return response;
@@ -68,18 +68,18 @@ export class EquipoService {
     }
 
     const url = `${this.API_ENDPOINT}?${queryParams.toString()}`;
-    return fetchWithAuth<{ items: Equipo[]; page: number; limit: number; total: number }>(url);
+    return fetchWithAuth<{ items: Equipo[]; page: number; limit: number; total: number }>(url, { useAuth: false });
   }
 
   static async getById(id: string): Promise<Equipo> {
-    const equipo = await fetchWithAuth<Equipo>(`${this.API_ENDPOINT}/${id}`);
+    const equipo = await fetchWithAuth<Equipo>(`${this.API_ENDPOINT}/${id}`, { useAuth: false });
     
     // Si el backend no devuelve estas relaciones, las pedimos por separado
     if (equipo && (!equipo.participaciontemporadas || !equipo.equipopartido)) {
       try {
         const [participaciones, partidos] = await Promise.all([
-          fetchWithAuth<any[]>(`/participacion-temporada?equipo=${id}`),
-          fetchWithAuth<any[]>(`/equipo-partido?equipo=${id}`)
+          fetchWithAuth<any[]>(`/participacion-temporada?equipo=${id}`, { useAuth: false }),
+          fetchWithAuth<any[]>(`/equipo-partido?equipo=${id}`, { useAuth: false })
         ]);
         
         equipo.participaciontemporadas = Array.isArray(participaciones) ? participaciones : [];
