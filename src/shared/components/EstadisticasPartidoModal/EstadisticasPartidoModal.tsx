@@ -53,12 +53,6 @@ export const EstadisticasPartidoModal: FC<EstadisticasPartidoModalProps> = ({
     partido?.modoEstadisticas ?? 'automatico',
   );
 
-  useEffect(() => {
-    if (isOpen) {
-      void cargarEstadisticas();
-    }
-  }, [isOpen, cargarEstadisticas]);
-
   const cargarEstadisticas = useCallback(async (): Promise<void> => {
     try {
       console.log(`📊 Cargando estadísticas en modo ${modoEstadisticasUI}:`);
@@ -95,6 +89,12 @@ export const EstadisticasPartidoModal: FC<EstadisticasPartidoModalProps> = ({
       setLoading(false);
     }
   }, [modoEstadisticasUI, partidoId]);
+
+  useEffect(() => {
+    if (isOpen) {
+      void cargarEstadisticas();
+    }
+  }, [isOpen, cargarEstadisticas]);
 
   const renderVistaActual = (): ReactNode => {
     if (loading) {
