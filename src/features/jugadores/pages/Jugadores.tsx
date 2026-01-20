@@ -8,16 +8,40 @@ const Jugadores: React.FC = () => {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
-  const { data: paged, loading, error, refetch } = useEntity<{ items: Jugador[]; page: number; limit: number; total: number } | Jugador[]>(
-    useCallback(() => JugadorService.getPaginated({ page, limit }), [page, limit])
+  const { data: paged, loading, error, refetch } = useEntity<Jugador[]>(
+    useCallback(() => JugadorService.getAll(), [])
   );
   const jugadores = useMemo(() => {
     if (!paged) return [];
+    
+    const items = Array.isArray(paged) ? [...paged] : [...(paged.items ?? [])];
+    
+    // Función para calcular qué tan "completo" está el perfil del jugador
+    const getCompletenessScore = (j: Jugador) => {
+      let score = 0;
+      if (j.foto) score += 10;
+      if (j.alias) score += 5;
+      if (j.nacionalidad) score += 3;
+      if (j.genero) score += 2;
+      if (j.edad) score += 2;
+      
+      // Priorizar también por datos relacionales si vienen en el objeto
+      if (j.equiposCount) score += j.equiposCount * 2;
+      if (j.partidosCount) score += j.partidosCount * 2;
+      if (Array.isArray(j.equipos)) score += j.equipos.length * 3;
+      if (Array.isArray(j.partidos)) score += j.partidos.length * 2;
+      
+      return score;
+    };
+
+    // Ordenamos: más completos primero
+    items.sort((a, b) => getCompletenessScore(b) - getCompletenessScore(a));
+
     if (Array.isArray(paged)) {
       const start = (page - 1) * limit;
-      return paged.slice(start, start + limit);
+      return items.slice(start, start + limit);
     }
-    return paged.items ?? [];
+    return items;
   }, [paged, page, limit]);
   const total = useMemo(() => {
     if (!paged) return 0;
