@@ -20,7 +20,7 @@ const Navbar: React.FC = () => {
     <header className="relative border-b border-slate-200 bg-white/70 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <NavLink to="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
-          <img src="/favicon.png" alt="Overtime Logo" className="h-10 w-auto" />
+          <img src="/favicon.ico" alt="Overtime Logo" className="h-10 w-auto" />
           <div className="hidden sm:block">
             <p className="text-sm font-semibold text-slate-900">Overtime Dodgeball</p>
             <p className="text-xs text-slate-500">Comunidad de Dodgeball</p>

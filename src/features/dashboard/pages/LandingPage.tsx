@@ -41,7 +41,7 @@ const LandingPage: React.FC = () => {
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-4 py-16 text-white">
         <div className="mx-auto max-w-4xl text-center">
-          <img src="/favicon.png" alt="Overtime Logo" className="mx-auto mb-6 h-24 w-auto drop-shadow-lg" />
+          <img src="/logo.png" alt="Overtime Logo" className="mx-auto mb-6 h-24 w-auto drop-shadow-lg" />
           <h1 className="mb-6 text-4xl font-bold sm:text-5xl">
             Overtime Dodgeball
           </h1>
