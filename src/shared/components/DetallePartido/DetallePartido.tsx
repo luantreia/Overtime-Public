@@ -24,7 +24,7 @@ interface JugadorPartido {
     puntos?: number;
     asistencias?: number;
     rebotes?: number;
-    // otros stats
+    delta?: number;
   };
 }
 
@@ -33,8 +33,42 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
     sets?: SetData[];
     jugadores?: JugadorPartido[];
     estadisticas?: any;
+    esRanked?: boolean;
   }>(
-    React.useCallback(() => PartidoService.getById(partidoId), [partidoId])
+    React.useCallback(async () => {
+      const p = await PartidoService.getById(partidoId) as any;
+      if (!p) return null;
+
+      const isRanked = p.esRanked || p.tipo === 'ranked' || (p.competencia && p.competencia.rankedEnabled);
+      p.esRanked = isRanked;
+
+      if (isRanked) {
+        const mp = await PartidoService.getMatchPlayers(partidoId);
+        p.jugadores = mp.map((m: any) => ({
+          id: m.playerId?._id || m.playerId,
+          nombre: m.playerId?.nombre || 'Desconocido',
+          equipo: m.teamColor === 'rojo' ? 'local' : 'visitante',
+          stats: { delta: m.delta }
+        }));
+      } else {
+        const jp = await PartidoService.getJugadorPartido(partidoId);
+        const localId = p.equipoLocal?._id || p.equipoLocal;
+
+        p.jugadores = jp.map((j: any) => ({
+          id: j.jugador?._id || j.jugador,
+          nombre: j.jugador?.nombre || 'Jugador',
+          equipo: (j.equipo?._id || j.equipo) === localId ? 'local' : 'visitante',
+          posicion: j.numero ? `#${j.numero}` : undefined,
+          stats: j.stats || {
+            puntos: j.puntos,
+            asistencias: j.asistencias,
+            rebotes: j.rebotes
+          }
+        }));
+      }
+
+      return p;
+    }, [partidoId])
   );
 
   if (loading) {
@@ -166,9 +200,17 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
                       </div>
                       {jugador.stats && (
                         <div className="text-sm text-slate-600">
-                          {jugador.stats.puntos !== undefined && `PTS: ${jugador.stats.puntos}`}
-                          {jugador.stats.asistencias !== undefined && ` | AST: ${jugador.stats.asistencias}`}
-                          {jugador.stats.rebotes !== undefined && ` | REB: ${jugador.stats.rebotes}`}
+                          {partido.esRanked && jugador.stats.delta !== undefined ? (
+                            <span className={`font-bold ${jugador.stats.delta >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {jugador.stats.delta > 0 ? `+${jugador.stats.delta}` : jugador.stats.delta} ELO
+                            </span>
+                          ) : (
+                            <>
+                              {jugador.stats.puntos !== undefined && `PTS: ${jugador.stats.puntos}`}
+                              {jugador.stats.asistencias !== undefined && ` | AST: ${jugador.stats.asistencias}`}
+                              {jugador.stats.rebotes !== undefined && ` | REB: ${jugador.stats.rebotes}`}
+                            </>
+                          )}
                         </div>
                       )}
                     </div>
@@ -190,9 +232,17 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
                       </div>
                       {jugador.stats && (
                         <div className="text-sm text-slate-600">
-                          {jugador.stats.puntos !== undefined && `PTS: ${jugador.stats.puntos}`}
-                          {jugador.stats.asistencias !== undefined && ` | AST: ${jugador.stats.asistencias}`}
-                          {jugador.stats.rebotes !== undefined && ` | REB: ${jugador.stats.rebotes}`}
+                          {partido.esRanked && jugador.stats.delta !== undefined ? (
+                            <span className={`font-bold ${jugador.stats.delta >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {jugador.stats.delta > 0 ? `+${jugador.stats.delta}` : jugador.stats.delta} ELO
+                            </span>
+                          ) : (
+                            <>
+                              {jugador.stats.puntos !== undefined && `PTS: ${jugador.stats.puntos}`}
+                              {jugador.stats.asistencias !== undefined && ` | AST: ${jugador.stats.asistencias}`}
+                              {jugador.stats.rebotes !== undefined && ` | REB: ${jugador.stats.rebotes}`}
+                            </>
+                          )}
                         </div>
                       )}
                     </div>

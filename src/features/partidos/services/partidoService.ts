@@ -128,4 +128,14 @@ export class PartidoService {
   static async getFinalizados(): Promise<Partido[]> {
     return this.getByEstado('finalizado');
   }
+
+  static async getMatchPlayers(id: string): Promise<any[]> {
+    const response = await fetchWithAuth<any>(`/ranked/match/${id}/players`);
+    return response?.items || [];
+  }
+
+  static async getJugadorPartido(id: string): Promise<any[]> {
+    const response = await fetchWithAuth<any[]>(`/jugador-partido?partido=${id}`);
+    return Array.isArray(response) ? response : [];
+  }
 }
