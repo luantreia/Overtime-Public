@@ -19,15 +19,13 @@ const Navbar: React.FC = () => {
   return (
     <header className="relative border-b border-slate-200 bg-white/70 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 font-bold text-white shadow">
-            OTV
-          </span>
-          <div>
-            <p className="text-sm font-semibold text-slate-900">Overtime Public (TS)</p>
-            <p className="text-xs text-slate-500">Exploración pública</p>
+        <NavLink to="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
+          <img src="/logo.png" alt="Overtime Logo" className="h-10 w-auto" />
+          <div className="hidden sm:block">
+            <p className="text-sm font-semibold text-slate-900">Overtime Public</p>
+            <p className="text-xs text-slate-500">Comunidad de Dodgeball</p>
           </div>
-        </div>
+        </NavLink>
 
         {/* Botón hamburguesa para móviles */}
         <button
