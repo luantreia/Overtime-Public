@@ -8,13 +8,51 @@ const Jugadores: React.FC = () => {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
+  
+  // Filtros
+  const [searchTerm, setSearchTerm] = useState('');
+  const [genderFilter, setGenderFilter] = useState('');
+  const [nationalityFilter, setNationalityFilter] = useState('');
+
   const { data: paged, loading, error, refetch } = useEntity<Jugador[]>(
     useCallback(() => JugadorService.getAll(), [])
   );
-  const jugadores = useMemo(() => {
+
+  // Extraer nacionalidades únicas de los datos para el filtro
+  const nationalities = useMemo(() => {
+    if (!paged || !Array.isArray(paged)) return [];
+    const unique = new Set(paged.map(j => j.nacionalidad).filter(Boolean));
+    return Array.from(unique).sort();
+  }, [paged]);
+
+  const filteredItems = useMemo(() => {
     if (!paged) return [];
-    
-    const items = Array.isArray(paged) ? [...paged] : [...(paged.items ?? [])];
+    let items = Array.isArray(paged) ? [...paged] : [...(paged.items ?? [])];
+
+    // Aplicar búsqueda por nombre/alias
+    if (searchTerm) {
+      const lowSearch = searchTerm.toLowerCase();
+      items = items.filter(j => 
+        j.nombre.toLowerCase().includes(lowSearch) || 
+        j.alias?.toLowerCase().includes(lowSearch)
+      );
+    }
+
+    // Aplicar filtro de género
+    if (genderFilter) {
+      items = items.filter(j => j.genero === genderFilter);
+    }
+
+    // Aplicar filtro de nacionalidad
+    if (nationalityFilter) {
+      items = items.filter(j => j.nacionalidad === nationalityFilter);
+    }
+
+    return items;
+  }, [paged, searchTerm, genderFilter, nationalityFilter]);
+
+  const jugadores = useMemo(() => {
+    const items = [...filteredItems];
     
     // Función para calcular qué tan "completo" está el perfil del jugador
     const getCompletenessScore = (j: Jugador) => {
@@ -37,17 +75,11 @@ const Jugadores: React.FC = () => {
     // Ordenamos: más completos primero
     items.sort((a, b) => getCompletenessScore(b) - getCompletenessScore(a));
 
-    if (Array.isArray(paged)) {
-      const start = (page - 1) * limit;
-      return items.slice(start, start + limit);
-    }
-    return items;
-  }, [paged, page, limit]);
-  const total = useMemo(() => {
-    if (!paged) return 0;
-    if (Array.isArray(paged)) return paged.length;
-    return paged.total ?? jugadores.length;
-  }, [paged, jugadores.length]);
+    const start = (page - 1) * limit;
+    return items.slice(start, start + limit);
+  }, [filteredItems, page, limit]);
+
+  const total = filteredItems.length;
   const totalPages = useMemo(() => (limit > 0 ? Math.max(1, Math.ceil(total / limit)) : 1), [total, limit]);
 
   if (loading) {
@@ -83,6 +115,62 @@ const Jugadores: React.FC = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-900">Jugadores</h1>
           <p className="mt-2 text-slate-600">Directorio de jugadores registrados</p>
+        </div>
+
+        {/* Filtros */}
+        <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+          <div>
+            <label htmlFor="search" className="block text-sm font-medium text-slate-700 mb-1">Buscar por nombre o alias</label>
+            <input
+              id="search"
+              type="text"
+              placeholder="Ej: Nahum..."
+              value={searchTerm}
+              onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
+              className="w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 border"
+            />
+          </div>
+          <div>
+            <label htmlFor="gender" className="block text-sm font-medium text-slate-700 mb-1">Género</label>
+            <select
+              id="gender"
+              value={genderFilter}
+              onChange={(e) => { setGenderFilter(e.target.value); setPage(1); }}
+              className="w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 border"
+            >
+              <option value="">Todos</option>
+              <option value="masculino">Masculino</option>
+              <option value="femenino">Femenino</option>
+              <option value="otro">Otro</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="nationality" className="block text-sm font-medium text-slate-700 mb-1">Nacionalidad</label>
+            <select
+              id="nationality"
+              value={nationalityFilter}
+              onChange={(e) => { setNationalityFilter(e.target.value); setPage(1); }}
+              className="w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 border"
+            >
+              <option value="">Todas</option>
+              {nationalities.map(n => (
+                <option key={n} value={n}>{n}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-end">
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                setGenderFilter('');
+                setNationalityFilter('');
+                setPage(1);
+              }}
+              className="w-full rounded-lg border border-slate-300 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 transition-colors"
+            >
+              Limpiar filtros
+            </button>
+          </div>
         </div>
 
         {!jugadores || jugadores.length === 0 ? (
