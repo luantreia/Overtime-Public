@@ -6,6 +6,7 @@ import { RankedService, type LeaderboardItem } from '../services/rankedService';
 import { PartidoService, type Partido } from '../../partidos/services/partidoService';
 import { TemporadaService, type Temporada } from '../services/temporadaService';
 import { FaseService, type Fase } from '../services/faseService';
+import { JugadorCompetenciaService, type JugadorCompetencia } from '../services/jugadorCompetenciaService';
 import PartidoCard from '../../../shared/components/PartidoCard/PartidoCard';
 import { TablaPosiciones } from '../../../shared/components/TablaPosiciones/TablaPosiciones';
 import { Bracket } from '../../../shared/components/Bracket/Bracket';
@@ -18,6 +19,7 @@ const CompetenciaDetalle: React.FC = () => {
   
   // State for Leaderboard
   const [leaderboard, setLeaderboard] = useState<LeaderboardItem[]>([]);
+  const [jugadoresComp, setJugadoresComp] = useState<JugadorCompetencia[]>([]);
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
 
   // State for Resultados (Temporadas/Fases)
@@ -46,14 +48,19 @@ const CompetenciaDetalle: React.FC = () => {
       const modalidad = (competencia as any).modalidad || 'Foam';
       const categoria = (competencia as any).categoria || 'Libre';
       
-      const res = await RankedService.getLeaderboard({
-        modalidad,
-        categoria,
-        competition: competencia.id,
-        season: selectedTemporada || undefined,
-        limit: 50
-      });
-      setLeaderboard(res.items);
+      const [leaderboardRes, jugadoresCompRes] = await Promise.all([
+        RankedService.getLeaderboard({
+          modalidad,
+          categoria,
+          competition: competencia.id,
+          season: selectedTemporada || undefined,
+          limit: 50
+        }),
+        JugadorCompetenciaService.getByCompetencia(competencia.id)
+      ]);
+
+      setLeaderboard(leaderboardRes.items);
+      setJugadoresComp(jugadoresCompRes);
     } catch (err) {
       console.error('Error loading leaderboard:', err);
     } finally {
@@ -491,7 +498,16 @@ const CompetenciaDetalle: React.FC = () => {
                       <tbody className="bg-white divide-y divide-slate-200">
                         {leaderboard.map((item, index) => {
                           const playerId = typeof item.playerId === 'object' ? (item.playerId as any)._id : item.playerId;
-                          const playerFoto = typeof item.playerId === 'object' ? (item.playerId as any).foto : (item as any).foto;
+                          
+                          // Buscar info extra del jugador en la lista de jugadores de la competencia
+                          const jugadorCompInfo = jugadoresComp.find(jc => {
+                            const jcPlayerId = typeof jc.jugador === 'object' ? jc.jugador._id : jc.jugador;
+                            return jcPlayerId === playerId;
+                          });
+
+                          const playerFoto = (typeof item.playerId === 'object' ? (item.playerId as any).foto : (item as any).foto) 
+                                           || (typeof jugadorCompInfo?.jugador === 'object' ? jugadorCompInfo.jugador.foto : undefined)
+                                           || jugadorCompInfo?.foto;
                           
                           const initials = (item.playerName || 'PJ')
                             .split(' ')
@@ -539,11 +555,19 @@ const CompetenciaDetalle: React.FC = () => {
                     </table>
                   </div>
 
-                  {/* Vista de cards para móviles */}
                   <div className="md:hidden space-y-4">
                     {leaderboard.map((item, index) => {
                       const playerId = typeof item.playerId === 'object' ? (item.playerId as any)._id : item.playerId;
-                      const playerFoto = typeof item.playerId === 'object' ? (item.playerId as any).foto : (item as any).foto;
+                      
+                      // Buscar info extra del jugador en la lista de jugadores de la competencia
+                      const jugadorCompInfo = jugadoresComp.find(jc => {
+                        const jcPlayerId = typeof jc.jugador === 'object' ? jc.jugador._id : jc.jugador;
+                        return jcPlayerId === playerId;
+                      });
+
+                      const playerFoto = (typeof item.playerId === 'object' ? (item.playerId as any).foto : (item as any).foto) 
+                                       || (typeof jugadorCompInfo?.jugador === 'object' ? jugadorCompInfo.jugador.foto : undefined)
+                                       || jugadorCompInfo?.foto;
                       
                       const initials = (item.playerName || 'PJ')
                         .split(' ')
