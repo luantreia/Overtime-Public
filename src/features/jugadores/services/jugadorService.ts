@@ -22,6 +22,10 @@ export class JugadorService {
 
   static async getAll(filters?: Record<string, any>): Promise<{ items: Jugador[] }> {
     const queryParams = new URLSearchParams();
+    // For "getAll" in a public exploration context, we use a high limit 
+    // to allow client-side sorting/filtering of the full directory
+    queryParams.append('limit', '1000'); 
+    
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
