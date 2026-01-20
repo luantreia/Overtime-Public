@@ -147,13 +147,35 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
         </div>
 
         {/* Marcador Principal */}
-        <div className="flex items-center justify-center gap-8">
-          <div className="text-center">
+        <div className="flex items-center justify-center gap-12">
+          <div className="text-center flex flex-col items-center">
+            {/* Logo Local */}
+            <div className="mb-4 h-24 w-24 flex items-center justify-center bg-slate-50 rounded-xl p-2 border border-slate-100 shadow-sm">
+              {partido.equipoLocal?.escudo ? (
+                <img src={partido.equipoLocal.escudo} alt={partido.equipoLocal.nombre} className="max-h-full max-w-full object-contain" />
+              ) : (
+                <div className="text-slate-300 font-bold text-3xl">
+                  {partido.equipoLocal?.nombre?.charAt(0) || 'L'}
+                </div>
+              )}
+            </div>
             <div className="text-4xl font-bold text-slate-900">{partido.marcadorLocal ?? 0}</div>
             <div className="text-lg font-semibold text-slate-700">{partido.equipoLocal?.nombre || 'Local'}</div>
           </div>
-          <div className="text-2xl font-bold text-slate-400">VS</div>
-          <div className="text-center">
+
+          <div className="text-3xl font-bold text-slate-300 mt-10">VS</div>
+
+          <div className="text-center flex flex-col items-center">
+            {/* Logo Visitante */}
+            <div className="mb-4 h-24 w-24 flex items-center justify-center bg-slate-50 rounded-xl p-2 border border-slate-100 shadow-sm">
+              {partido.equipoVisitante?.escudo ? (
+                <img src={partido.equipoVisitante.escudo} alt={partido.equipoVisitante.nombre} className="max-h-full max-w-full object-contain" />
+              ) : (
+                <div className="text-slate-300 font-bold text-3xl">
+                  {partido.equipoVisitante?.nombre?.charAt(0) || 'V'}
+                </div>
+              )}
+            </div>
             <div className="text-4xl font-bold text-slate-900">{partido.marcadorVisitante ?? 0}</div>
             <div className="text-lg font-semibold text-slate-700">{partido.equipoVisitante?.nombre || 'Visitante'}</div>
           </div>
@@ -217,7 +239,12 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
             {/* Equipo Local */}
             {localJugadores.length > 0 && (
               <div>
-                <h3 className="text-lg font-medium text-slate-900 mb-3">{partido.equipoLocal?.nombre || 'Local'}</h3>
+                <div className="flex items-center gap-3 mb-3">
+                  {partido.equipoLocal?.escudo && (
+                    <img src={partido.equipoLocal.escudo} alt="" className="h-8 w-8 object-contain" />
+                  )}
+                  <h3 className="text-lg font-medium text-slate-900">{partido.equipoLocal?.nombre || 'Local'}</h3>
+                </div>
                 <div className="space-y-2">
                   {localJugadores.map((jugador) => (
                     <div key={jugador.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
@@ -249,7 +276,12 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
             {/* Equipo Visitante */}
             {visitanteJugadores.length > 0 && (
               <div>
-                <h3 className="text-lg font-medium text-slate-900 mb-3">{partido.equipoVisitante?.nombre || 'Visitante'}</h3>
+                <div className="flex items-center gap-3 mb-3">
+                  {partido.equipoVisitante?.escudo && (
+                    <img src={partido.equipoVisitante.escudo} alt="" className="h-8 w-8 object-contain" />
+                  )}
+                  <h3 className="text-lg font-medium text-slate-900">{partido.equipoVisitante?.nombre || 'Visitante'}</h3>
+                </div>
                 <div className="space-y-2">
                   {visitanteJugadores.map((jugador) => (
                     <div key={jugador.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">

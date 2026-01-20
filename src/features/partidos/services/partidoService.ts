@@ -6,10 +6,12 @@ export interface Partido {
   equipoLocal?: {
     id: string;
     nombre: string;
+    escudo?: string;
   };
   equipoVisitante?: {
     id: string;
     nombre: string;
+    escudo?: string;
   };
   fecha?: string;
   hora?: string;
