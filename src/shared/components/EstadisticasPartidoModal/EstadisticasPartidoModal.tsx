@@ -7,7 +7,7 @@ import {
   getResumenEstadisticasManual,
 } from './estadisticasService';
 import type {
-  EstadisticaJugadorSetResumen,
+
   EstadisticaManualEquipo,
   EstadisticaManualJugador,
   EstadisticaSetResumen,
@@ -32,14 +32,6 @@ interface EstadisticasPartidoModalProps {
   };
 }
 
-type TipoVista = 'directas' | 'generales' | 'setASet';
-
-const TIPO_VISTA_MAP: Record<TipoVista, VistaEstadisticas> = {
-  directas: 'general',
-  generales: 'equipos',
-  setASet: 'jugadores',
-};
-
 interface EstadisticasData {
   jugadores: (EstadisticaManualJugador & { fuente?: string; setInfo?: Pick<EstadisticaSetResumen, 'numeroSet' | 'estadoSet' | 'ganadorSet'> })[];
   equipos: EstadisticaManualEquipo[];
@@ -63,9 +55,9 @@ export const EstadisticasPartidoModal: FC<EstadisticasPartidoModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      cargarEstadisticas();
+      void cargarEstadisticas();
     }
-  }, [isOpen, modoEstadisticasUI, partidoId]);
+  }, [isOpen, cargarEstadisticas]);
 
   const cargarEstadisticas = useCallback(async (): Promise<void> => {
     try {

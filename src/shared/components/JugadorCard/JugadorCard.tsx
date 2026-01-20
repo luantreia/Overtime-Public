@@ -66,10 +66,12 @@ const JugadorCard = ({ jugador, variante = 'activo', actions, onClick }: Jugador
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-semibold">{jugador.nombre}</h3>
-            {jugador.alias && (
-              <p className="text-sm opacity-90">Alias: {jugador.alias}</p>
-            )}
-            <p className="text-xs uppercase tracking-wide opacity-75">
+            <div className="flex flex-col gap-0.5 opacity-90 text-sm">
+              {jugador.alias && <p>Alias: {jugador.alias}</p>}
+              {edad && <p>{edad}</p>}
+              {fechaNacimiento && <p className="text-xs opacity-75">Nac.: {fechaNacimiento}</p>}
+            </div>
+            <p className="text-xs uppercase tracking-wide opacity-75 mt-1">
               {jugador.genero ? jugador.genero.charAt(0).toUpperCase() + jugador.genero.slice(1) : 'Sin género'}
             </p>
           </div>

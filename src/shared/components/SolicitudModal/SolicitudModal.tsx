@@ -3,7 +3,6 @@ import { useSolicitudes } from '../../../app/providers/SolicitudesContext';
 import { useToast } from '../Toast/ToastProvider';
 import {
   SolicitudContexto,
-  SolicitudOpciones,
   SolicitudCrearPayload,
   SolicitudEdicionTipo,
 } from '../../../types/solicitudesEdicion';
@@ -58,15 +57,17 @@ export const SolicitudModal: React.FC<SolicitudModalProps> = ({
       setTipoSeleccionado(prefillTipo ?? '');
       setDatosPropuestos(prefillDatos ?? {});
     }
-  }, [isOpen, limpiarError]);
+  }, [isOpen, limpiarError, prefillTipo, prefillDatos]);
 
   // If prefill props change while open, update local state
   useEffect(() => {
     if (isOpen) {
       if (prefillTipo) setTipoSeleccionado(prefillTipo);
-      if (prefillDatos) setDatosPropuestos((prev) => ({ ...prev, ...prefillDatos }));
+      if (prefillDatos) {
+        setDatosPropuestos((prev) => ({ ...prev, ...prefillDatos }));
+      }
     }
-  }, [prefillTipo, JSON.stringify(prefillDatos), isOpen]);
+  }, [prefillTipo, prefillDatos, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

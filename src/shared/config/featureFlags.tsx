@@ -23,11 +23,13 @@ export const FeatureFlagsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         const res = await fetch('/api/config');
         if (!res.ok) throw new Error('config');
         const data = await res.json();
-        const remote: FeatureFlags = {
-          enableGpt5: !!data?.features?.enableGpt5,
-          model: data?.model || flags.model,
-        };
-        if (mounted) setFlags((prev) => ({ ...prev, ...remote }));
+        if (mounted) {
+          setFlags((prev) => ({
+            ...prev,
+            enableGpt5: !!data?.features?.enableGpt5,
+            model: data?.model || prev.model,
+          }));
+        }
       } catch {
         // ignore; use defaults
       } finally {
