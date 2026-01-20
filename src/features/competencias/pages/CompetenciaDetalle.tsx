@@ -521,14 +521,14 @@ const CompetenciaDetalle: React.FC = () => {
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{index + 1}</td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="flex items-center gap-3">
-                                  <div className="relative w-8 h-8 flex-shrink-0">
+                                  <div className="relative w-12 h-12 flex-shrink-0">
                                     <img 
                                       src={playerFoto || `https://api.deportes.puebla.gob.mx/images/players/${playerId}.jpg`}
                                       alt={item.playerName || 'Jugador'}
-                                      className="absolute inset-0 w-8 h-8 rounded-full object-cover bg-slate-100 border border-slate-200 shadow-sm z-10"
+                                      className="absolute inset-0 w-12 h-12 rounded-full object-cover bg-slate-100 border border-slate-200 shadow-md z-10"
                                       onError={(e) => { (e.target as HTMLImageElement).classList.add('hidden'); }}
                                     />
-                                    <div className="absolute inset-0 w-8 h-8 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-xs font-bold border border-brand-200">
+                                    <div className="absolute inset-0 w-12 h-12 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-sm font-bold border border-brand-200">
                                       {initials}
                                     </div>
                                   </div>
@@ -584,14 +584,14 @@ const CompetenciaDetalle: React.FC = () => {
                                 {index + 1}
                               </span>
                               <div className="flex items-center gap-2">
-                                <div className="relative w-8 h-8 flex-shrink-0">
+                                <div className="relative w-12 h-12 flex-shrink-0">
                                   <img 
                                     src={playerFoto || `https://api.deportes.puebla.gob.mx/images/players/${playerId}.jpg`}
                                     alt={item.playerName || 'Jugador'}
-                                    className="absolute inset-0 w-8 h-8 rounded-full object-cover bg-slate-100 border border-slate-200 shadow-sm z-10"
+                                    className="absolute inset-0 w-12 h-12 rounded-full object-cover bg-slate-100 border border-slate-200 shadow-md z-10"
                                     onError={(e) => { (e.target as HTMLImageElement).classList.add('hidden'); }}
                                   />
-                                  <div className="absolute inset-0 w-8 h-8 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-xs font-bold border border-brand-200">
+                                  <div className="absolute inset-0 w-12 h-12 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-sm font-bold border border-brand-200">
                                     {initials}
                                   </div>
                                 </div>
