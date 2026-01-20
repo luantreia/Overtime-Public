@@ -13,6 +13,7 @@ const EquipoDetalle = lazy(() => import('./features/equipos/pages/EquipoDetalle'
 const Competencias = lazy(() => import('./features/competencias/pages/Competencias'));
 const CompetenciaDetalle = lazy(() => import('./features/competencias/pages/CompetenciaDetalle'));
 const Partidos = lazy(() => import('./features/partidos/pages/Partidos'));
+const PartidoDetalle = lazy(() => import('./features/partidos/pages/PartidoDetalle'));
 const SolicitudesPage = lazy(() => import('./features/solicitudes/pages/SolicitudesPage'));
 const Perfil = lazy(() => import('./features/perfil/pages/PerfilPage'));
 const LoginPage = lazy(() => import('./features/auth/pages/LoginPage'));
@@ -35,6 +36,7 @@ const App: React.FC = () => (
           <Route path="/competencias" element={<Competencias />} />
           <Route path="/competencias/:id" element={<CompetenciaDetalle />} />
           <Route path="/partidos" element={<Partidos />} />
+          <Route path="/partidos/:id" element={<PartidoDetalle />} />
           <Route path="/solicitudes" element={
             <ProtectedRoute>
               <SolicitudesPage />

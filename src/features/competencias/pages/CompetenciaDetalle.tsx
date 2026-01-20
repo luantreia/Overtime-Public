@@ -10,7 +10,6 @@ import PartidoCard from '../../../shared/components/PartidoCard/PartidoCard';
 import { TablaPosiciones } from '../../../shared/components/TablaPosiciones/TablaPosiciones';
 import { Bracket } from '../../../shared/components/Bracket/Bracket';
 import { EloExplanationModal } from '../../../shared/components/EloExplanationModal';
-import DetallePartido from '../../../shared/components/DetallePartido';
 
 const CompetenciaDetalle: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -29,10 +28,6 @@ const CompetenciaDetalle: React.FC = () => {
   const [faseDetails, setFaseDetails] = useState<Fase | null>(null);
   const [fasePartidos, setFasePartidos] = useState<Partido[]>([]);
   const [loadingResultados, setLoadingResultados] = useState(false);
-
-  // State for Partidos View
-  const [viewMode, setViewMode] = useState<'list' | 'detail'>('list');
-  const [selectedPartidoId, setSelectedPartidoId] = useState<string>('');
 
   const { data: competencia, loading, error } = useEntity<Competencia>(
     useCallback(() => {
@@ -306,163 +301,135 @@ const CompetenciaDetalle: React.FC = () => {
 
           {activeTab === 'partidos' && (
             <div className="p-6">
-              {viewMode === 'detail' && selectedPartidoId ? (
-                <div>
-                  <button 
-                    onClick={() => { setViewMode('list'); setSelectedPartidoId(''); }}
-                    className="mb-4 text-sm text-slate-500 hover:text-slate-700 flex items-center gap-1"
+              <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                <div className="w-full sm:w-1/3">
+                  <label htmlFor="temporada-partidos" className="block text-sm font-medium text-slate-700 mb-1">Temporada</label>
+                  <select
+                    id="temporada-partidos"
+                    value={selectedTemporada}
+                    onChange={(e) => setSelectedTemporada(e.target.value)}
+                    className="block w-full rounded-md border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 border"
                   >
-                    ← Volver a partidos
-                  </button>
-                  <DetallePartido partidoId={selectedPartidoId} />
+                    {temporadas.length === 0 && <option value="">No hay temporadas</option>}
+                    {temporadas.map((t) => (
+                      <option key={t._id} value={t._id}>{t.nombre}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="w-full sm:w-1/3">
+                  <label htmlFor="fase-partidos" className="block text-sm font-medium text-slate-700 mb-1">Fase</label>
+                  <select
+                    id="fase-partidos"
+                    value={selectedFase}
+                    onChange={(e) => setSelectedFase(e.target.value)}
+                    className="block w-full rounded-md border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 border"
+                    disabled={!selectedTemporada || fases.length === 0}
+                  >
+                    <option value="">Todas las fases</option>
+                    {fases.map((f) => (
+                      <option key={f._id} value={f._id}>{f.nombre}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {loadingResultados ? (
+                <div className="p-12 text-center">
+                  <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-brand-600 border-t-transparent"></div>
+                  <p className="mt-2 text-sm text-slate-500">Cargando partidos...</p>
+                </div>
+              ) : !selectedFase && !selectedTemporada ? (
+                <div className="p-12 text-center text-slate-500">
+                  Selecciona una temporada para ver los partidos.
+                </div>
+              ) : fasePartidos.length === 0 ? (
+                <div className="p-12 text-center text-slate-500">
+                  No hay partidos registrados.
                 </div>
               ) : (
-                <>
-                  <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                    <div className="w-full sm:w-1/3">
-                      <label htmlFor="temporada-partidos" className="block text-sm font-medium text-slate-700 mb-1">Temporada</label>
-                      <select
-                        id="temporada-partidos"
-                        value={selectedTemporada}
-                        onChange={(e) => setSelectedTemporada(e.target.value)}
-                        className="block w-full rounded-md border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 border"
-                      >
-                        {temporadas.length === 0 && <option value="">No hay temporadas</option>}
-                        {temporadas.map((t) => (
-                          <option key={t._id} value={t._id}>{t.nombre}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="w-full sm:w-1/3">
-                      <label htmlFor="fase-partidos" className="block text-sm font-medium text-slate-700 mb-1">Fase</label>
-                      <select
-                        id="fase-partidos"
-                        value={selectedFase}
-                        onChange={(e) => setSelectedFase(e.target.value)}
-                        className="block w-full rounded-md border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 border"
-                        disabled={!selectedTemporada || fases.length === 0}
-                      >
-                        <option value="">Todas las fases</option>
-                        {fases.map((f) => (
-                          <option key={f._id} value={f._id}>{f.nombre}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  {loadingResultados ? (
-                    <div className="p-12 text-center">
-                      <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-brand-600 border-t-transparent"></div>
-                      <p className="mt-2 text-sm text-slate-500">Cargando partidos...</p>
-                    </div>
-                  ) : !selectedFase && !selectedTemporada ? (
-                    <div className="p-12 text-center text-slate-500">
-                      Selecciona una temporada para ver los partidos.
-                    </div>
-                  ) : fasePartidos.length === 0 ? (
-                    <div className="p-12 text-center text-slate-500">
-                      No hay partidos registrados.
-                    </div>
-                  ) : (
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                      {fasePartidos.map((partido) => (
-                        <PartidoCard 
-                          key={partido.id} 
-                          partido={partido} 
-                          onClick={() => { setSelectedPartidoId(partido.id); setViewMode('detail'); }}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {fasePartidos.map((partido) => (
+                    <PartidoCard 
+                      key={partido.id} 
+                      partido={partido} 
+                      onClick={() => navigate(`/partidos/${partido.id}`)}
+                    />
+                  ))}
+                </div>
               )}
             </div>
           )}
 
           {activeTab === 'resultados' && (
             <div className="p-6">
-              {viewMode === 'detail' && selectedPartidoId ? (
-                <div>
-                  <button 
-                    onClick={() => { setViewMode('list'); setSelectedPartidoId(''); }}
-                    className="mb-4 text-sm text-slate-500 hover:text-slate-700 flex items-center gap-1"
+              {/* Selectors */}
+              <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                <div className="w-full sm:w-1/3">
+                  <label htmlFor="temporada" className="block text-sm font-medium text-slate-700 mb-1">Temporada</label>
+                  <select
+                    id="temporada"
+                    value={selectedTemporada}
+                    onChange={(e) => setSelectedTemporada(e.target.value)}
+                    className="block w-full rounded-md border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 border"
                   >
-                    ← Volver a resultados
-                  </button>
-                  <DetallePartido partidoId={selectedPartidoId} />
+                    {temporadas.length === 0 && <option value="">No hay temporadas</option>}
+                    {temporadas.map((t) => (
+                      <option key={t._id} value={t._id}>{t.nombre}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="w-full sm:w-1/3">
+                  <label htmlFor="fase" className="block text-sm font-medium text-slate-700 mb-1">Fase</label>
+                  <select
+                    id="fase"
+                    value={selectedFase}
+                    onChange={(e) => setSelectedFase(e.target.value)}
+                    className="block w-full rounded-md border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 border"
+                    disabled={!selectedTemporada || fases.length === 0}
+                  >
+                    {fases.length === 0 && <option value="">No hay fases</option>}
+                    {fases.map((f) => (
+                      <option key={f._id} value={f._id}>{f.nombre}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Content based on Phase Type */}
+              {loadingResultados ? (
+                <div className="p-12 text-center">
+                  <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-brand-600 border-t-transparent"></div>
+                  <p className="mt-2 text-sm text-slate-500">Cargando resultados...</p>
+                </div>
+              ) : !selectedFase ? (
+                <div className="p-12 text-center text-slate-500">
+                  Selecciona una temporada y una fase para ver los resultados.
                 </div>
               ) : (
-                <>
-                  {/* Selectors */}
-                  <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                    <div className="w-full sm:w-1/3">
-                      <label htmlFor="temporada" className="block text-sm font-medium text-slate-700 mb-1">Temporada</label>
-                      <select
-                        id="temporada"
-                        value={selectedTemporada}
-                        onChange={(e) => setSelectedTemporada(e.target.value)}
-                        className="block w-full rounded-md border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 border"
-                      >
-                        {temporadas.length === 0 && <option value="">No hay temporadas</option>}
-                        {temporadas.map((t) => (
-                          <option key={t._id} value={t._id}>{t.nombre}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="w-full sm:w-1/3">
-                      <label htmlFor="fase" className="block text-sm font-medium text-slate-700 mb-1">Fase</label>
-                      <select
-                        id="fase"
-                        value={selectedFase}
-                        onChange={(e) => setSelectedFase(e.target.value)}
-                        className="block w-full rounded-md border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 border"
-                        disabled={!selectedTemporada || fases.length === 0}
-                      >
-                        {fases.length === 0 && <option value="">No hay fases</option>}
-                        {fases.map((f) => (
-                          <option key={f._id} value={f._id}>{f.nombre}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Content based on Phase Type */}
-                  {loadingResultados ? (
-                    <div className="p-12 text-center">
-                      <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-brand-600 border-t-transparent"></div>
-                      <p className="mt-2 text-sm text-slate-500">Cargando resultados...</p>
-                    </div>
-                  ) : !selectedFase ? (
-                    <div className="p-12 text-center text-slate-500">
-                      Selecciona una temporada y una fase para ver los resultados.
-                    </div>
+                <div>
+                  {faseDetails?.tipo === 'grupo' || faseDetails?.tipo === 'liga' ? (
+                    <TablaPosiciones faseId={selectedFase} />
+                  ) : faseDetails?.tipo === 'playoff' ? (
+                    <Bracket matches={fasePartidos} />
                   ) : (
                     <div>
-                      {faseDetails?.tipo === 'grupo' || faseDetails?.tipo === 'liga' ? (
-                        <TablaPosiciones faseId={selectedFase} />
-                      ) : faseDetails?.tipo === 'playoff' ? (
-                        <Bracket matches={fasePartidos} />
+                      <h3 className="text-lg font-medium text-slate-900 mb-4">Partidos de la Fase</h3>
+                      {fasePartidos.length === 0 ? (
+                        <p className="text-slate-500">No hay partidos registrados en esta fase.</p>
                       ) : (
-                        <div>
-                          <h3 className="text-lg font-medium text-slate-900 mb-4">Partidos de la Fase</h3>
-                          {fasePartidos.length === 0 ? (
-                            <p className="text-slate-500">No hay partidos registrados en esta fase.</p>
-                          ) : (
-                            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                              {fasePartidos.map((partido) => (
-                                <PartidoCard 
-                                  key={partido.id} 
-                                  partido={partido} 
-                                  onClick={() => { setSelectedPartidoId(partido.id); setViewMode('detail'); }}
-                                />
-                              ))}
-                            </div>
-                          )}
+                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                          {fasePartidos.map((partido) => (
+                            <PartidoCard 
+                              key={partido.id} 
+                              partido={partido} 
+                              onClick={() => navigate(`/partidos/${partido.id}`)}
+                            />
+                          ))}
                         </div>
                       )}
                     </div>
                   )}
-                </>
+                </div>
               )}
             </div>
           )}
