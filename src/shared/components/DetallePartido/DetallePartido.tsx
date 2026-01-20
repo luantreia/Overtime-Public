@@ -39,15 +39,31 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
       const p = await PartidoService.getById(partidoId) as any;
       if (!p) return null;
 
-      const isRanked = p.esRanked || p.tipo === 'ranked' || (p.competencia && p.competencia.rankedEnabled);
+      // Detectar si es ranked (usando isRanked del backend o esRanked si ya viene mapeado)
+      const isRanked = p.isRanked || p.esRanked || p.tipo === 'ranked' || (p.competencia && p.competencia.rankedEnabled);
       p.esRanked = isRanked;
+
+      // Cargar sets si no vienen poblados
+      if (!p.sets || p.sets.length === 0) {
+        const rawSets = await PartidoService.getSets(partidoId);
+        p.sets = rawSets.map((s: any) => ({
+          numeroSet: s.numeroSet,
+          marcadorLocal: s.ganadorSet === 'local' ? 1 : 0,
+          marcadorVisitante: s.ganadorSet === 'visitante' ? 1 : 0,
+          ganador: s.ganadorSet === 'local' ? 'local' : s.ganadorSet === 'visitante' ? 'visitante' : undefined,
+          tiempo: s.duracionSetTimer ? `${Math.floor(s.duracionSetTimer / 60)}:${(s.duracionSetTimer % 60).toString().padStart(2, '0')}` : undefined
+        }));
+      }
 
       if (isRanked) {
         const mp = await PartidoService.getMatchPlayers(partidoId);
+        // Usar los colores definidos en rankedMeta para asignar equipo
+        const localColor = p.rankedMeta?.teamColors?.local || 'rojo';
+        
         p.jugadores = mp.map((m: any) => ({
           id: m.playerId?._id || m.playerId,
           nombre: m.playerId?.nombre || 'Desconocido',
-          equipo: m.teamColor === 'rojo' ? 'local' : 'visitante',
+          equipo: m.teamColor === localColor ? 'local' : 'visitante',
           stats: { delta: m.delta }
         }));
       } else {

@@ -138,4 +138,9 @@ export class PartidoService {
     const response = await fetchWithAuth<any[]>(`/jugador-partido?partido=${id}`);
     return Array.isArray(response) ? response : [];
   }
+
+  static async getSets(partidoId: string): Promise<any[]> {
+    const response = await fetchWithAuth<any[]>(`/set-partido?partido=${partidoId}`);
+    return Array.isArray(response) ? response : [];
+  }
 }
