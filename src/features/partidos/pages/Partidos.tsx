@@ -51,19 +51,6 @@ const Partidos: React.FC = () => {
     FaseService.getByTemporada(temporadaId).then(setFases).catch(console.error);
   }, [temporadaId]);
 
-  const fetchPartidos = useCallback(() => {
-    const filters: any = {};
-    if (competenciaId) filters.competencia = competenciaId;
-    if (temporadaId) filters.temporada = temporadaId;
-    if (faseId) filters.fase = faseId;
-    if (equipoId) filters.equipo = equipoId;
-    if (fecha) filters.fecha = fecha;
-    if (estado) filters.estado = estado;
-    if (esAmistoso) filters.tipo = 'amistoso';
-
-    return PartidoService.getAll(filters);
-  }, [competenciaId, temporadaId, faseId, equipoId, fecha, estado, esAmistoso]);
-
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const fetchPartidosPaginated = useCallback(() => {

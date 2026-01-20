@@ -9,39 +9,34 @@ import { CompetenciaCard } from '../../../shared/components';
 
 const LandingPage: React.FC = () => {
   const { isAuthenticated } = useAuth();
-  const [insights, setInsights] = useState<PublicInsights | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   
-  const [partidosRecientes, setPartidosRecientes] = useState<Partido[]>([]);
-  const [partidosProximos, setPartidosProximos] = useState<Partido[]>([]);
-  const [competencias, setCompetencias] = useState<Competencia[]>([]);
-
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const [insightsData, recientes, proximos, comps] = await Promise.all([
-          api.insights().catch(() => null), // Handle insights error gracefully
+        await Promise.all([
+          api.insights().catch(() => null),
           PartidoService.getFinalizados(),
           PartidoService.getProximos(),
           CompetenciaService.getAll()
         ]);
-        
-        if (!mounted) return;
-        setInsights(insightsData);
-        setPartidosRecientes(recientes.slice(0, 10));
-        setPartidosProximos(proximos.slice(0, 10));
-        setCompetencias(comps);
       } catch (e: any) {
-        if (!mounted) return;
-        setError(e?.message || 'Error cargando datos');
+        console.error('Error cargando iniciales', e);
       } finally {
         if (mounted) setLoading(false);
       }
     })();
     return () => { mounted = false; };
   }, []);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-brand-600 border-t-transparent"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -171,14 +166,6 @@ const LandingPage: React.FC = () => {
     </div>
   );
 };
-
-const StatCard = ({ label, value, icon }: { label: string; value: number; icon: string }) => (
-  <div className="rounded-lg border border-slate-200 bg-slate-50 p-6 text-center">
-    <div className="mb-2 text-3xl">{icon}</div>
-    <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
-    <p className="mt-2 text-3xl font-bold text-slate-800">{value}</p>
-  </div>
-);
 
 const FeatureCard = ({
   title,

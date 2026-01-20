@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../../../app/providers/AuthContext';
 import { useToast } from '../../../shared/components/Toast/ToastProvider';
 import SolicitudModal from '../../../shared/components/SolicitudModal/SolicitudModal';
 import { SolicitudEdicionTipo } from '../../../types/solicitudesEdicion';
-import { api } from '../../../shared/api/client';
 
 const PerfilPage = () => {
   const { user, logout } = useAuth();
