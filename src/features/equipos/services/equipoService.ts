@@ -72,7 +72,27 @@ export class EquipoService {
   }
 
   static async getById(id: string): Promise<Equipo> {
-    return fetchWithAuth<Equipo>(`${this.API_ENDPOINT}/${id}`);
+    const equipo = await fetchWithAuth<Equipo>(`${this.API_ENDPOINT}/${id}`);
+    
+    // Si el backend no devuelve estas relaciones, las pedimos por separado
+    if (equipo && (!equipo.participaciontemporadas || !equipo.equipopartido)) {
+      try {
+        const [participaciones, partidos] = await Promise.all([
+          fetchWithAuth<any[]>(`/participacion-temporada?equipo=${id}`),
+          fetchWithAuth<any[]>(`/equipo-partido?equipo=${id}`)
+        ]);
+        
+        equipo.participaciontemporadas = Array.isArray(participaciones) ? participaciones : [];
+        equipo.equipopartido = Array.isArray(partidos) ? partidos : [];
+      } catch (error) {
+        console.error('Error fetching extra team stats:', error);
+        // Inicializamos como vacíos si fallan los estadísticos
+        equipo.participaciontemporadas = equipo.participaciontemporadas || [];
+        equipo.equipopartido = equipo.equipopartido || [];
+      }
+    }
+    
+    return equipo;
   }
 
   static async create(data: Omit<Equipo, 'id'>): Promise<Equipo> {
