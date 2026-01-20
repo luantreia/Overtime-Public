@@ -18,6 +18,7 @@ interface SetData {
 interface JugadorPartido {
   id: string;
   nombre: string;
+  foto?: string;
   equipo: 'local' | 'visitante';
   posicion?: string;
   stats?: {
@@ -74,6 +75,7 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
         p.jugadores = Array.from(jugadoresMap.values()).map((m: any) => ({
           id: m.playerId?._id || m.playerId,
           nombre: m.playerId?.nombre || 'Desconocido',
+          foto: m.playerId?.foto,
           equipo: m.teamColor === localColor ? 'local' : 'visitante',
           stats: { delta: m.delta }
         }));
@@ -84,6 +86,7 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
         p.jugadores = jp.map((j: any) => ({
           id: j.jugador?._id || j.jugador,
           nombre: j.jugador?.nombre || 'Jugador',
+          foto: j.jugador?.foto,
           equipo: (j.equipo?._id || j.equipo) === localId ? 'local' : 'visitante',
           posicion: j.numero ? `#${j.numero}` : undefined,
           stats: j.stats || {
@@ -248,9 +251,20 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
                 <div className="space-y-2">
                   {localJugadores.map((jugador) => (
                     <div key={jugador.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                      <div>
-                        <div className="font-medium text-slate-900">{jugador.nombre}</div>
-                        {jugador.posicion && <div className="text-sm text-slate-500">{jugador.posicion}</div>}
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 flex-shrink-0 bg-slate-200 rounded-full overflow-hidden border border-slate-200">
+                          {jugador.foto ? (
+                            <img src={jugador.foto} alt={jugador.nombre} className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="h-full w-full flex items-center justify-center text-slate-400">
+                              <span className="text-xs font-bold">{jugador.nombre.charAt(0)}</span>
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <div className="font-medium text-slate-900">{jugador.nombre}</div>
+                          {jugador.posicion && <div className="text-sm text-slate-500">{jugador.posicion}</div>}
+                        </div>
                       </div>
                       {jugador.stats && (
                         <div className="text-sm text-slate-600">
@@ -285,9 +299,20 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
                 <div className="space-y-2">
                   {visitanteJugadores.map((jugador) => (
                     <div key={jugador.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                      <div>
-                        <div className="font-medium text-slate-900">{jugador.nombre}</div>
-                        {jugador.posicion && <div className="text-sm text-slate-500">{jugador.posicion}</div>}
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 flex-shrink-0 bg-slate-200 rounded-full overflow-hidden border border-slate-200">
+                          {jugador.foto ? (
+                            <img src={jugador.foto} alt={jugador.nombre} className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="h-full w-full flex items-center justify-center text-slate-400">
+                              <span className="text-xs font-bold">{jugador.nombre.charAt(0)}</span>
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <div className="font-medium text-slate-900">{jugador.nombre}</div>
+                          {jugador.posicion && <div className="text-sm text-slate-500">{jugador.posicion}</div>}
+                        </div>
                       </div>
                       {jugador.stats && (
                         <div className="text-sm text-slate-600">
