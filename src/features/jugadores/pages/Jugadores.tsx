@@ -27,7 +27,7 @@ const Jugadores: React.FC = () => {
 
   const filteredItems = useMemo(() => {
     if (!paged) return [];
-    let items = Array.isArray(paged) ? [...paged] : [...(paged.items ?? [])];
+    let items = [...paged];
 
     // Aplicar búsqueda por nombre/alias
     if (searchTerm) {
