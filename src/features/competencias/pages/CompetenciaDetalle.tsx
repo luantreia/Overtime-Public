@@ -43,46 +43,6 @@ const CompetenciaDetalle: React.FC = () => {
 
   const isRanked = competencia ? (competencia as any).rankedEnabled === true : false;
 
-  useEffect(() => {
-    if (competencia && (competencia as any).rankedEnabled && activeTab === 'leaderboard') {
-      void loadTemporadas();
-    }
-    if (competencia && (activeTab === 'partidos' || activeTab === 'resultados')) {
-      void loadTemporadas();
-    }
-  }, [competencia, activeTab, loadTemporadas]);
-
-  // Effect to reset activeTab if 'resultados' is selected but competition is ranked
-  useEffect(() => {
-    if (isRanked && activeTab === 'resultados') {
-      setActiveTab('info');
-    }
-  }, [isRanked, activeTab]);
-
-  // Effect to load phases or leaderboard when season changes
-  useEffect(() => {
-    if (activeTab === 'leaderboard') {
-      void loadLeaderboard();
-    } else if (selectedTemporada) {
-      void loadFases(selectedTemporada);
-    } else {
-      setFases([]);
-      setSelectedFase('');
-    }
-  }, [selectedTemporada, activeTab, loadLeaderboard, loadFases]);
-
-  // Effect to load phase details and matches when phase changes
-  useEffect(() => {
-    if (selectedFase) {
-      void loadFaseData(selectedFase);
-    } else if (selectedTemporada && activeTab === 'partidos') {
-      void loadTemporadaMatches(selectedTemporada);
-    } else {
-      setFaseDetails(null);
-      setFasePartidos([]);
-    }
-  }, [selectedFase, selectedTemporada, activeTab, loadFaseData, loadTemporadaMatches]);
-
   const loadLeaderboard = useCallback(async () => {
     if (!competencia) return;
     setLoadingLeaderboard(true);
@@ -174,6 +134,46 @@ const CompetenciaDetalle: React.FC = () => {
       setLoadingResultados(false);
     }
   }, [competencia]);
+
+  useEffect(() => {
+    if (competencia && (competencia as any).rankedEnabled && activeTab === 'leaderboard') {
+      void loadTemporadas();
+    }
+    if (competencia && (activeTab === 'partidos' || activeTab === 'resultados')) {
+      void loadTemporadas();
+    }
+  }, [competencia, activeTab, loadTemporadas]);
+
+  // Effect to reset activeTab if 'resultados' is selected but competition is ranked
+  useEffect(() => {
+    if (isRanked && activeTab === 'resultados') {
+      setActiveTab('info');
+    }
+  }, [isRanked, activeTab]);
+
+  // Effect to load phases or leaderboard when season changes
+  useEffect(() => {
+    if (activeTab === 'leaderboard') {
+      void loadLeaderboard();
+    } else if (selectedTemporada) {
+      void loadFases(selectedTemporada);
+    } else {
+      setFases([]);
+      setSelectedFase('');
+    }
+  }, [selectedTemporada, activeTab, loadLeaderboard, loadFases]);
+
+  // Effect to load phase details and matches when phase changes
+  useEffect(() => {
+    if (selectedFase) {
+      void loadFaseData(selectedFase);
+    } else if (selectedTemporada && activeTab === 'partidos') {
+      void loadTemporadaMatches(selectedTemporada);
+    } else {
+      setFaseDetails(null);
+      setFasePartidos([]);
+    }
+  }, [selectedFase, selectedTemporada, activeTab, loadFaseData, loadTemporadaMatches]);
 
   if (loading) {
     return (
