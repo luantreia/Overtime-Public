@@ -19,27 +19,15 @@ const Navbar: React.FC = () => {
   return (
     <header className="relative border-b border-slate-200 bg-white/70 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <NavLink to="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
-          <img 
-            src="/logo-overtime.png" 
-            alt="Overtime Logo" 
-            className="h-10 w-10 object-contain"
-            onError={(e) => {
-              // Fallback if image doesn't exist yet
-              e.currentTarget.style.display = 'none';
-              if (e.currentTarget.nextElementSibling) {
-                (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex';
-              }
-            }}
-          />
-          <span className="hidden h-10 w-10 items-center justify-center rounded-xl bg-orange-500 font-bold text-white shadow" style={{ display: 'none' }}>
+        <div className="flex items-center gap-3">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 font-bold text-white shadow">
             OTV
           </span>
           <div>
-            <p className="text-sm font-bold text-slate-900 leading-tight">Overtime</p>
-            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-medium">Public App</p>
+            <p className="text-sm font-semibold text-slate-900">Overtime Public (TS)</p>
+            <p className="text-xs text-slate-500">Exploración pública</p>
           </div>
-        </NavLink>
+        </div>
 
         {/* Botón hamburguesa para móviles */}
         <button
@@ -60,7 +48,7 @@ const Navbar: React.FC = () => {
               to={to}
               className={({ isActive }) =>
                 `rounded-lg px-3 py-2 transition-colors ${
-                  isActive ? 'bg-orange-100 text-orange-700' : 'hover:bg-slate-100'
+                  isActive ? 'bg-indigo-100 text-indigo-700' : 'hover:bg-slate-100'
                 }`
               }
             >
@@ -76,7 +64,7 @@ const Navbar: React.FC = () => {
                 to="/solicitudes"
                 className={({ isActive }) =>
                   `rounded-lg px-3 py-2 transition-colors ${
-                    isActive ? 'bg-orange-100 text-orange-700' : 'hover:bg-slate-100'
+                    isActive ? 'bg-indigo-100 text-indigo-700' : 'hover:bg-slate-100'
                   }`
                 }
               >
@@ -86,7 +74,7 @@ const Navbar: React.FC = () => {
                 to="/perfil"
                 className={({ isActive }) =>
                   `rounded-lg px-3 py-2 transition-colors ${
-                    isActive ? 'bg-orange-100 text-orange-700' : 'hover:bg-slate-100'
+                    isActive ? 'bg-indigo-100 text-indigo-700' : 'hover:bg-slate-100'
                   }`
                 }
               >
@@ -109,7 +97,7 @@ const Navbar: React.FC = () => {
               </NavLink>
               <NavLink
                 to="/register"
-                className="rounded-lg bg-orange-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-orange-700"
+                className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-indigo-700"
               >
                 Registrarse
               </NavLink>
@@ -127,7 +115,7 @@ const Navbar: React.FC = () => {
                     to={to}
                     className={({ isActive }) =>
                       `rounded-lg px-3 py-2 transition-colors ${
-                        isActive ? 'bg-orange-100 text-orange-700' : 'hover:bg-slate-100'
+                        isActive ? 'bg-indigo-100 text-indigo-700' : 'hover:bg-slate-100'
                       }`
                     }
                     onClick={() => setIsMenuOpen(false)}
@@ -144,7 +132,7 @@ const Navbar: React.FC = () => {
                       to="/solicitudes"
                       className={({ isActive }) =>
                         `rounded-lg px-3 py-2 transition-colors ${
-                          isActive ? 'bg-orange-100 text-orange-700' : 'hover:bg-slate-100'
+                          isActive ? 'bg-indigo-100 text-indigo-700' : 'hover:bg-slate-100'
                         }`
                       }
                       onClick={() => setIsMenuOpen(false)}
@@ -155,7 +143,7 @@ const Navbar: React.FC = () => {
                       to="/perfil"
                       className={({ isActive }) =>
                         `rounded-lg px-3 py-2 transition-colors ${
-                          isActive ? 'bg-orange-100 text-orange-700' : 'hover:bg-slate-100'
+                          isActive ? 'bg-indigo-100 text-indigo-700' : 'hover:bg-slate-100'
                         }`
                       }
                       onClick={() => setIsMenuOpen(false)}
@@ -183,7 +171,7 @@ const Navbar: React.FC = () => {
                   </NavLink>
                   <NavLink
                     to="/register"
-                    className="rounded-lg bg-orange-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-orange-700"
+                    className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-indigo-700"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Registrarse
