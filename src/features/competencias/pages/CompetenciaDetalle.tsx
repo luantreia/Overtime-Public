@@ -490,6 +490,9 @@ const CompetenciaDetalle: React.FC = () => {
                       </thead>
                       <tbody className="bg-white divide-y divide-slate-200">
                         {leaderboard.map((item, index) => {
+                          const playerId = typeof item.playerId === 'object' ? (item.playerId as any)._id : item.playerId;
+                          const playerFoto = typeof item.playerId === 'object' ? (item.playerId as any).foto : (item as any).foto;
+                          
                           const initials = (item.playerName || 'PJ')
                             .split(' ')
                             .map(n => n[0])
@@ -498,13 +501,13 @@ const CompetenciaDetalle: React.FC = () => {
                             .toUpperCase();
                             
                           return (
-                            <tr key={item.playerId} className="hover:bg-slate-50">
+                            <tr key={playerId} className="hover:bg-slate-50">
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{index + 1}</td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="flex items-center gap-3">
                                   <div className="relative w-8 h-8 flex-shrink-0">
                                     <img 
-                                      src={`https://api.deportes.puebla.gob.mx/images/players/${item.playerId}.jpg`}
+                                      src={playerFoto || `https://api.deportes.puebla.gob.mx/images/players/${playerId}.jpg`}
                                       alt={item.playerName || 'Jugador'}
                                       className="absolute inset-0 w-8 h-8 rounded-full object-cover bg-slate-100 border border-slate-200 shadow-sm z-10"
                                       onError={(e) => { (e.target as HTMLImageElement).classList.add('hidden'); }}
@@ -513,7 +516,7 @@ const CompetenciaDetalle: React.FC = () => {
                                       {initials}
                                     </div>
                                   </div>
-                                  <div className="text-sm font-medium text-slate-900">{item.playerName || item.playerId}</div>
+                                  <div className="text-sm font-medium text-slate-900">{item.playerName || playerId}</div>
                                 </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-900">{item.rating.toFixed(3)}</td>
@@ -539,6 +542,9 @@ const CompetenciaDetalle: React.FC = () => {
                   {/* Vista de cards para móviles */}
                   <div className="md:hidden space-y-4">
                     {leaderboard.map((item, index) => {
+                      const playerId = typeof item.playerId === 'object' ? (item.playerId as any)._id : item.playerId;
+                      const playerFoto = typeof item.playerId === 'object' ? (item.playerId as any).foto : (item as any).foto;
+                      
                       const initials = (item.playerName || 'PJ')
                         .split(' ')
                         .map(n => n[0])
@@ -547,7 +553,7 @@ const CompetenciaDetalle: React.FC = () => {
                         .toUpperCase();
                         
                       return (
-                        <div key={item.playerId} className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
+                        <div key={playerId} className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-3">
                               <span className="inline-flex items-center justify-center w-8 h-8 bg-slate-100 text-slate-600 rounded-full text-sm font-bold">
@@ -556,7 +562,7 @@ const CompetenciaDetalle: React.FC = () => {
                               <div className="flex items-center gap-2">
                                 <div className="relative w-8 h-8 flex-shrink-0">
                                   <img 
-                                    src={`https://api.deportes.puebla.gob.mx/images/players/${item.playerId}.jpg`}
+                                    src={playerFoto || `https://api.deportes.puebla.gob.mx/images/players/${playerId}.jpg`}
                                     alt={item.playerName || 'Jugador'}
                                     className="absolute inset-0 w-8 h-8 rounded-full object-cover bg-slate-100 border border-slate-200 shadow-sm z-10"
                                     onError={(e) => { (e.target as HTMLImageElement).classList.add('hidden'); }}
@@ -565,7 +571,7 @@ const CompetenciaDetalle: React.FC = () => {
                                     {initials}
                                   </div>
                                 </div>
-                                <div className="text-sm font-medium text-slate-900">{item.playerName || item.playerId}</div>
+                                <div className="text-sm font-medium text-slate-900">{item.playerName || playerId}</div>
                               </div>
                             </div>
                             <div className="text-right">
