@@ -274,7 +274,7 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
                         <div className="text-[10px] sm:text-sm text-slate-600 ml-2 whitespace-nowrap">
                           {partido.esRanked && jugador.stats.delta !== undefined ? (
                             <span className={`font-bold ${jugador.stats.delta >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                              {jugador.stats.delta > 0 ? `+${jugador.stats.delta}` : jugador.stats.delta} ELO
+                              {jugador.stats.delta > 0 ? `+${Number(jugador.stats.delta).toFixed(3)}` : Number(jugador.stats.delta).toFixed(3)} ELO
                             </span>
                           ) : (
                             <>
@@ -321,7 +321,7 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
                         <div className="text-[10px] sm:text-sm text-slate-600 ml-2 whitespace-nowrap">
                           {partido.esRanked && jugador.stats.delta !== undefined ? (
                             <span className={`font-bold ${jugador.stats.delta >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                              {jugador.stats.delta > 0 ? `+${jugador.stats.delta}` : jugador.stats.delta} ELO
+                              {jugador.stats.delta > 0 ? `+${Number(jugador.stats.delta).toFixed(3)}` : Number(jugador.stats.delta).toFixed(3)} ELO
                             </span>
                           ) : (
                             <>
