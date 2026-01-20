@@ -153,13 +153,17 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
         <div className="flex items-center justify-center gap-4 sm:gap-12">
           <div className="text-center flex flex-col items-center flex-1">
             {/* Logo Local */}
-            <div className="mb-2 h-16 w-16 sm:h-24 sm:w-24 flex items-center justify-center bg-slate-50 rounded-xl p-1.5 sm:p-2 border border-slate-100 shadow-sm">
-              {partido.equipoLocal?.escudo ? (
-                <img src={partido.equipoLocal.escudo} alt={partido.equipoLocal.nombre} className="max-h-full max-w-full object-contain" />
-              ) : (
-                <div className="text-slate-300 font-bold text-xl sm:text-3xl">
-                  {partido.equipoLocal?.nombre?.charAt(0) || 'L'}
-                </div>
+            <div className="mb-2 h-16 w-16 sm:h-24 sm:w-24 flex items-center justify-center bg-slate-50 rounded-xl p-1.5 sm:p-2 border border-slate-100 shadow-sm relative overflow-hidden">
+              <div className="absolute inset-0 flex items-center justify-center text-slate-300 font-bold text-xl sm:text-3xl z-0">
+                {partido.equipoLocal?.nombre?.charAt(0) || 'L'}
+              </div>
+              {partido.equipoLocal?.escudo && (
+                <img 
+                  src={partido.equipoLocal.escudo} 
+                  alt={partido.equipoLocal.nombre} 
+                  className="relative z-10 max-h-full max-w-full object-contain" 
+                  onError={(e) => { (e.target as HTMLImageElement).classList.add('hidden'); }}
+                />
               )}
             </div>
             <div className="text-2xl sm:text-4xl font-bold text-slate-900">{partido.marcadorLocal ?? 0}</div>
@@ -170,13 +174,17 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
 
           <div className="text-center flex flex-col items-center flex-1">
             {/* Logo Visitante */}
-            <div className="mb-2 h-16 w-16 sm:h-24 sm:w-24 flex items-center justify-center bg-slate-50 rounded-xl p-1.5 sm:p-2 border border-slate-100 shadow-sm">
-              {partido.equipoVisitante?.escudo ? (
-                <img src={partido.equipoVisitante.escudo} alt={partido.equipoVisitante.nombre} className="max-h-full max-w-full object-contain" />
-              ) : (
-                <div className="text-slate-300 font-bold text-xl sm:text-3xl">
-                  {partido.equipoVisitante?.nombre?.charAt(0) || 'V'}
-                </div>
+            <div className="mb-2 h-16 w-16 sm:h-24 sm:w-24 flex items-center justify-center bg-slate-50 rounded-xl p-1.5 sm:p-2 border border-slate-100 shadow-sm relative overflow-hidden">
+              <div className="absolute inset-0 flex items-center justify-center text-slate-300 font-bold text-xl sm:text-3xl z-0">
+                {partido.equipoVisitante?.nombre?.charAt(0) || 'V'}
+              </div>
+              {partido.equipoVisitante?.escudo && (
+                <img 
+                  src={partido.equipoVisitante.escudo} 
+                  alt={partido.equipoVisitante.nombre} 
+                  className="relative z-10 max-h-full max-w-full object-contain" 
+                  onError={(e) => { (e.target as HTMLImageElement).classList.add('hidden'); }}
+                />
               )}
             </div>
             <div className="text-2xl sm:text-4xl font-bold text-slate-900">{partido.marcadorVisitante ?? 0}</div>
@@ -248,7 +256,12 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   {partido.equipoLocal?.escudo && (
-                    <img src={partido.equipoLocal.escudo} alt="" className="h-6 w-6 object-contain" />
+                    <img 
+                      src={partido.equipoLocal.escudo} 
+                      alt="" 
+                      className="h-6 w-6 object-contain" 
+                      onError={(e) => { (e.target as HTMLImageElement).classList.add('hidden'); }}
+                    />
                   )}
                   <h3 className="text-base sm:text-lg font-medium text-slate-900 truncate">{partido.equipoLocal?.nombre || 'Local'}</h3>
                 </div>
@@ -256,14 +269,18 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
                   {localJugadores.map((jugador) => (
                     <div key={jugador.id} className="flex items-center justify-between p-2 sm:p-3 bg-slate-50 rounded-lg">
                       <div className="flex items-center gap-2 sm:gap-3 overflow-hidden">
-                        <div className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 bg-slate-200 rounded-full overflow-hidden border border-slate-200">
-                          {jugador.foto ? (
-                            <img src={jugador.foto} alt={jugador.nombre} className="h-full w-full object-cover" />
-                          ) : (
-                            <div className="h-full w-full flex items-center justify-center text-slate-400">
-                              <span className="text-[10px] sm:text-xs font-bold">{jugador.nombre.charAt(0)}</span>
-                            </div>
-                          )}
+                        <div className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 relative bg-brand-100 rounded-full overflow-hidden border border-brand-200">
+                          <img 
+                            src={jugador.foto || `https://api.deportes.puebla.gob.mx/images/players/${jugador.id}.jpg`} 
+                            alt={jugador.nombre} 
+                            className="absolute inset-0 h-full w-full object-cover z-10" 
+                            onError={(e) => { (e.target as HTMLImageElement).classList.add('hidden'); }}
+                          />
+                          <div className="absolute inset-0 h-full w-full flex items-center justify-center text-brand-700">
+                            <span className="text-xs sm:text-sm font-bold">
+                              {(jugador.nombre || 'P').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                            </span>
+                          </div>
                         </div>
                         <div className="overflow-hidden">
                           <div className="font-medium text-slate-900 text-sm sm:text-base truncate">{jugador.nombre}</div>
@@ -295,7 +312,12 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
               <div className="mt-4 sm:mt-0">
                 <div className="flex items-center gap-2 mb-2">
                   {partido.equipoVisitante?.escudo && (
-                    <img src={partido.equipoVisitante.escudo} alt="" className="h-6 w-6 object-contain" />
+                    <img 
+                      src={partido.equipoVisitante.escudo} 
+                      alt="" 
+                      className="h-6 w-6 object-contain" 
+                      onError={(e) => { (e.target as HTMLImageElement).classList.add('hidden'); }}
+                    />
                   )}
                   <h3 className="text-base sm:text-lg font-medium text-slate-900 truncate">{partido.equipoVisitante?.nombre || 'Visitante'}</h3>
                 </div>
@@ -303,14 +325,18 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
                   {visitanteJugadores.map((jugador) => (
                     <div key={jugador.id} className="flex items-center justify-between p-2 sm:p-3 bg-slate-50 rounded-lg">
                       <div className="flex items-center gap-2 sm:gap-3 overflow-hidden">
-                        <div className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 bg-slate-200 rounded-full overflow-hidden border border-slate-200">
-                          {jugador.foto ? (
-                            <img src={jugador.foto} alt={jugador.nombre} className="h-full w-full object-cover" />
-                          ) : (
-                            <div className="h-full w-full flex items-center justify-center text-slate-400">
-                              <span className="text-[10px] sm:text-xs font-bold">{jugador.nombre.charAt(0)}</span>
-                            </div>
-                          )}
+                        <div className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 relative bg-brand-100 rounded-full overflow-hidden border border-brand-200">
+                          <img 
+                            src={jugador.foto || `https://api.deportes.puebla.gob.mx/images/players/${jugador.id}.jpg`} 
+                            alt={jugador.nombre} 
+                            className="absolute inset-0 h-full w-full object-cover z-10" 
+                            onError={(e) => { (e.target as HTMLImageElement).classList.add('hidden'); }}
+                          />
+                          <div className="absolute inset-0 h-full w-full flex items-center justify-center text-brand-700">
+                            <span className="text-xs sm:text-sm font-bold">
+                              {(jugador.nombre || 'P').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                            </span>
+                          </div>
                         </div>
                         <div className="overflow-hidden">
                           <div className="font-medium text-slate-900 text-sm sm:text-base truncate">{jugador.nombre}</div>
