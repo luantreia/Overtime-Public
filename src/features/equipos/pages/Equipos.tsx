@@ -1,27 +1,77 @@
 import React, { useCallback, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { EquipoCard } from '../../../shared/components';
 import { useEntity } from '../../../shared/hooks';
 import { EquipoService, type Equipo } from '../services/equipoService';
 
 const Equipos: React.FC = () => {
+  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
-  const { data: paged, loading, error, refetch } = useEntity<{ items: Equipo[]; page: number; limit: number; total: number } | Equipo[]>(
-    useCallback(() => EquipoService.getPaginated({ page, limit }), [page, limit])
+
+  // Filtros
+  const [searchTerm, setSearchTerm] = useState('');
+  const [countryFilter, setCountryFilter] = useState('');
+
+  const { data: paged, loading, error, refetch } = useEntity<Equipo[]>(
+    useCallback(() => EquipoService.getAll(), [])
   );
-  const equipos = useMemo(() => {
+
+  // Extraer países únicos de los datos para el filtro
+  const countries = useMemo(() => {
+    if (!paged || !Array.isArray(paged)) return [];
+    const unique = new Set(paged.map(e => e.pais).filter(Boolean));
+    return Array.from(unique).sort();
+  }, [paged]);
+
+  const filteredItems = useMemo(() => {
     if (!paged) return [];
-    if (Array.isArray(paged)) {
-      const start = (page - 1) * limit;
-      return paged.slice(start, start + limit);
+    let items = [...paged];
+
+    // Aplicar búsqueda por nombre
+    if (searchTerm) {
+      const lowSearch = searchTerm.toLowerCase();
+      items = items.filter(e => 
+        e.nombre.toLowerCase().includes(lowSearch)
+      );
     }
-    return paged.items ?? [];
-  }, [paged, page, limit]);
-  const total = useMemo(() => {
-    if (!paged) return 0;
-    if (Array.isArray(paged)) return paged.length;
-    return paged.total ?? equipos.length;
-  }, [paged, equipos.length]);
+
+    // Aplicar filtro de país
+    if (countryFilter) {
+      items = items.filter(e => e.pais === countryFilter);
+    }
+
+    return items;
+  }, [paged, searchTerm, countryFilter]);
+
+  const equipos = useMemo(() => {
+    const items = [...filteredItems];
+    
+    // Función para calcular qué tan "completo" está el perfil del equipo
+    const getCompletenessScore = (e: Equipo) => {
+      let score = 0;
+      if (e.escudo || e.imagen) score += 10;
+      if (e.ciudad) score += 5;
+      if (e.pais) score += 5;
+      if (e.organizacionId || e.organizacion) score += 5;
+      if (e.miembros && e.miembros > 0) score += 3;
+      if (e.activo) score += 2;
+      
+      // Priorizar también por datos relacionales si vienen
+      if (e.jugadoresCount) score += e.jugadoresCount * 2;
+      if (e.partidosCount) score += e.partidosCount * 2;
+      
+      return score;
+    };
+
+    // Ordenamos: más completos primero
+    items.sort((a, b) => getCompletenessScore(b) - getCompletenessScore(a));
+
+    const start = (page - 1) * limit;
+    return items.slice(start, start + limit);
+  }, [filteredItems, page, limit]);
+
+  const total = filteredItems.length;
   const totalPages = useMemo(() => (limit > 0 ? Math.max(1, Math.ceil(total / limit)) : 1), [total, limit]);
 
   if (loading) {
@@ -59,9 +109,50 @@ const Equipos: React.FC = () => {
           <p className="mt-2 text-slate-600">Directorio de equipos registrados</p>
         </div>
 
+        {/* Filtros */}
+        <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+          <div>
+            <label htmlFor="search-equipo" className="block text-sm font-medium text-slate-700 mb-1">Buscar por nombre</label>
+            <input
+              id="search-equipo"
+              type="text"
+              placeholder="Ej: Rangers, Spartans..."
+              value={searchTerm}
+              onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
+              className="w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 border"
+            />
+          </div>
+          <div>
+            <label htmlFor="country" className="block text-sm font-medium text-slate-700 mb-1">País / Región</label>
+            <select
+              id="country"
+              value={countryFilter}
+              onChange={(e) => { setCountryFilter(e.target.value); setPage(1); }}
+              className="w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 border"
+            >
+              <option value="">Todos</option>
+              {countries.map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-end">
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                setCountryFilter('');
+                setPage(1);
+              }}
+              className="w-full rounded-lg border border-slate-300 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 transition-colors"
+            >
+              Limpiar filtros
+            </button>
+          </div>
+        </div>
+
         {!equipos || equipos.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-slate-500">No hay equipos disponibles</p>
+            <p className="text-slate-500">No hay equipos que coincidan con la búsqueda</p>
           </div>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -71,8 +162,8 @@ const Equipos: React.FC = () => {
                 equipo={equipo}
                 actions={
                   <button
-                    onClick={() => console.log('Ver detalles de', equipo.nombre)}
-                    className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm text-white hover:bg-brand-700"
+                    onClick={() => navigate(`/equipos/${equipo.id}`)}
+                    className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm text-white hover:bg-brand-700 transition-colors"
                   >
                     Ver detalles
                   </button>

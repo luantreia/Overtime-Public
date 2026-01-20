@@ -9,6 +9,7 @@ const LandingPage = lazy(() => import('./features/dashboard/pages/LandingPage'))
 const Jugadores = lazy(() => import('./features/jugadores/pages/Jugadores'));
 const JugadorDetalle = lazy(() => import('./features/jugadores/pages/JugadorDetalle'));
 const Equipos = lazy(() => import('./features/equipos/pages/Equipos'));
+const EquipoDetalle = lazy(() => import('./features/equipos/pages/EquipoDetalle'));
 const Competencias = lazy(() => import('./features/competencias/pages/Competencias'));
 const CompetenciaDetalle = lazy(() => import('./features/competencias/pages/CompetenciaDetalle'));
 const Partidos = lazy(() => import('./features/partidos/pages/Partidos'));
@@ -30,6 +31,7 @@ const App: React.FC = () => (
           <Route path="/jugadores" element={<Jugadores />} />
           <Route path="/jugadores/:id" element={<JugadorDetalle />} />
           <Route path="/equipos" element={<Equipos />} />
+          <Route path="/equipos/:id" element={<EquipoDetalle />} />
           <Route path="/competencias" element={<Competencias />} />
           <Route path="/competencias/:id" element={<CompetenciaDetalle />} />
           <Route path="/partidos" element={<Partidos />} />
