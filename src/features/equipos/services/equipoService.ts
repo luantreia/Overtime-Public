@@ -1,7 +1,8 @@
 import { fetchWithAuth } from '../../../utils/apiClient';
 
 export interface Equipo {
-  id: string;
+  _id?: string;
+  id?: string;
   nombre: string;
   ciudad?: string;
   organizacionId?: string;

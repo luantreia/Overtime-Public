@@ -156,20 +156,23 @@ const Equipos: React.FC = () => {
           </div>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {equipos.map((equipo) => (
-              <EquipoCard
-                key={equipo.id}
-                equipo={equipo}
-                actions={
-                  <button
-                    onClick={() => navigate(`/equipos/${equipo.id}`)}
-                    className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm text-white hover:bg-brand-700 transition-colors"
-                  >
-                    Ver detalles
-                  </button>
-                }
-              />
-            ))}
+            {equipos.map((equipo) => {
+              const equipoId = equipo._id || equipo.id;
+              return (
+                <EquipoCard
+                  key={equipoId}
+                  equipo={equipo}
+                  actions={
+                    <button
+                      onClick={() => navigate(`/equipos/${equipoId}`)}
+                      className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm text-white hover:bg-brand-700 transition-colors"
+                    >
+                      Ver detalles
+                    </button>
+                  }
+                />
+              );
+            })}
           </div>
         )}
 
