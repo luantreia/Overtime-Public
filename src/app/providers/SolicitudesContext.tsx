@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { 
-    SolicitudEdicion, 
     SolicitudOpciones, 
     SolicitudContexto, 
     SolicitudCrearPayload 

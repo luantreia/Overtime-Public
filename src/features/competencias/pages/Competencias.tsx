@@ -12,7 +12,7 @@ const mapEstadoVariante = (estado: any): 'proximamente' | 'en_curso' | 'finaliza
   
   const estadoStr = String(estado).toLowerCase().trim();
   
-  if (estadoStr.includes('en_curso') || estadoStr.includes('en curso') || estadoStr.includes('activa') || estadoStr.includes('en') && estadoStr.includes('curso')) {
+  if (estadoStr.includes('en_curso') || estadoStr.includes('en curso') || estadoStr.includes('activa') || (estadoStr.includes('en') && estadoStr.includes('curso'))) {
     return 'en_curso';
   }
   if (estadoStr.includes('finalizada') || estadoStr.includes('finalizado') || estadoStr.includes('terminada') || estadoStr.includes('completada')) {

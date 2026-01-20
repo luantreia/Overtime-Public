@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../../app/providers/AuthContext';
-import api, { PublicInsights } from '../../../shared/api/client';
-import { PartidoService, Partido } from '../../partidos/services/partidoService';
-import { CompetenciaService, Competencia } from '../../competencias/services/competenciaService';
-import PartidoCard from '../../../shared/components/PartidoCard';
-import { CompetenciaCard } from '../../../shared/components';
+import api from '../../../shared/api/client';
+import { PartidoService } from '../../partidos/services/partidoService';
+import { CompetenciaService } from '../../competencias/services/competenciaService';
 
 const LandingPage: React.FC = () => {
   const { isAuthenticated } = useAuth();

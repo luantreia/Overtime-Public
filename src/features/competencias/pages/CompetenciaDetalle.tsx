@@ -45,12 +45,12 @@ const CompetenciaDetalle: React.FC = () => {
 
   useEffect(() => {
     if (competencia && (competencia as any).rankedEnabled && activeTab === 'leaderboard') {
-      loadTemporadas();
+      void loadTemporadas();
     }
     if (competencia && (activeTab === 'partidos' || activeTab === 'resultados')) {
-      loadTemporadas();
+      void loadTemporadas();
     }
-  }, [competencia, activeTab]);
+  }, [competencia, activeTab, loadTemporadas]);
 
   // Effect to reset activeTab if 'resultados' is selected but competition is ranked
   useEffect(() => {
@@ -62,28 +62,28 @@ const CompetenciaDetalle: React.FC = () => {
   // Effect to load phases or leaderboard when season changes
   useEffect(() => {
     if (activeTab === 'leaderboard') {
-      loadLeaderboard();
+      void loadLeaderboard();
     } else if (selectedTemporada) {
-      loadFases(selectedTemporada);
+      void loadFases(selectedTemporada);
     } else {
       setFases([]);
       setSelectedFase('');
     }
-  }, [selectedTemporada, activeTab]);
+  }, [selectedTemporada, activeTab, loadLeaderboard, loadFases]);
 
   // Effect to load phase details and matches when phase changes
   useEffect(() => {
     if (selectedFase) {
-      loadFaseData(selectedFase);
+      void loadFaseData(selectedFase);
     } else if (selectedTemporada && activeTab === 'partidos') {
-      loadTemporadaMatches(selectedTemporada);
+      void loadTemporadaMatches(selectedTemporada);
     } else {
       setFaseDetails(null);
       setFasePartidos([]);
     }
-  }, [selectedFase, selectedTemporada, activeTab]);
+  }, [selectedFase, selectedTemporada, activeTab, loadFaseData, loadTemporadaMatches]);
 
-  const loadLeaderboard = async () => {
+  const loadLeaderboard = useCallback(async () => {
     if (!competencia) return;
     setLoadingLeaderboard(true);
     try {
@@ -104,9 +104,9 @@ const CompetenciaDetalle: React.FC = () => {
     } finally {
       setLoadingLeaderboard(false);
     }
-  };
+  }, [competencia, selectedTemporada]);
 
-  const loadTemporadas = async () => {
+  const loadTemporadas = useCallback(async () => {
     if (!competencia) return;
     setLoadingResultados(true);
     try {
@@ -121,9 +121,9 @@ const CompetenciaDetalle: React.FC = () => {
     } finally {
       setLoadingResultados(false);
     }
-  };
+  }, [competencia]);
 
-  const loadFases = async (temporadaId: string) => {
+  const loadFases = useCallback(async (temporadaId: string) => {
     setLoadingResultados(true);
     try {
       const res = await FaseService.getByTemporada(temporadaId);
@@ -139,9 +139,9 @@ const CompetenciaDetalle: React.FC = () => {
     } finally {
       setLoadingResultados(false);
     }
-  };
+  }, []);
 
-  const loadFaseData = async (faseId: string) => {
+  const loadFaseData = useCallback(async (faseId: string) => {
     setLoadingResultados(true);
     try {
       // Load phase details to know the type
@@ -156,9 +156,9 @@ const CompetenciaDetalle: React.FC = () => {
     } finally {
       setLoadingResultados(false);
     }
-  };
+  }, [fases]);
 
-  const loadTemporadaMatches = async (temporadaId: string) => {
+  const loadTemporadaMatches = useCallback(async (temporadaId: string) => {
     if (!competencia) return;
     setLoadingResultados(true);
     try {
@@ -173,7 +173,7 @@ const CompetenciaDetalle: React.FC = () => {
     } finally {
       setLoadingResultados(false);
     }
-  };
+  }, [competencia]);
 
   if (loading) {
     return (
