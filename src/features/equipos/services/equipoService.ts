@@ -17,6 +17,8 @@ export interface Equipo {
   competenciasJugadas?: number;
   competenciasGanadas?: number;
   partidosJugados?: number;
+  participaciontemporadas?: any[];
+  equipopartido?: any[];
   [key: string]: any;
 }
 
