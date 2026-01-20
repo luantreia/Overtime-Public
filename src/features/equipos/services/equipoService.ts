@@ -14,6 +14,9 @@ export interface Equipo {
   imagen?: string;
   escudo?: string;
   activo?: boolean;
+  competenciasJugadas?: number;
+  competenciasGanadas?: number;
+  partidosJugados?: number;
   [key: string]: any;
 }
 
