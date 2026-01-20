@@ -7,6 +7,7 @@ import { FeatureFlagsProvider } from './shared/config/featureFlags';
 // Lazy load components
 const LandingPage = lazy(() => import('./features/dashboard/pages/LandingPage'));
 const Jugadores = lazy(() => import('./features/jugadores/pages/Jugadores'));
+const JugadorDetalle = lazy(() => import('./features/jugadores/pages/JugadorDetalle'));
 const Equipos = lazy(() => import('./features/equipos/pages/Equipos'));
 const Competencias = lazy(() => import('./features/competencias/pages/Competencias'));
 const CompetenciaDetalle = lazy(() => import('./features/competencias/pages/CompetenciaDetalle'));
@@ -27,6 +28,7 @@ const App: React.FC = () => (
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/jugadores" element={<Jugadores />} />
+          <Route path="/jugadores/:id" element={<JugadorDetalle />} />
           <Route path="/equipos" element={<Equipos />} />
           <Route path="/competencias" element={<Competencias />} />
           <Route path="/competencias/:id" element={<CompetenciaDetalle />} />

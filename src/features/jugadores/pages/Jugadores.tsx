@@ -1,9 +1,11 @@
 import React, { useCallback, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { JugadorCard } from '../../../shared/components';
 import { useEntity } from '../../../shared/hooks';
 import { JugadorService, type Jugador } from '../services/jugadorService';
 
 const Jugadores: React.FC = () => {
+  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const { data: paged, loading, error, refetch } = useEntity<{ items: Jugador[]; page: number; limit: number; total: number } | Jugador[]>(
@@ -74,7 +76,7 @@ const Jugadores: React.FC = () => {
                 variante="activo"
                 actions={
                   <button
-                    onClick={() => console.log('Ver detalles de', jugador.nombre)}
+                    onClick={() => navigate(`/jugadores/${jugadorId}`)}
                     className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm text-white hover:bg-brand-700"
                   >
                     Ver detalles
