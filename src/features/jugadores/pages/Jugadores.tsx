@@ -124,7 +124,7 @@ const Jugadores: React.FC = () => {
             <input
               id="search"
               type="text"
-              placeholder="Ej: Nahum..."
+              placeholder="Ej: Agustin..."
               value={searchTerm}
               onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
               className="w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 border"
