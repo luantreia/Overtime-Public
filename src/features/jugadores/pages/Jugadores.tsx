@@ -14,20 +14,20 @@ const Jugadores: React.FC = () => {
   const [genderFilter, setGenderFilter] = useState('');
   const [nationalityFilter, setNationalityFilter] = useState('');
 
-  const { data: paged, loading, error, refetch } = useEntity<Jugador[]>(
+  const { data: paged, loading, error, refetch } = useEntity<{ items: Jugador[] }>(
     useCallback(() => JugadorService.getAll(), [])
   );
 
   // Extraer nacionalidades únicas de los datos para el filtro
   const nationalities = useMemo(() => {
-    if (!paged || !Array.isArray(paged)) return [];
-    const unique = new Set(paged.map(j => j.nacionalidad).filter(Boolean));
+    if (!paged?.items) return [];
+    const unique = new Set(paged.items.map(j => j.nacionalidad).filter(Boolean));
     return Array.from(unique).sort();
   }, [paged]);
 
   const filteredItems = useMemo(() => {
-    if (!paged) return [];
-    let items = [...paged];
+    if (!paged?.items) return [];
+    let items = [...paged.items];
 
     // Aplicar búsqueda por nombre/alias
     if (searchTerm) {

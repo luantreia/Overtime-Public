@@ -20,7 +20,7 @@ export interface Jugador {
 export class JugadorService {
   private static readonly API_ENDPOINT = '/jugadores';
 
-  static async getAll(filters?: Record<string, any>): Promise<Jugador[]> {
+  static async getAll(filters?: Record<string, any>): Promise<{ items: Jugador[] }> {
     const queryParams = new URLSearchParams();
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
@@ -31,7 +31,7 @@ export class JugadorService {
     }
 
     const url = queryParams.toString() ? `${this.API_ENDPOINT}?${queryParams}` : this.API_ENDPOINT;
-    return fetchWithAuth<Jugador[]>(url);
+    return fetchWithAuth<{ items: Jugador[] }>(url);
   }
 
   static async getPaginated(options?: { page?: number; limit?: number; filters?: Record<string, any> }): Promise<{ items: Jugador[]; page: number; limit: number; total: number }> {
