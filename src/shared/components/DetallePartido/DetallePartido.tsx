@@ -134,140 +134,144 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
   const visitanteJugadores = jugadores.filter(j => j.equipo === 'visitante');
 
   return (
-    <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+    <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-sm border border-slate-200 p-3 sm:p-6">
       {/* Header del Partido */}
-      <div className="mb-8">
+      <div className="mb-6 sm:mb-8">
         <div className="text-center mb-4">
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 mb-1 leading-tight">
             {partido.nombre || `${partido.equipoLocal?.nombre || 'Local'} vs ${partido.equipoVisitante?.nombre || 'Visitante'}`}
           </h1>
-          <p className="text-slate-600">{fechaTexto}</p>
+          <p className="text-sm sm:text-base text-slate-600">{fechaTexto}</p>
           <div className="mt-2">
-            <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700">
+            <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs sm:text-sm font-medium text-blue-700">
               {partido.estado || 'Programado'}
             </span>
           </div>
         </div>
 
         {/* Marcador Principal */}
-        <div className="flex items-center justify-center gap-12">
-          <div className="text-center flex flex-col items-center">
+        <div className="flex items-center justify-center gap-4 sm:gap-12">
+          <div className="text-center flex flex-col items-center flex-1">
             {/* Logo Local */}
-            <div className="mb-4 h-24 w-24 flex items-center justify-center bg-slate-50 rounded-xl p-2 border border-slate-100 shadow-sm">
+            <div className="mb-2 h-16 w-16 sm:h-24 sm:w-24 flex items-center justify-center bg-slate-50 rounded-xl p-1.5 sm:p-2 border border-slate-100 shadow-sm">
               {partido.equipoLocal?.escudo ? (
                 <img src={partido.equipoLocal.escudo} alt={partido.equipoLocal.nombre} className="max-h-full max-w-full object-contain" />
               ) : (
-                <div className="text-slate-300 font-bold text-3xl">
+                <div className="text-slate-300 font-bold text-xl sm:text-3xl">
                   {partido.equipoLocal?.nombre?.charAt(0) || 'L'}
                 </div>
               )}
             </div>
-            <div className="text-4xl font-bold text-slate-900">{partido.marcadorLocal ?? 0}</div>
-            <div className="text-lg font-semibold text-slate-700">{partido.equipoLocal?.nombre || 'Local'}</div>
+            <div className="text-2xl sm:text-4xl font-bold text-slate-900">{partido.marcadorLocal ?? 0}</div>
+            <div className="text-sm sm:text-lg font-semibold text-slate-700 line-clamp-1">{partido.equipoLocal?.nombre || 'Local'}</div>
           </div>
 
-          <div className="text-3xl font-bold text-slate-300 mt-10">VS</div>
+          <div className="text-lg sm:text-3xl font-bold text-slate-300 mt-0 sm:mt-10 self-center">VS</div>
 
-          <div className="text-center flex flex-col items-center">
+          <div className="text-center flex flex-col items-center flex-1">
             {/* Logo Visitante */}
-            <div className="mb-4 h-24 w-24 flex items-center justify-center bg-slate-50 rounded-xl p-2 border border-slate-100 shadow-sm">
+            <div className="mb-2 h-16 w-16 sm:h-24 sm:w-24 flex items-center justify-center bg-slate-50 rounded-xl p-1.5 sm:p-2 border border-slate-100 shadow-sm">
               {partido.equipoVisitante?.escudo ? (
                 <img src={partido.equipoVisitante.escudo} alt={partido.equipoVisitante.nombre} className="max-h-full max-w-full object-contain" />
               ) : (
-                <div className="text-slate-300 font-bold text-3xl">
+                <div className="text-slate-300 font-bold text-xl sm:text-3xl">
                   {partido.equipoVisitante?.nombre?.charAt(0) || 'V'}
                 </div>
               )}
             </div>
-            <div className="text-4xl font-bold text-slate-900">{partido.marcadorVisitante ?? 0}</div>
-            <div className="text-lg font-semibold text-slate-700">{partido.equipoVisitante?.nombre || 'Visitante'}</div>
+            <div className="text-2xl sm:text-4xl font-bold text-slate-900">{partido.marcadorVisitante ?? 0}</div>
+            <div className="text-sm sm:text-lg font-semibold text-slate-700 line-clamp-1">{partido.equipoVisitante?.nombre || 'Visitante'}</div>
           </div>
         </div>
       </div>
 
       {/* Resultados por Set */}
       {sets.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-slate-900 mb-4">Resultados por Set</h2>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-200">
-              <thead className="bg-slate-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Set</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">{partido.equipoLocal?.nombre || 'Local'}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">{partido.equipoVisitante?.nombre || 'Visitante'}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ganador</th>
-                  {sets.some(s => s.tiempo) && (
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Tiempo</th>
-                  )}
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-slate-200">
-                {sets.map((set) => (
-                  <tr key={set.numeroSet} className="hover:bg-slate-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
-                      Set {set.numeroSet}
-                    </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm font-bold ${
-                      set.ganador === 'local' ? 'text-green-600 bg-green-50' : 'text-slate-900'
-                    }`}>
-                      {set.marcadorLocal}
-                    </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm font-bold ${
-                      set.ganador === 'visitante' ? 'text-green-600 bg-green-50' : 'text-slate-900'
-                    }`}>
-                      {set.marcadorVisitante}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                      {set.ganador === 'local' ? partido.equipoLocal?.nombre : set.ganador === 'visitante' ? partido.equipoVisitante?.nombre : '-'}
-                    </td>
+        <div className="mb-6 sm:mb-8">
+          <h2 className="text-lg sm:text-xl font-semibold text-slate-900 mb-3 sm:mb-4">Resultados por Set</h2>
+          <div className="overflow-x-auto -mx-3 sm:mx-0">
+            <div className="inline-block min-w-full align-middle">
+              <table className="min-w-full divide-y divide-slate-200">
+                <thead className="bg-slate-50">
+                  <tr>
+                    <th className="px-3 py-3 sm:px-6 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Set</th>
+                    <th className="px-3 py-3 sm:px-6 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">{partido.equipoLocal?.nombre || 'Local'}</th>
+                    <th className="px-3 py-3 sm:px-6 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">{partido.equipoVisitante?.nombre || 'Visitante'}</th>
+                    <th className="px-3 py-3 sm:px-6 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ganador</th>
                     {sets.some(s => s.tiempo) && (
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                        {set.tiempo || '-'}
-                      </td>
+                      <th className="px-3 py-3 sm:px-6 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Tiempo</th>
                     )}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="bg-white divide-y divide-slate-200">
+                  {sets.map((set) => (
+                    <tr key={set.numeroSet} className="hover:bg-slate-50">
+                      <td className="px-3 py-4 sm:px-6 whitespace-nowrap text-sm font-medium text-slate-900">
+                        {set.numeroSet}
+                      </td>
+                      <td className={`px-3 py-4 sm:px-6 whitespace-nowrap text-sm font-bold ${
+                        set.ganador === 'local' ? 'text-green-600 bg-green-50' : 'text-slate-900'
+                      }`}>
+                        {set.marcadorLocal}
+                      </td>
+                      <td className={`px-3 py-4 sm:px-6 whitespace-nowrap text-sm font-bold ${
+                        set.ganador === 'visitante' ? 'text-green-600 bg-green-50' : 'text-slate-900'
+                      }`}>
+                        {set.marcadorVisitante}
+                      </td>
+                      <td className="px-3 py-4 sm:px-6 whitespace-nowrap text-sm text-slate-500">
+                        <span className="max-w-[100px] block truncate text-xs sm:text-sm">
+                          {set.ganador === 'local' ? partido.equipoLocal?.nombre : set.ganador === 'visitante' ? partido.equipoVisitante?.nombre : '-'}
+                        </span>
+                      </td>
+                      {sets.some(s => s.tiempo) && (
+                        <td className="px-3 py-4 sm:px-6 whitespace-nowrap text-sm text-slate-500">
+                          {set.tiempo || '-'}
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
 
       {/* Jugadores por Equipo */}
       {(localJugadores.length > 0 || visitanteJugadores.length > 0) && (
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-slate-900 mb-4">Jugadores</h2>
-          <div className="grid md:grid-cols-2 gap-6">
+        <div className="mb-6 sm:mb-8">
+          <h2 className="text-lg sm:text-xl font-semibold text-slate-900 mb-3 sm:mb-4">Jugadores</h2>
+          <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
             {/* Equipo Local */}
             {localJugadores.length > 0 && (
               <div>
-                <div className="flex items-center gap-3 mb-3">
+                <div className="flex items-center gap-2 mb-2">
                   {partido.equipoLocal?.escudo && (
-                    <img src={partido.equipoLocal.escudo} alt="" className="h-8 w-8 object-contain" />
+                    <img src={partido.equipoLocal.escudo} alt="" className="h-6 w-6 object-contain" />
                   )}
-                  <h3 className="text-lg font-medium text-slate-900">{partido.equipoLocal?.nombre || 'Local'}</h3>
+                  <h3 className="text-base sm:text-lg font-medium text-slate-900 truncate">{partido.equipoLocal?.nombre || 'Local'}</h3>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5 sm:space-y-2">
                   {localJugadores.map((jugador) => (
-                    <div key={jugador.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 flex-shrink-0 bg-slate-200 rounded-full overflow-hidden border border-slate-200">
+                    <div key={jugador.id} className="flex items-center justify-between p-2 sm:p-3 bg-slate-50 rounded-lg">
+                      <div className="flex items-center gap-2 sm:gap-3 overflow-hidden">
+                        <div className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 bg-slate-200 rounded-full overflow-hidden border border-slate-200">
                           {jugador.foto ? (
                             <img src={jugador.foto} alt={jugador.nombre} className="h-full w-full object-cover" />
                           ) : (
                             <div className="h-full w-full flex items-center justify-center text-slate-400">
-                              <span className="text-xs font-bold">{jugador.nombre.charAt(0)}</span>
+                              <span className="text-[10px] sm:text-xs font-bold">{jugador.nombre.charAt(0)}</span>
                             </div>
                           )}
                         </div>
-                        <div>
-                          <div className="font-medium text-slate-900">{jugador.nombre}</div>
-                          {jugador.posicion && <div className="text-sm text-slate-500">{jugador.posicion}</div>}
+                        <div className="overflow-hidden">
+                          <div className="font-medium text-slate-900 text-sm sm:text-base truncate">{jugador.nombre}</div>
+                          {jugador.posicion && <div className="text-[10px] sm:text-sm text-slate-500 truncate">{jugador.posicion}</div>}
                         </div>
                       </div>
                       {jugador.stats && (
-                        <div className="text-sm text-slate-600">
+                        <div className="text-[10px] sm:text-sm text-slate-600 ml-2 whitespace-nowrap">
                           {partido.esRanked && jugador.stats.delta !== undefined ? (
                             <span className={`font-bold ${jugador.stats.delta >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                               {jugador.stats.delta > 0 ? `+${jugador.stats.delta}` : jugador.stats.delta} ELO
@@ -276,7 +280,6 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
                             <>
                               {jugador.stats.puntos !== undefined && `PTS: ${jugador.stats.puntos}`}
                               {jugador.stats.asistencias !== undefined && ` | AST: ${jugador.stats.asistencias}`}
-                              {jugador.stats.rebotes !== undefined && ` | REB: ${jugador.stats.rebotes}`}
                             </>
                           )}
                         </div>
@@ -289,33 +292,33 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
 
             {/* Equipo Visitante */}
             {visitanteJugadores.length > 0 && (
-              <div>
-                <div className="flex items-center gap-3 mb-3">
+              <div className="mt-4 sm:mt-0">
+                <div className="flex items-center gap-2 mb-2">
                   {partido.equipoVisitante?.escudo && (
-                    <img src={partido.equipoVisitante.escudo} alt="" className="h-8 w-8 object-contain" />
+                    <img src={partido.equipoVisitante.escudo} alt="" className="h-6 w-6 object-contain" />
                   )}
-                  <h3 className="text-lg font-medium text-slate-900">{partido.equipoVisitante?.nombre || 'Visitante'}</h3>
+                  <h3 className="text-base sm:text-lg font-medium text-slate-900 truncate">{partido.equipoVisitante?.nombre || 'Visitante'}</h3>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5 sm:space-y-2">
                   {visitanteJugadores.map((jugador) => (
-                    <div key={jugador.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 flex-shrink-0 bg-slate-200 rounded-full overflow-hidden border border-slate-200">
+                    <div key={jugador.id} className="flex items-center justify-between p-2 sm:p-3 bg-slate-50 rounded-lg">
+                      <div className="flex items-center gap-2 sm:gap-3 overflow-hidden">
+                        <div className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 bg-slate-200 rounded-full overflow-hidden border border-slate-200">
                           {jugador.foto ? (
                             <img src={jugador.foto} alt={jugador.nombre} className="h-full w-full object-cover" />
                           ) : (
                             <div className="h-full w-full flex items-center justify-center text-slate-400">
-                              <span className="text-xs font-bold">{jugador.nombre.charAt(0)}</span>
+                              <span className="text-[10px] sm:text-xs font-bold">{jugador.nombre.charAt(0)}</span>
                             </div>
                           )}
                         </div>
-                        <div>
-                          <div className="font-medium text-slate-900">{jugador.nombre}</div>
-                          {jugador.posicion && <div className="text-sm text-slate-500">{jugador.posicion}</div>}
+                        <div className="overflow-hidden">
+                          <div className="font-medium text-slate-900 text-sm sm:text-base truncate">{jugador.nombre}</div>
+                          {jugador.posicion && <div className="text-[10px] sm:text-sm text-slate-500 truncate">{jugador.posicion}</div>}
                         </div>
                       </div>
                       {jugador.stats && (
-                        <div className="text-sm text-slate-600">
+                        <div className="text-[10px] sm:text-sm text-slate-600 ml-2 whitespace-nowrap">
                           {partido.esRanked && jugador.stats.delta !== undefined ? (
                             <span className={`font-bold ${jugador.stats.delta >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                               {jugador.stats.delta > 0 ? `+${jugador.stats.delta}` : jugador.stats.delta} ELO
@@ -324,7 +327,6 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
                             <>
                               {jugador.stats.puntos !== undefined && `PTS: ${jugador.stats.puntos}`}
                               {jugador.stats.asistencias !== undefined && ` | AST: ${jugador.stats.asistencias}`}
-                              {jugador.stats.rebotes !== undefined && ` | REB: ${jugador.stats.rebotes}`}
                             </>
                           )}
                         </div>
@@ -337,26 +339,29 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
           </div>
         </div>
       )}
+          </div>
+        </div>
+      )}
 
       {/* Información Adicional */}
-      <div className="border-t border-slate-200 pt-6">
-        <h2 className="text-xl font-semibold text-slate-900 mb-4">Información del Partido</h2>
-        <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+      <div className="border-t border-slate-200 pt-4 sm:pt-6">
+        <h2 className="text-lg sm:text-xl font-semibold text-slate-900 mb-3 sm:mb-4">Información del Partido</h2>
+        <dl className="grid grid-cols-2 gap-x-2 gap-y-4 sm:gap-x-4 sm:gap-y-6 sm:grid-cols-2">
           <div>
-            <dt className="text-sm font-medium text-slate-500">Competencia</dt>
-            <dd className="mt-1 text-sm text-slate-900">{partido.competencia?.nombre || 'N/A'}</dd>
+            <dt className="text-[10px] sm:text-sm font-medium text-slate-500 uppercase">Competencia</dt>
+            <dd className="mt-0.5 text-xs sm:text-sm text-slate-900 font-medium truncate">{partido.competencia?.nombre || 'N/A'}</dd>
           </div>
           <div>
-            <dt className="text-sm font-medium text-slate-500">Fase</dt>
-            <dd className="mt-1 text-sm text-slate-900">{partido.fase?.nombre || 'N/A'}</dd>
+            <dt className="text-[10px] sm:text-sm font-medium text-slate-500 uppercase">Fase</dt>
+            <dd className="mt-0.5 text-xs sm:text-sm text-slate-900 font-medium truncate">{partido.fase?.nombre || 'N/A'}</dd>
           </div>
           <div>
-            <dt className="text-sm font-medium text-slate-500">Escenario</dt>
-            <dd className="mt-1 text-sm text-slate-900">{partido.escenario || 'N/A'}</dd>
+            <dt className="text-[10px] sm:text-sm font-medium text-slate-500 uppercase">Escenario</dt>
+            <dd className="mt-0.5 text-xs sm:text-sm text-slate-900 font-medium truncate">{partido.escenario || 'N/A'}</dd>
           </div>
           <div>
-            <dt className="text-sm font-medium text-slate-500">Estado</dt>
-            <dd className="mt-1 text-sm text-slate-900 capitalize">{partido.estado?.replace('_', ' ') || 'N/A'}</dd>
+            <dt className="text-[10px] sm:text-sm font-medium text-slate-500 uppercase">Estado</dt>
+            <dd className="mt-0.5 text-xs sm:text-sm text-slate-900 font-medium capitalize">{partido.estado?.replace('_', ' ') || 'N/A'}</dd>
           </div>
         </dl>
       </div>
