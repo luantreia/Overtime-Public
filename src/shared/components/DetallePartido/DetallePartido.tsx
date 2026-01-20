@@ -57,10 +57,21 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
 
       if (isRanked) {
         const mp = await PartidoService.getMatchPlayers(partidoId);
-        // Usar los colores definidos en rankedMeta para asignar equipo
-        const localColor = p.rankedMeta?.teamColors?.local || 'rojo';
         
-        p.jugadores = mp.map((m: any) => ({
+        // Deduplicar jugadores: El sistema guarda deltas para Rank Global (temporadaId: null) 
+        // y para Rank de Temporada. Priorizamos el de temporada si existe.
+        const jugadoresMap = new Map();
+        mp.forEach((m: any) => {
+          const pid = m.playerId?._id || m.playerId;
+          const current = jugadoresMap.get(pid);
+          // Si no existe o si el nuevo tiene temporadaId, lo guardamos
+          if (!current || m.temporadaId) {
+            jugadoresMap.set(pid, m);
+          }
+        });
+
+        const localColor = p.rankedMeta?.teamColors?.local || 'rojo';
+        p.jugadores = Array.from(jugadoresMap.values()).map((m: any) => ({
           id: m.playerId?._id || m.playerId,
           nombre: m.playerId?.nombre || 'Desconocido',
           equipo: m.teamColor === localColor ? 'local' : 'visitante',
