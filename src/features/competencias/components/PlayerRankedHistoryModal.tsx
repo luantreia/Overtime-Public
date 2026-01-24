@@ -27,13 +27,15 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
   const [loading, setLoading] = useState(false);
   const [rating, setRating] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
+  const [synergy, setSynergy] = useState<any[]>([]);
+  const [showAllSynergy, setShowAllSynergy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchDetail = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await RankedService.getPlayerDetail(playerId, {
+      const res = await (RankedService.getPlayerDetail as any)(playerId, {
         modalidad,
         categoria,
         competition: competenciaId,
@@ -41,6 +43,7 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
       });
       setRating(res.rating);
       setHistory(res.history);
+      setSynergy(res.synergy || []);
     } catch (e: any) {
       setError(e.message || 'Error al cargar detalles');
     } finally {
@@ -106,6 +109,49 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
                    <p className="text-3xl font-black text-slate-800">{rating?.matchesPlayed || 0}</p>
                 </div>
              </div>
+
+             {synergy.length > 0 && (
+               <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                      Sinergia (Winrate con otros)
+                    </h3>
+                    <button 
+                      onClick={() => setShowAllSynergy(!showAllSynergy)}
+                      className="text-[10px] font-bold text-brand-600 hover:text-brand-700 uppercase tracking-tight"
+                    >
+                      {showAllSynergy ? 'Ver menos' : `Ver todos (${synergy.length})`}
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 gap-2">
+                    {(showAllSynergy ? synergy : synergy.slice(0, 3)).map((s: any) => (
+                      <div key={s.id} className="flex items-center justify-between p-2 bg-slate-50 rounded-xl border border-slate-100">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600">
+                            {s.name.split(' ').map((n:any) => n[0]).join('').slice(0,2).toUpperCase()}
+                          </div>
+                          <span className="text-xs font-bold text-slate-700">{s.name}</span>
+                          <span className="text-[9px] text-slate-400 font-medium">({s.matches} PJ)</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-16 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                            <div 
+                              className={`h-full transition-all duration-500 ${s.winrate >= 50 ? 'bg-emerald-500' : 'bg-red-400'}`}
+                              style={{ width: `${s.winrate}%` }}
+                            ></div>
+                          </div>
+                          <span className={`text-[11px] font-black w-10 text-right ${s.winrate >= 50 ? 'text-emerald-600' : 'text-slate-500'}`}>
+                            {Math.round(s.winrate)}%
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+               </div>
+             )}
 
              <div className="space-y-4">
                 <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
