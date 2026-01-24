@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { RankedService } from '../services/rankedService';
 
 interface PlayerRankedHistoryModalProps {
@@ -22,6 +23,7 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
   competenciaId,
   seasonId
 }) => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [rating, setRating] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
@@ -121,16 +123,22 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
                    ) : (
                      history.map((h) => {
                        const isWin = (h.win === true || (h.win === undefined && h.delta > 0));
+                       const partidoId = h.partidoId?._id || h.partidoId;
+                       
                        return (
-                         <div key={h._id} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm hover:border-brand-200 transition-colors flex items-center justify-between gap-4">
+                         <div 
+                            key={h._id} 
+                            onClick={() => partidoId && navigate(`/partidos/${partidoId}`)}
+                            className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm hover:border-brand-400 hover:bg-brand-50/20 transition-all cursor-pointer flex items-center justify-between gap-4 group"
+                         >
                             <div className="flex items-center gap-4">
-                               <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-black ${
+                               <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-black transition-transform group-hover:scale-110 ${
                                  isWin ? 'bg-emerald-100 text-emerald-600' : 'bg-red-50 text-red-500'
                                }`}>
                                   {isWin ? 'W' : 'L'}
                                </div>
                                <div>
-                                  <p className="text-xs font-bold text-slate-900">
+                                  <p className="text-xs font-bold text-slate-900 group-hover:text-brand-600 transition-colors">
                                      {new Date(h.partidoId?.fecha || h.createdAt).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
                                   </p>
                                   <p className="text-[10px] text-slate-400 flex items-center gap-1">
@@ -140,16 +148,21 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
                                </div>
                             </div>
 
-                            <div className="text-right">
-                               <div className={`text-sm font-black ${h.delta > 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                                  {h.delta > 0 ? `+${h.delta.toFixed(2)}` : h.delta.toFixed(2)}
+                            <div className="flex items-center gap-3">
+                               <div className="text-right">
+                                  <div className={`text-sm font-black ${h.delta > 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                                     {h.delta > 0 ? `+${h.delta.toFixed(2)}` : h.delta.toFixed(2)}
+                                  </div>
+                                  <div className="text-[10px] text-slate-500 font-bold">
+                                     {h.partidoId?.marcadorLocal !== undefined ? `${h.partidoId.marcadorLocal} - ${h.partidoId.marcadorVisitante}` : 'Ver detalles'}
+                                  </div>
+                                  {h.isAFK && (
+                                    <span className="bg-red-500 text-white text-[7px] px-1 rounded font-bold">AFK</span>
+                                  )}
                                </div>
-                               <div className="text-[10px] text-slate-500 font-bold">
-                                  {h.partidoId?.marcadorLocal} - {h.partidoId?.marcadorVisitante}
-                               </div>
-                               {h.isAFK && (
-                                 <span className="bg-red-500 text-white text-[7px] px-1 rounded font-bold">AFK</span>
-                               )}
+                               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-300 group-hover:text-brand-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                               </svg>
                             </div>
                          </div>
                        );
