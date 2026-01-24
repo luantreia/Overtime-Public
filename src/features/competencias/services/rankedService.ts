@@ -5,12 +5,19 @@ export interface LeaderboardItem {
   playerName?: string; // Assuming the API might return this or we need to fetch it
   rating: number;
   matchesPlayed: number;
+  wins?: number;
   lastDelta?: number;
 }
 
 export interface LeaderboardResponse {
   ok: boolean;
   items: LeaderboardItem[];
+}
+
+export interface PlayerRankedDetail {
+  ok: boolean;
+  rating: any;
+  history: any[];
 }
 
 export class RankedService {
@@ -34,5 +41,21 @@ export class RankedService {
     if (params.season) sp.set('season', params.season);
     
     return fetchWithAuth<LeaderboardResponse>(`${this.BASE}/leaderboard?${sp.toString()}`);
+  }
+
+  static async getPlayerDetail(playerId: string, params: { 
+    modalidad: string; 
+    categoria: string; 
+    competition?: string; 
+    season?: string 
+  }): Promise<PlayerRankedDetail> {
+    const sp = new URLSearchParams({
+      modalidad: params.modalidad,
+      categoria: params.categoria,
+    });
+    if (params.competition) sp.set('competition', params.competition);
+    if (params.season) sp.set('season', params.season);
+    
+    return fetchWithAuth<PlayerRankedDetail>(`${this.BASE}/players/${playerId}/detail?${sp.toString()}`);
   }
 }

@@ -11,6 +11,7 @@ import PartidoCard from '../../../shared/components/PartidoCard/PartidoCard';
 import { TablaPosiciones } from '../../../shared/components/TablaPosiciones/TablaPosiciones';
 import { Bracket } from '../../../shared/components/Bracket/Bracket';
 import { EloExplanationModal } from '../../../shared/components/EloExplanationModal';
+import { PlayerRankedHistoryModal } from '../components/PlayerRankedHistoryModal';
 
 const CompetenciaDetalle: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -21,6 +22,9 @@ const CompetenciaDetalle: React.FC = () => {
   const [leaderboard, setLeaderboard] = useState<LeaderboardItem[]>([]);
   const [jugadoresComp, setJugadoresComp] = useState<JugadorCompetencia[]>([]);
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
+
+  // Modal Detail state
+  const [selectedPlayer, setSelectedPlayer] = useState<{ id: string, name: string } | null>(null);
 
   // State for Resultados (Temporadas/Fases)
   const [temporadas, setTemporadas] = useState<Temporada[]>([]);
@@ -491,6 +495,7 @@ const CompetenciaDetalle: React.FC = () => {
                           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">#</th>
                           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Jugador</th>
                           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Rating (ELO)</th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Winrate %</th>
                           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Partidos</th>
                           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Tendencia</th>
                         </tr>
@@ -515,9 +520,15 @@ const CompetenciaDetalle: React.FC = () => {
                             .join('')
                             .slice(0, 2)
                             .toUpperCase();
+
+                          const winrate = item.matchesPlayed > 0 ? (item.wins || 0) / item.matchesPlayed * 100 : 0;
                             
                           return (
-                            <tr key={playerId} className="hover:bg-slate-50">
+                            <tr 
+                              key={playerId} 
+                              className="hover:bg-brand-50/30 cursor-pointer transition-colors"
+                              onClick={() => setSelectedPlayer({ id: playerId, name: item.playerName || playerId })}
+                            >
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{index + 1}</td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="flex items-center gap-3">
@@ -535,14 +546,19 @@ const CompetenciaDetalle: React.FC = () => {
                                   <div className="text-sm font-medium text-slate-900">{item.playerName || playerId}</div>
                                 </div>
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-900">{item.rating.toFixed(3)}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-900">{Math.round(item.rating)}</td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className={`text-sm font-black ${winrate >= 50 ? 'text-emerald-500' : 'text-slate-400'}`}>
+                                  {winrate.toFixed(1)}%
+                                </span>
+                              </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{item.matchesPlayed}</td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 {item.lastDelta !== undefined ? (
                                   <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
                                     item.lastDelta > 0 ? 'bg-green-100 text-green-800' : item.lastDelta < 0 ? 'bg-red-100 text-red-800' : 'bg-slate-100 text-slate-800'
                                   }`}>
-                                    {item.lastDelta > 0 ? '+' : ''}{Number(item.lastDelta).toFixed(3)}
+                                    {item.lastDelta > 0 ? '+' : ''}{Number(item.lastDelta).toFixed(2)}
                                   </span>
                                 ) : (
                                   <span className="text-slate-400">-</span>
@@ -575,9 +591,15 @@ const CompetenciaDetalle: React.FC = () => {
                         .join('')
                         .slice(0, 2)
                         .toUpperCase();
+
+                      const winrate = item.matchesPlayed > 0 ? (item.wins || 0) / item.matchesPlayed * 100 : 0;
                         
                       return (
-                        <div key={playerId} className="bg-white border border-slate-200 rounded-lg p-3 shadow-sm">
+                        <div 
+                          key={playerId} 
+                          className="bg-white border border-slate-200 rounded-lg p-3 shadow-sm active:bg-slate-50 cursor-pointer"
+                          onClick={() => setSelectedPlayer({ id: playerId, name: item.playerName || playerId })}
+                        >
                           <div className="flex items-center gap-3">
                             {/* Foto con Badge de Ranking */}
                             <div className="relative w-12 h-12 flex-shrink-0">
@@ -601,21 +623,21 @@ const CompetenciaDetalle: React.FC = () => {
                                 {item.playerName || playerId}
                               </div>
                               <div className="text-[11px] text-slate-500 mt-0.5">
-                                {item.matchesPlayed} {item.matchesPlayed === 1 ? 'partido' : 'partidos'} jugados
+                                {item.matchesPlayed} {item.matchesPlayed === 1 ? 'partido' : 'partidos'} • <span className="font-bold text-emerald-600">{winrate.toFixed(0)}% W</span>
                               </div>
                             </div>
 
                             {/* ELO y Tendencia */}
                             <div className="text-right flex-shrink-0">
                               <div className="text-sm font-black text-slate-900 leading-none">
-                                {item.rating.toFixed(3)}
+                                {Math.round(item.rating)}
                               </div>
                               <div className="text-[9px] text-slate-500 font-medium mb-1 uppercase tracking-wider">ELO</div>
                               {item.lastDelta !== undefined ? (
                                 <div className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
                                   item.lastDelta > 0 ? 'bg-green-100 text-green-700' : item.lastDelta < 0 ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'
                                 }`}>
-                                  {item.lastDelta > 0 ? '+' : ''}{Number(item.lastDelta).toFixed(3)}
+                                  {item.lastDelta > 0 ? '+' : ''}{Number(item.lastDelta).toFixed(1)}
                                 </div>
                               ) : (
                                 <div className="text-[10px] text-slate-400">---</div>
@@ -632,6 +654,19 @@ const CompetenciaDetalle: React.FC = () => {
           )}
         </div>
       </div>
+
+      {selectedPlayer && (
+        <PlayerRankedHistoryModal
+          isOpen={!!selectedPlayer}
+          onClose={() => setSelectedPlayer(null)}
+          playerId={selectedPlayer.id}
+          playerName={selectedPlayer.name}
+          modalidad={(competencia as any).modalidad || 'Foam'}
+          categoria={(competencia as any).categoria || 'Libre'}
+          competenciaId={id!}
+          seasonId={selectedTemporada}
+        />
+      )}
     </div>
   );
 };
