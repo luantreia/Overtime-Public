@@ -262,7 +262,7 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
                        return (
                          <div 
                             key={h._id} 
-                            onClick={() => partidoId && navigate(`/partidos/${partidoId}`)}
+                            onClick={() => partidoId && window.open(`/partidos/${partidoId}`, '_blank')}
                             className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm hover:border-brand-400 hover:bg-brand-50/20 transition-all cursor-pointer flex items-center justify-between gap-4 group"
                          >
                             <div className="flex items-center gap-4">
