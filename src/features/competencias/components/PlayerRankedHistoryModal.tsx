@@ -106,7 +106,7 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
                 </div>
                 <div>
                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Partidos</p>
-                   <p className="text-3xl font-black text-slate-800">{rating?.matchesPlayed || 0}</p>
+                   <p className="text-3xl font-black text-slate-800">{history.length}</p>
                 </div>
              </div>
 
