@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { RankedService } from '../services/rankedService';
 
 interface PlayerRankedHistoryModalProps {
@@ -23,7 +22,6 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
   competenciaId,
   seasonId
 }) => {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [rating, setRating] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
