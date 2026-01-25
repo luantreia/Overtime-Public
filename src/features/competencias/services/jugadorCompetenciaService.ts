@@ -18,4 +18,8 @@ export class JugadorCompetenciaService {
   static async getByCompetencia(competenciaId: string): Promise<JugadorCompetencia[]> {
     return fetchWithAuth<JugadorCompetencia[]>(`${this.API_ENDPOINT}?competencia=${competenciaId}`);
   }
+
+  static async getByJugador(jugadorId: string): Promise<JugadorCompetencia[]> {
+    return fetchWithAuth<JugadorCompetencia[]>(`${this.API_ENDPOINT}?jugador=${jugadorId}`);
+  }
 }

@@ -71,42 +71,46 @@ export const TablaPosiciones: React.FC<TablaPosicionesProps> = ({ faseId, partic
   });
 
   return (
-    <div className="tabla-posiciones">
+    <div className="tabla-posiciones w-full overflow-hidden">
       {Object.entries(agrupados).map(([key, lista]) => (
-        <div key={key} className="mb-8">
-          <h3 className="text-lg font-bold mb-4">
-            {key === 'general' ? 'Tabla General' : `Grupo/División: ${key}`}
-          </h3>
-          <table className="min-w-full bg-white border border-gray-300">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="py-2 px-4 border">Pos</th>
-                <th className="py-2 px-4 border">Equipo</th>
-                <th className="py-2 px-4 border">PJ</th>
-                <th className="py-2 px-4 border">PG</th>
-                <th className="py-2 px-4 border">PP</th>
-                <th className="py-2 px-4 border">PE</th>
-                <th className="py-2 px-4 border">Dif</th>
-                <th className="py-2 px-4 border">Pts</th>
-              </tr>
-            </thead>
-            <tbody>
-              {lista.map((p, index) => (
-                <tr key={p.id} className="hover:bg-gray-50">
-                  <td className="py-2 px-4 border text-center">{index + 1}</td>
-                  <td className="py-2 px-4 border">
-                    {p.participacionTemporada?.equipo?.nombre || 'Equipo desconocido'}
-                  </td>
-                  <td className="py-2 px-4 border text-center">{p.partidosJugados}</td>
-                  <td className="py-2 px-4 border text-center">{p.partidosGanados}</td>
-                  <td className="py-2 px-4 border text-center">{p.partidosPerdidos}</td>
-                  <td className="py-2 px-4 border text-center">{p.partidosEmpatados}</td>
-                  <td className="py-2 px-4 border text-center">{p.diferenciaPuntos}</td>
-                  <td className="py-2 px-4 border text-center font-bold">{p.puntos}</td>
+        <div key={key} className="mb-4 last:mb-0">
+          {key !== 'general' && (
+            <h3 className="text-xs font-bold mb-2 text-slate-400 uppercase tracking-widest px-1">
+              {`Grupo/División: ${key}`}
+            </h3>
+          )}
+          <div className="overflow-x-auto rounded-lg border border-slate-100 shadow-sm">
+            <table className="min-w-full divide-y divide-slate-100 bg-white">
+              <thead className="bg-slate-50/50">
+                <tr>
+                  <th className="py-2 px-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider w-8">#</th>
+                  <th className="py-2 px-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Equipo</th>
+                  <th className="py-2 px-3 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider">PJ</th>
+                  <th className="py-2 px-3 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider hidden sm:table-cell">PG</th>
+                  <th className="py-2 px-3 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider hidden sm:table-cell">PP</th>
+                  <th className="py-2 px-3 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider hidden md:table-cell">Dif</th>
+                  <th className="py-2 px-3 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider">Pts</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-white divide-y divide-slate-50">
+                {lista.map((p, index) => (
+                  <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="py-2 px-3 text-[11px] text-slate-400 font-medium text-center">{index + 1}</td>
+                    <td className="py-2 px-3 text-[11px] text-slate-700 font-semibold truncate max-w-[120px]">
+                      {p.participacionTemporada?.equipo?.nombre || 'Equipo desconocido'}
+                    </td>
+                    <td className="py-2 px-3 text-[11px] text-slate-600 text-center">{p.partidosJugados}</td>
+                    <td className="py-2 px-3 text-[11px] text-emerald-600 text-center hidden sm:table-cell">{p.partidosGanados}</td>
+                    <td className="py-2 px-3 text-[11px] text-red-600 text-center hidden sm:table-cell">{p.partidosPerdidos}</td>
+                    <td className="py-2 px-3 text-[11px] text-slate-500 text-center hidden md:table-cell">
+                      {p.diferenciaPuntos > 0 ? `+${p.diferenciaPuntos}` : p.diferenciaPuntos}
+                    </td>
+                    <td className="py-2 px-3 text-[11px] text-slate-900 text-center font-bold">{p.puntos}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       ))}
     </div>

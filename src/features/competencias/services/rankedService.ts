@@ -66,4 +66,20 @@ export class RankedService {
     
     return fetchWithAuth<PlayerRankedDetail>(`${this.BASE}/players/${playerId}/detail?${sp.toString()}`);
   }
+
+  static async getRankContext(playerId: string, params: { 
+    modalidad: string; 
+    categoria: string; 
+    competition?: string; 
+    season?: string 
+  }): Promise<{ ok: boolean; rank: number | null; context: any[] }> {
+    const sp = new URLSearchParams({
+      modalidad: params.modalidad,
+      categoria: params.categoria,
+    });
+    if (params.competition) sp.set('competition', params.competition);
+    if (params.season) sp.set('season', params.season);
+    
+    return fetchWithAuth<{ ok: boolean; rank: number | null; context: any[] }>(`${this.BASE}/players/${playerId}/rank-context?${sp.toString()}`);
+  }
 }

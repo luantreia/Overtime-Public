@@ -1,11 +1,52 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEntity } from '../../../shared/hooks';
 import { JugadorService, type Jugador } from '../services/jugadorService';
+import { CompetenciaService } from '../../competencias/services/competenciaService';
+import { JugadorCompetenciaService } from '../../competencias/services/jugadorCompetenciaService';
+import { RankedService } from '../../competencias/services/rankedService';
+import { TemporadaService } from '../../competencias/services/temporadaService';
+import { FaseService } from '../../competencias/services/faseService';
+import { PartidoService } from '../../partidos/services/partidoService';
+import { TablaPosiciones } from '../../../shared/components/TablaPosiciones/TablaPosiciones';
+import { Bracket } from '../../../shared/components/Bracket/Bracket';
 
 const JugadorDetalle: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [competenciasData, setCompetenciasData] = useState<any[]>([]);
+  const [loadingComps, setLoadingComps] = useState(false);
+  const [showAllComps, setShowAllComps] = useState(false);
+
+  const handleSeasonChange = async (compIdx: number, seasonId: string) => {
+    const freshData = [...competenciasData];
+    const data = freshData[compIdx];
+    if (!data || !data.allSeasons) return;
+
+    const selectedSeason = data.allSeasons.find((s: any) => s._id === seasonId);
+    if (!selectedSeason) return;
+
+    try {
+      const fasesRes = await FaseService.getByTemporada(selectedSeason._id);
+      let normalData = null;
+      if (fasesRes.length > 0) {
+        const lastFase = fasesRes[fasesRes.length - 1];
+        let matches: any[] = [];
+        if (lastFase.tipo === 'playoff') {
+          matches = await PartidoService.getByFaseId(lastFase._id);
+        }
+        normalData = {
+          temporada: selectedSeason,
+          fase: lastFase,
+          matches
+        };
+      }
+      freshData[compIdx] = { ...data, normalData };
+      setCompetenciasData(freshData);
+    } catch (err) {
+      console.error('Error changing season:', err);
+    }
+  };
 
   const { data: jugador, loading, error } = useEntity<Jugador>(
     useCallback(() => {
@@ -13,6 +54,144 @@ const JugadorDetalle: React.FC = () => {
       return JugadorService.getById(id);
     }, [id])
   );
+
+  const loadCompetenciasInfo = useCallback(async () => {
+    if (!id) return;
+    setLoadingComps(true);
+    try {
+      // Intentar obtener de ambas fuentes para máxima cobertura
+      const [jcArray, allComps] = await Promise.all([
+        JugadorCompetenciaService.getByJugador(id),
+        JugadorService.getCompetencias(id)
+      ]);
+      
+      // Unificar por ID de competencia
+      const uniqueCompsMap = new Map();
+      
+      // Primero meter las de JugadorCompetencia (que tienen la relación manual)
+      if (Array.isArray(jcArray)) {
+        jcArray.forEach(rel => {
+          const comp = rel.competencia as any;
+          if (comp) {
+            const cid = (typeof comp === 'string' ? comp : (comp._id || comp.id))?.toString();
+            if (cid) {
+              uniqueCompsMap.set(cid, {
+                competencia: typeof comp === 'string' ? { _id: cid, id: cid, nombre: 'Cargando...' } : comp,
+                relacion: rel
+              });
+            }
+          }
+        });
+      }
+      
+      // Luego meter las del endpoint unificado si no están
+      if (Array.isArray(allComps)) {
+        allComps.forEach(comp => {
+          if (comp) {
+            const cid = (comp._id || comp.id)?.toString();
+            if (cid && !uniqueCompsMap.has(cid)) {
+              uniqueCompsMap.set(cid, {
+                competencia: comp,
+                relacion: null
+              });
+            }
+          }
+        });
+      }
+
+      const compsPromises = Array.from(uniqueCompsMap.values()).map(async (item) => {
+        const { competencia: comp, relacion: rel } = item;
+        
+        // Si no tenemos el objeto completo, intentar cargarlo
+        let fullComp = comp;
+        if (!comp.nombre || comp.nombre === 'Cargando...') {
+          try {
+            fullComp = await CompetenciaService.getById(comp._id || comp.id);
+          } catch (e) {
+            console.error('Error fetching comp details', e);
+          }
+        }
+
+        const isRanked = fullComp.rankedEnabled === true;
+        let rankedData = null;
+        let normalData = null;
+        let allSeasons: any[] = [];
+
+        if (isRanked) {
+          const res = await RankedService.getRankContext(id, {
+            modalidad: comp.modalidad || 'Foam',
+            categoria: comp.categoria || 'Libre',
+            competition: comp._id || comp.id
+          });
+          if (res.ok) rankedData = res;
+        } else {
+          // Fetch all available seasons
+          const compId = comp._id || comp.id;
+          try {
+            allSeasons = await TemporadaService.getByCompetencia(compId);
+          } catch (e) {
+            console.error('Error fetching seasons', e);
+          }
+
+          let selectedSeason = null;
+          if (comp.preferredSeasonId) {
+            selectedSeason = allSeasons.find(s => s._id === comp.preferredSeasonId);
+          }
+
+          if (!selectedSeason && allSeasons.length > 0) {
+            selectedSeason = allSeasons[allSeasons.length - 1]; // Fallback to latest
+          }
+
+          if (selectedSeason) {
+            const fasesRes = await FaseService.getByTemporada(selectedSeason._id || (selectedSeason as any).id);
+            if (fasesRes.length > 0) {
+              const lastFase = fasesRes[fasesRes.length - 1];
+              let matches: any[] = [];
+              if (lastFase.tipo === 'playoff') {
+                matches = await PartidoService.getByFaseId(lastFase._id);
+              }
+              normalData = {
+                temporada: selectedSeason,
+                fase: lastFase,
+                matches
+              };
+            }
+          }
+        }
+
+        return {
+          competencia: { ...fullComp, matchCount: comp.matchCount },
+          relacion: rel,
+          isRanked,
+          rankedData,
+          normalData,
+          allSeasons
+        };
+      });
+
+      const results = await Promise.all(compsPromises);
+      const sortedResults = results
+        .filter((r): r is any => r !== null)
+        .sort((a, b) => {
+          // Prioridad: 1. Por matchCount, 2. Ranked primero si tienen mismo count
+          const countDiff = (b.competencia.matchCount || 0) - (a.competencia.matchCount || 0);
+          if (countDiff !== 0) return countDiff;
+          if (a.isRanked !== b.isRanked) return a.isRanked ? -1 : 1;
+          return 0;
+        });
+      setCompetenciasData(sortedResults);
+    } catch (err) {
+      console.error('Error loading player competitions:', err);
+    } finally {
+      setLoadingComps(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    if (jugador) {
+      void loadCompetenciasInfo();
+    }
+  }, [jugador, loadCompetenciasInfo]);
 
   if (loading) {
     return (
@@ -55,10 +234,10 @@ const JugadorDetalle: React.FC = () => {
           {/* Header/Cover color */}
           <div className="h-32 bg-gradient-to-r from-brand-600 to-indigo-600"></div>
           
-          <div className="px-8 pb-8">
-            <div className="relative flex justify-between items-end -mt-12 mb-6">
+          <div className="px-6 pb-6 sm:px-8 sm:pb-8">
+            <div className="relative flex flex-col sm:flex-row justify-between items-center sm:items-end -mt-12 mb-6 gap-4">
               <div className="p-1 bg-white rounded-2xl shadow-sm">
-                <div className="h-24 w-24 rounded-xl bg-slate-100 flex items-center justify-center text-3xl font-bold text-slate-400 overflow-hidden border border-slate-100">
+                <div className="h-24 w-24 sm:h-32 sm:w-32 rounded-xl bg-slate-100 flex items-center justify-center text-3xl font-bold text-slate-400 overflow-hidden border border-slate-100">
                   {jugador.foto ? (
                     <img src={jugador.foto} alt={jugador.nombre} className="h-full w-full object-cover" />
                   ) : (
@@ -68,38 +247,206 @@ const JugadorDetalle: React.FC = () => {
               </div>
             </div>
 
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-slate-900">{jugador.nombre}</h1>
+            <div className="mb-8 text-center sm:text-left">
+              <h1 className="text-2xl sm:text-4xl font-black text-slate-900 leading-tight">{jugador.nombre}</h1>
               {jugador.alias && (
-                <p className="text-xl text-slate-500 font-medium">"{jugador.alias}"</p>
+                <p className="text-lg sm:text-xl text-brand-600 font-bold italic">@{jugador.alias}</p>
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <section>
-                <h2 className="text-lg font-semibold text-slate-900 mb-4 pb-2 border-b">Información Personal</h2>
-                <dl className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8">
+              <section className="sm:col-span-2">
+                <h2 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-4 pb-2 border-b border-slate-100">Información</h2>
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <dt className="text-sm font-medium text-slate-500">Género</dt>
-                    <dd className="mt-1 text-sm text-slate-900 capitalize">{jugador.genero || 'No especificado'}</dd>
+                    <dt className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Género</dt>
+                    <dd className="mt-0.5 text-sm text-slate-900 font-semibold capitalize">{jugador.genero || 'N/A'}</dd>
                   </div>
                   <div>
-                    <dt className="text-sm font-medium text-slate-500">Nacionalidad</dt>
-                    <dd className="mt-1 text-sm text-slate-900">{jugador.nacionalidad || 'No especificada'}</dd>
+                    <dt className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Nacionalidad</dt>
+                    <dd className="mt-0.5 text-sm text-slate-900 font-semibold">{jugador.nacionalidad || 'N/A'}</dd>
                   </div>
                   <div>
-                    <dt className="text-sm font-medium text-slate-500">Edad</dt>
-                    <dd className="mt-1 text-sm text-slate-900">{jugador.edad ? `${jugador.edad} años` : 'No especificada'}</dd>
+                    <dt className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Edad</dt>
+                    <dd className="mt-0.5 text-sm text-slate-900 font-semibold">{jugador.edad ? `${jugador.edad} años` : 'N/A'}</dd>
                   </div>
-                </dl>
+                </div>
               </section>
 
               <section>
-                <h2 className="text-lg font-semibold text-slate-900 mb-4 pb-2 border-b">Estadísticas</h2>
-                <div className="bg-slate-50 rounded-xl p-6 border border-slate-100">
-                  <p className="text-sm text-slate-500 italic text-center">Las estadísticas detalladas estarán disponibles próximamente.</p>
+                <h2 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-4 pb-2 border-b border-slate-100">Actividad</h2>
+                <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-xl p-4 border border-slate-100 flex items-center justify-between sm:flex-col sm:justify-center sm:text-center sm:gap-1">
+                  <p className="text-2xl sm:text-3xl font-black text-brand-600 leading-none">{competenciasData.length}</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Competencias</p>
                 </div>
               </section>
+            </div>
+
+            {/* Competencias Section */}
+            <div className="mt-12">
+              <div className="flex items-center gap-3 mb-6">
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900">Participación</h2>
+                <div className="h-px flex-1 bg-slate-100"></div>
+              </div>
+              
+              {loadingComps ? (
+                <div className="flex justify-center py-12">
+                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600"></div>
+                </div>
+              ) : competenciasData.length === 0 ? (
+                <p className="text-slate-500 text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-300">
+                  Este jugador no participa actualmente en ninguna competencia.
+                </p>
+              ) : (
+                <div className="space-y-6">
+                  {competenciasData.slice(0, showAllComps ? undefined : 3).map((data, idx) => (
+                    <div 
+                      key={idx} 
+                      className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:border-brand-200 transition-colors"
+                    >
+                      {/* Comp Card Header - More Compact */}
+                      <div 
+                        className="p-4 cursor-pointer flex items-center justify-between bg-slate-50/30"
+                        onClick={() => navigate(`/competencias/${data.competencia._id || data.competencia.id}`)}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="h-12 w-12 rounded-lg bg-brand-50 flex items-center justify-center text-brand-600 font-bold overflow-hidden border border-brand-100">
+                            {data.competencia.imagen ? (
+                              <img src={data.competencia.imagen} alt={data.competencia.nombre} className="h-full w-full object-cover" />
+                            ) : (
+                              data.competencia.nombre.charAt(0)
+                            )}
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-bold text-slate-900 leading-tight">{data.competencia.nombre}</h3>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                                data.isRanked ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700'
+                              }`}>
+                                {data.isRanked ? 'Ranked' : 'Liga'}
+                              </span>
+                              {data.competencia.matchCount > 0 && (
+                                <span className="text-xs text-slate-500 font-medium bg-slate-100 px-1.5 py-0.5 rounded">
+                                  {data.competencia.matchCount} partidos
+                                </span>
+                              )}
+                              {(data.relacion?.dorsal || data.relacion?.posicion) && (
+                                <span className="text-xs text-slate-600 font-medium">
+                                  {data.relacion.posicion} {data.relacion.dorsal ? `#${data.relacion.dorsal}` : ''}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-slate-400">
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </div>
+
+                      {/* Content Area - More Compact */}
+                      <div className="px-4 pb-4 border-t border-slate-100 pt-3">
+                        {data.isRanked && data.rankedData ? (
+                          <div className="flex flex-col gap-4">
+                            <div className="flex items-center justify-around bg-indigo-50/50 p-3 rounded-lg border border-indigo-100">
+                              <div className="text-center">
+                                <p className="text-[10px] text-indigo-600 font-bold uppercase tracking-widest">Rank</p>
+                                <p className="text-xl font-black text-indigo-900 leading-none">#{data.rankedData.rank}</p>
+                              </div>
+                              <div className="h-8 w-px bg-indigo-200"></div>
+                              <div className="text-center">
+                                <p className="text-[10px] text-indigo-600 font-bold uppercase tracking-widest">Rating</p>
+                                <p className="text-xl font-black text-indigo-900 leading-none">
+                                  {data.rankedData.context.find((it: any) => it.isCurrent)?.rating}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="bg-white rounded-lg border border-slate-100 overflow-hidden shadow-sm">
+                              <table className="w-full text-[11px]">
+                                <tbody className="divide-y divide-slate-50">
+                                  {data.rankedData.context.map((item: any, i: number) => (
+                                    <tr 
+                                      key={i} 
+                                      className={`${item.isCurrent ? 'bg-indigo-50/50' : ''} cursor-pointer hover:bg-slate-50 transition-colors`}
+                                      onClick={() => navigate(`/jugadores/${item.playerId?._id || item.playerId}`)}
+                                    >
+                                      <td className="px-3 py-2 text-slate-400 font-mono w-8 text-center">{item.rank}</td>
+                                      <td className="px-2 py-2 flex items-center gap-2">
+                                        <div className="h-5 w-5 rounded-full bg-slate-100 flex-shrink-0">
+                                           {item.playerId?.foto && <img src={item.playerId.foto} className="h-full w-full rounded-full object-cover" alt="" />}
+                                        </div>
+                                        <span className={`truncate max-w-[150px] ${item.isCurrent ? 'font-bold text-indigo-700' : 'text-slate-700'}`}>
+                                          {item.playerId?.nombre || 'Desconocido'}
+                                        </span>
+                                      </td>
+                                      <td className="px-3 py-2 text-right font-bold text-slate-900 w-16">{item.rating}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        ) : data.normalData ? (
+                          <div className="space-y-3">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1">
+                               <div className="flex items-center gap-2">
+                                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                                 <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em]">
+                                   {data.normalData.temporada.nombre} • {data.normalData.fase.nombre}
+                                 </h4>
+                               </div>
+                               
+                               {data.allSeasons && data.allSeasons.length > 1 && (
+                                 <select 
+                                   className="text-[10px] bg-slate-100 border-none rounded px-2 py-1 font-bold text-slate-600 focus:ring-1 focus:ring-brand-500 outline-none cursor-pointer"
+                                   value={data.normalData.temporada._id}
+                                   onChange={(e) => handleSeasonChange(idx, e.target.value)}
+                                 >
+                                   {data.allSeasons.map((s: any) => (
+                                     <option key={s._id} value={s._id}>
+                                       {s.nombre}
+                                     </option>
+                                   ))}
+                                 </select>
+                               )}
+                            </div>
+                            
+                            <div className="w-full">
+                              {data.normalData.fase.tipo === 'playoff' ? (
+                                <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+                                  <div className="scale-90 origin-left">
+                                    <Bracket matches={data.normalData.matches} />
+                                  </div>
+                                </div>
+                              ) : (
+                                <TablaPosiciones faseId={data.normalData.fase._id} />
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-center py-4">
+                            <p className="text-slate-400 text-[11px] italic font-medium">Buscando actividad reciente...</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+
+                  {!showAllComps && competenciasData.length > 3 && (
+                    <button 
+                      onClick={() => setShowAllComps(true)}
+                      className="group w-full py-4 bg-white hover:bg-brand-50 text-slate-500 hover:text-brand-600 text-xs font-black uppercase tracking-widest rounded-xl transition-all border border-slate-200 hover:border-brand-200 shadow-sm flex items-center justify-center gap-2"
+                    >
+                      Ver {competenciasData.length - 3} competencias más
+                      <svg className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>

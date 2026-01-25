@@ -20,8 +20,23 @@ const CompetenciaDetalle: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState<'info' | 'leaderboard' | 'partidos' | 'resultados'>('info');
   
+  // Tabs and Selections from URL
+  const activeTab = (searchParams.get('tab') as 'info' | 'leaderboard' | 'partidos' | 'resultados') || 'info';
+  const selectedTemporada = searchParams.get('temporada') || '';
+  const selectedFase = searchParams.get('fase') || '';
+
+  const updateParams = useCallback((params: Record<string, string | null>) => {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      Object.entries(params).forEach(([key, value]) => {
+        if (value === null || value === '') next.delete(key);
+        else next.set(key, value);
+      });
+      return next;
+    }, { replace: true });
+  }, [setSearchParams]);
+
   // State for Leaderboard
   const [leaderboard, setLeaderboard] = useState<LeaderboardItem[]>([]);
   const [jugadoresComp, setJugadoresComp] = useState<JugadorCompetencia[]>([]);
@@ -42,26 +57,16 @@ const CompetenciaDetalle: React.FC = () => {
   }, [searchParams]);
 
   const handlePlayerClick = (player: { id: string, name: string }) => {
-    setSearchParams(prev => {
-      prev.set('player', player.id);
-      prev.set('playerName', player.name);
-      return prev;
-    });
+    updateParams({ player: player.id, playerName: player.name });
   };
 
   const closeModal = () => {
-    setSearchParams(prev => {
-      prev.delete('player');
-      prev.delete('playerName');
-      return prev;
-    });
+    updateParams({ player: null, playerName: null });
   };
 
   // State for Resultados (Temporadas/Fases)
   const [temporadas, setTemporadas] = useState<Temporada[]>([]);
-  const [selectedTemporada, setSelectedTemporada] = useState<string>('');
   const [fases, setFases] = useState<Fase[]>([]);
-  const [selectedFase, setSelectedFase] = useState<string>('');
   const [faseDetails, setFaseDetails] = useState<Fase | null>(null);
   const [fasePartidos, setFasePartidos] = useState<Partido[]>([]);
   const [loadingResultados, setLoadingResultados] = useState(false);
@@ -109,34 +114,34 @@ const CompetenciaDetalle: React.FC = () => {
     try {
       const res = await TemporadaService.getByCompetencia(competencia.id);
       setTemporadas(res);
-      // Select the last one by default (assuming chronological order or creation order)
-      if (res.length > 0) {
-        setSelectedTemporada(res[res.length - 1]._id);
+      
+      // If no season is selected in URL, pick the last one
+      if (res.length > 0 && !searchParams.get('temporada')) {
+        updateParams({ temporada: res[res.length - 1]._id });
       }
     } catch (err) {
       console.error('Error loading temporadas:', err);
     } finally {
       setLoadingResultados(false);
     }
-  }, [competencia]);
+  }, [competencia, searchParams, updateParams]);
 
   const loadFases = useCallback(async (temporadaId: string) => {
     setLoadingResultados(true);
     try {
       const res = await FaseService.getByTemporada(temporadaId);
       setFases(res);
-      // Select the last one by default
-      if (res.length > 0) {
-        setSelectedFase(res[res.length - 1]._id);
-      } else {
-        setSelectedFase('');
+      
+      // If no phase is selected in URL, pick the last one by default for specific tabs
+      if (res.length > 0 && !searchParams.get('fase') && activeTab === 'resultados') {
+        updateParams({ fase: res[res.length - 1]._id });
       }
     } catch (err) {
       console.error('Error loading fases:', err);
     } finally {
       setLoadingResultados(false);
     }
-  }, []);
+  }, [searchParams, activeTab, updateParams]);
 
   const loadFaseData = useCallback(async (faseId: string) => {
     setLoadingResultados(true);
@@ -184,9 +189,9 @@ const CompetenciaDetalle: React.FC = () => {
   // Effect to reset activeTab if 'resultados' is selected but competition is ranked
   useEffect(() => {
     if (isRanked && activeTab === 'resultados') {
-      setActiveTab('info');
+      updateParams({ tab: 'info' });
     }
-  }, [isRanked, activeTab]);
+  }, [isRanked, activeTab, updateParams]);
 
   // Effect to load phases or leaderboard when season changes
   useEffect(() => {
@@ -196,9 +201,9 @@ const CompetenciaDetalle: React.FC = () => {
       void loadFases(selectedTemporada);
     } else {
       setFases([]);
-      setSelectedFase('');
+      updateParams({ fase: null });
     }
-  }, [selectedTemporada, activeTab, loadLeaderboard, loadFases]);
+  }, [selectedTemporada, activeTab, loadLeaderboard, loadFases, updateParams]);
 
   // Effect to load phase details and matches when phase changes
   useEffect(() => {
@@ -250,7 +255,7 @@ const CompetenciaDetalle: React.FC = () => {
         <div className="mb-6 border-b border-slate-200">
           <nav className="-mb-px flex space-x-8" aria-label="Tabs">
             <button
-              onClick={() => setActiveTab('info')}
+              onClick={() => updateParams({ tab: 'info' })}
               className={`${
                 activeTab === 'info'
                   ? 'border-brand-500 text-brand-600'
@@ -260,7 +265,7 @@ const CompetenciaDetalle: React.FC = () => {
               Información
             </button>
             <button
-              onClick={() => setActiveTab('partidos')}
+              onClick={() => updateParams({ tab: 'partidos' })}
               className={`${
                 activeTab === 'partidos'
                   ? 'border-brand-500 text-brand-600'
@@ -271,7 +276,7 @@ const CompetenciaDetalle: React.FC = () => {
             </button>
             {!isRanked && (
               <button
-                onClick={() => setActiveTab('resultados')}
+                onClick={() => updateParams({ tab: 'resultados' })}
                 className={`${
                   activeTab === 'resultados'
                     ? 'border-brand-500 text-brand-600'
@@ -283,7 +288,7 @@ const CompetenciaDetalle: React.FC = () => {
             )}
             {isRanked && (
               <button
-                onClick={() => setActiveTab('leaderboard')}
+                onClick={() => updateParams({ tab: 'leaderboard' })}
                 className={`${
                   activeTab === 'leaderboard'
                     ? 'border-brand-500 text-brand-600'
@@ -304,10 +309,10 @@ const CompetenciaDetalle: React.FC = () => {
             <CompetenciaPartidosTab
               temporadas={temporadas}
               selectedTemporada={selectedTemporada}
-              onTemporadaChange={setSelectedTemporada}
+              onTemporadaChange={(id) => updateParams({ temporada: id, fase: null })}
               fases={fases}
               selectedFase={selectedFase}
-              onFaseChange={setSelectedFase}
+              onFaseChange={(id) => updateParams({ fase: id })}
               loading={loadingResultados}
               partidos={fasePartidos}
               onPartidoClick={(partidoId) => navigate(`/partidos/${partidoId}`)}
@@ -318,10 +323,10 @@ const CompetenciaDetalle: React.FC = () => {
             <CompetenciaResultadosTab
               temporadas={temporadas}
               selectedTemporada={selectedTemporada}
-              onTemporadaChange={setSelectedTemporada}
+              onTemporadaChange={(id) => updateParams({ temporada: id, fase: null })}
               fases={fases}
               selectedFase={selectedFase}
-              onFaseChange={setSelectedFase}
+              onFaseChange={(id) => updateParams({ fase: id })}
               loading={loadingResultados}
               faseDetails={faseDetails}
               fasePartidos={fasePartidos}
@@ -333,7 +338,7 @@ const CompetenciaDetalle: React.FC = () => {
             <CompetenciaLeaderboardTab
               temporadas={temporadas}
               selectedTemporada={selectedTemporada}
-              onTemporadaChange={setSelectedTemporada}
+              onTemporadaChange={(id) => updateParams({ temporada: id })}
               loading={loadingLeaderboard}
               leaderboard={leaderboard}
               jugadoresComp={jugadoresComp}

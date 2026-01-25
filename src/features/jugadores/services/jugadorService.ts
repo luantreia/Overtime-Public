@@ -62,6 +62,10 @@ export class JugadorService {
     return fetchWithAuth<Jugador>(`${this.API_ENDPOINT}/${id}`);
   }
 
+  static async getCompetencias(id: string): Promise<any[]> {
+    return fetchWithAuth<any[]>(`${this.API_ENDPOINT}/${id}/competencias`);
+  }
+
   static async create(data: Omit<Jugador, '_id' | 'id' | 'createdAt' | 'updatedAt'>): Promise<Jugador> {
     return fetchWithAuth<Jugador>(`${this.API_ENDPOINT}`, {
       method: 'POST',

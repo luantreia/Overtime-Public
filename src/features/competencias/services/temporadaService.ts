@@ -15,4 +15,8 @@ export class TemporadaService {
   static async getByCompetencia(competenciaId: string): Promise<Temporada[]> {
     return fetchWithAuth<Temporada[]>(`${this.API_ENDPOINT}?competencia=${competenciaId}`);
   }
+
+  static async getById(id: string): Promise<Temporada> {
+    return fetchWithAuth<Temporada>(`${this.API_ENDPOINT}/${id}`);
+  }
 }

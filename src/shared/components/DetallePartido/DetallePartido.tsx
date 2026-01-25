@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useEntity } from '../../hooks';
 import { PartidoService, type Partido } from '../../../features/partidos/services/partidoService';
 import { formatDate, formatDateTime } from '../../../shared/utils copy/formatDate';
+import { PlayerRankedHistoryModal } from '../../../features/competencias/components/PlayerRankedHistoryModal';
 
 interface DetallePartidoProps {
   partidoId: string;
@@ -30,15 +32,21 @@ interface JugadorPartido {
 }
 
 const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  
   const { data: partido, loading, error } = useEntity<Partido & {
     sets?: SetData[];
     jugadores?: JugadorPartido[];
     estadisticas?: any;
     esRanked?: boolean;
+    competenciaId?: string;
   }>(
     React.useCallback(async () => {
       const p = await PartidoService.getById(partidoId) as any;
       if (!p) return null;
+
+      // Extract competencia ID
+      p.competenciaId = p.competencia?._id || p.competencia?.id || (typeof p.competencia === 'string' ? p.competencia : undefined);
 
       // Detectar si es ranked (usando isRanked del backend o esRanked si ya viene mapeado)
       const isRanked = p.isRanked || p.esRanked || p.tipo === 'ranked' || (p.competencia && p.competencia.rankedEnabled);
@@ -100,6 +108,22 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
       return p;
     }, [partidoId])
   );
+
+  const handlePlayerClick = (id: string, name: string) => {
+    setSearchParams(prev => {
+      prev.set('player', id);
+      prev.set('playerName', name);
+      return prev;
+    }, { replace: true });
+  };
+
+  const closePlayerModal = () => {
+    setSearchParams(prev => {
+      prev.delete('player');
+      prev.delete('playerName');
+      return prev;
+    }, { replace: true });
+  };
 
   if (loading) {
     return (
@@ -267,7 +291,13 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
                 </div>
                 <div className="space-y-1.5 sm:space-y-2">
                   {localJugadores.map((jugador) => (
-                    <div key={jugador.id} className="flex items-center justify-between p-2 sm:p-3 bg-slate-50 rounded-lg">
+                    <div 
+                      key={jugador.id} 
+                      onClick={() => partido.esRanked && handlePlayerClick(jugador.id, jugador.nombre)}
+                      className={`flex items-center justify-between p-2 sm:p-3 bg-slate-50 rounded-lg transition-all ${
+                        partido.esRanked ? 'cursor-pointer hover:bg-brand-50 hover:border-brand-100 border border-transparent' : ''
+                      }`}
+                    >
                       <div className="flex items-center gap-2 sm:gap-3 overflow-hidden">
                         <div className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 relative bg-brand-100 rounded-full overflow-hidden border border-brand-200">
                           <img 
@@ -323,7 +353,13 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
                 </div>
                 <div className="space-y-1.5 sm:space-y-2">
                   {visitanteJugadores.map((jugador) => (
-                    <div key={jugador.id} className="flex items-center justify-between p-2 sm:p-3 bg-slate-50 rounded-lg">
+                    <div 
+                      key={jugador.id} 
+                      onClick={() => partido.esRanked && handlePlayerClick(jugador.id, jugador.nombre)}
+                      className={`flex items-center justify-between p-2 sm:p-3 bg-slate-50 rounded-lg transition-all ${
+                        partido.esRanked ? 'cursor-pointer hover:bg-brand-50 hover:border-brand-100 border border-transparent' : ''
+                      }`}
+                    >
                       <div className="flex items-center gap-2 sm:gap-3 overflow-hidden">
                         <div className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 relative bg-brand-100 rounded-full overflow-hidden border border-brand-200">
                           <img 
@@ -388,6 +424,20 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
           </div>
         </dl>
       </div>
+
+      {/* Modal de Historial del Jugador */}
+      {searchParams.get('player') && (
+        <PlayerRankedHistoryModal
+          isOpen={!!searchParams.get('player')}
+          onClose={closePlayerModal}
+          playerId={searchParams.get('player') || ''}
+          playerName={searchParams.get('playerName') || ''}
+          modalidad={partido.rankedMeta?.modalidad || partido.modalidad || 'Foam'}
+          categoria={partido.rankedMeta?.categoria || partido.categoria || 'Libre'}
+          competenciaId={partido.competenciaId || ''}
+          seasonId={partido.rankedMeta?.temporadaId || (partido as any).temporadaId}
+        />
+      )}
     </div>
   );
 };
