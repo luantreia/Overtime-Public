@@ -18,6 +18,14 @@ export interface PlayerRankedDetail {
   ok: boolean;
   rating: any;
   history: any[];
+  synergy?: {
+    id: string;
+    name: string;
+    matches: number;
+    wins: number;
+    winrate: number;
+    matchIds: string[];
+  }[];
 }
 
 export class RankedService {
