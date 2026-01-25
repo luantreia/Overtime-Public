@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { RankedService } from '../services/rankedService';
 
 interface PlayerRankedHistoryModalProps {
@@ -22,6 +23,8 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
   competenciaId,
   seasonId
 }) => {
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [rating, setRating] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
@@ -72,6 +75,13 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
     setPlayerStack(prev => [...prev, activePlayer]);
     setActivePlayer({ id, name });
     setSelectedPartnerId(null);
+    
+    // Update URL so if user navigates to a match and back, they land on this player
+    setSearchParams(prev => {
+      prev.set('player', id);
+      prev.set('playerName', name);
+      return prev;
+    }, { replace: true });
   };
 
   const goBack = () => {
@@ -80,6 +90,13 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
       setPlayerStack(prev => prev.slice(0, -1));
       setActivePlayer(prev);
       setSelectedPartnerId(null);
+
+      // Update URL
+      setSearchParams(s => {
+        s.set('player', prev.id);
+        s.set('playerName', prev.name);
+        return s;
+      }, { replace: true });
     }
   };
 
@@ -260,7 +277,7 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
                        return (
                          <div 
                             key={h._id} 
-                            onClick={() => partidoId && window.open(`/partidos/${partidoId}`, '_blank')}
+                            onClick={() => partidoId && navigate(`/partidos/${partidoId}`)}
                             className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm hover:border-brand-400 hover:bg-brand-50/20 transition-all cursor-pointer flex items-center justify-between gap-4 group"
                          >
                             <div className="flex items-center gap-4">

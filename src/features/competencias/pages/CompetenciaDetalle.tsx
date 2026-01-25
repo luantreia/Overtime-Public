@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useEntity } from '../../../shared/hooks';
 import { CompetenciaService, type Competencia } from '../services/competenciaService';
 import { RankedService, type LeaderboardItem } from '../services/rankedService';
@@ -19,6 +19,7 @@ import {
 const CompetenciaDetalle: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<'info' | 'leaderboard' | 'partidos' | 'resultados'>('info');
   
   // State for Leaderboard
@@ -28,6 +29,33 @@ const CompetenciaDetalle: React.FC = () => {
 
   // Modal Detail state
   const [selectedPlayer, setSelectedPlayer] = useState<{ id: string, name: string } | null>(null);
+
+  // Sync selectedPlayer with URL param
+  useEffect(() => {
+    const playerId = searchParams.get('player');
+    const playerName = searchParams.get('playerName');
+    if (playerId && playerName) {
+      setSelectedPlayer({ id: playerId, name: playerName });
+    } else {
+      setSelectedPlayer(null);
+    }
+  }, [searchParams]);
+
+  const handlePlayerClick = (player: { id: string, name: string }) => {
+    setSearchParams(prev => {
+      prev.set('player', player.id);
+      prev.set('playerName', player.name);
+      return prev;
+    });
+  };
+
+  const closeModal = () => {
+    setSearchParams(prev => {
+      prev.delete('player');
+      prev.delete('playerName');
+      return prev;
+    });
+  };
 
   // State for Resultados (Temporadas/Fases)
   const [temporadas, setTemporadas] = useState<Temporada[]>([]);
@@ -309,7 +337,7 @@ const CompetenciaDetalle: React.FC = () => {
               loading={loadingLeaderboard}
               leaderboard={leaderboard}
               jugadoresComp={jugadoresComp}
-              onPlayerClick={setSelectedPlayer}
+              onPlayerClick={handlePlayerClick}
             />
           )}
         </div>
@@ -318,7 +346,7 @@ const CompetenciaDetalle: React.FC = () => {
       {selectedPlayer && (
         <PlayerRankedHistoryModal
           isOpen={!!selectedPlayer}
-          onClose={() => setSelectedPlayer(null)}
+          onClose={closeModal}
           playerId={selectedPlayer.id}
           playerName={selectedPlayer.name}
           modalidad={(competencia as any).modalidad || 'Foam'}
