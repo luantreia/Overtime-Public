@@ -24,7 +24,7 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
   seasonId
 }) => {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [rating, setRating] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
