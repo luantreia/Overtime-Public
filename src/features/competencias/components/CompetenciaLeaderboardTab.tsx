@@ -122,7 +122,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                           <div className="text-sm font-medium text-slate-900">{item.playerName || playerId}</div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-900">{Math.round(item.rating)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-900">{Number(item.rating).toFixed(3)}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`text-sm font-black ${winrate >= 50 ? 'text-emerald-500' : 'text-slate-400'}`}>
                           {winrate.toFixed(1)}%
@@ -201,7 +201,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
 
                     <div className="text-right flex-shrink-0">
                       <div className="text-sm font-black text-slate-900 leading-none">
-                        {Math.round(item.rating)}
+                        {Number(item.rating).toFixed(3)}
                       </div>
                       <div className="text-[9px] text-slate-500 font-medium mb-1 uppercase tracking-wider">ELO</div>
                       {item.lastDelta !== undefined ? (

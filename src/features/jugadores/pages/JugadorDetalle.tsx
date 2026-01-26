@@ -397,7 +397,7 @@ const JugadorDetalle: React.FC = () => {
                               <div className="text-center">
                                 <p className="text-[10px] text-indigo-600 font-bold uppercase tracking-widest">Rating</p>
                                 <p className="text-xl font-black text-indigo-900 leading-none">
-                                  {data.rankedData.context.find((it: any) => it.isCurrent)?.rating}
+                                  {Number(data.rankedData.context.find((it: any) => it.isCurrent)?.rating || 0).toFixed(3)}
                                 </p>
                               </div>
                             </div>
@@ -420,7 +420,7 @@ const JugadorDetalle: React.FC = () => {
                                           {item.playerId?.nombre || 'Desconocido'}
                                         </span>
                                       </td>
-                                      <td className="px-3 py-2 text-right font-bold text-slate-900 w-16">{item.rating}</td>
+                                      <td className="px-3 py-2 text-right font-bold text-slate-900 w-16">{item.rating ? Number(item.rating).toFixed(3) : '---'}</td>
                                     </tr>
                                   ))}
                                 </tbody>
