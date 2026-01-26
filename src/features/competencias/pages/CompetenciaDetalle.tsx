@@ -126,7 +126,7 @@ const CompetenciaDetalle: React.FC = () => {
     } finally {
       setLoadingResultados(false);
     }
-  }, [competencia, searchParams, updateParams]);
+  }, [competencia, activeTab, searchParams, updateParams]);
 
   const loadFases = useCallback(async (temporadaId: string) => {
     setLoadingResultados(true);
