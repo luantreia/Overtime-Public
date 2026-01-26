@@ -10,6 +10,7 @@ import { FaseService } from '../../competencias/services/faseService';
 import { PartidoService } from '../../partidos/services/partidoService';
 import { TablaPosiciones } from '../../../shared/components/TablaPosiciones/TablaPosiciones';
 import { Bracket } from '../../../shared/components/Bracket/Bracket';
+import { PlayerRankedHistoryModal } from '../../competencias/components';
 
 const JugadorDetalle: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -17,6 +18,19 @@ const JugadorDetalle: React.FC = () => {
   const [competenciasData, setCompetenciasData] = useState<any[]>([]);
   const [loadingComps, setLoadingComps] = useState(false);
   const [showAllComps, setShowAllComps] = useState(false);
+
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedCompForModal, setSelectedCompForModal] = useState<any>(null);
+
+  const handleOpenModal = (compData: any) => {
+    setSelectedCompForModal(compData);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
 
   const handleSeasonChange = async (compIdx: number, seasonId: string) => {
     const freshData = [...competenciasData];
@@ -402,6 +416,16 @@ const JugadorDetalle: React.FC = () => {
                               </div>
                             </div>
 
+                            <button
+                              onClick={() => handleOpenModal(data)}
+                              className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold uppercase tracking-wider rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z" />
+                              </svg>
+                              Ver Historial Detallado
+                            </button>
+
                             <div className="bg-white rounded-lg border border-slate-100 overflow-hidden shadow-sm">
                               <table className="w-full text-[11px]">
                                 <tbody className="divide-y divide-slate-50">
@@ -490,6 +514,19 @@ const JugadorDetalle: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {selectedCompForModal && (
+        <PlayerRankedHistoryModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          playerId={id!}
+          playerName={jugador.nombre}
+          modalidad={selectedCompForModal.competencia.modalidad || 'Foam'}
+          categoria={selectedCompForModal.competencia.categoria || 'Libre'}
+          competenciaId={selectedCompForModal.competencia._id || selectedCompForModal.competencia.id}
+          seasonId={selectedCompForModal.rankedData?.selectedSeasonId === 'global' ? undefined : selectedCompForModal.rankedData?.selectedSeasonId}
+        />
+      )}
     </div>
   );
 };
