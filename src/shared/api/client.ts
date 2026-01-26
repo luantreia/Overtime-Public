@@ -1,6 +1,6 @@
 // Public page API client (reads base URL from env and shares auth keys)
 const ACCESS_TOKEN_KEY = 'overtime_token';
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://overtime-ddyl.onrender.com/api';
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
