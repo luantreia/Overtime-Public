@@ -34,33 +34,11 @@ const JugadorDetalle: React.FC = () => {
   };
 
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const [exportMenuIdx, setExportMenuIdx] = useState<number | null>(null);
 
-  const handleExportImage = async (idx: number, compName: string, ratio: 'original' | 'square' | 'story' = 'original') => {
+  const handleExportImage = async (idx: number, compName: string) => {
     const node = cardRefs.current[idx];
     if (node) {
       try {
-        const originalWidth = node.offsetWidth;
-        const originalHeight = node.offsetHeight;
-        
-        let finalWidth = originalWidth;
-        let finalHeight = originalHeight;
-        let padding = 0;
-        let background = '#ffffff';
-
-        if (ratio === 'square') {
-          const size = Math.max(originalWidth, originalHeight) + 160;
-          finalWidth = size;
-          finalHeight = size;
-          padding = 80;
-          background = 'linear-gradient(135deg, #4f46e5 0%, #818cf8 100%)';
-        } else if (ratio === 'story') {
-          finalWidth = originalWidth + 120;
-          finalHeight = (finalWidth * 16) / 9;
-          padding = 60;
-          background = 'linear-gradient(180deg, #4f46e5 0%, #1e1b4b 100%)';
-        }
-
         const dataUrl = await toPng(node, {
           filter: (el: any) => {
             // No queremos botones ni el selector de temporada en la imagen
@@ -69,19 +47,8 @@ const JugadorDetalle: React.FC = () => {
             if (el.classList?.contains('text-slate-400') && el.querySelector('svg')) return false;
             return true;
           },
-          backgroundColor: background.includes('gradient') ? undefined : background,
-          width: finalWidth,
-          height: finalHeight,
-          style: ratio !== 'original' ? {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: `${padding}px`,
-            background: background,
-            margin: '0',
-            width: `${finalWidth}px`,
-            height: `${finalHeight}px`,
-          } : {
+          backgroundColor: '#ffffff',
+          style: {
             borderRadius: '16px'
           },
           cacheBust: true,
@@ -90,10 +57,9 @@ const JugadorDetalle: React.FC = () => {
         const link = document.createElement('a');
         const playerName = jugador?.nombre?.replace(/\s+/g, '-') || 'jugador';
         const competitionName = compName.replace(/\s+/g, '-') || 'competencia';
-        link.download = `ranking-${playerName}-${competitionName}-${ratio}.png`;
+        link.download = `ranking-${playerName}-${competitionName}.png`;
         link.href = dataUrl;
         link.click();
-        setExportMenuIdx(null);
       } catch (err) {
         console.error('Error generating image', err);
       }
@@ -485,7 +451,7 @@ const JugadorDetalle: React.FC = () => {
                               </div>
                             </div>
 
-                            <div className="flex gap-2 relative">
+                            <div className="flex gap-2">
                               <button
                                 onClick={() => handleOpenModal(data)}
                                 className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold uppercase tracking-wider rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2"
@@ -497,51 +463,14 @@ const JugadorDetalle: React.FC = () => {
                               </button>
                               
                               <button
-                                onClick={(e) => { 
-                                  e.stopPropagation(); 
-                                  setExportMenuIdx(exportMenuIdx === idx ? null : idx);
-                                }}
-                                className={`px-3 py-2 rounded-lg transition-colors shadow-sm flex items-center justify-center ${
-                                  exportMenuIdx === idx ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                                }`}
-                                title="Opciones de exportación"
+                                onClick={(e) => { e.stopPropagation(); handleExportImage(idx, data.competencia.nombre); }}
+                                className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-colors shadow-sm flex items-center justify-center"
+                                title="Descargar Ranking como PNG"
                               >
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                 </svg>
-                                <svg xmlns="http://www.w3.org/2000/svg" className={`h-3 w-3 ml-1 transition-transform ${exportMenuIdx === idx ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                </svg>
                               </button>
-
-                              {exportMenuIdx === idx && (
-                                <div className="absolute right-0 bottom-full mb-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 py-2 z-50 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
-                                  <div className="px-3 py-1.5 border-b border-slate-50 mb-1">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Relación de Aspecto</p>
-                                  </div>
-                                  <button 
-                                    onClick={(e) => { e.stopPropagation(); handleExportImage(idx, data.competencia.nombre, 'original'); }}
-                                    className="px-4 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
-                                  >
-                                    <span className="w-5 h-5 flex items-center justify-center bg-slate-100 rounded text-[10px]">1:1</span>
-                                    Normal (Solo Tarjeta)
-                                  </button>
-                                  <button 
-                                    onClick={(e) => { e.stopPropagation(); handleExportImage(idx, data.competencia.nombre, 'square'); }}
-                                    className="px-4 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
-                                  >
-                                    <span className="w-5 h-5 flex items-center justify-center bg-brand-50 text-brand-600 rounded text-[10px]">1:1</span>
-                                    Cuadrado (Post IG)
-                                  </button>
-                                  <button 
-                                    onClick={(e) => { e.stopPropagation(); handleExportImage(idx, data.competencia.nombre, 'story'); }}
-                                    className="px-4 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
-                                  >
-                                    <span className="w-5 h-5 flex items-center justify-center bg-indigo-50 text-indigo-600 rounded text-[10px]">9:16</span>
-                                    Vertical (Stories)
-                                  </button>
-                                </div>
-                              )}
                             </div>
 
                             <div className="bg-white rounded-lg border border-slate-100 overflow-hidden shadow-sm">
