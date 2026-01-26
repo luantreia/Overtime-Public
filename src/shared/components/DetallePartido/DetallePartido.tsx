@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useEntity } from '../../hooks';
 import { PartidoService, type Partido } from '../../../features/partidos/services/partidoService';
