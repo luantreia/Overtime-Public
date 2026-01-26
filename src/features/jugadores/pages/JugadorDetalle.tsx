@@ -1,5 +1,6 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { toPng } from 'html-to-image';
 import { useEntity } from '../../../shared/hooks';
 import { JugadorService, type Jugador } from '../services/jugadorService';
 import { CompetenciaService } from '../../competencias/services/competenciaService';
@@ -30,6 +31,39 @@ const JugadorDetalle: React.FC = () => {
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
+  };
+
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  const handleExportImage = async (idx: number, compName: string) => {
+    const node = cardRefs.current[idx];
+    if (node) {
+      try {
+        const dataUrl = await toPng(node, {
+          filter: (el: any) => {
+            // No queremos botones ni el selector de temporada en la imagen
+            if (el.tagName === 'BUTTON' || el.tagName === 'SELECT') return false;
+            // Tampoco queremos la flechita de "ir a competencia" (padre del svg en el header)
+            if (el.classList?.contains('text-slate-400') && el.querySelector('svg')) return false;
+            return true;
+          },
+          backgroundColor: '#ffffff',
+          style: {
+            borderRadius: '16px'
+          },
+          cacheBust: true,
+        });
+        
+        const link = document.createElement('a');
+        const playerName = jugador?.nombre?.replace(/\s+/g, '-') || 'jugador';
+        const competitionName = compName.replace(/\s+/g, '-') || 'competencia';
+        link.download = `ranking-${playerName}-${competitionName}.png`;
+        link.href = dataUrl;
+        link.click();
+      } catch (err) {
+        console.error('Error generating image', err);
+      }
+    }
   };
 
   const handleSeasonChange = async (compIdx: number, seasonId: string) => {
@@ -334,6 +368,7 @@ const JugadorDetalle: React.FC = () => {
                   {competenciasData.slice(0, showAllComps ? undefined : 3).map((data, idx) => (
                     <div 
                       key={idx} 
+                      ref={el => cardRefs.current[idx] = el}
                       className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:border-brand-200 transition-colors"
                     >
                       {/* Comp Card Header - More Compact */}
@@ -416,15 +451,27 @@ const JugadorDetalle: React.FC = () => {
                               </div>
                             </div>
 
-                            <button
-                              onClick={() => handleOpenModal(data)}
-                              className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold uppercase tracking-wider rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2"
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z" />
-                              </svg>
-                              Ver Historial Detallado
-                            </button>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleOpenModal(data)}
+                                className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold uppercase tracking-wider rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z" />
+                                </svg>
+                                Ver Historial Detallado
+                              </button>
+                              
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleExportImage(idx, data.competencia.nombre); }}
+                                className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-colors shadow-sm flex items-center justify-center"
+                                title="Descargar Ranking como PNG"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                              </button>
+                            </div>
 
                             <div className="bg-white rounded-lg border border-slate-100 overflow-hidden shadow-sm">
                               <table className="w-full text-[11px]">
