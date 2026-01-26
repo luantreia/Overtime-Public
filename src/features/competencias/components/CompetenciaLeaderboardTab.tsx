@@ -30,11 +30,11 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
           <label htmlFor="temporada-leaderboard" className="block text-sm font-medium text-slate-700 mb-1">Temporada</label>
           <select
             id="temporada-leaderboard"
-            value={selectedTemporada}
+            value={selectedTemporada || "global"}
             onChange={(e) => onTemporadaChange(e.target.value)}
             className="block w-full rounded-md border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 border"
           >
-            <option value="">Histórico Global</option>
+            <option value="global">Histórico Global</option>
             {temporadas.map((t) => (
               <option key={t._id} value={t._id}>{t.nombre}</option>
             ))}

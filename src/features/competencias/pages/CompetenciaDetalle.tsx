@@ -116,7 +116,9 @@ const CompetenciaDetalle: React.FC = () => {
       setTemporadas(res);
       
       // If no season is selected in URL, pick the last one
-      if (res.length > 0 && !searchParams.get('temporada')) {
+      // If it's "global" but we are not in leaderboard, also pick the last one
+      const current = searchParams.get('temporada');
+      if (res.length > 0 && (!current || (current === 'global' && activeTab !== 'leaderboard'))) {
         updateParams({ temporada: res[res.length - 1]._id });
       }
     } catch (err) {
@@ -197,7 +199,7 @@ const CompetenciaDetalle: React.FC = () => {
   useEffect(() => {
     if (activeTab === 'leaderboard') {
       void loadLeaderboard();
-    } else if (selectedTemporada) {
+    } else if (selectedTemporada && selectedTemporada !== 'global') {
       void loadFases(selectedTemporada);
     } else {
       setFases([]);
@@ -209,7 +211,7 @@ const CompetenciaDetalle: React.FC = () => {
   useEffect(() => {
     if (selectedFase) {
       void loadFaseData(selectedFase);
-    } else if (selectedTemporada && activeTab === 'partidos') {
+    } else if (selectedTemporada && selectedTemporada !== 'global' && activeTab === 'partidos') {
       void loadTemporadaMatches(selectedTemporada);
     } else {
       setFaseDetails(null);
