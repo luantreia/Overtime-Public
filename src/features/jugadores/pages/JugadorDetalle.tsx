@@ -41,10 +41,12 @@ const JugadorDetalle: React.FC = () => {
       try {
         const dataUrl = await toPng(node, {
           filter: (el: any) => {
-            // No queremos botones ni el selector de temporada en la imagen
-            if (el.tagName === 'BUTTON' || el.tagName === 'SELECT') return false;
-            // Tampoco queremos la flechita de "ir a competencia" (padre del svg en el header)
-            if (el.classList?.contains('text-slate-400') && el.querySelector('svg')) return false;
+            // Ignorar elementos marcados explícitamente, botones y selects
+            if (
+              el.classList?.contains('no-export') || 
+              el.tagName === 'BUTTON' || 
+              el.tagName === 'SELECT'
+            ) return false;
             return true;
           },
           backgroundColor: '#ffffff',
@@ -405,7 +407,7 @@ const JugadorDetalle: React.FC = () => {
                             </div>
                           </div>
                         </div>
-                        <div className="text-slate-400">
+                        <div className="text-slate-400 no-export">
                           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="9 5l7 7-7 7" />
                           </svg>
@@ -451,7 +453,7 @@ const JugadorDetalle: React.FC = () => {
                               </div>
                             </div>
 
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 no-export">
                               <button
                                 onClick={() => handleOpenModal(data)}
                                 className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold uppercase tracking-wider rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2"
