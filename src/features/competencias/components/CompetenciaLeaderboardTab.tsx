@@ -110,7 +110,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                         <div className="flex items-center gap-3">
                           <div className="relative w-12 h-12 flex-shrink-0">
                             <img 
-                              src={playerFoto || `https://api.deportes.puebla.gob.mx/images/players/${playerId}.jpg`}
+                              src={playerFoto || ''}
                               alt={item.playerName || 'Jugador'}
                               className="absolute inset-0 w-12 h-12 rounded-full object-cover bg-slate-100 border border-slate-200 shadow-md z-10"
                               onError={(e) => { (e.target as HTMLImageElement).classList.add('hidden'); }}
@@ -177,7 +177,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                   <div className="flex items-center gap-3">
                     <div className="relative w-12 h-12 flex-shrink-0">
                       <img 
-                        src={playerFoto || `https://api.deportes.puebla.gob.mx/images/players/${playerId}.jpg`}
+                        src={playerFoto || ''}
                         alt={item.playerName || 'Jugador'}
                         className="absolute inset-0 w-12 h-12 rounded-full object-cover bg-slate-100 border border-slate-200 shadow-md z-10"
                         onError={(e) => { (e.target as HTMLImageElement).classList.add('hidden'); }}

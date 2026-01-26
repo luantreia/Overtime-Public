@@ -301,7 +301,7 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
                       <div className="flex items-center gap-2 sm:gap-3 overflow-hidden">
                         <div className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 relative bg-brand-100 rounded-full overflow-hidden border border-brand-200">
                           <img 
-                            src={jugador.foto || `https://api.deportes.puebla.gob.mx/images/players/${jugador.id}.jpg`} 
+                            src={jugador.foto || ''} 
                             alt={jugador.nombre} 
                             className="absolute inset-0 h-full w-full object-cover z-10" 
                             onError={(e) => { (e.target as HTMLImageElement).classList.add('hidden'); }}
@@ -363,7 +363,7 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
                       <div className="flex items-center gap-2 sm:gap-3 overflow-hidden">
                         <div className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 relative bg-brand-100 rounded-full overflow-hidden border border-brand-200">
                           <img 
-                            src={jugador.foto || `https://api.deportes.puebla.gob.mx/images/players/${jugador.id}.jpg`} 
+                            src={jugador.foto || ''} 
                             alt={jugador.nombre} 
                             className="absolute inset-0 h-full w-full object-cover z-10" 
                             onError={(e) => { (e.target as HTMLImageElement).classList.add('hidden'); }}
