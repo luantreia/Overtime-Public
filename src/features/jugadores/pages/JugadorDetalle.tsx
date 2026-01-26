@@ -446,7 +446,7 @@ const JugadorDetalle: React.FC = () => {
                               </div>
                               <div className="h-8 w-px bg-indigo-200"></div>
                               <div className="text-center">
-                                <p className="text-[10px] text-indigo-600 font-bold uppercase tracking-widest">Rating</p>
+                                <p className="text-[10px] text-indigo-600 font-bold uppercase tracking-widest">ELO</p>
                                 <p className="text-xl font-black text-indigo-900 leading-none">
                                   {Number(data.rankedData.context.find((it: any) => it.isCurrent)?.rating || 0).toFixed(3)}
                                 </p>
