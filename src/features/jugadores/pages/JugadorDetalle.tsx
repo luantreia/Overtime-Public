@@ -21,28 +21,45 @@ const JugadorDetalle: React.FC = () => {
   const handleSeasonChange = async (compIdx: number, seasonId: string) => {
     const freshData = [...competenciasData];
     const data = freshData[compIdx];
-    if (!data || !data.allSeasons) return;
-
-    const selectedSeason = data.allSeasons.find((s: any) => s._id === seasonId);
-    if (!selectedSeason) return;
+    if (!data) return;
 
     try {
-      const fasesRes = await FaseService.getByTemporada(selectedSeason._id);
-      let normalData = null;
-      if (fasesRes.length > 0) {
-        const lastFase = fasesRes[fasesRes.length - 1];
-        let matches: any[] = [];
-        if (lastFase.tipo === 'playoff') {
-          matches = await PartidoService.getByFaseId(lastFase._id);
+      if (data.isRanked) {
+        const res = await RankedService.getRankContext(id!, {
+          modalidad: data.competencia.modalidad || 'Foam',
+          categoria: data.competencia.categoria || 'Libre',
+          competition: data.competencia._id || data.competencia.id,
+          season: seasonId === 'global' ? undefined : seasonId
+        });
+        
+        if (res.ok) {
+          freshData[compIdx] = { 
+            ...data, 
+            rankedData: { ...res, selectedSeasonId: seasonId } 
+          };
+          setCompetenciasData(freshData);
         }
-        normalData = {
-          temporada: selectedSeason,
-          fase: lastFase,
-          matches
-        };
+      } else {
+        const selectedSeason = data.allSeasons.find((s: any) => s._id === seasonId);
+        if (!selectedSeason) return;
+
+        const fasesRes = await FaseService.getByTemporada(selectedSeason._id);
+        let normalData = null;
+        if (fasesRes.length > 0) {
+          const lastFase = fasesRes[fasesRes.length - 1];
+          let matches: any[] = [];
+          if (lastFase.tipo === 'playoff') {
+            matches = await PartidoService.getByFaseId(lastFase._id);
+          }
+          normalData = {
+            temporada: selectedSeason,
+            fase: lastFase,
+            matches
+          };
+        }
+        freshData[compIdx] = { ...data, normalData };
+        setCompetenciasData(freshData);
       }
-      freshData[compIdx] = { ...data, normalData };
-      setCompetenciasData(freshData);
     } catch (err) {
       console.error('Error changing season:', err);
     }
@@ -116,23 +133,24 @@ const JugadorDetalle: React.FC = () => {
         let rankedData = null;
         let normalData = null;
         let allSeasons: any[] = [];
+        const compId = comp._id || comp.id;
+
+        // Fetch all available seasons for both types
+        try {
+          allSeasons = await TemporadaService.getByCompetencia(compId);
+        } catch (e) {
+          console.error('Error fetching seasons', e);
+        }
 
         if (isRanked) {
           const res = await RankedService.getRankContext(id, {
             modalidad: comp.modalidad || 'Foam',
             categoria: comp.categoria || 'Libre',
-            competition: comp._id || comp.id
+            competition: compId,
+            season: undefined // Global by default
           });
-          if (res.ok) rankedData = res;
+          if (res.ok) rankedData = { ...res, selectedSeasonId: 'global' };
         } else {
-          // Fetch all available seasons
-          const compId = comp._id || comp.id;
-          try {
-            allSeasons = await TemporadaService.getByCompetencia(compId);
-          } catch (e) {
-            console.error('Error fetching seasons', e);
-          }
-
           let selectedSeason = null;
           if (comp.preferredSeasonId) {
             selectedSeason = allSeasons.find(s => s._id === comp.preferredSeasonId);
@@ -349,6 +367,27 @@ const JugadorDetalle: React.FC = () => {
                       <div className="px-4 pb-4 border-t border-slate-100 pt-3">
                         {data.isRanked && data.rankedData ? (
                           <div className="flex flex-col gap-4">
+                            <div className="flex items-center justify-between px-1">
+                               <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em]">
+                                 Ranking de Jugador
+                               </h4>
+                               
+                               {data.allSeasons && data.allSeasons.length > 0 && (
+                                 <select 
+                                   className="text-[10px] bg-slate-100 border-none rounded px-2 py-1 font-bold text-slate-600 focus:ring-1 focus:ring-brand-500 outline-none cursor-pointer"
+                                   value={data.rankedData.selectedSeasonId || "global"}
+                                   onChange={(e) => handleSeasonChange(idx, e.target.value)}
+                                 >
+                                   <option value="global">Histórico Global</option>
+                                   {data.allSeasons.map((s: any) => (
+                                     <option key={s._id} value={s._id}>
+                                       {s.nombre}
+                                     </option>
+                                   ))}
+                                 </select>
+                               )}
+                            </div>
+
                             <div className="flex items-center justify-around bg-indigo-50/50 p-3 rounded-lg border border-indigo-100">
                               <div className="text-center">
                                 <p className="text-[10px] text-indigo-600 font-bold uppercase tracking-widest">Rank</p>
