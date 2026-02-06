@@ -45,8 +45,8 @@ export class RankedService {
       minMatches: String(params.minMatches ?? 0),
       limit: String(params.limit ?? 50),
     });
-    if (params.competition) sp.set('competition', params.competition);
-    if (params.season) sp.set('season', params.season);
+    if (params.competition && params.competition !== 'null') sp.set('competition', params.competition);
+    if (params.season && params.season !== 'null' && params.season !== 'global') sp.set('season', params.season);
     
     return fetchWithAuth<LeaderboardResponse>(`${this.BASE}/leaderboard?${sp.toString()}`);
   }
@@ -61,8 +61,8 @@ export class RankedService {
       modalidad: params.modalidad,
       categoria: params.categoria,
     });
-    if (params.competition) sp.set('competition', params.competition);
-    if (params.season) sp.set('season', params.season);
+    if (params.competition && params.competition !== 'null') sp.set('competition', params.competition);
+    if (params.season && params.season !== 'null' && params.season !== 'global') sp.set('season', params.season);
     
     return fetchWithAuth<PlayerRankedDetail>(`${this.BASE}/players/${playerId}/detail?${sp.toString()}`);
   }
@@ -77,8 +77,8 @@ export class RankedService {
       modalidad: params.modalidad,
       categoria: params.categoria,
     });
-    if (params.competition) sp.set('competition', params.competition);
-    if (params.season) sp.set('season', params.season);
+    if (params.competition && params.competition !== 'null') sp.set('competition', params.competition);
+    if (params.season && params.season !== 'null' && params.season !== 'global') sp.set('season', params.season);
     
     return fetchWithAuth<{ ok: boolean; rank: number | null; context: any[] }>(`${this.BASE}/players/${playerId}/rank-context?${sp.toString()}`);
   }
