@@ -14,6 +14,10 @@ const Competencias = lazy(() => import('./features/competencias/pages/Competenci
 const CompetenciaDetalle = lazy(() => import('./features/competencias/pages/CompetenciaDetalle'));
 const Partidos = lazy(() => import('./features/partidos/pages/Partidos'));
 const PartidoDetalle = lazy(() => import('./features/partidos/pages/PartidoDetalle'));
+const PlazaExplorar = lazy(() => import('./features/plaza/pages/PlazaExplorar'));
+const PlazaLobby = lazy(() => import('./features/plaza/pages/PlazaLobby'));
+const PlazaCrear = lazy(() => import('./features/plaza/pages/PlazaCrear'));
+const PlazaReportResult = lazy(() => import('./features/plaza/pages/PlazaReportResult'));
 const SolicitudesPage = lazy(() => import('./features/solicitudes/pages/SolicitudesPage'));
 const Perfil = lazy(() => import('./features/perfil/pages/PerfilPage'));
 const LoginPage = lazy(() => import('./features/auth/pages/LoginPage'));
@@ -37,6 +41,25 @@ const App: React.FC = () => (
           <Route path="/competencias/:id" element={<CompetenciaDetalle />} />
           <Route path="/partidos" element={<Partidos />} />
           <Route path="/partidos/:id" element={<PartidoDetalle />} />
+          
+          {/* La Plaza Routes */}
+          <Route path="/plaza" element={<PlazaExplorar />} />
+          <Route path="/plaza/crear" element={
+            <ProtectedRoute>
+              <PlazaCrear />
+            </ProtectedRoute>
+          } />
+          <Route path="/plaza/lobby/:id" element={
+            <ProtectedRoute>
+              <PlazaLobby />
+            </ProtectedRoute>
+          } />
+          <Route path="/plaza/lobby/:id/report" element={
+            <ProtectedRoute>
+              <PlazaReportResult />
+            </ProtectedRoute>
+          } />
+
           <Route path="/solicitudes" element={
             <ProtectedRoute>
               <SolicitudesPage />

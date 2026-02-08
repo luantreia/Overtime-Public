@@ -5,6 +5,7 @@ import { useAuth } from '../providers/AuthContext';
 
 const links = [
   { to: '/', label: 'Inicio' },
+  { to: '/plaza', label: 'League of Dodgeball' },
   { to: '/jugadores', label: 'Jugadores' },
   { to: '/equipos', label: 'Equipos' },
   { to: '/competencias', label: 'Competencias' },
