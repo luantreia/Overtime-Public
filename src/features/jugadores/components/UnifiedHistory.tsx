@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { 
   TrophyIcon, 
   MapPinIcon, 
-  UserGroupIcon, 
   ChevronRightIcon,
   CalendarDaysIcon,
   CheckBadgeIcon,

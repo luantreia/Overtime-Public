@@ -16,7 +16,6 @@ import { DashboardMaestro } from '../components/DashboardMaestro';
 import { UnifiedHistory } from '../components/UnifiedHistory';
 import { useAuth } from '../../../app/providers/AuthContext';
 import { useToast } from '../../../shared/components/Toast/ToastProvider';
-import { MapPinIcon } from '@heroicons/react/24/outline';
 
 const JugadorDetalle: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -28,8 +27,6 @@ const JugadorDetalle: React.FC = () => {
   const [loadingComps, setLoadingComps] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [showAllComps, setShowAllComps] = useState(false);
-  const [radarData, setRadarData] = useState<any>(null);
-  const [loadingRadar, setLoadingRadar] = useState(false);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'history' | 'leagues'>('dashboard');
 
   // Modal State
@@ -291,19 +288,6 @@ const JugadorDetalle: React.FC = () => {
   useEffect(() => {
     if (jugador && id) {
       void loadCompetenciasInfo();
-      
-      const loadRadar = async () => {
-        setLoadingRadar(true);
-        try {
-          const res = await JugadorService.getRadarStats(id);
-          setRadarData(res);
-        } catch (err) {
-          console.error('Error loading radar stats:', err);
-        } finally {
-          setLoadingRadar(false);
-        }
-      };
-      void loadRadar();
     }
   }, [jugador, id, loadCompetenciasInfo]);
 

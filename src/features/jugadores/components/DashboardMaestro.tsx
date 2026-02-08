@@ -1,11 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
-  TrophyIcon, 
-  StarIcon, 
-  MapPinIcon, 
-  ChevronDownIcon,
   IdentificationIcon,
-  BoltIcon,
   ShieldCheckIcon,
   FireIcon
 } from '@heroicons/react/24/outline';
