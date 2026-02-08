@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { PlazaService } from '../services/plazaService';
+import { PlazaMatchControl } from '../components/PlazaMatchControl';
 import { Lobby } from '../types';
 import { LoadingSpinner } from '../../../shared/components/LoadingSpinner';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
@@ -125,6 +126,26 @@ const PlazaLobby: React.FC = () => {
     try {
       await PlazaService.submitRatings(id, ratings);
       alert("¡Gracias por tu feedback! Tu karma ayuda a mantener una comunidad sana.");
+      await fetchLobby();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleFinishLiveMatch = async (sets: any[]) => {
+    if (!id) return;
+    setActionLoading(true);
+    try {
+      // Re-map sets to match the structure expected by submitResult (teamAScore, teamBScore)
+      const mappedSets = sets.map(s => ({
+        teamAScore: s.scoreA,
+        teamBScore: s.scoreB,
+        time: s.time
+      }));
+      
+      await PlazaService.submitResult(id, { sets: mappedSets });
       await fetchLobby();
     } catch (err: any) {
       alert(err.message);
@@ -386,6 +407,17 @@ const PlazaLobby: React.FC = () => {
               </div>
             )}
 
+            {/* Control de Partido en Vivo para Host/Oficiales */}
+            {lobby.status === 'playing' && (isHost || isOfficial) && !lobby.result?.submittedBy && (
+              <div className="w-full mt-4 mb-2">
+                <PlazaMatchControl 
+                  lobbyId={id!} 
+                  onFinish={handleFinishLiveMatch}
+                  actionLoading={actionLoading}
+                />
+              </div>
+            )}
+
             <div className="flex flex-wrap gap-3">
               {!hasProfile && !isJoined && (
               <div className="w-full bg-orange-50 border border-orange-200 rounded-xl p-6 flex flex-col gap-4">
@@ -499,9 +531,9 @@ const PlazaLobby: React.FC = () => {
             {lobby.status === 'playing' && (isHost || isOfficial) && !lobby.result?.submittedBy && (
               <button 
                 onClick={() => navigate(`/plaza/lobby/${id}/report`)}
-                className="flex-1 min-w-[200px] bg-brand-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-brand-700 transition-all"
+                className="flex-1 min-w-[200px] border border-slate-200 text-slate-400 font-bold py-3 px-6 rounded-xl hover:bg-slate-50 transition-all text-xs"
               >
-                SUBIR RESULTADO
+                REPORTE MANUAL (TRADICIONAL)
               </button>
             )}
 

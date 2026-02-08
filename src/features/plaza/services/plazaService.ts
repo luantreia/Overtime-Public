@@ -72,10 +72,11 @@ export class PlazaService {
   }
 
   static async submitResult(lobbyId: string, result: any): Promise<Lobby> {
-    // result expects scoreA, scoreB for backend
+    // result expects sets: { teamAScore, teamBScore }[]
     const payload = {
       scoreA: result.sets.reduce((acc: number, s: any) => acc + (s.teamAScore > s.teamBScore ? 1 : 0), 0),
-      scoreB: result.sets.reduce((acc: number, s: any) => acc + (s.teamBScore > s.teamAScore ? 1 : 0), 0)
+      scoreB: result.sets.reduce((acc: number, s: any) => acc + (s.teamBScore > s.teamAScore ? 1 : 0), 0),
+      sets: result.sets
     };
     
     return fetchWithAuth<Lobby>(`${this.API_ENDPOINT}/lobbies/${lobbyId}/result`, {
