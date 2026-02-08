@@ -124,6 +124,11 @@ export const UnifiedHistory: React.FC<UnifiedHistoryProps> = ({ jugadorId }) => 
                     }`}>
                       {match.type === 'league' ? 'PARTIDO DE LIGA' : 'PARTIDO PLAZA'}
                     </span>
+                    {!match.isRanked && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tighter bg-slate-100 text-slate-500">
+                        Amistoso / No ELO
+                      </span>
+                    )}
                     {match.isVerified && (
                       <CheckBadgeIcon className="h-4 w-4 text-blue-500" title="Verificado" />
                     )}
