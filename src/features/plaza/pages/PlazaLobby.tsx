@@ -179,9 +179,21 @@ const PlazaLobby: React.FC = () => {
   const confirmedB = teamB.filter(p => p.confirmed);
   const canStart = confirmedA.length >= 1 && confirmedB.length >= 1;
 
+  // Determinar quién es el Capitán Rival (para el consenso)
+  // Si ya empezó, usamos el guardado. Si no, mostramos al de mejor Karma del equipo contrario al host.
+  const hostEntry = lobby.players.find(p => p.userUid === lobby.host);
+  const hostTeam = hostEntry ? hostEntry.team : (teamA.some(p => p.userUid === lobby.host) ? 'A' : 'B');
+  const rivalPlayers = hostTeam === 'A' ? teamB : teamA;
+  
+  const suggestedCaptainUid = rivalPlayers.length > 0 
+    ? [...rivalPlayers].sort((a,b) => (b.player.karma || 0) - (a.player.karma || 0))[0]?.userUid 
+    : null;
+
+  const effectiveRivalCaptainUid = lobby.rivalCaptainUid || suggestedCaptainUid;
+
   const PlayerSlot = ({ player, index }: { player?: any, index: number }) => {
     const isLobbyHost = player && player.userUid === lobby.host;
-    const isRivalCaptain = player && player.userUid === lobby.rivalCaptainUid;
+    const isRivalCaptain = player && player.userUid === effectiveRivalCaptainUid;
 
     return (
       <div className="px-4 py-3 flex items-center justify-between">
