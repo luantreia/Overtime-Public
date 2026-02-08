@@ -431,13 +431,13 @@ const PlazaLobby: React.FC = () => {
               </button>
             )}
 
-            {lobby.status === 'playing' && lobby.result && (isHost || isOfficial) && lobby.result.submittedBy === userUid && (
+            {lobby.status === 'playing' && lobby.result?.submittedBy && (isHost || isOfficial) && lobby.result.submittedBy === userUid && !lobby.result.confirmedByOpponent && (
               <div className="flex-1 min-w-[200px] bg-slate-50 text-slate-400 font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 border border-slate-100 italic text-sm">
                 ESPERANDO CONFIRMACIÓN...
               </div>
             )}
 
-            {lobby.status === 'playing' && lobby.result && !lobby.result.confirmedByOpponent && (userUid === lobby.rivalCaptainUid || isOfficial) && (
+            {lobby.status === 'playing' && lobby.result?.submittedBy && !lobby.result.confirmedByOpponent && (userUid === lobby.rivalCaptainUid || isOfficial) && (
               <button 
                 onClick={() => PlazaService.confirmResult(id!).then(fetchLobby)}
                 disabled={actionLoading}
@@ -447,7 +447,7 @@ const PlazaLobby: React.FC = () => {
               </button>
             )}
 
-            {lobby.status === 'playing' && (isHost || isOfficial) && !lobby.result && (
+            {lobby.status === 'playing' && (isHost || isOfficial) && !lobby.result?.submittedBy && (
               <button 
                 onClick={() => navigate(`/plaza/lobby/${id}/report`)}
                 className="flex-1 min-w-[200px] bg-brand-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-brand-700 transition-all"
