@@ -6,7 +6,6 @@ import { LoadingSpinner } from '../../../shared/components/LoadingSpinner';
 
 const PlazaCrear: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [checkingProfile, setCheckingProfile] = useState(true);
   const [hasProfile, setHasProfile] = useState(false);

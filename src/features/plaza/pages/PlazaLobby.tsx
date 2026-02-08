@@ -19,7 +19,6 @@ const PlazaLobby: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [userUid, setUserUid] = useState<string | null>(null);
-  const [userName, setUserName] = useState<string | null>(null);
   const [hasProfile, setHasProfile] = useState<boolean>(true);
 
   const fetchLobby = useCallback(async () => {
@@ -49,7 +48,6 @@ const PlazaLobby: React.FC = () => {
       try {
         const payload = JSON.parse(atob(accessToken.split('.')[1]));
         setUserUid(payload.uid || payload.userId || payload.sub);
-        setUserName(payload.nombre || payload.name || "Jugador");
       } catch (e) {
         console.error("Error decoding token", e);
       }
