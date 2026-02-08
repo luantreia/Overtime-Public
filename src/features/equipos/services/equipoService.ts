@@ -81,7 +81,7 @@ export class EquipoService {
         const [participaciones, partidos, jugadores] = await Promise.all([
           fetchWithAuth<any[]>(`/participacion-temporada?equipo=${id}`, { useAuth: false }),
           fetchWithAuth<any[]>(`/equipo-partido?equipo=${id}`, { useAuth: false }),
-          fetchWithAuth<any[]>(`/jugadores-equipos?equipo=${id}`, { useAuth: false })
+          fetchWithAuth<any[]>(`/jugador-equipo?equipo=${id}`, { useAuth: false })
         ]);
         
         equipo.participaciontemporadas = Array.isArray(participaciones) ? participaciones : [];

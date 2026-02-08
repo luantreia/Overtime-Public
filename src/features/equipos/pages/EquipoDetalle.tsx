@@ -77,7 +77,7 @@ const EquipoDetalle: React.FC = () => {
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
           {/* Header/Cover color */}
           <div className="h-40 bg-gradient-to-r from-slate-800 to-slate-900 flex items-end justify-end p-6">
-             {equipo.activo && (
+             {(!equipo.fechaDisolucion) && (
                <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-lg">
                  Activo
                </span>
