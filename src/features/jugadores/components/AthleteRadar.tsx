@@ -41,6 +41,7 @@ export const AthleteRadar: React.FC<AthleteRadarProps> = ({ data, loading }) => 
   return (
     <div className="h-64 sm:h-80 w-full">
       <ResponsiveContainer width="100%" height="100%">
+        {/* @ts-ignore - Workaround for Recharts TS2786 in React 18 */}
         <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
           <PolarGrid stroke="#e2e8f0" />
           <PolarAngleAxis 
