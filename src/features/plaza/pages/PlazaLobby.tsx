@@ -160,6 +160,30 @@ const PlazaLobby: React.FC = () => {
     }
   };
 
+  const handleCancelRequest = async () => {
+    const isHost = userUid === lobby?.host;
+    const msg = isHost 
+      ? '¿Solicitar la cancelación del partido? Esto requiere confirmación del Capitán Rival.' 
+      : '¿Confirmar la cancelación del partido solicitada por el Host?';
+      
+    if (!id || !window.confirm(msg)) return;
+    
+    setActionLoading(true);
+    try {
+      const response = await PlazaService.requestCancel(id);
+      if (response.cancelled) {
+        alert('Partido cancelado con éxito.');
+        navigate('/plaza');
+      } else {
+        await fetchLobby();
+      }
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   if (loading) return <LoadingSpinner />;
   if (error || !lobby) return <ErrorMessage message={error || "Lobby no encontrado"} />;
 
@@ -454,6 +478,40 @@ const PlazaLobby: React.FC = () => {
               >
                 SUBIR RESULTADO
               </button>
+            )}
+
+            {/* Cancelación Mutua durante el juego */}
+            {lobby.status === 'playing' && (
+              <>
+                {isHost && !lobby.cancelRequest?.hostRequested && (
+                  <button 
+                    onClick={handleCancelRequest}
+                    disabled={actionLoading}
+                    className="flex-1 min-w-[200px] bg-red-50 text-red-600 border border-red-100 font-bold py-3 px-6 rounded-xl hover:bg-red-100 transition-all disabled:opacity-50"
+                  >
+                    SOLICITAR CANCELACIÓN
+                  </button>
+                )}
+                
+                {lobby.cancelRequest?.hostRequested && (
+                  <>
+                    {userUid === lobby.rivalCaptainUid ? (
+                      <button 
+                        onClick={handleCancelRequest}
+                        disabled={actionLoading}
+                        className="flex-1 min-w-[200px] bg-red-600 text-white font-bold py-3 px-6 rounded-xl animate-pulse hover:bg-red-700 transition-all disabled:opacity-50"
+                      >
+                        CONFIRMAR CANCELACIÓN (RIVAL)
+                      </button>
+                    ) : (
+                      <div className="flex-1 min-w-[200px] border-red-200 bg-red-50 text-red-700 font-bold py-3 px-3 rounded-xl border text-center text-[10px] flex items-center justify-center uppercase">
+                        <ExclamationCircleIcon className="h-4 w-4 mr-1 shrink-0" />
+                        Cancelación solicitada por Host. Esperando rival.
+                      </div>
+                    )}
+                  </>
+                )}
+              </>
             )}
           </div>
           

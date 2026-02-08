@@ -91,6 +91,13 @@ export class PlazaService {
     });
   }
 
+  static async requestCancel(lobbyId: string): Promise<any> {
+    return fetchWithAuth(`${this.API_ENDPOINT}/lobbies/${lobbyId}/cancel-request`, {
+      method: 'POST',
+      body: {},
+    });
+  }
+
   static async getMyProfile(): Promise<any> {
     return fetchWithAuth('/jugadores/me/profile');
   }

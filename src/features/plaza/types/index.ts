@@ -67,4 +67,8 @@ export interface Lobby {
     validatedByOfficial: boolean;
     disputed: boolean;
   };
+  cancelRequest?: {
+    hostRequested: boolean;
+    rivalConfirmed: boolean;
+  };
 }
