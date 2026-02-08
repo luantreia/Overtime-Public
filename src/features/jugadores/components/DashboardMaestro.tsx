@@ -40,12 +40,12 @@ export const DashboardMaestro: React.FC<DashboardMaestroProps> = ({ jugadorId, j
   }, [fetchMaestroData]);
 
   const getRankName = (elo: number) => {
-    if (elo >= 2200) return { name: 'Leyenda', color: 'text-purple-600', bg: 'bg-purple-100', border: 'border-purple-200' };
-    if (elo >= 2000) return { name: 'Diamante', color: 'text-cyan-600', bg: 'bg-cyan-100', border: 'border-cyan-200' };
-    if (elo >= 1800) return { name: 'Platino', color: 'text-indigo-600', bg: 'bg-indigo-100', border: 'border-indigo-200' };
-    if (elo >= 1600) return { name: 'Oro', color: 'text-yellow-600', bg: 'bg-yellow-100', border: 'border-yellow-200' };
-    if (elo >= 1400) return { name: 'Plata', color: 'text-slate-500', bg: 'bg-slate-100', border: 'border-slate-200' };
-    return { name: 'Bronce', color: 'text-orange-700', bg: 'bg-orange-100', border: 'border-orange-200' };
+    if (elo >= 2200) return { name: 'Leyenda', color: 'text-purple-600', bg: 'bg-purple-100', border: 'border-purple-200', badge: 'bg-purple-600' };
+    if (elo >= 2000) return { name: 'Diamante', color: 'text-cyan-600', bg: 'bg-cyan-100', border: 'border-cyan-200', badge: 'bg-cyan-600' };
+    if (elo >= 1800) return { name: 'Platino', color: 'text-indigo-600', bg: 'bg-indigo-100', border: 'border-indigo-200', badge: 'bg-indigo-600' };
+    if (elo >= 1600) return { name: 'Oro', color: 'text-yellow-600', bg: 'bg-yellow-100', border: 'border-yellow-200', badge: 'bg-yellow-600' };
+    if (elo >= 1400) return { name: 'Plata', color: 'text-slate-500', bg: 'bg-slate-100', border: 'border-slate-200', badge: 'bg-slate-500' };
+    return { name: 'Bronce', color: 'text-orange-700', bg: 'bg-orange-100', border: 'border-orange-200', badge: 'bg-orange-700' };
   };
 
   const rank = radarData ? getRankName(radarData.elo) : null;
@@ -112,7 +112,7 @@ export const DashboardMaestro: React.FC<DashboardMaestroProps> = ({ jugadorId, j
                     )}
                   </div>
                   {/* Badge de ELO flotante */}
-                  <div className={`absolute -bottom-2 -right-2 px-3 py-1 rounded-full text-xs font-black text-white shadow-lg ${rank?.color?.replace('text', 'bg') || 'bg-brand-600'}`}>
+                  <div className={`absolute -bottom-2 -right-2 px-3 py-1 rounded-full text-xs font-black text-white shadow-lg ${rank?.badge || 'bg-brand-600'}`}>
                     {radarData?.elo || 1500}
                   </div>
                 </div>
