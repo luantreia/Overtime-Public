@@ -62,6 +62,10 @@ export class JugadorService {
     return fetchWithAuth<Jugador>(`${this.API_ENDPOINT}/${id}`);
   }
 
+  static async getRadarStats(id: string): Promise<any> {
+    return fetchWithAuth<any>(`${this.API_ENDPOINT}/${id}/radar`);
+  }
+
   static async getCompetencias(id: string): Promise<any[]> {
     return fetchWithAuth<any[]>(`${this.API_ENDPOINT}/${id}/competencias`);
   }

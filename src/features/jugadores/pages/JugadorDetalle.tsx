@@ -12,6 +12,7 @@ import { PartidoService } from '../../partidos/services/partidoService';
 import { TablaPosiciones } from '../../../shared/components/TablaPosiciones/TablaPosiciones';
 import { Bracket } from '../../../shared/components/Bracket/Bracket';
 import { PlayerRankedHistoryModal } from '../../competencias/components';
+import { AthleteRadar } from '../components/AthleteRadar';
 
 const JugadorDetalle: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +20,8 @@ const JugadorDetalle: React.FC = () => {
   const [competenciasData, setCompetenciasData] = useState<any[]>([]);
   const [loadingComps, setLoadingComps] = useState(false);
   const [showAllComps, setShowAllComps] = useState(false);
+  const [radarData, setRadarData] = useState<any>(null);
+  const [loadingRadar, setLoadingRadar] = useState(false);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -256,10 +259,23 @@ const JugadorDetalle: React.FC = () => {
   }, [id]);
 
   useEffect(() => {
-    if (jugador) {
+    if (jugador && id) {
       void loadCompetenciasInfo();
+      
+      const loadRadar = async () => {
+        setLoadingRadar(true);
+        try {
+          const res = await JugadorService.getRadarStats(id);
+          setRadarData(res);
+        } catch (err) {
+          console.error('Error loading radar stats:', err);
+        } finally {
+          setLoadingRadar(false);
+        }
+      };
+      void loadRadar();
     }
-  }, [jugador, loadCompetenciasInfo]);
+  }, [jugador, id, loadCompetenciasInfo]);
 
   if (loading) {
     return (
@@ -348,6 +364,59 @@ const JugadorDetalle: React.FC = () => {
                   <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Competencias</p>
                 </div>
               </section>
+            </div>
+
+            {/* Radar Section */}
+            <div className="mt-12">
+              <div className="flex items-center gap-3 mb-6">
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900">Radar de Atleta</h2>
+                <div className="h-px flex-1 bg-slate-100"></div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50 px-2 py-1 rounded-md border border-slate-100">Stats Globales</span>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center bg-slate-50/30 rounded-3xl p-6 border border-slate-100">
+                <div className="order-2 md:order-1">
+                  <div className="grid grid-cols-2 gap-4">
+                    {[
+                      { label: 'Poder', value: radarData?.power, color: 'brand' },
+                      { label: 'Resistencia', value: radarData?.stamina, color: 'blue' },
+                      { label: 'Precisión', value: radarData?.precision, color: 'indigo' },
+                      { label: 'Consistencia', value: radarData?.consistency, color: 'violet' },
+                      { label: 'Versatilidad', value: radarData?.versatility, color: 'purple' },
+                    ].map((stat, i) => (
+                      <div key={i} className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{stat.label}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div 
+                              className={`h-full bg-${stat.color}-500 transition-all duration-1000`} 
+                              style={{ width: `${stat.value || 0}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-xs font-black text-slate-700 w-6 text-right">{stat.value || 0}</span>
+                        </div>
+                      </div>
+                    ))}
+                    <div className="bg-brand-600 p-3 rounded-xl border border-brand-500 shadow-sm flex flex-col justify-center">
+                      <p className="text-[10px] font-bold text-brand-100 uppercase tracking-wider">ELO Maestro</p>
+                      <p className="text-xl font-black text-white leading-none mt-1">{radarData?.elo || 1500}</p>
+                    </div>
+                  </div>
+                  <p className="mt-4 text-[10px] text-slate-400 italic">
+                    * El radar se basa en el desempeño histórico en competencias verificadas y partidos de plaza.
+                  </p>
+                </div>
+                
+                <div className="order-1 md:order-2 flex justify-center h-full min-h-[256px]">
+                  {radarData ? (
+                    <AthleteRadar data={radarData} loading={loadingRadar} />
+                  ) : (
+                    <div className="h-64 w-full flex items-center justify-center text-slate-400 text-xs italic">
+                      No hay suficientes datos para el radar
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Competencias Section */}
