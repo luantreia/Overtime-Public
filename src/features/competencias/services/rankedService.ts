@@ -26,6 +26,14 @@ export interface PlayerRankedDetail {
     winrate: number;
     matchIds: string[];
   }[];
+  rivalry?: {
+    id: string;
+    name: string;
+    matches: number;
+    wins: number;
+    winrate: number;
+    matchIds: string[];
+  }[];
 }
 
 export class RankedService {

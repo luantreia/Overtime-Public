@@ -29,19 +29,23 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
   const [rating, setRating] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [synergy, setSynergy] = useState<any[]>([]);
+  const [rivalry, setRivalry] = useState<any[]>([]);
   const [showAllSynergy, setShowAllSynergy] = useState(false);
+  const [showAllRivalry, setShowAllRivalry] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Navigation and Filtering
   const [activePlayer, setActivePlayer] = useState({ id: playerId, name: playerName });
   const [playerStack, setPlayerStack] = useState<{ id: string; name: string }[]>([]);
-  const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
+  const [selectedFilterId, setSelectedFilterId] = useState<string | null>(null);
+  const [filterType, setFilterType] = useState<'synergy' | 'rivalry' | null>(null);
 
   useEffect(() => {
     if (isOpen) {
       setActivePlayer({ id: playerId, name: playerName });
       setPlayerStack([]);
-      setSelectedPartnerId(null);
+      setSelectedFilterId(null);
+      setFilterType(null);
     }
   }, [isOpen, playerId, playerName]);
 
@@ -58,6 +62,7 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
       setRating(res.rating);
       setHistory(res.history);
       setSynergy(res.synergy || []);
+      setRivalry(res.rivalry || []);
     } catch (e: any) {
       setError(e.message || 'Error al cargar detalles');
     } finally {
@@ -74,7 +79,8 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
   const navigateToPlayer = (id: string, name: string) => {
     setPlayerStack(prev => [...prev, activePlayer]);
     setActivePlayer({ id, name });
-    setSelectedPartnerId(null);
+    setSelectedFilterId(null);
+    setFilterType(null);
     
     // Update URL so if user navigates to a match and back, they land on this player
     setSearchParams(prev => {
@@ -89,7 +95,8 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
     if (prev) {
       setPlayerStack(prev => prev.slice(0, -1));
       setActivePlayer(prev);
-      setSelectedPartnerId(null);
+      setSelectedFilterId(null);
+      setFilterType(null);
 
       // Update URL
       setSearchParams(s => {
@@ -102,14 +109,27 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
 
   if (!isOpen) return null;
 
-  const filteredHistory = selectedPartnerId 
+  const filteredHistory = selectedFilterId 
     ? history.filter(h => {
-        const partner = synergy.find(s => s.id === selectedPartnerId);
-        return partner?.matchIds?.includes(h.partidoId?._id || h.partidoId);
+        const list = filterType === 'synergy' ? synergy : rivalry;
+        const target = list.find(s => s.id === selectedFilterId);
+        return target?.matchIds?.includes(h.partidoId?._id || h.partidoId);
       })
     : history;
 
-  const partnerInfo = selectedPartnerId ? synergy.find(s => s.id === selectedPartnerId) : null;
+  const filterInfo = selectedFilterId 
+    ? (filterType === 'synergy' ? synergy : rivalry).find(s => s.id === selectedFilterId) 
+    : null;
+
+  const handleFilterClick = (id: string, type: 'synergy' | 'rivalry') => {
+    if (selectedFilterId === id && filterType === type) {
+      setSelectedFilterId(null);
+      setFilterType(null);
+    } else {
+      setSelectedFilterId(id);
+      setFilterType(type);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
@@ -176,15 +196,13 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
                <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                      </svg>
-                      Sinergia (Winrate con otros)
+                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                       Sinergia (Con)
                     </h3>
                     <div className="flex items-center gap-3">
-                      {selectedPartnerId && (
+                      {selectedFilterId && filterType === 'synergy' && (
                         <button 
-                          onClick={() => setSelectedPartnerId(null)}
+                          onClick={() => { setSelectedFilterId(null); setFilterType(null); }}
                           className="text-[10px] font-bold text-red-500 hover:text-red-600 uppercase tracking-tight"
                         >
                           Quitar filtro
@@ -194,20 +212,20 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
                         onClick={() => setShowAllSynergy(!showAllSynergy)}
                         className="text-[10px] font-bold text-brand-600 hover:text-brand-700 uppercase tracking-tight"
                       >
-                        {showAllSynergy ? 'Ver menos' : `Ver todos (${synergy.length})`}
+                        {showAllSynergy ? 'Reducir' : `Ver todos (${synergy.length})`}
                       </button>
                     </div>
                   </div>
                   <div className="grid grid-cols-1 gap-2">
-                    {(showAllSynergy ? synergy : synergy.slice(0, 3)).map((s: any) => (
+                    {(showAllSynergy ? synergy : synergy.slice(0, 2)).map((s: any) => (
                       <div 
                         key={s.id} 
                         className={`flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer ${
-                          selectedPartnerId === s.id 
-                            ? 'bg-brand-50 border-brand-200 ring-2 ring-brand-100' 
+                          selectedFilterId === s.id && filterType === 'synergy'
+                            ? 'bg-emerald-50 border-emerald-200 ring-2 ring-emerald-100' 
                             : 'bg-slate-50 border-slate-100 hover:border-slate-300'
                         }`}
-                        onClick={() => setSelectedPartnerId(s.id === selectedPartnerId ? null : s.id)}
+                        onClick={() => handleFilterClick(s.id, 'synergy')}
                       >
                         <div className="flex items-center gap-2">
                           <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600">
@@ -249,17 +267,92 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
                </div>
              )}
 
+             {rivalry.length > 0 && (
+               <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                       <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
+                       Rivalidad (Vs)
+                    </h3>
+                    <div className="flex items-center gap-3">
+                      {selectedFilterId && filterType === 'rivalry' && (
+                        <button 
+                          onClick={() => { setSelectedFilterId(null); setFilterType(null); }}
+                          className="text-[10px] font-bold text-red-500 hover:text-red-600 uppercase tracking-tight"
+                        >
+                          Quitar filtro
+                        </button>
+                      )}
+                      <button 
+                        onClick={() => setShowAllRivalry(!showAllRivalry)}
+                        className="text-[10px] font-bold text-brand-600 hover:text-brand-700 uppercase tracking-tight"
+                      >
+                        {showAllRivalry ? 'Reducir' : `Ver todos (${rivalry.length})`}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-2">
+                    {(showAllRivalry ? rivalry : rivalry.slice(0, 2)).map((r: any) => (
+                      <div 
+                        key={r.id} 
+                        className={`flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer ${
+                          selectedFilterId === r.id && filterType === 'rivalry'
+                            ? 'bg-red-50 border-red-200 ring-2 ring-red-100' 
+                            : 'bg-slate-50 border-slate-100 hover:border-slate-300'
+                        }`}
+                        onClick={() => handleFilterClick(r.id, 'rivalry')}
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600">
+                            {r.name.split(' ').map((n:any) => n[0]).join('').slice(0,2).toUpperCase()}
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-xs font-bold text-slate-700">{r.name}</span>
+                            <span className="text-[9px] text-slate-400 font-medium">{r.matches} PJ</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-2">
+                            <div className="w-16 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                              <div 
+                                className={`h-full transition-all duration-500 ${r.winrate >= 50 ? 'bg-emerald-500' : 'bg-red-400'}`}
+                                style={{ width: `${r.winrate}%` }}
+                              ></div>
+                            </div>
+                            <span className={`text-[11px] font-black w-10 text-right ${r.winrate >= 50 ? 'text-emerald-600' : 'text-slate-500'}`}>
+                              {Math.round(r.winrate)}%
+                            </span>
+                          </div>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigateToPlayer(r.id, r.name);
+                            }}
+                            className="p-1.5 hover:bg-white rounded-lg text-slate-400 hover:text-brand-600 transition-all border border-transparent hover:border-brand-200"
+                            title="Ver perfil completo"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+               </div>
+             )}
+
              <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    {selectedPartnerId ? 'Partidos con ' + partnerInfo?.name : 'Historial de Partidos'}
+                    {selectedFilterId ? (filterType === 'synergy' ? 'Con ' : 'Contra ') + filterInfo?.name : 'Historial de Partidos'}
                   </h3>
-                  {selectedPartnerId && (
-                    <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
-                      {partnerInfo?.wins}W - {partnerInfo?.matches - partnerInfo?.wins}L
+                  {selectedFilterId && (
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${filterType === 'synergy' ? 'text-emerald-600 bg-emerald-50 border-emerald-100' : 'text-red-600 bg-red-50 border-red-100'}`}>
+                      {filterInfo?.wins}W - {filterInfo?.matches - filterInfo?.wins}L
                     </span>
                   )}
                 </div>
