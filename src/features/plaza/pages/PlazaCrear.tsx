@@ -102,7 +102,7 @@ const PlazaCrear: React.FC = () => {
             lng: formData.lng
           }
         },
-        scheduledDate: formData.startTime,
+        scheduledDate: new Date(formData.startTime).toISOString(),
         maxPlayers: 18, // Fixed to 18
         requireOfficial: formData.requireOfficial,
         genderPolicy: formData.genderPolicy,
