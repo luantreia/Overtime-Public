@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { PlazaService } from '../services/plazaService';
-import { Lobby, LobbySlot } from '../types';
-import LoadingSpinner from '../../../shared/components/LoadingSpinner';
-import ErrorMessage from '../../../shared/components/ErrorMessage';
+import { Lobby } from '../types';
+import { LoadingSpinner } from '../../../shared/components/LoadingSpinner';
+import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 import { 
   UsersIcon, MapPinIcon, ClockIcon, TrophyIcon, 
   UserGroupIcon, ShieldCheckIcon, CheckCircleIcon,
@@ -148,10 +148,10 @@ const PlazaLobby: React.FC = () => {
           {player?.player?.foto ? <img src={player.player.foto} className="h-full w-full rounded-full object-cover" /> : (index + 1)}
         </div>
         <div className="flex flex-col">
-          <span className={`text-sm ${player ? 'font-medium text-slate-900' : 'text-slate-400 italic'}`}>
-            {player?.player?.nombre || player?.player?.alias || 'Slot vacío'}
+          <span className={`text-sm ${(player && typeof player.player !== 'string') ? 'font-medium text-slate-900' : 'text-slate-400 italic'}`}>
+            {(player && typeof player.player !== 'string') ? (player.player.nombre || player.player.alias) : 'Slot vacío'}
           </span>
-          {player?.player?.elo !== undefined && (
+          {(player && typeof player.player !== 'string' && player.player.elo !== undefined) && (
             <span className="text-[10px] text-slate-400">ELO: {player.player.elo}</span>
           )}
         </div>
@@ -289,8 +289,8 @@ const PlazaLobby: React.FC = () => {
                <p className="text-xs font-bold text-yellow-800 mb-2 uppercase">Pendientes de Asignación:</p>
                <div className="flex flex-wrap gap-2">
                  {unassigned.map(u => (
-                   <span key={u._id} className="px-2 py-1 bg-white border border-yellow-200 rounded text-xs text-yellow-700 font-medium">
-                     {u.player?.nombre || u.player?.alias || 'Jugador'}
+                   <span key={u.userUid} className="px-2 py-1 bg-white border border-yellow-200 rounded text-xs text-yellow-700 font-medium">
+                     {(typeof u.player !== 'string') ? (u.player.nombre || u.player.alias) : 'Jugador'}
                    </span>
                  ))}
                </div>
@@ -325,7 +325,7 @@ const PlazaLobby: React.FC = () => {
           <div className="flex gap-3">
             <TrophyIcon className="h-6 w-6 text-brand-600 shrink-0" />
             <div>
-              <p className="text-sm font-bold text-slate-900">Multiplicador {lobby.config.requireOfficial ? '0.5x' : '0.3x'}</p>
+              <p className="text-sm font-bold text-slate-900">Multiplicador {lobby.requireOfficial ? '0.5x' : '0.3x'}</p>
               <p className="text-xs text-slate-500">Este partido cuenta para el ranking global.</p>
             </div>
           </div>

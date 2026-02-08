@@ -21,18 +21,20 @@ const PlazaCrear: React.FC = () => {
     try {
       setLoading(true);
       const lobby = await PlazaService.createLobby({
-        name: formData.name,
+        title: formData.name,
         location: {
+          name: formData.address,
           address: formData.address,
-          lat: formData.lat,
-          lng: formData.lng
+          coordinates: {
+            lat: formData.lat,
+            lng: formData.lng
+          }
         },
-        startTime: formData.startTime,
-        config: {
-          maxPlayers: formData.maxPlayers,
-          requireOfficial: formData.requireOfficial,
-          genderPolicy: formData.genderPolicy
-        }
+        scheduledDate: formData.startTime,
+        maxPlayers: formData.maxPlayers,
+        requireOfficial: formData.requireOfficial,
+        genderPolicy: formData.genderPolicy,
+        modalidad: 'Cloth' // Default value based on enum
       });
       navigate(`/plaza/lobby/${lobby._id}`);
     } catch (err: any) {

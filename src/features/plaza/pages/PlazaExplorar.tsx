@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { PlazaService } from '../services/plazaService';
 import { Lobby } from '../types';
 import { Link } from 'react-router-dom';
-import LoadingSpinner from '../../../shared/components/LoadingSpinner';
-import ErrorMessage from '../../../shared/components/ErrorMessage';
+import { LoadingSpinner } from '../../../shared/components/LoadingSpinner';
+import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 import { MapPinIcon, CalendarIcon, UsersIcon, TrophyIcon } from '@heroicons/react/24/outline';
 
 const PlazaExplorar: React.FC = () => {
@@ -82,15 +82,15 @@ const PlazaExplorar: React.FC = () => {
               <div className="p-5">
                 <div className="flex justify-between items-start mb-4">
                   <div className="h-10 w-10 bg-brand-50 rounded-lg flex items-center justify-center text-brand-600 font-bold group-hover:bg-brand-600 group-hover:text-white transition-colors">
-                    {lobby.name.substring(0, 2).toUpperCase()}
+                    {lobby.title.substring(0, 2).toUpperCase()}
                   </div>
                   <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
                     lobby.status === 'open' ? 'bg-green-100 text-green-700' : 
-                    lobby.status === 'balanced' ? 'bg-blue-100 text-blue-700' :
+                    lobby.status === 'full' ? 'bg-blue-100 text-blue-700' :
                     'bg-slate-100 text-slate-700'
                   }`}>
                     {lobby.status === 'open' ? 'Buscando Jugadores' : 
-                     lobby.status === 'balanced' ? 'Listo para Empezar' : 
+                     lobby.status === 'full' ? 'Listo para Empezar' : 
                      lobby.status.charAt(0).toUpperCase() + lobby.status.slice(1)}
                   </span>
                 </div>

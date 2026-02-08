@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { PlazaService } from '../services/plazaService';
 import { Lobby } from '../types';
-import LoadingSpinner from '../../../shared/components/LoadingSpinner';
-import ErrorMessage from '../../../shared/components/ErrorMessage';
+import { LoadingSpinner } from '../../../shared/components/LoadingSpinner';
+import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 
 const PlazaReportResult: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -57,7 +57,7 @@ const PlazaReportResult: React.FC = () => {
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="p-6 bg-slate-50 border-b border-slate-200">
           <h2 className="text-xl font-bold text-slate-900">Reportar Resultado</h2>
-          <p className="text-sm text-slate-500 mt-1">{lobby.name}</p>
+          <p className="text-sm text-slate-500 mt-1">{lobby.title}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-8">

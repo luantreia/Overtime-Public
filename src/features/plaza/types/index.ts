@@ -15,7 +15,11 @@ export interface LobbyPlayer {
 }
 
 export interface LobbyOfficial {
-  player: any;
+  player: {
+    _id: string;
+    nombre: string;
+    alias?: string;
+  } | string;
   userUid: string;
   type: 'principal' | 'secundario' | 'linea';
   confirmed: boolean;
@@ -24,6 +28,7 @@ export interface LobbyOfficial {
 export interface Lobby {
   _id: string;
   host: string;
+  hostName?: string; // Added locally if needed
   title: string;
   description?: string;
   modalidad: 'Foam' | 'Cloth';
@@ -41,7 +46,10 @@ export interface Lobby {
   players: LobbyPlayer[];
   officials: LobbyOfficial[];
   maxPlayers: number;
+  requireOfficial: boolean;
+  genderPolicy: 'open' | 'male' | 'female' | 'mixed';
   rivalCaptainUid?: string;
+  distance?: number;
   result?: {
     scoreA: number;
     scoreB: number;
@@ -50,5 +58,4 @@ export interface Lobby {
     validatedByOfficial: boolean;
     disputed: boolean;
   };
-  distance?: number;
 }
