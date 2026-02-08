@@ -2,6 +2,27 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PlazaService } from '../services/plazaService';
 import { LoadingSpinner } from '../../../shared/components/LoadingSpinner';
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+// Fix for default marker icon in leaflet
+// @ts-ignore
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+const LocationPicker = ({ lat, lng, onChange }: { lat: number, lng: number, onChange: (lat: number, lng: number) => void }) => {
+  useMapEvents({
+    click(e) {
+      onChange(e.latlng.lat, e.latlng.lng);
+    },
+  });
+  return lat !== 0 ? <Marker position={[lat, lng]} /> : null;
+};
 
 const PlazaCrear: React.FC = () => {
   const navigate = useNavigate();
@@ -11,15 +32,27 @@ const PlazaCrear: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
     address: '',
-    lat: 0,
-    lng: 0,
+    lat: -34.6037, // Default near a central point (can be improved with browser location)
+    lng: -58.3816,
     startTime: '',
-    maxPlayers: 12,
     requireOfficial: false,
-    genderPolicy: 'open'
+    genderPolicy: 'open',
+    modalidad: 'Cloth' as 'Foam' | 'Cloth',
+    categoria: 'Libre' as 'Masculino' | 'Femenino' | 'Mixto' | 'Libre'
   });
 
   useEffect(() => {
+    // Attempt to center map on user location
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((pos) => {
+        setFormData(prev => ({
+          ...prev,
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude
+        }));
+      });
+    }
+
     const checkProfile = async () => {
       try {
         const profile = await PlazaService.getMyProfile();
@@ -70,10 +103,11 @@ const PlazaCrear: React.FC = () => {
           }
         },
         scheduledDate: formData.startTime,
-        maxPlayers: formData.maxPlayers,
+        maxPlayers: 18, // Fixed to 18
         requireOfficial: formData.requireOfficial,
         genderPolicy: formData.genderPolicy,
-        modalidad: 'Cloth' // Default value based on enum
+        modalidad: formData.modalidad,
+        categoria: formData.categoria
       });
       navigate(`/plaza/lobby/${lobby._id}`);
     } catch (err: any) {
@@ -88,7 +122,7 @@ const PlazaCrear: React.FC = () => {
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="p-6 bg-slate-50 border-b border-slate-200">
           <h2 className="text-xl font-bold text-slate-900">Crear Lobby de La Plaza</h2>
-          <p className="text-sm text-slate-500 mt-1">Organiza un partido rankeado en minutos</p>
+          <p className="text-sm text-slate-500 mt-1">Organiza un partido rankeado de 18 jugadores</p>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
@@ -116,57 +150,72 @@ const PlazaCrear: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1">Máximo Jugadores</label>
+              <label className="block text-sm font-bold text-slate-700 mb-1">Categoría</label>
               <select 
                 className="w-full border-slate-200 rounded-lg focus:ring-brand-500 focus:border-brand-500 text-sm"
-                value={formData.maxPlayers}
-                onChange={e => setFormData({...formData, maxPlayers: parseInt(e.target.value)})}
+                value={formData.categoria}
+                onChange={e => setFormData({...formData, categoria: e.target.value as any})}
               >
-                <option value={12}>12 Jugadores (6v6)</option>
-                <option value={14}>14 Jugadores (7v7)</option>
-                <option value={18}>18 Jugadores (9v9 Full)</option>
+                <option value="Libre">Libre / Open</option>
+                <option value="Masculino">Masculino</option>
+                <option value="Femenino">Femenino</option>
+                <option value="Mixto">Mixto (Obligatorio)</option>
               </select>
             </div>
           </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-1">Modalidad</label>
+              <div className="flex gap-2">
+                {['Cloth', 'Foam'].map(m => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setFormData({...formData, modalidad: m as any})}
+                    className={`flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all ${
+                      formData.modalidad === m 
+                      ? 'bg-brand-600 text-white shadow-md' 
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {m}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="flex items-end pb-1">
+              <span className="text-xs text-slate-500 italic">Capacidad: 18 Jugadores (Fijo)</span>
+            </div>
+          </div>
+
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-1">Dirección / Lugar</label>
+            <label className="block text-sm font-bold text-slate-700 mb-2">Selecciona Ubicación en el Mapa</label>
+            <div className="h-64 rounded-xl overflow-hidden border border-slate-200 shadow-inner z-0">
+              <MapContainer center={[formData.lat, formData.lng]} zoom={13} style={{ height: '100%', width: '100%' }}>
+                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                <LocationPicker 
+                  lat={formData.lat} 
+                  lng={formData.lng} 
+                  onChange={(lat, lng) => setFormData({...formData, lat, lng})} 
+                />
+              </MapContainer>
+            </div>
+            <p className="mt-2 text-[10px] text-slate-400">
+              Haz clic en el mapa para marcar el punto exacto del encuentro.
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-1">Nombre del Lugar / Dirección</label>
             <input
               type="text"
               required
-              placeholder="Ej: Calle 123, Ciudad de México"
+              placeholder="Ej: Plaza Mayor - Cancha Norte"
               className="w-full border-slate-200 rounded-lg focus:ring-brand-500 focus:border-brand-500"
               value={formData.address}
               onChange={e => setFormData({...formData, address: e.target.value})}
             />
-            <p className="mt-1 text-[10px] text-slate-400">
-              Usa una dirección real. Los jugadores deberán estar cerca para el check-in.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1">Latitud (Simulada)</label>
-              <input
-                type="number"
-                step="any"
-                required
-                className="w-full border-slate-200 rounded-lg text-sm"
-                value={formData.lat}
-                onChange={e => setFormData({...formData, lat: parseFloat(e.target.value)})}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1">Longitud (Simulada)</label>
-              <input
-                type="number"
-                step="any"
-                required
-                className="w-full border-slate-200 rounded-lg text-sm"
-                value={formData.lng}
-                onChange={e => setFormData({...formData, lng: parseFloat(e.target.value)})}
-              />
-            </div>
           </div>
 
           <div className="pt-4 space-y-4">
