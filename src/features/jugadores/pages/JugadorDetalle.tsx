@@ -371,10 +371,48 @@ const JugadorDetalle: React.FC = () => {
               <div className="flex items-center gap-3 mb-6">
                 <h2 className="text-xl sm:text-2xl font-black text-slate-900">Radar de Atleta</h2>
                 <div className="h-px flex-1 bg-slate-100"></div>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50 px-2 py-1 rounded-md border border-slate-100">Stats Globales</span>
+                {radarData?.isUnranked ? (
+                  <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest bg-amber-50 px-2 py-1 rounded-md border border-amber-100 animate-pulse">
+                    Jugador no Rankeado
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
+                    Stats Globales
+                  </span>
+                )}
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center bg-slate-50/30 rounded-3xl p-6 border border-slate-100">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center bg-slate-50/30 rounded-3xl p-6 border border-slate-100 relative overflow-hidden">
+                {radarData?.isUnranked && (
+                  <div className="absolute inset-0 z-10 bg-slate-50/40 backdrop-blur-[2px] flex items-center justify-center p-6">
+                    <div className="max-w-xs text-center">
+                      <div className="mx-auto w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mb-4">
+                        <svg className="w-6 h-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                      </div>
+                      <h3 className="text-lg font-black text-slate-900 mb-2">¡Tu Radar está vacío!</h3>
+                      <p className="text-sm text-slate-600 mb-6">
+                        Todavía no has participado en partidos puntuados. Comienza tu camino a la gloria.
+                      </p>
+                      <div className="flex flex-col gap-2">
+                        <button 
+                          onClick={() => navigate('/competencias')}
+                          className="w-full py-3 bg-brand-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-brand-200 hover:bg-brand-700 transition-all"
+                        >
+                          Inscribirme en una Liga
+                        </button>
+                        <button 
+                          onClick={() => navigate('/plaza')}
+                          className="w-full py-3 bg-white text-slate-700 border border-slate-200 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all"
+                        >
+                          Buscar Partidos de Plaza
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="order-2 md:order-1">
                   <div className="grid grid-cols-2 gap-4">
                     {[
@@ -399,7 +437,9 @@ const JugadorDetalle: React.FC = () => {
                     ))}
                     <div className="bg-brand-600 p-3 rounded-xl border border-brand-500 shadow-sm flex flex-col justify-center">
                       <p className="text-[10px] font-bold text-brand-100 uppercase tracking-wider">ELO Maestro</p>
-                      <p className="text-xl font-black text-white leading-none mt-1">{radarData?.elo || 1500}</p>
+                      <p className="text-xl font-black text-white leading-none mt-1">
+                        {radarData?.isUnranked ? 0 : (radarData?.elo || 1500)}
+                      </p>
                     </div>
                   </div>
                   <p className="mt-4 text-[10px] text-slate-400 italic">
