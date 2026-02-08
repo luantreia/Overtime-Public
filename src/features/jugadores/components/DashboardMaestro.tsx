@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { 
   IdentificationIcon,
   ShieldCheckIcon,
-  FireIcon
+  FireIcon,
+  InformationCircleIcon
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import { AthleteRadar } from './AthleteRadar';
@@ -165,15 +166,46 @@ export const DashboardMaestro: React.FC<DashboardMaestroProps> = ({ jugadorId, j
               {/* BARRAS DE PROGRESO (Radar Viejo) */}
               <div className="mt-8 space-y-4">
                 {[
-                  { label: 'Poder', value: radarData?.power, barClass: 'bg-brand-500' },
-                  { label: 'Resistencia', value: radarData?.stamina, barClass: 'bg-blue-500' },
-                  { label: 'Precisión', value: radarData?.precision, barClass: 'bg-indigo-500' },
-                  { label: 'Consistencia', value: radarData?.consistency, barClass: 'bg-violet-500' },
-                  { label: 'Versatilidad', value: radarData?.versatility, barClass: 'bg-purple-500' },
+                  { 
+                    label: 'Poder', 
+                    value: radarData?.power, 
+                    barClass: 'bg-brand-500',
+                    desc: 'Cálculo ELO: ((ELO - 1000) / 14). 2400 ELO = 100%. Representa tu nivel de fuerza absoluta.'
+                  },
+                  { 
+                    label: 'Resistencia', 
+                    value: radarData?.stamina, 
+                    barClass: 'bg-blue-500',
+                    desc: 'Veteranía (50%): Total partidos / 250. Ritmo (50%): Partidos mes / 12.'
+                  },
+                  { 
+                    label: 'Precisión', 
+                    value: radarData?.precision, 
+                    barClass: 'bg-indigo-500',
+                    desc: 'Cálculo Winrate: (Victorias / Total) / 0.7. Un winrate del 70% o más otorga el 100% de precisión.'
+                  },
+                  { 
+                    label: 'Consistencia', 
+                    value: radarData?.consistency, 
+                    barClass: 'bg-violet-500',
+                    desc: 'Cálculo de Variabilidad: 100 - (Promedio Delta últimos 10 partidos * 2). A menor variación de puntos, mayor consistencia.'
+                  },
+                  { 
+                    label: 'Versatilidad', 
+                    value: radarData?.versatility, 
+                    barClass: 'bg-purple-500',
+                    desc: 'Cálculo Multidisciplina: (Competiciones distintas / 5). Participar en 5 o más ligas otorga el 100%.'
+                  },
                 ].map((stat, i) => (
                   <div key={i} className="space-y-1">
                     <div className="flex justify-between items-end">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</span>
+                      <div className="flex items-center gap-1 group/info relative">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</span>
+                        <InformationCircleIcon 
+                          className="h-3 w-3 text-slate-300 cursor-help hover:text-brand-500 transition-colors" 
+                          title={stat.desc}
+                        />
+                      </div>
                       <span className="text-xs font-black text-slate-700">{stat.value || 0}%</span>
                     </div>
                     <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
