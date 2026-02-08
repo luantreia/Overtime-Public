@@ -179,25 +179,40 @@ const PlazaLobby: React.FC = () => {
   const confirmedB = teamB.filter(p => p.confirmed);
   const canStart = confirmedA.length >= 1 && confirmedB.length >= 1;
 
-  const PlayerSlot = ({ player, index }: { player?: any, index: number }) => (
-    <div className="px-4 py-3 flex items-center justify-between">
-      <div className="flex items-center gap-3">
-        <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-medium ${
-          player ? 'bg-brand-100 text-brand-700' : 'bg-slate-100 text-slate-400'
-        }`}>
-          {player?.player?.foto ? (
-            <img 
-              src={player.player.foto} 
-              alt={typeof player.player !== 'string' ? player.player.nombre : ''} 
-              className="h-full w-full rounded-full object-cover" 
-            />
-          ) : (index + 1)}
-        </div>
-        <div className="flex flex-col">
-          <span className={`text-sm ${(player && typeof player.player !== 'string') ? 'font-medium text-slate-900' : 'text-slate-400 italic'}`}>
-            {(player && typeof player.player !== 'string') ? (player.player.nombre || player.player.alias) : 'Slot vacío'}
-          </span>
-          {(player && typeof player.player !== 'string' && player.player.elo !== undefined) && (
+  const PlayerSlot = ({ player, index }: { player?: any, index: number }) => {
+    const isLobbyHost = player?.userUid === lobby.host;
+    const isRivalCaptain = player?.userUid === lobby.rivalCaptainUid;
+
+    return (
+      <div className="px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-medium border-2 ${
+            isLobbyHost ? 'border-brand-500 bg-brand-50' : 
+            isRivalCaptain ? 'border-indigo-500 bg-indigo-50' :
+            player ? 'border-slate-100 bg-brand-100 text-brand-700' : 
+            'border-dashed border-slate-200 bg-slate-50 text-slate-400'
+          }`}>
+            {player?.player?.foto ? (
+              <img 
+                src={player.player.foto} 
+                alt={typeof player.player !== 'string' ? player.player.nombre : ''} 
+                className="h-full w-full rounded-full object-cover" 
+              />
+            ) : (index + 1)}
+          </div>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <span className={`text-sm ${(player && typeof player.player !== 'string') ? 'font-medium text-slate-900' : 'text-slate-400 italic'}`}>
+                {(player && typeof player.player !== 'string') ? (player.player.nombre || player.player.alias) : 'Slot vacío'}
+              </span>
+              {isLobbyHost && (
+                <span className="px-1.5 py-0.5 bg-brand-600 text-[8px] text-white font-black rounded uppercase tracking-tighter">HOST</span>
+              )}
+              {isRivalCaptain && (
+                <span className="px-1.5 py-0.5 bg-indigo-600 text-[8px] text-white font-black rounded uppercase tracking-tighter">CAPITÁN</span>
+              )}
+            </div>
+            {(player && typeof player.player !== 'string' && player.player.elo !== undefined) && (
             <div className="flex gap-2">
               <span className="text-[10px] text-slate-400 font-bold">ELO: {player.player.elo}</span>
               {player.player.karma !== undefined && (
@@ -219,7 +234,8 @@ const PlazaLobby: React.FC = () => {
         </div>
       )}
     </div>
-  );
+    );
+  };
 
   const TeamBox = ({ title, players, color }: { title: string, players: any[], color: string }) => (
     <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
@@ -450,6 +466,7 @@ const PlazaLobby: React.FC = () => {
           )}
         </div>
       </div>
+    </div>
 
       <div className="grid md:grid-cols-2 gap-6">
         <TeamBox title="Equipo A (Rojo)" players={teamA} color="red" />
