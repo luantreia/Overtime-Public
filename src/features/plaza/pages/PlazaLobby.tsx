@@ -378,22 +378,29 @@ const PlazaLobby: React.FC = () => {
               </button>
             )}
 
-            {lobby.status === 'playing' && (isHost || isOfficial) && (
+            {lobby.status === 'playing' && lobby.result && (isHost || isOfficial) && lobby.result.submittedBy === userUid && (
+              <div className="flex-1 min-w-[200px] bg-slate-100 text-slate-500 font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2">
+                <ClockIcon className="h-5 w-5 animate-spin" />
+                ESPERANDO RIVAL...
+              </div>
+            )}
+
+            {lobby.status === 'playing' && lobby.result && !lobby.result.confirmedByOpponent && (userUid === lobby.rivalCaptainUid || isOfficial) && (
+              <button 
+                onClick={() => PlazaService.confirmResult(id!).then(fetchLobby)}
+                disabled={actionLoading}
+                className="flex-1 min-w-[200px] bg-brand-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-brand-700 transition-all disabled:opacity-50"
+              >
+                CONFIRMAR RESULTADO
+              </button>
+            )}
+
+            {lobby.status === 'playing' && (isHost || isOfficial) && !lobby.result && (
               <button 
                 onClick={() => navigate(`/plaza/lobby/${id}/report`)}
                 className="flex-1 min-w-[200px] bg-brand-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-brand-700 transition-all"
               >
                 SUBIR RESULTADO
-              </button>
-            )}
-
-            {lobby.status === 'finished' && lobby.result && !lobby.result.confirmedByOpponent && 
-             (userUid === lobby.rivalCaptainUid || isOfficial) && (
-              <button 
-                onClick={() => PlazaService.confirmResult(id!).then(fetchLobby)}
-                className="flex-1 min-w-[200px] bg-brand-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-brand-700 transition-all"
-              >
-                Confirmar Resultado
               </button>
             )}
           </div>
