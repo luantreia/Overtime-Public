@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PlazaService } from '../services/plazaService';
-import { useAuth } from '../../../app/providers/AuthContext';
 import { LoadingSpinner } from '../../../shared/components/LoadingSpinner';
 
 const PlazaCrear: React.FC = () => {
