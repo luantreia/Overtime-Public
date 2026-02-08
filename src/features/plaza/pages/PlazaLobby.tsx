@@ -180,8 +180,8 @@ const PlazaLobby: React.FC = () => {
   const canStart = confirmedA.length >= 1 && confirmedB.length >= 1;
 
   const PlayerSlot = ({ player, index }: { player?: any, index: number }) => {
-    const isLobbyHost = player?.userUid === lobby.host;
-    const isRivalCaptain = player?.userUid === lobby.rivalCaptainUid;
+    const isLobbyHost = player && player.userUid === lobby.host;
+    const isRivalCaptain = player && player.userUid === lobby.rivalCaptainUid;
 
     return (
       <div className="px-4 py-3 flex items-center justify-between">
@@ -301,7 +301,7 @@ const PlazaLobby: React.FC = () => {
           </div>
 
           <div className="mt-8 flex flex-col gap-4">
-            {lobby.result && !lobby.result.confirmedByOpponent && (
+            {lobby.result && lobby.result.submittedBy && !lobby.result.confirmedByOpponent && (
               <div className="w-full bg-brand-50 border border-brand-100 rounded-xl p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="bg-white p-2 rounded-lg border border-brand-200">
