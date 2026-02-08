@@ -78,6 +78,17 @@ export class PlazaService {
       body: {},
     });
   }
+
+  static async getMyProfile(): Promise<any> {
+    return fetchWithAuth('/jugadores/me/profile');
+  }
+
+  static async quickCreateProfile(nombre: string): Promise<any> {
+    return fetchWithAuth('/jugadores', {
+      method: 'POST',
+      body: { nombre, alias: nombre.split(' ')[0], genero: 'otro' }
+    });
+  }
 }
 
 

@@ -89,4 +89,10 @@ export class JugadorService {
       method: 'DELETE',
     });
   }
+
+  static async claim(id: string): Promise<any> {
+    return fetchWithAuth<any>(`${this.API_ENDPOINT}/${id}/claim`, {
+      method: 'POST'
+    });
+  }
 }

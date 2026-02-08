@@ -13,12 +13,18 @@ import { TablaPosiciones } from '../../../shared/components/TablaPosiciones/Tabl
 import { Bracket } from '../../../shared/components/Bracket/Bracket';
 import { PlayerRankedHistoryModal } from '../../competencias/components';
 import { AthleteRadar } from '../components/AthleteRadar';
+import { useAuth } from '../../../app/providers/AuthContext';
+import { useToast } from '../../../shared/components/Toast/ToastProvider';
 
 const JugadorDetalle: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { addToast } = useToast();
+  
   const [competenciasData, setCompetenciasData] = useState<any[]>([]);
   const [loadingComps, setLoadingComps] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
   const [showAllComps, setShowAllComps] = useState(false);
   const [radarData, setRadarData] = useState<any>(null);
   const [loadingRadar, setLoadingRadar] = useState(false);
@@ -68,6 +74,27 @@ const JugadorDetalle: React.FC = () => {
       } catch (err) {
         console.error('Error generating image', err);
       }
+    }
+  };
+
+  const handleClaim = async () => {
+    if (!id || !user) return;
+    try {
+      setActionLoading(true);
+      await JugadorService.claim(id);
+      addToast({
+        type: 'success',
+        title: 'Solicitud enviada',
+        message: 'Tu solicitud para reclamar este perfil ha sido enviada con éxito. Un administrador lo validará pronto.'
+      });
+    } catch (err: any) {
+      addToast({
+        type: 'error',
+        title: 'Error al reclamar',
+        message: err.message
+      });
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -329,6 +356,23 @@ const JugadorDetalle: React.FC = () => {
                   )}
                 </div>
               </div>
+
+              {user && !jugador.userId && !jugador.perfilReclamado && (
+                <button
+                  onClick={handleClaim}
+                  disabled={actionLoading}
+                  className="bg-brand-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-brand-100 hover:bg-brand-700 transition-all disabled:opacity-50"
+                >
+                  {actionLoading ? 'Enviando...' : 'Reclamar este Perfil'}
+                </button>
+              )}
+
+              {jugador.userId && (
+                <div className="flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-100 rounded-xl">
+                  <span className="flex h-2 w-2 rounded-full bg-green-500"></span>
+                  <span className="text-xs font-bold text-green-700 uppercase tracking-wider">Perfil Verificado</span>
+                </div>
+              )}
             </div>
 
             <div className="mb-8 text-center sm:text-left">

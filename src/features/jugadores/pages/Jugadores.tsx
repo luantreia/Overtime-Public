@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { JugadorCard } from '../../../shared/components';
 import { useEntity } from '../../../shared/hooks';
 import { JugadorService, type Jugador } from '../services/jugadorService';
+import { useAuth } from '../../../app/providers/AuthContext';
 
 const Jugadores: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   
@@ -116,6 +118,17 @@ const Jugadores: React.FC = () => {
           <h1 className="text-3xl font-bold text-slate-900">Jugadores</h1>
           <p className="mt-2 text-slate-600">Directorio de jugadores registrados</p>
         </div>
+
+        {user && (
+          <div className="mb-8 bg-brand-50 border border-brand-200 rounded-xl p-4 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <span className="text-xl">🏆</span>
+              <p className="text-sm text-brand-800">
+                <span className="font-bold">¿Buscando tu perfil?</span> Si ya has participado antes, búscate aquí abajo y dale a <strong>"Reclamar este Perfil"</strong> para que tus estadísticas se vinculen a tu nueva cuenta.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Filtros */}
         <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200">

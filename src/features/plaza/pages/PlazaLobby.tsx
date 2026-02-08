@@ -19,12 +19,22 @@ const PlazaLobby: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [userUid, setUserUid] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
+  const [hasProfile, setHasProfile] = useState<boolean>(true);
 
   const fetchLobby = useCallback(async () => {
     if (!id) return;
     try {
       const data = await PlazaService.getLobbyById(id);
       setLobby(data);
+      
+      // Consultar si el usuario tiene perfil si está logueado
+      try {
+        await PlazaService.getMyProfile();
+        setHasProfile(true);
+      } catch (e) {
+        setHasProfile(false);
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -39,6 +49,7 @@ const PlazaLobby: React.FC = () => {
       try {
         const payload = JSON.parse(atob(accessToken.split('.')[1]));
         setUserUid(payload.uid || payload.userId || payload.sub);
+        setUserName(payload.nombre || payload.name || "Jugador");
       } catch (e) {
         console.error("Error decoding token", e);
       }
@@ -46,6 +57,20 @@ const PlazaLobby: React.FC = () => {
     const interval = setInterval(fetchLobby, 30000);
     return () => clearInterval(interval);
   }, [fetchLobby]);
+
+  const handleQuickCreate = async () => {
+    if (!userName) return;
+    try {
+      setActionLoading(true);
+      await PlazaService.quickCreateProfile(userName);
+      setHasProfile(true);
+      await fetchLobby();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   const handleJoin = async (team: 'A' | 'B' | 'none' = 'none') => {
     if (!id) return;
@@ -213,7 +238,43 @@ const PlazaLobby: React.FC = () => {
           </div>
 
           <div className="mt-8 flex flex-wrap gap-3">
-            {!isJoined && (lobby.status === 'open' || lobby.status === 'full') && (
+            {!hasProfile && !isJoined && (
+              <div className="w-full bg-orange-50 border border-orange-200 rounded-xl p-6 flex flex-col gap-4">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-orange-100 rounded-lg">
+                    <ExclamationCircleIcon className="h-6 w-6 text-orange-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-black text-orange-900 uppercase tracking-wider">Perfil de Atleta no detectado</h4>
+                    <p className="mt-1 text-sm text-orange-800 leading-relaxed">
+                      Para participar en La Plaza, necesitas vincular un perfil de jugador. 
+                      ¿Ya has jugado antes en Overtime o eres nuevo?
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <button 
+                    onClick={() => navigate('/jugadores')}
+                    className="flex items-center justify-center gap-2 bg-white border-2 border-orange-200 text-orange-700 font-bold py-3 px-4 rounded-xl hover:bg-orange-100 transition-all text-sm shadow-sm"
+                  >
+                    🔍 Buscar mi perfil existente
+                  </button>
+                  <button 
+                    onClick={handleQuickCreate}
+                    disabled={actionLoading}
+                    className="flex items-center justify-center gap-2 bg-orange-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-orange-700 transition-all shadow-lg shadow-orange-100 text-sm"
+                  >
+                    ✨ Crear perfil nuevo (Desde cero)
+                  </button>
+                </div>
+                <p className="text-[10px] text-orange-600 italic text-center">
+                  * Si ya existes en el sistema, búscate y reclama tu perfil para heredar tus estadísticas actuales.
+                </p>
+              </div>
+            )}
+
+            {!isJoined && hasProfile && (lobby.status === 'open' || lobby.status === 'full') && (
               <>
                 <button 
                   onClick={() => handleJoin()}
