@@ -145,7 +145,13 @@ const PlazaLobby: React.FC = () => {
         <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-medium ${
           player ? 'bg-brand-100 text-brand-700' : 'bg-slate-100 text-slate-400'
         }`}>
-          {player?.player?.foto ? <img src={player.player.foto} className="h-full w-full rounded-full object-cover" /> : (index + 1)}
+          {player?.player?.foto ? (
+            <img 
+              src={player.player.foto} 
+              alt={typeof player.player !== 'string' ? player.player.nombre : ''} 
+              className="h-full w-full rounded-full object-cover" 
+            />
+          ) : (index + 1)}
         </div>
         <div className="flex flex-col">
           <span className={`text-sm ${(player && typeof player.player !== 'string') ? 'font-medium text-slate-900' : 'text-slate-400 italic'}`}>
