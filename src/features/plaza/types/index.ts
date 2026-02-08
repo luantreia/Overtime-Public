@@ -6,7 +6,8 @@ export interface LobbyPlayer {
     alias?: string;
     foto?: string;
     elo?: number;
-  } | string;
+    karma?: number;
+  };
   userUid: string;
   team: 'A' | 'B' | 'none';
   confirmed: boolean;
@@ -19,7 +20,10 @@ export interface LobbyOfficial {
     _id: string;
     nombre: string;
     alias?: string;
-  } | string;
+    foto?: string;
+    elo?: number;
+    karma?: number;
+  };
   userUid: string;
   type: 'principal' | 'secundario' | 'linea';
   confirmed: boolean;
@@ -28,7 +32,12 @@ export interface LobbyOfficial {
 export interface Lobby {
   _id: string;
   host: string;
-  hostName?: string; // Added locally if needed
+  hostInfo?: {
+    nombre: string;
+    elo: number;
+    karma: number;
+  };
+  averageElo?: number;
   title: string;
   description?: string;
   modalidad: 'Foam' | 'Cloth';

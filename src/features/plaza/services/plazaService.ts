@@ -30,6 +30,12 @@ export class PlazaService {
     });
   }
 
+  static async kickOfficial(id: string, userUid: string): Promise<Lobby> {
+    return fetchWithAuth<Lobby>(`${this.API_ENDPOINT}/lobbies/${id}/officials/${userUid}`, {
+      method: 'DELETE',
+    });
+  }
+
   static async joinLobby(lobbyId: string): Promise<Lobby> {
     return fetchWithAuth<Lobby>(`${this.API_ENDPOINT}/lobbies/${lobbyId}/join`, {
       method: 'POST',

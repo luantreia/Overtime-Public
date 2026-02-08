@@ -7,8 +7,9 @@ import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 import { 
   UsersIcon, MapPinIcon, ClockIcon, TrophyIcon, 
   UserGroupIcon, ShieldCheckIcon, CheckCircleIcon,
-  ExclamationCircleIcon
+  ExclamationCircleIcon, UserIcon, TrashIcon
 } from '@heroicons/react/24/outline';
+import { StarIcon } from '@heroicons/react/24/solid';
 import { getAuthTokens } from '../../../utils/apiClient';
 
 const PlazaLobby: React.FC = () => {
@@ -133,6 +134,19 @@ const PlazaLobby: React.FC = () => {
     }
   };
 
+  const handleKickOfficial = async (officialUid: string) => {
+    if (!id || !window.confirm("¿Expulsar a este oficial del lobby?")) return;
+    try {
+      setActionLoading(true);
+      await PlazaService.kickOfficial(id, officialUid);
+      await fetchLobby();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleDelete = async () => {
     if (!id || !window.confirm("¿Estás seguro de que quieres eliminar este lobby? Se cancelará el partido.")) return;
     try {
@@ -180,7 +194,14 @@ const PlazaLobby: React.FC = () => {
             {(player && typeof player.player !== 'string') ? (player.player.nombre || player.player.alias) : 'Slot vacío'}
           </span>
           {(player && typeof player.player !== 'string' && player.player.elo !== undefined) && (
-            <span className="text-[10px] text-slate-400">ELO: {player.player.elo}</span>
+            <div className="flex gap-2">
+              <span className="text-[10px] text-slate-400 font-bold">ELO: {player.player.elo}</span>
+              {player.player.karma !== undefined && (
+                <span className="text-[10px] text-orange-400 font-bold flex items-center gap-0.5">
+                  <StarIcon className="h-2 w-2" /> {player.player.karma}
+                </span>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -218,11 +239,36 @@ const PlazaLobby: React.FC = () => {
           <div className="flex flex-col md:flex-row justify-between items-start gap-4">
             <div>
               <h1 className="text-2xl font-bold text-slate-900 mb-1">{lobby.title}</h1>
-              <div className="flex flex-wrap gap-4 text-sm text-slate-500">
+              <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-slate-500">
                 <span className="flex items-center gap-1.5"><MapPinIcon className="h-4 w-4" />{lobby.location.address || lobby.location.name}</span>
                 <span className="flex items-center gap-1.5"><ClockIcon className="h-4 w-4" />{new Date(lobby.scheduledDate).toLocaleString()}</span>
                 <span className="flex items-center gap-1.5"><UsersIcon className="h-4 w-4" />Modo: {lobby.modalidad} - {lobby.categoria}</span>
+                {lobby.averageElo && (
+                   <span className="flex items-center gap-1.5 font-bold text-brand-700">
+                     <TrophyIcon className="h-4 w-4" />ELO Promedio: {lobby.averageElo}
+                   </span>
+                )}
               </div>
+
+              {lobby.hostInfo && (
+                <div className="mt-4 flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 max-w-fit">
+                  <div className="p-2 bg-white rounded-lg border border-slate-200">
+                    <UserIcon className="h-5 w-5 text-slate-400" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Host del Lobby</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-slate-900">{lobby.hostInfo.nombre}</span>
+                      <div className="flex items-center gap-1 bg-brand-100 px-1.5 py-0.5 rounded text-[10px] font-black text-brand-700">
+                         {lobby.hostInfo.elo} ELO
+                      </div>
+                      <div className="flex items-center gap-1 bg-orange-100 px-1.5 py-0.5 rounded text-[10px] font-black text-orange-700">
+                         <StarIcon className="h-2.5 w-2.5" /> {lobby.hostInfo.karma} Karma
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
             <div className={`px-4 py-1.5 rounded-full text-sm font-bold ${
               lobby.status === 'open' ? 'bg-green-100 text-green-700' : 
@@ -377,12 +423,34 @@ const PlazaLobby: React.FC = () => {
           <div className="divide-y divide-slate-100">
             {lobby.officials.map((o, i) => {
               const name = typeof o.player === 'object' ? (o.player.alias || o.player.nombre) : 'Oficial';
+              const karma = typeof o.player === 'object' ? o.player.karma : 0;
+              const elo = typeof o.player === 'object' ? o.player.elo : 1500;
+              
               return (
                 <div key={i} className="px-4 py-3 flex justify-between items-center">
-                  <span className="text-sm font-medium">
-                    {o.type.toUpperCase()}: {o.userUid === userUid ? 'Tú' : name}
-                  </span>
-                  {o.confirmed ? <ShieldCheckIcon className="h-5 w-5 text-green-500" /> : <ClockIcon className="h-5 w-5 text-slate-300" />}
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-slate-900">
+                      {o.type.toUpperCase()}: {o.userUid === userUid ? 'Tú' : name}
+                    </span>
+                    <div className="flex gap-2 mt-1">
+                      <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded font-medium text-slate-600">{elo} ELO</span>
+                      <span className="text-[10px] bg-orange-50 px-1.5 py-0.5 rounded font-bold text-orange-600 flex items-center gap-0.5">
+                        <StarIcon className="h-2 w-2" /> {karma} Karma
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {isHost && o.userUid !== userUid && lobby.status === 'open' && (
+                      <button 
+                        onClick={() => handleKickOfficial(o.userUid)}
+                        className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Expulsar Oficial"
+                      >
+                        <TrashIcon className="h-5 w-5" />
+                      </button>
+                    )}
+                    {o.confirmed ? <ShieldCheckIcon className="h-5 w-5 text-green-500" /> : <ClockIcon className="h-5 w-5 text-slate-300" />}
+                  </div>
                 </div>
               );
             })}
