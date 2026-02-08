@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SolicitudContexto, SolicitudEdicionTipo } from '../../../types/solicitudesEdicion';
+import { SolicitudContexto, SolicitudEdicionTipo } from '../../types/solicitudesEdicion';
 import SolicitudModal from '../SolicitudModal/SolicitudModal';
 
 interface SolicitudButtonProps {

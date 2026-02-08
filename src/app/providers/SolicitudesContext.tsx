@@ -3,7 +3,7 @@ import {
     SolicitudOpciones, 
     SolicitudContexto, 
     SolicitudCrearPayload 
-} from '../../types/solicitudesEdicion';
+} from '../../shared/types/solicitudesEdicion';
 import { getSolicitudOpciones, crearSolicitudEdicion } from '../../features/solicitudes/services/solicitudesEdicionService';
 
 interface SolicitudesContextType {

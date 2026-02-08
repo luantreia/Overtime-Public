@@ -5,7 +5,7 @@ import {
   SolicitudContexto,
   SolicitudCrearPayload,
   SolicitudEdicionTipo,
-} from '../../../types/solicitudesEdicion';
+} from '../../types/solicitudesEdicion';
 import ModalBase from '../ModalBase/ModalBase';
 
 interface SolicitudModalProps {

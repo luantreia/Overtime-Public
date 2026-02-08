@@ -1,5 +1,5 @@
 import { authFetch } from '../../../utils/authFetch';
-import type { 
+import { 
   SolicitudEdicion, 
   SolicitudOpciones, 
   SolicitudContexto, 
@@ -8,13 +8,11 @@ import type {
   SolicitudActualizarPayload,
   SolicitudesPaginadas,
   SolicitudAprobadores,
-  SolicitudEdicionTipo
-} from '../../../shared/types/solicitudesEdicion';
-import { 
+  SolicitudEdicionTipo,
   SolicitudValidationError,
   SolicitudPermissionError,
   SolicitudBusinessError
-} from '../../../types/solicitudesEdicion';
+} from '../../../shared/types/solicitudesEdicion';
 
 /**
  * Obtiene todas las solicitudes de edición con filtros opcionales

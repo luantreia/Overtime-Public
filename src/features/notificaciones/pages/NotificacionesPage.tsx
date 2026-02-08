@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getSolicitudesEdicion, actualizarSolicitudEdicion } from '../../solicitudes/services/solicitudesEdicionService';
-import type { SolicitudEdicion } from '../../../types/solicitudesEdicion';
+import type { SolicitudEdicion } from '../../../shared/types/solicitudesEdicion';
 import { useJugador } from '../../../app/providers/JugadorContext';
 import { useToast } from '../../../shared/components/Toast/ToastProvider';
 
