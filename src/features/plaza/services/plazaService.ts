@@ -24,6 +24,12 @@ export class PlazaService {
     });
   }
 
+  static async deleteLobby(id: string): Promise<void> {
+    return fetchWithAuth<void>(`${this.API_ENDPOINT}/lobbies/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   static async joinLobby(lobbyId: string): Promise<Lobby> {
     return fetchWithAuth<Lobby>(`${this.API_ENDPOINT}/lobbies/${lobbyId}/join`, {
       method: 'POST',

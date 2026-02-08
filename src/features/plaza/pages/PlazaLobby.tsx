@@ -135,6 +135,19 @@ const PlazaLobby: React.FC = () => {
     }
   };
 
+  const handleDelete = async () => {
+    if (!id || !window.confirm("¿Estás seguro de que quieres eliminar este lobby? Se cancelará el partido.")) return;
+    try {
+      setActionLoading(true);
+      await PlazaService.deleteLobby(id);
+      navigate('/plaza');
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   if (loading) return <LoadingSpinner />;
   if (error || !lobby) return <ErrorMessage message={error || "Lobby no encontrado"} />;
 
@@ -300,6 +313,16 @@ const PlazaLobby: React.FC = () => {
                 className="flex-1 min-w-[200px] bg-brand-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-brand-700 transition-all disabled:opacity-50"
               >
                 EMPEZAR PARTIDO
+              </button>
+            )}
+
+            {isHost && (lobby.status === 'open' || lobby.status === 'full') && (
+              <button 
+                onClick={handleDelete}
+                disabled={actionLoading}
+                className="flex-1 min-w-[200px] bg-red-50 text-red-600 border border-red-100 font-bold py-3 px-6 rounded-xl hover:bg-red-100 transition-all disabled:opacity-50"
+              >
+                ELIMINAR LOBBY
               </button>
             )}
 
