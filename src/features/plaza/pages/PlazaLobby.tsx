@@ -284,8 +284,33 @@ const PlazaLobby: React.FC = () => {
             </div>
           </div>
 
-          <div className="mt-8 flex flex-wrap gap-3">
-            {!hasProfile && !isJoined && (
+          <div className="mt-8 flex flex-col gap-4">
+            {lobby.result && !lobby.result.confirmedByOpponent && (
+              <div className="w-full bg-brand-50 border border-brand-100 rounded-xl p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="bg-white p-2 rounded-lg border border-brand-200">
+                    <TrophyIcon className="h-5 w-5 text-brand-600" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-brand-600 font-bold uppercase tracking-wider">Resultado Pendiente</p>
+                    <p className="text-xl font-black text-slate-900">
+                      Rojo <span className="text-brand-600">{lobby.result.scoreA}</span> - <span className="text-brand-600">{lobby.result.scoreB}</span> Azul
+                    </p>
+                  </div>
+                </div>
+                {isHost && lobby.result.submittedBy === userUid && (
+                  <button 
+                    onClick={() => navigate(`/plaza/lobby/${id}/report`)}
+                    className="text-xs font-bold text-brand-700 bg-white border border-brand-200 px-3 py-1.5 rounded-lg hover:bg-brand-100 transition-colors"
+                  >
+                    CORREGIR
+                  </button>
+                )}
+              </div>
+            )}
+
+            <div className="flex flex-wrap gap-3">
+              {!hasProfile && !isJoined && (
               <div className="w-full bg-orange-50 border border-orange-200 rounded-xl p-6 flex flex-col gap-4">
                 <div className="flex items-start gap-4">
                   <div className="p-3 bg-orange-100 rounded-lg">
@@ -379,9 +404,8 @@ const PlazaLobby: React.FC = () => {
             )}
 
             {lobby.status === 'playing' && lobby.result && (isHost || isOfficial) && lobby.result.submittedBy === userUid && (
-              <div className="flex-1 min-w-[200px] bg-slate-100 text-slate-500 font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2">
-                <ClockIcon className="h-5 w-5 animate-spin" />
-                ESPERANDO RIVAL...
+              <div className="flex-1 min-w-[200px] bg-slate-50 text-slate-400 font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 border border-slate-100 italic text-sm">
+                ESPERANDO CONFIRMACIÓN...
               </div>
             )}
 
