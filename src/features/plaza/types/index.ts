@@ -32,16 +32,8 @@ export interface LobbyOfficial {
 export interface Lobby {
   _id: string;
   host: string;
-  hostInfo?: {
-    nombre: string;
-    elo: number;
-    karma: number;
-  };
-  averageElo?: number;
   title: string;
   description?: string;
-  modalidad: 'Foam' | 'Cloth';
-  categoria: string;
   location: {
     name: string;
     address: string;
