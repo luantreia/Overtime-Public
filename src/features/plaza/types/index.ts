@@ -57,6 +57,14 @@ export interface Lobby {
   maxPlayers: number;
   requireOfficial: boolean;
   genderPolicy: 'open' | 'male' | 'female' | 'mixed';
+  modalidad: 'Foam' | 'Cloth';
+  categoria: 'Masculino' | 'Femenino' | 'Mixto' | 'Libre';
+  averageElo?: number;
+  hostInfo?: {
+    nombre: string;
+    elo: number;
+    karma: number;
+  };
   rivalCaptainUid?: string;
   distance?: number;
   result?: {

@@ -154,7 +154,14 @@ const PlazaCrear: React.FC = () => {
               <select 
                 className="w-full border-slate-200 rounded-lg focus:ring-brand-500 focus:border-brand-500 text-sm"
                 value={formData.categoria}
-                onChange={e => setFormData({...formData, categoria: e.target.value as any})}
+                onChange={e => {
+                  const val = e.target.value as any;
+                  let gp = 'open';
+                  if (val === 'Masculino') gp = 'male';
+                  if (val === 'Femenino') gp = 'female';
+                  if (val === 'Mixto') gp = 'mixed';
+                  setFormData({...formData, categoria: val, genderPolicy: gp as any});
+                }}
               >
                 <option value="Libre">Libre / Open</option>
                 <option value="Masculino">Masculino</option>
