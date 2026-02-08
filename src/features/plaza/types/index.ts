@@ -72,4 +72,6 @@ export interface Lobby {
     rivalConfirmed: boolean;
   };
   votedUsers: string[];
+  appliedMultiplier?: number;
+  avgKarma?: number;
 }

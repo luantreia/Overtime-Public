@@ -8,7 +8,7 @@ import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 import { 
   UsersIcon, MapPinIcon, ClockIcon, TrophyIcon, 
   UserGroupIcon, ShieldCheckIcon, CheckCircleIcon,
-  ExclamationCircleIcon, UserIcon, TrashIcon
+  ExclamationCircleIcon, UserIcon, TrashIcon, BoltIcon
 } from '@heroicons/react/24/outline';
 import { StarIcon } from '@heroicons/react/24/solid';
 import { getAuthTokens } from '../../../utils/apiClient';
@@ -383,6 +383,45 @@ const PlazaLobby: React.FC = () => {
           </div>
 
           <div className="mt-8 flex flex-col gap-4">
+            {lobby.status === 'finished' && (
+              <div className="w-full bg-gradient-to-r from-brand-600 to-indigo-600 rounded-xl p-5 text-white shadow-lg overflow-hidden relative">
+                <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-white/20 backdrop-blur-md rounded-xl border border-white/30">
+                      <TrophyIcon className="h-8 w-8 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black uppercase tracking-widest opacity-80">Partido Finalizado</h3>
+                      <p className="text-2xl font-black">
+                        {lobby.result ? (
+                          <>¡{lobby.result.scoreA > lobby.result.scoreB ? 'Victoria Roja' : (lobby.result.scoreB > lobby.result.scoreA ? 'Victoria Azul' : 'Empate')}!</>
+                        ) : (
+                          <>¡Evento Finalizado!</>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-4">
+                    <div className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/20 text-center">
+                      <p className="text-[10px] uppercase font-bold opacity-70">Multiplicador ELO</p>
+                      <p className="text-xl font-black">{lobby.appliedMultiplier || '0.3'}x</p>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/20 text-center">
+                      <p className="text-[10px] uppercase font-bold opacity-70">Karma Promedio</p>
+                      <p className="text-xl font-black flex items-center justify-center gap-1">
+                        <StarIcon className="h-4 w-4 text-orange-400" />
+                        {lobby.avgKarma || '0'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Decorative background icon */}
+                <BoltIcon className="absolute -right-4 -bottom-4 h-32 w-32 text-white/10" />
+              </div>
+            )}
+
             {lobby.result && lobby.result.submittedBy && !lobby.result.confirmedByOpponent && (
               <div className="w-full bg-brand-50 border border-brand-100 rounded-xl p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
