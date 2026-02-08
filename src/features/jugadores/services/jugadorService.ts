@@ -62,8 +62,22 @@ export class JugadorService {
     return fetchWithAuth<Jugador>(`${this.API_ENDPOINT}/${id}`);
   }
 
-  static async getRadarStats(id: string): Promise<any> {
-    return fetchWithAuth<any>(`${this.API_ENDPOINT}/${id}/radar`);
+  static async getRadarStats(id: string, filters?: { modalidad?: string; categoria?: string }): Promise<any> {
+    const params = new URLSearchParams();
+    if (filters?.modalidad) params.append('modalidad', filters.modalidad);
+    if (filters?.categoria) params.append('categoria', filters.categoria);
+    
+    const url = params.toString() ? `${this.API_ENDPOINT}/${id}/radar?${params}` : `${this.API_ENDPOINT}/${id}/radar`;
+    return fetchWithAuth<any>(url);
+  }
+
+  static async getHistory(id: string, filters?: { modalidad?: string; categoria?: string }): Promise<any[]> {
+    const params = new URLSearchParams();
+    if (filters?.modalidad) params.append('modalidad', filters.modalidad);
+    if (filters?.categoria) params.append('categoria', filters.categoria);
+    
+    const url = params.toString() ? `${this.API_ENDPOINT}/${id}/history?${params}` : `${this.API_ENDPOINT}/${id}/history`;
+    return fetchWithAuth<any[]>(url);
   }
 
   static async getCompetencias(id: string): Promise<any[]> {

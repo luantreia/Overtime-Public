@@ -12,7 +12,8 @@ import { PartidoService } from '../../partidos/services/partidoService';
 import { TablaPosiciones } from '../../../shared/components/TablaPosiciones/TablaPosiciones';
 import { Bracket } from '../../../shared/components/Bracket/Bracket';
 import { PlayerRankedHistoryModal } from '../../competencias/components';
-import { AthleteRadar } from '../components/AthleteRadar';
+import { DashboardMaestro } from '../components/DashboardMaestro';
+import { UnifiedHistory } from '../components/UnifiedHistory';
 import { useAuth } from '../../../app/providers/AuthContext';
 import { useToast } from '../../../shared/components/Toast/ToastProvider';
 import { MapPinIcon } from '@heroicons/react/24/outline';
@@ -29,6 +30,7 @@ const JugadorDetalle: React.FC = () => {
   const [showAllComps, setShowAllComps] = useState(false);
   const [radarData, setRadarData] = useState<any>(null);
   const [loadingRadar, setLoadingRadar] = useState(false);
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'history' | 'leagues'>('dashboard');
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -411,177 +413,51 @@ const JugadorDetalle: React.FC = () => {
               </section>
             </div>
 
-            {/* Radar Section */}
-            <div className="mt-12">
-              <div className="flex items-center gap-3 mb-6">
-                <h2 className="text-xl sm:text-2xl font-black text-slate-900">Radar de Atleta</h2>
-                <div className="h-px flex-1 bg-slate-100"></div>
-                {radarData?.isUnranked ? (
-                  <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest bg-amber-50 px-2 py-1 rounded-md border border-amber-100 animate-pulse">
-                    Jugador no Rankeado
-                  </span>
-                ) : (
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
-                    Stats Globales
-                  </span>
-                )}
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center bg-slate-50/30 rounded-3xl p-6 border border-slate-100 relative overflow-hidden">
-                {radarData?.isUnranked && (
-                  <div className="absolute inset-0 z-10 bg-slate-50/40 backdrop-blur-[2px] flex items-center justify-center p-6">
-                    <div className="max-w-xs text-center">
-                      <div className="mx-auto w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mb-4">
-                        <svg className="w-6 h-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                      </div>
-                      <h3 className="text-lg font-black text-slate-900 mb-2">¡Tu Radar está vacío!</h3>
-                      <p className="text-sm text-slate-600 mb-6">
-                        Todavía no has participado en partidos puntuados. Comienza tu camino a la gloria.
-                      </p>
-                      <div className="flex flex-col gap-2">
-                        <button 
-                          onClick={() => navigate('/competencias')}
-                          className="w-full py-3 bg-brand-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-brand-200 hover:bg-brand-700 transition-all"
-                        >
-                          Inscribirme en una Liga
-                        </button>
-                        <button 
-                          onClick={() => navigate('/plaza')}
-                          className="w-full py-3 bg-white text-slate-700 border border-slate-200 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all"
-                        >
-                          Buscar Partidos de Plaza
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div className="order-2 md:order-1">
-                  <div className="grid grid-cols-2 gap-4">
-                    {[
-                      { label: 'Poder', value: radarData?.power, barClass: 'bg-brand-500' },
-                      { label: 'Resistencia', value: radarData?.stamina, barClass: 'bg-blue-500' },
-                      { label: 'Precisión', value: radarData?.precision, barClass: 'bg-indigo-500' },
-                      { label: 'Consistencia', value: radarData?.consistency, barClass: 'bg-violet-500' },
-                      { label: 'Versatilidad', value: radarData?.versatility, barClass: 'bg-purple-500' },
-                    ].map((stat, i) => (
-                      <div key={i} className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{stat.label}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                            <div 
-                              className={`h-full ${stat.barClass} transition-all duration-1000`} 
-                              style={{ width: `${stat.value || 0}%` }}
-                            ></div>
-                          </div>
-                          <span className="text-xs font-black text-slate-700 w-6 text-right">{stat.value || 0}</span>
-                        </div>
-                      </div>
-                    ))}
-                    <div className="bg-brand-600 p-3 rounded-xl border border-brand-500 shadow-sm flex flex-col justify-center">
-                      <p className="text-[10px] font-bold text-brand-100 uppercase tracking-wider">ELO Maestro</p>
-                      <p className="text-xl font-black text-white leading-none mt-1">
-                        {radarData?.isUnranked ? 0 : (
-                          typeof radarData?.elo === 'number' 
-                            ? radarData.elo.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 1 })
-                            : (radarData?.elo || 1500)
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                  <p className="mt-4 text-[10px] text-slate-400 italic">
-                    * El radar se basa en el desempeño histórico en competencias verificadas y partidos de plaza.
-                  </p>
-                </div>
-                
-                <div className="order-1 md:order-2 flex justify-center h-full min-h-[256px]">
-                  {radarData ? (
-                    <AthleteRadar data={radarData} loading={loadingRadar} />
-                  ) : (
-                    <div className="h-64 w-full flex items-center justify-center text-slate-400 text-xs italic">
-                      No hay suficientes datos para el radar
-                    </div>
-                  )}
-                </div>
-              </div>
+            {/* Navigation Tabs */}
+            <div className="flex items-center gap-1 p-1 bg-slate-100/50 rounded-2xl w-full sm:w-fit mt-8 mb-8 border border-slate-100">
+               <button 
+                onClick={() => setActiveTab('dashboard')}
+                className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                  activeTab === 'dashboard' ? 'bg-white text-brand-700 shadow-sm shadow-brand-100 ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700'
+                }`}
+               >
+                 Dashboard
+               </button>
+               <button 
+                onClick={() => setActiveTab('history')}
+                className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                  activeTab === 'history' ? 'bg-white text-brand-700 shadow-sm shadow-brand-100 ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700'
+                }`}
+               >
+                 Historial
+               </button>
+               <button 
+                onClick={() => setActiveTab('leagues')}
+                className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                  activeTab === 'leagues' ? 'bg-white text-brand-700 shadow-sm shadow-brand-100 ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700'
+                }`}
+               >
+                 Ligas / Torneos
+               </button>
             </div>
 
-            {/* Reputación y Plaza Section */}
-            <div className="mt-8">
-              <div className="flex items-center gap-3 mb-4">
-                <h2 className="text-xl font-black text-slate-900 leading-tight">Reputación y Plaza</h2>
-                <div className="h-px flex-1 bg-slate-100"></div>
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* Karma Card */}
-                <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                  <div className="h-12 w-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-500">
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2l2.4 7.2h7.6l-6 4.8 2.4 7.2-6-4.8-6 4.8 2.4-7.2-6-4.8h7.6z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Karma</p>
-                    <p className="text-xl font-black text-slate-900 leading-none">
-                      {loadingRadar ? '...' : (radarData?.karma || 0)}
-                    </p>
-                  </div>
-                </div>
+            {/* TAB CONTENT: DASHBOARD */}
+            {activeTab === 'dashboard' && (
+              <DashboardMaestro jugadorId={id!} jugador={jugador} />
+            )}
 
-                {/* Plaza Matches Card */}
-                <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                  <div className="h-12 w-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-500">
-                    <MapPinIcon className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Partidos Plaza</p>
-                    <p className="text-xl font-black text-slate-900 leading-none">
-                      {loadingRadar ? '...' : (radarData?.plazaMatches || 0)}
-                    </p>
-                  </div>
-                </div>
+            {/* TAB CONTENT: HISTORY */}
+            {activeTab === 'history' && (
+              <UnifiedHistory jugadorId={id!} />
+            )}
 
-                {/* Conducta Card */}
-                <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                  <div className="h-12 w-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-500">
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Conducta</p>
-                    <p className="text-xl font-black text-emerald-600 leading-none uppercase">
-                      {radarData?.karma < 0 ? 'Pobre' : (radarData?.karma > 100 ? 'Ejemplar' : 'Muy Buena')}
-                    </p>
-                  </div>
+            {/* TAB CONTENT: COMPETENCIAS (Original View) */}
+            {activeTab === 'leagues' && (
+              <div className="mt-4">
+                <div className="flex items-center gap-3 mb-6">
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 uppercase tracking-tight">Participación en Ligas</h2>
+                  <div className="h-px flex-1 bg-slate-100"></div>
                 </div>
-
-                {/* Verificación Card */}
-                <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                  <div className="h-12 w-12 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400">
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Certificación</p>
-                    <p className="text-xl font-black text-slate-900 leading-none">
-                      {jugador.perfilReclamado ? 'Atleta' : 'Aspirante'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Competencias Section */}
-            <div className="mt-12">
-              <div className="flex items-center gap-3 mb-6">
-                <h2 className="text-xl sm:text-2xl font-black text-slate-900">Participación</h2>
-                <div className="h-px flex-1 bg-slate-100"></div>
-              </div>
               
               {loadingComps ? (
                 <div className="flex justify-center py-12">
@@ -785,7 +661,8 @@ const JugadorDetalle: React.FC = () => {
                   )}
                 </div>
               )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
