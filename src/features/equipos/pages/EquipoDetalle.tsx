@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEntity } from '../../../shared/hooks';
 import { EquipoService, type Equipo } from '../services/equipoService';
@@ -6,6 +6,7 @@ import { EquipoService, type Equipo } from '../services/equipoService';
 const EquipoDetalle: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<'actual' | 'historial'>('actual');
 
   const { data: equipo, loading, error } = useEntity<Equipo>(
     useCallback(() => {
@@ -13,6 +14,26 @@ const EquipoDetalle: React.FC = () => {
       return EquipoService.getById(id);
     }, [id])
   );
+
+  const { jugadoresActivos, jugadoresHistorial } = useMemo(() => {
+    if (!equipo?.jugadoresEquipos) return { jugadoresActivos: [], jugadoresHistorial: [] };
+
+    const hoy = new Date();
+    
+    const activos = equipo.jugadoresEquipos.filter(je => {
+      if (je.estado !== 'aceptado') return false;
+      if (!je.hasta) return true;
+      return new Date(je.hasta) >= hoy;
+    });
+
+    const historial = equipo.jugadoresEquipos.filter(je => {
+      if (je.estado === 'baja') return true;
+      if (je.estado === 'aceptado' && je.hasta && new Date(je.hasta) < hoy) return true;
+      return false;
+    });
+
+    return { jugadoresActivos: activos, jugadoresHistorial: historial };
+  }, [equipo]);
 
   if (loading) {
     return (
@@ -105,7 +126,7 @@ const EquipoDetalle: React.FC = () => {
               </div>
               <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 text-center">
                 <div className="text-2xl font-bold text-slate-900">{equipo.equipopartido?.length || 0}</div>
-                <div className="text-sm text-slate-500">Partidos Jugados</div>
+                <div className="text-sm text-slate-500">Partidos Registrados</div>
               </div>
             </div>
 
@@ -133,21 +154,97 @@ const EquipoDetalle: React.FC = () => {
               </section>
 
               <section>
-                <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
-                   <span className="h-8 w-1 bg-indigo-600 rounded-full"></span>
-                   Plantel y Actividad
-                </h2>
-                <div className="bg-slate-50 rounded-2xl p-12 border border-slate-100 text-center">
-                  <div className="mx-auto h-12 w-12 text-slate-300 mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.998 5.998 0 00-12 0m12 0c0-1.657-1.343-3-3-3m-3 3c0-1.657-1.343-3-3-3m-3 3c0-1.657-1.343-3-3-3m-3 3a5.998 5.998 0 0112 0" />
-                    </svg>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                    <span className="h-8 w-1 bg-indigo-600 rounded-full"></span>
+                    Plantel
+                  </h2>
+                  <div className="flex bg-slate-100 p-1 rounded-lg">
+                    <button
+                      onClick={() => setActiveTab('actual')}
+                      className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
+                        activeTab === 'actual' 
+                          ? 'bg-white text-indigo-600 shadow-sm' 
+                          : 'text-slate-500 hover:text-slate-700'
+                      }`}
+                    >
+                      Actual
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('historial')}
+                      className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
+                        activeTab === 'historial' 
+                          ? 'bg-white text-indigo-600 shadow-sm' 
+                          : 'text-slate-500 hover:text-slate-700'
+                      }`}
+                    >
+                      Historial
+                    </button>
                   </div>
-                  <h3 className="text-lg font-medium text-slate-900">Historial no disponible</h3>
-                  <p className="text-sm text-slate-500 max-w-sm mx-auto mt-2">
-                    Próximamente podrás ver la lista de jugadores activos, próximos partidos y trofeos ganados por este equipo.
-                  </p>
                 </div>
+
+                {activeTab === 'actual' ? (
+                  jugadoresActivos.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {jugadoresActivos.map((je: any) => (
+                        <div key={je.id || je._id} className="flex items-center gap-4 p-4 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-indigo-200 transition-colors">
+                          <div className="h-12 w-12 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden border border-slate-100">
+                            {je.jugador?.foto ? (
+                              <img src={je.jugador.foto} alt={je.jugador.nombre} className="h-full w-full object-cover" />
+                            ) : (
+                              <span className="text-xl font-bold text-slate-300">{je.jugador?.nombre?.charAt(0) || '?'}</span>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-bold text-slate-900 truncate">{je.jugador?.nombre}</div>
+                            <div className="text-xs text-slate-500 flex items-center gap-2">
+                              {je.numeroCamiseta && (
+                                <span className="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700">#{je.numeroCamiseta}</span>
+                              )}
+                              <span className="capitalize">{je.rol || 'Jugador'}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="bg-slate-50 rounded-2xl p-12 border border-slate-100 text-center">
+                      <div className="mx-auto h-12 w-12 text-slate-300 mb-4 text-center flex justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.998 5.998 0 00-12 0m12 0c0-1.657-1.343-3-3-3m-3 3c0-1.657-1.343-3-3-3m-3 3c0-1.657-1.343-3-3-3m-3 3a5.998 5.998 0 0112 0" />
+                        </svg>
+                      </div>
+                      <h3 className="text-lg font-medium text-slate-900">Sin jugadores activos</h3>
+                      <p className="text-sm text-slate-500 mt-2">No se encontraron jugadores con contrato vigente en este equipo.</p>
+                    </div>
+                  )
+                ) : (
+                  jugadoresHistorial.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {jugadoresHistorial.map((je: any) => (
+                        <div key={je.id || je._id} className="flex items-center gap-4 p-4 bg-white border border-slate-200 rounded-xl shadow-sm opacity-75">
+                          <div className="h-12 w-12 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden grayscale">
+                            {je.jugador?.foto ? (
+                              <img src={je.jugador.foto} alt={je.jugador.nombre} className="h-full w-full object-cover" />
+                            ) : (
+                              <span className="text-xl font-bold text-slate-300">{je.jugador?.nombre?.charAt(0) || '?'}</span>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-bold text-slate-900 truncate">{je.jugador?.nombre}</div>
+                            <div className="text-xs text-slate-500">
+                              {je.hasta ? `Hasta: ${new Date(je.hasta).toLocaleDateString()}` : 'Contrato finalizado'}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="bg-slate-50 rounded-2xl p-12 border border-slate-100 text-center">
+                      <p className="text-slate-500">No hay historial de antiguos jugadores disponible.</p>
+                    </div>
+                  )
+                )}
               </section>
             </div>
           </div>

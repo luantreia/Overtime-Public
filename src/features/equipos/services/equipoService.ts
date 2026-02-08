@@ -19,6 +19,7 @@ export interface Equipo {
   partidosJugados?: number;
   participaciontemporadas?: any[];
   equipopartido?: any[];
+  jugadoresEquipos?: any[];
   [key: string]: any;
 }
 
@@ -77,18 +78,21 @@ export class EquipoService {
     // Si el backend no devuelve estas relaciones, las pedimos por separado
     if (equipo && (!equipo.participaciontemporadas || !equipo.equipopartido)) {
       try {
-        const [participaciones, partidos] = await Promise.all([
+        const [participaciones, partidos, jugadores] = await Promise.all([
           fetchWithAuth<any[]>(`/participacion-temporada?equipo=${id}`, { useAuth: false }),
-          fetchWithAuth<any[]>(`/equipo-partido?equipo=${id}`, { useAuth: false })
+          fetchWithAuth<any[]>(`/equipo-partido?equipo=${id}`, { useAuth: false }),
+          fetchWithAuth<any[]>(`/jugadores-equipos?equipo=${id}`, { useAuth: false })
         ]);
         
         equipo.participaciontemporadas = Array.isArray(participaciones) ? participaciones : [];
         equipo.equipopartido = Array.isArray(partidos) ? partidos : [];
+        equipo.jugadoresEquipos = Array.isArray(jugadores) ? jugadores : [];
       } catch (error) {
         console.error('Error fetching extra team stats:', error);
-        // Inicializamos como vacíos si fallan los estadísticos
+        // Inicializamos como vacíos si fallun los estadísticos
         equipo.participaciontemporadas = equipo.participaciontemporadas || [];
         equipo.equipopartido = equipo.equipopartido || [];
+        equipo.jugadoresEquipos = equipo.jugadoresEquipos || [];
       }
     }
     
