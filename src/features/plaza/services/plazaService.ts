@@ -91,6 +91,13 @@ export class PlazaService {
     });
   }
 
+  static async submitRatings(lobbyId: string, ratings: any[]): Promise<any> {
+    return fetchWithAuth(`${this.API_ENDPOINT}/lobbies/${lobbyId}/rate`, {
+      method: 'POST',
+      body: { ratings },
+    });
+  }
+
   static async requestCancel(lobbyId: string): Promise<any> {
     return fetchWithAuth(`${this.API_ENDPOINT}/lobbies/${lobbyId}/cancel-request`, {
       method: 'POST',

@@ -21,6 +21,7 @@ const PlazaLobby: React.FC = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [userUid, setUserUid] = useState<string | null>(null);
   const [hasProfile, setHasProfile] = useState<boolean>(true);
+  const [ratingData, setRatingData] = useState<Record<string, string>>({});
 
   const fetchLobby = useCallback(async () => {
     if (!id) return;
@@ -106,6 +107,30 @@ const PlazaLobby: React.FC = () => {
       },
       { enableHighAccuracy: true }
     );
+  };
+
+  const handleRate = async () => {
+    if (!id || !lobby) return;
+    const ratings = Object.entries(ratingData).map(([playerId, type]) => ({
+      playerId,
+      type
+    }));
+    
+    if (ratings.length === 0) {
+      alert("Por favor califica al menos a un jugador.");
+      return;
+    }
+
+    setActionLoading(true);
+    try {
+      await PlazaService.submitRatings(id, ratings);
+      alert("¡Gracias por tu feedback! Tu karma ayuda a mantener una comunidad sana.");
+      await fetchLobby();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const handleBalance = async () => {
@@ -537,6 +562,65 @@ const PlazaLobby: React.FC = () => {
         </div>
       </div>
     </div>
+
+      {/* Sistema de Karma 2.0: Votación Post-partido */}
+      {lobby.status === 'finished' && !lobby.votedUsers?.includes(userUid || '') && isJoined && (
+        <div className="bg-white rounded-2xl border-2 border-brand-100 shadow-xl p-6 mb-6 overflow-hidden relative">
+          <div className="absolute top-0 right-0 p-4 opacity-10">
+            <StarIcon className="h-24 w-24 text-brand-500" />
+          </div>
+          <h2 className="text-xl font-bold text-slate-900 mb-2">¡Califica la conducta!</h2>
+          <p className="text-sm text-slate-500 mb-6">Tu voto ayuda a mantener una comunidad sana y justa.</p>
+          
+          <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+            {lobby.players.filter(p => p.player._id !== (hasProfile ? userUid : '') && p.userUid !== userUid).map(p => (
+              <div key={p.userUid} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100 gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold overflow-hidden border border-slate-200">
+                    {p.player.foto ? <img src={p.player.foto} alt="foto" className="h-full w-full object-cover" /> : (p.player.alias?.[0] || p.player.nombre?.[0])}
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold text-slate-800">{p.player.alias || p.player.nombre}</div>
+                    <div className="text-[10px] text-slate-400 uppercase tracking-tighter">Equipo {p.team}</div>
+                  </div>
+                </div>
+                
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { id: 'positive', label: '👍 Bien', colorClass: 'hover:border-green-400 hover:bg-green-50', activeClass: 'bg-green-600 text-white' },
+                    { id: 'fair-play', label: '🤝 Pro', colorClass: 'hover:border-blue-400 hover:bg-blue-50', activeClass: 'bg-blue-600 text-white' },
+                    { id: 'mvp', label: '⭐ MVP', colorClass: 'hover:border-yellow-400 hover:bg-yellow-50', activeClass: 'bg-yellow-600 text-white' },
+                    { id: 'negative', label: '👎 Mal', colorClass: 'hover:border-red-400 hover:bg-red-50', activeClass: 'bg-red-600 text-white' },
+                    { id: 'no-show', label: '🚫 AFK', colorClass: 'hover:border-slate-400 hover:bg-slate-50', activeClass: 'bg-slate-700 text-white' }
+                  ].map(btn => (
+                    <button
+                      key={btn.id}
+                      onClick={() => setRatingData(prev => ({ ...prev, [p.player._id]: btn.id }))}
+                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all border ${
+                        ratingData[p.player._id] === btn.id 
+                          ? btn.activeClass
+                          : `bg-white text-slate-600 border-slate-200 ${btn.colorClass}`
+                      }`}
+                    >
+                      {btn.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="mt-8 flex justify-end">
+             <button 
+               onClick={handleRate}
+               disabled={actionLoading}
+               className="bg-brand-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-brand-100 hover:bg-brand-700 transition-all disabled:opacity-50"
+             >
+               {actionLoading ? 'Enviando...' : 'Enviar Calificaciones'}
+             </button>
+          </div>
+        </div>
+      )}
 
       <div className="grid md:grid-cols-2 gap-6">
         <TeamBox title="Equipo A (Rojo)" players={teamA} color="red" />

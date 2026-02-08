@@ -71,4 +71,5 @@ export interface Lobby {
     hostRequested: boolean;
     rivalConfirmed: boolean;
   };
+  votedUsers: string[];
 }
