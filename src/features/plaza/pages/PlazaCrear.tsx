@@ -1,10 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PlazaService } from '../services/plazaService';
+import { useAuth } from '../../../app/providers/AuthContext';
+import { LoadingSpinner } from '../../../shared/components/LoadingSpinner';
 
 const PlazaCrear: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [checkingProfile, setCheckingProfile] = useState(true);
+  const [hasProfile, setHasProfile] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     address: '',
@@ -15,6 +20,42 @@ const PlazaCrear: React.FC = () => {
     requireOfficial: false,
     genderPolicy: 'open'
   });
+
+  useEffect(() => {
+    const checkProfile = async () => {
+      try {
+        const profile = await PlazaService.getMyProfile();
+        setHasProfile(!!profile);
+      } catch (err) {
+        setHasProfile(false);
+      } finally {
+        setCheckingProfile(false);
+      }
+    };
+    checkProfile();
+  }, []);
+
+  if (checkingProfile) return <LoadingSpinner />;
+
+  if (!hasProfile) {
+    return (
+      <div className="max-w-xl mx-auto py-12 text-center space-y-4">
+        <div className="bg-orange-50 border border-orange-200 rounded-2xl p-8">
+          <div className="text-4xl mb-4">🛡️</div>
+          <h2 className="text-xl font-bold text-orange-900">Perfil de Atleta Requerido</h2>
+          <p className="text-orange-800 mb-6">
+            Para crear partidos en La Plaza, necesitas tener un perfil vinculado a tu cuenta.
+          </p>
+          <button 
+            onClick={() => navigate('/jugadores')}
+            className="bg-orange-600 text-white font-bold py-3 px-8 rounded-xl hover:bg-orange-700 transition-all shadow-lg"
+          >
+            Buscar y Reclamar mi Perfil
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

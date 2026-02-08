@@ -113,12 +113,22 @@ const PlazaExplorar: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-2 text-slate-900 font-medium">
                     <UsersIcon className="h-4 w-4 shrink-0" />
-                    <span>{lobby.players.length} / {lobby.maxPlayers} Jugadores</span>
+                    <div className="flex items-center gap-2">
+                      <span>{lobby.players.length} / {lobby.maxPlayers} Jugadores</span>
+                      {lobby.genderPolicy && lobby.genderPolicy !== 'mixed' && (
+                        <span className="px-1.5 py-0.5 text-[10px] bg-indigo-50 text-indigo-700 rounded border border-indigo-100 uppercase font-bold">
+                          {lobby.genderPolicy === 'male' ? '♂ Solo Hombres' : '♀ Solo Mujeres'}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  {lobby.officials.length > 0 && (
+                  {(lobby.officials.length > 0 || lobby.requireOfficial) && (
                     <div className="flex items-center gap-2 text-brand-700">
                       <TrophyIcon className="h-4 w-4 shrink-0" />
-                      <span>Oficiales Presentes (+50% Ranking)</span>
+                      <span className="flex items-center gap-1">
+                        {lobby.officials.length > 0 ? 'Con Oficiales (+50% Ranking)' : 'Requiere Oficial'}
+                        {!lobby.officials.length && lobby.requireOfficial && <span className="animate-pulse">⚠️</span>}
+                      </span>
                     </div>
                   )}
                 </div>

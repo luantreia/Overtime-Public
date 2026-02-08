@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { getSolicitudesEdicion } from '../services/solicitudesEdicionService';
+import { getSolicitudesEdicion, cancelarSolicitudEdicion } from '../services/solicitudesEdicionService';
 import { useToast } from '../../../shared/components/Toast/ToastProvider';
 import { useAuth } from '../../../app/providers/AuthContext';
 import type { 
@@ -24,6 +24,7 @@ const tipoLabels: Partial<Record<SolicitudEdicionTipo, string>> = {
   'usuario-solicitar-admin-jugador': 'Solicitar Admin de Jugador',
   'usuario-solicitar-admin-equipo': 'Solicitar Admin de Equipo',
   'usuario-solicitar-admin-organizacion': 'Solicitar Admin de Organización',
+  'jugador-claim': 'Reclamar Perfil de Jugador',
   'jugador-equipo-crear': 'Contrato Jugador-Equipo (crear)',
   'jugador-equipo-eliminar': 'Contrato Jugador-Equipo (eliminar)',
   'jugador-equipo-editar': 'Contrato Jugador-Equipo (editar)',
@@ -113,6 +114,26 @@ export default function SolicitudesPage() {
 
   const toggleExpand = (id: string) => {
     setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const handleCancel = async (id: string) => {
+    if (!window.confirm('¿Estás seguro de que deseas cancelar esta solicitud?')) return;
+
+    try {
+      await cancelarSolicitudEdicion(id);
+      addToast({
+        title: 'Éxito',
+        message: 'Solicitud cancelada correctamente',
+        type: 'success',
+      });
+      cargar(); // Recargar lista
+    } catch (e: any) {
+      addToast({
+        title: 'Error',
+        message: e.message,
+        type: 'error',
+      });
+    }
   };
 
   const estadoStats = {
@@ -250,15 +271,26 @@ export default function SolicitudesPage() {
                         {formatDate(solicitud.createdAt)}
                       </td>
                       <td className="px-4 py-3 text-sm">
-                        <button
-                          onClick={() => toggleExpand(solicitud._id)}
-                          className="inline-flex items-center gap-1 rounded bg-gray-100 px-2 py-1 text-gray-700 hover:bg-gray-200"
-                        >
-                          <ChevronDownIcon 
-                            className={`h-4 w-4 transform transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-                          />
-                          Detalles
-                        </button>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => toggleExpand(solicitud._id)}
+                            className="inline-flex items-center gap-1 rounded bg-gray-100 px-2 py-1 text-gray-700 hover:bg-gray-200"
+                          >
+                            <ChevronDownIcon 
+                              className={`h-4 w-4 transform transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                            />
+                            Detalles
+                          </button>
+                          {solicitud.estado === 'pendiente' && (
+                            <button
+                              onClick={() => handleCancel(solicitud._id)}
+                              className="inline-flex items-center gap-1 rounded bg-red-100 px-2 py-1 text-red-700 hover:bg-red-200"
+                            >
+                              <XCircleIcon className="h-4 w-4" />
+                              Cancelar
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                     {isExpanded && (

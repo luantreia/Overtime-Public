@@ -7,6 +7,7 @@ export type SolicitudEdicionTipo =
   | 'usuario-solicitar-admin-jugador' 
   | 'usuario-solicitar-admin-equipo' 
   | 'usuario-solicitar-admin-organizacion'
+  | 'jugador-claim'
   | 'jugador-equipo-crear'
   | 'jugador-equipo-eliminar'
   | 'jugador-equipo-editar'

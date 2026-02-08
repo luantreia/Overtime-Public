@@ -58,20 +58,6 @@ const PlazaLobby: React.FC = () => {
     return () => clearInterval(interval);
   }, [fetchLobby]);
 
-  const handleQuickCreate = async () => {
-    if (!userName) return;
-    try {
-      setActionLoading(true);
-      await PlazaService.quickCreateProfile(userName);
-      setHasProfile(true);
-      await fetchLobby();
-    } catch (err: any) {
-      alert(err.message);
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
   const handleJoin = async (team: 'A' | 'B' | 'none' = 'none') => {
     if (!id) return;
     try {
@@ -245,31 +231,24 @@ const PlazaLobby: React.FC = () => {
                     <ExclamationCircleIcon className="h-6 w-6 text-orange-600" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="text-sm font-black text-orange-900 uppercase tracking-wider">Perfil de Atleta no detectado</h4>
+                    <h4 className="text-sm font-black text-orange-900 uppercase tracking-wider">Perfil de Atleta Requerido</h4>
                     <p className="mt-1 text-sm text-orange-800 leading-relaxed">
-                      Para participar en La Plaza, necesitas vincular un perfil de jugador. 
-                      ¿Ya has jugado antes en Overtime o eres nuevo?
+                      Para participar en La Plaza, necesitas tener un perfil de jugador vinculado. 
+                      Si ya has jugado antes, búscalo y reclámalo para continuar.
                     </p>
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="flex flex-col gap-3">
                   <button 
                     onClick={() => navigate('/jugadores')}
-                    className="flex items-center justify-center gap-2 bg-white border-2 border-orange-200 text-orange-700 font-bold py-3 px-4 rounded-xl hover:bg-orange-100 transition-all text-sm shadow-sm"
-                  >
-                    🔍 Buscar mi perfil existente
-                  </button>
-                  <button 
-                    onClick={handleQuickCreate}
-                    disabled={actionLoading}
                     className="flex items-center justify-center gap-2 bg-orange-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-orange-700 transition-all shadow-lg shadow-orange-100 text-sm"
                   >
-                    ✨ Crear perfil nuevo (Desde cero)
+                    🔍 Buscar y Reclamar mi Perfil
                   </button>
                 </div>
                 <p className="text-[10px] text-orange-600 italic text-center">
-                  * Si ya existes en el sistema, búscate y reclama tu perfil para heredar tus estadísticas actuales.
+                  * Si no encuentras tu perfil, contacta con las ligas oficiales para que se te asigne uno.
                 </p>
               </div>
             )}
@@ -375,12 +354,17 @@ const PlazaLobby: React.FC = () => {
         <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
           <div className="px-4 py-2 text-sm font-bold border-b bg-slate-50 text-slate-700">Oficiales ({lobby.officials.length})</div>
           <div className="divide-y divide-slate-100">
-            {lobby.officials.map((o, i) => (
-              <div key={i} className="px-4 py-3 flex justify-between items-center">
-                <span className="text-sm font-medium">{o.type.toUpperCase()}: {o.userUid === userUid ? 'Tú' : 'Oficial'}</span>
-                {o.confirmed ? <ShieldCheckIcon className="h-5 w-5 text-green-500" /> : <ClockIcon className="h-5 w-5 text-slate-300" />}
-              </div>
-            ))}
+            {lobby.officials.map((o, i) => {
+              const name = typeof o.player === 'object' ? (o.player.alias || o.player.nombre) : 'Oficial';
+              return (
+                <div key={i} className="px-4 py-3 flex justify-between items-center">
+                  <span className="text-sm font-medium">
+                    {o.type.toUpperCase()}: {o.userUid === userUid ? 'Tú' : name}
+                  </span>
+                  {o.confirmed ? <ShieldCheckIcon className="h-5 w-5 text-green-500" /> : <ClockIcon className="h-5 w-5 text-slate-300" />}
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

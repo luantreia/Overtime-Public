@@ -149,6 +149,23 @@ export const actualizarSolicitudEdicion = async (
 };
 
 /**
+ * Cancela una solicitud de edición pendiente
+ * @param id ID de la solicitud
+ */
+export const cancelarSolicitudEdicion = async (id: string): Promise<void> => {
+  try {
+    await authFetch(`/solicitudes-edicion/${id}`, {
+      method: 'DELETE',
+    });
+  } catch (error: any) {
+    if (error.status === 403) {
+      throw new SolicitudPermissionError('No tienes permiso para cancelar esta solicitud o ya no está pendiente');
+    }
+    throw new Error(`Error al cancelar solicitud: ${error.message}`);
+  }
+};
+
+/**
  * Cancela una solicitud de edición
  * @param id ID de la solicitud a cancelar
  * @returns Mensaje de confirmación
