@@ -175,6 +175,10 @@ const PlazaLobby: React.FC = () => {
   const teamB = lobby.players.filter(p => p.team === 'B');
   const unassigned = lobby.players.filter(p => p.team === 'none');
 
+  const confirmedA = teamA.filter(p => p.confirmed);
+  const confirmedB = teamB.filter(p => p.confirmed);
+  const canStart = confirmedA.length >= 1 && confirmedB.length >= 1;
+
   const PlayerSlot = ({ player, index }: { player?: any, index: number }) => (
     <div className="px-4 py-3 flex items-center justify-between">
       <div className="flex items-center gap-3">
@@ -353,10 +357,14 @@ const PlazaLobby: React.FC = () => {
             {isHost && (lobby.status === 'open' || lobby.status === 'full') && teamA.length > 0 && teamB.length > 0 && (
               <button 
                 onClick={handleStart}
-                disabled={actionLoading}
-                className="flex-1 min-w-[200px] bg-brand-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-brand-700 transition-all disabled:opacity-50"
+                disabled={actionLoading || !canStart}
+                className={`flex-1 min-w-[200px] font-bold py-3 px-6 rounded-xl transition-all disabled:opacity-50 ${
+                  canStart 
+                    ? 'bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-100' 
+                    : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                }`}
               >
-                EMPEZAR PARTIDO
+                {canStart ? 'EMPEZAR PARTIDO' : 'FALTA CHECK-IN RIVAL'}
               </button>
             )}
 
