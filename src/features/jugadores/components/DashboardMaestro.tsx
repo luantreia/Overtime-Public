@@ -203,8 +203,12 @@ export const DashboardMaestro: React.FC<DashboardMaestroProps> = ({ jugadorId, j
                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</span>
                         <InformationCircleIcon 
                           className="h-3 w-3 text-slate-300 cursor-help hover:text-brand-500 transition-colors" 
-                          title={stat.desc}
                         />
+                        {/* Custom Tooltip */}
+                        <div className="absolute bottom-full left-0 mb-2 w-56 p-2.5 bg-slate-900/95 text-[10px] leading-relaxed text-slate-200 rounded-xl shadow-2xl opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible transition-all z-50 pointer-events-none border border-slate-700 backdrop-blur-sm">
+                          {stat.desc}
+                          <div className="absolute top-full left-4 border-4 border-transparent border-t-slate-900" />
+                        </div>
                       </div>
                       <span className="text-xs font-black text-slate-700">{stat.value || 0}%</span>
                     </div>
