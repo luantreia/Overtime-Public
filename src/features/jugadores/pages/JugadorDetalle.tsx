@@ -416,18 +416,18 @@ const JugadorDetalle: React.FC = () => {
                 <div className="order-2 md:order-1">
                   <div className="grid grid-cols-2 gap-4">
                     {[
-                      { label: 'Poder', value: radarData?.power, color: 'brand' },
-                      { label: 'Resistencia', value: radarData?.stamina, color: 'blue' },
-                      { label: 'Precisión', value: radarData?.precision, color: 'indigo' },
-                      { label: 'Consistencia', value: radarData?.consistency, color: 'violet' },
-                      { label: 'Versatilidad', value: radarData?.versatility, color: 'purple' },
+                      { label: 'Poder', value: radarData?.power, barClass: 'bg-brand-500' },
+                      { label: 'Resistencia', value: radarData?.stamina, barClass: 'bg-blue-500' },
+                      { label: 'Precisión', value: radarData?.precision, barClass: 'bg-indigo-500' },
+                      { label: 'Consistencia', value: radarData?.consistency, barClass: 'bg-violet-500' },
+                      { label: 'Versatilidad', value: radarData?.versatility, barClass: 'bg-purple-500' },
                     ].map((stat, i) => (
                       <div key={i} className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{stat.label}</p>
                         <div className="flex items-center gap-2 mt-1">
                           <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                             <div 
-                              className={`h-full bg-${stat.color}-500 transition-all duration-1000`} 
+                              className={`h-full ${stat.barClass} transition-all duration-1000`} 
                               style={{ width: `${stat.value || 0}%` }}
                             ></div>
                           </div>
@@ -438,7 +438,11 @@ const JugadorDetalle: React.FC = () => {
                     <div className="bg-brand-600 p-3 rounded-xl border border-brand-500 shadow-sm flex flex-col justify-center">
                       <p className="text-[10px] font-bold text-brand-100 uppercase tracking-wider">ELO Maestro</p>
                       <p className="text-xl font-black text-white leading-none mt-1">
-                        {radarData?.isUnranked ? 0 : (radarData?.elo || 1500)}
+                        {radarData?.isUnranked ? 0 : (
+                          typeof radarData?.elo === 'number' 
+                            ? radarData.elo.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 1 })
+                            : (radarData?.elo || 1500)
+                        )}
                       </p>
                     </div>
                   </div>
