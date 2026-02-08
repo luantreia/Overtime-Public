@@ -15,6 +15,7 @@ import { PlayerRankedHistoryModal } from '../../competencias/components';
 import { AthleteRadar } from '../components/AthleteRadar';
 import { useAuth } from '../../../app/providers/AuthContext';
 import { useToast } from '../../../shared/components/Toast/ToastProvider';
+import { MapPinIcon } from '@heroicons/react/24/outline';
 
 const JugadorDetalle: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -503,6 +504,74 @@ const JugadorDetalle: React.FC = () => {
                       No hay suficientes datos para el radar
                     </div>
                   )}
+                </div>
+              </div>
+            </div>
+
+            {/* Reputación y Plaza Section */}
+            <div className="mt-8">
+              <div className="flex items-center gap-3 mb-4">
+                <h2 className="text-xl font-black text-slate-900 leading-tight">Reputación y Plaza</h2>
+                <div className="h-px flex-1 bg-slate-100"></div>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Karma Card */}
+                <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                  <div className="h-12 w-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-500">
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2l2.4 7.2h7.6l-6 4.8 2.4 7.2-6-4.8-6 4.8 2.4-7.2-6-4.8h7.6z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Karma</p>
+                    <p className="text-xl font-black text-slate-900 leading-none">
+                      {loadingRadar ? '...' : (radarData?.karma || 0)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Plaza Matches Card */}
+                <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                  <div className="h-12 w-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-500">
+                    <MapPinIcon className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Partidos Plaza</p>
+                    <p className="text-xl font-black text-slate-900 leading-none">
+                      {loadingRadar ? '...' : (radarData?.plazaMatches || 0)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Conducta Card */}
+                <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                  <div className="h-12 w-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-500">
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Conducta</p>
+                    <p className="text-xl font-black text-emerald-600 leading-none uppercase">
+                      {radarData?.karma < 0 ? 'Pobre' : (radarData?.karma > 100 ? 'Ejemplar' : 'Muy Buena')}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Verificación Card */}
+                <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                  <div className="h-12 w-12 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400">
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Certificación</p>
+                    <p className="text-xl font-black text-slate-900 leading-none">
+                      {jugador.perfilReclamado ? 'Atleta' : 'Aspirante'}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

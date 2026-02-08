@@ -1,25 +1,45 @@
 import React, { useEffect, useState } from 'react';
 import { PlazaService } from '../services/plazaService';
 import { Lobby } from '../types';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { LoadingSpinner } from '../../../shared/components/LoadingSpinner';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
-import { MapPinIcon, CalendarIcon, UsersIcon, TrophyIcon } from '@heroicons/react/24/outline';
+import { MapPinIcon, CalendarIcon, UsersIcon, TrophyIcon, ListBulletIcon, MapIcon } from '@heroicons/react/24/outline';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+// Fix for default marker icon in leaflet
+// @ts-ignore
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 const PlazaExplorar: React.FC = () => {
+  const navigate = useNavigate();
   const [lobbies, setLobbies] = useState<Lobby[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
 
   useEffect(() => {
     // Attempt to get user location for better results
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-        () => console.log('Location access denied'),
+        () => {
+          console.log('Location access denied');
+          // Default to a central point if denied
+          setLocation({ lat: -34.6037, lng: -58.3816 });
+        },
         { timeout: 10000 }
       );
+    } else {
+      setLocation({ lat: -34.6037, lng: -58.3816 });
     }
   }, []);
 
@@ -40,7 +60,9 @@ const PlazaExplorar: React.FC = () => {
       }
     };
 
-    fetchLobbies();
+    if (location) {
+      fetchLobbies();
+    }
   }, [location]);
 
   if (loading) return <LoadingSpinner />;
@@ -57,12 +79,33 @@ const PlazaExplorar: React.FC = () => {
           <p className="text-slate-600 mt-1">Crea o únete a partidos rankeados en tu zona.</p>
         </div>
         
-        <Link 
-          to="/plaza/crear"
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
-        >
-          Crear Nuevo Lobby
-        </Link>
+        <div className="flex items-center gap-3">
+          <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+            <button 
+              onClick={() => setViewMode('list')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                viewMode === 'list' ? 'bg-white text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <ListBulletIcon className="h-4 w-4" /> Lista
+            </button>
+            <button 
+              onClick={() => setViewMode('map')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                viewMode === 'map' ? 'bg-white text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <MapIcon className="h-4 w-4" /> Mapa
+            </button>
+          </div>
+
+          <Link 
+            to="/plaza/crear"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
+          >
+            Crear Lobby
+          </Link>
+        </div>
       </div>
 
       {lobbies.length === 0 ? (
@@ -71,7 +114,7 @@ const PlazaExplorar: React.FC = () => {
           <h3 className="mt-2 text-sm font-medium text-slate-900">No hay partidos cerca</h3>
           <p className="mt-1 text-sm text-slate-500">¡Sé el primero en crear uno en tu zona!</p>
         </div>
-      ) : (
+      ) : viewMode === 'list' ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {lobbies.map((lobby) => (
             <Link 
@@ -141,6 +184,67 @@ const PlazaExplorar: React.FC = () => {
               </div>
             </Link>
           ))}
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm h-[600px] relative z-0">
+          <MapContainer 
+            center={location ? [location.lat, location.lng] : [-34.6037, -58.3816]} 
+            zoom={13} 
+            scrollWheelZoom={true}
+            className="h-full w-full"
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            
+            {/* User Location Marker */}
+            {location && (
+              <Marker 
+                position={[location.lat, location.lng]}
+                icon={L.divIcon({
+                  className: 'bg-none',
+                  html: `<div class="p-1 bg-brand-600 rounded-full border-2 border-white shadow-lg animate-pulse h-4 w-4"></div>`
+                })}
+              >
+                <Popup>Estás aquí</Popup>
+              </Marker>
+            )}
+
+            {lobbies.map((lobby) => (
+              <Marker 
+                key={lobby._id} 
+                position={[lobby.location.coordinates.lat, lobby.location.coordinates.lng]}
+              >
+                <Popup minWidth={200}>
+                  <div className="p-1">
+                    <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-1 mb-2">{lobby.title}</h3>
+                    <div className="space-y-1.5 text-[11px] text-slate-600">
+                      <div className="flex items-center gap-1.5">
+                        <CalendarIcon className="h-3 w-3 text-brand-600" />
+                        {new Date(lobby.scheduledDate).toLocaleString()}
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <UsersIcon className="h-3 w-3 text-brand-600" />
+                        {lobby.players.length} / {lobby.maxPlayers} Jugadores
+                      </div>
+                      <div className="flex items-center gap-1.5 font-medium text-slate-900">
+                        <span className="px-1.5 py-0.5 bg-brand-50 rounded text-[9px] uppercase font-bold text-brand-700">
+                          {lobby.modalidad} - {lobby.categoria}
+                        </span>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => navigate(`/plaza/lobby/${lobby._id}`)}
+                      className="mt-3 w-full py-2 bg-brand-600 text-white rounded-lg text-xs font-bold hover:bg-brand-700 transition-colors"
+                    >
+                      VER LOBBY
+                    </button>
+                  </div>
+                </Popup>
+              </Marker>
+            ))}
+          </MapContainer>
         </div>
       )}
     </div>
