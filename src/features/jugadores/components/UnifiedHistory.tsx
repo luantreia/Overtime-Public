@@ -122,7 +122,7 @@ export const UnifiedHistory: React.FC<UnifiedHistoryProps> = ({ jugadorId }) => 
                     <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tighter ${
                       match.type === 'league' ? 'bg-amber-100 text-amber-700' : 'bg-indigo-100 text-indigo-700'
                     }`}>
-                      {match.type === 'league' ? 'PARTIDO DE LIGA' : 'PARTIDO PLAZA'}
+                      {match.type === 'league' ? 'PARTIDO DE LIGA' : 'League of Dodgeball'}
                     </span>
                     {!match.isRanked && (
                       <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tighter bg-slate-100 text-slate-500">
