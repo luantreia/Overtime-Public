@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   TrophyIcon, 
   MapPinIcon, 
@@ -10,22 +11,18 @@ import {
 } from '@heroicons/react/24/outline';
 import { JugadorService } from '../services/jugadorService';
 import { LoadingSpinner } from '../../../shared/components/LoadingSpinner';
-import { EstadisticasPartidoModal } from '../../../shared/components/EstadisticasPartidoModal';
 
 interface UnifiedHistoryProps {
   jugadorId: string;
 }
 
 export const UnifiedHistory: React.FC<UnifiedHistoryProps> = ({ jugadorId }) => {
+  const navigate = useNavigate();
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalidad, setModalidad] = useState<string>('');
   const [categoria, setCategoria] = useState<string>('');
   
-  // Modal State
-  const [selectedMatch, setSelectedMatch] = useState<any>(null);
-  const [showModal, setShowModal] = useState(false);
-
   const fetchHistory = useCallback(async () => {
     setLoading(true);
     try {
@@ -99,11 +96,8 @@ export const UnifiedHistory: React.FC<UnifiedHistoryProps> = ({ jugadorId }) => 
           {history.map((match) => (
             <button
               key={match.id} 
-              onClick={() => {
-                setSelectedMatch(match);
-                setShowModal(true);
-              }}
-              className={`w-full text-left bg-white rounded-2xl border ${match.win ? 'border-emerald-100 shadow-emerald-50' : 'border-slate-100 shadow-slate-50'} shadow-sm p-4 hover:border-brand-200 transition-all group overflow-hidden relative`}
+              onClick={() => navigate(`/partidos/${match.id}`)}
+              className="w-full text-left bg-white rounded-2xl border border-slate-100 shadow-sm p-4 hover:border-brand-200 transition-all group overflow-hidden relative"
             >
               {/* Background gradient for Win/Loss */}
               {match.win && (
@@ -178,18 +172,6 @@ export const UnifiedHistory: React.FC<UnifiedHistoryProps> = ({ jugadorId }) => 
             </button>
           ))}
         </div>
-      )}
-
-      {selectedMatch && (
-        <EstadisticasPartidoModal
-          isOpen={showModal}
-          onClose={() => setShowModal(false)}
-          partidoId={selectedMatch.id}
-          partido={{
-            _id: selectedMatch.id,
-            modoEstadisticas: selectedMatch.modoEstadisticas || 'manual',
-          }}
-        />
       )}
     </div>
   );
