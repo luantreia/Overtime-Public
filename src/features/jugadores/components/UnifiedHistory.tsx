@@ -10,6 +10,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { JugadorService } from '../services/jugadorService';
 import { LoadingSpinner } from '../../../shared/components/LoadingSpinner';
+import { EstadisticasPartidoModal } from '../../../shared/components/EstadisticasPartidoModal';
 
 interface UnifiedHistoryProps {
   jugadorId: string;
@@ -20,6 +21,10 @@ export const UnifiedHistory: React.FC<UnifiedHistoryProps> = ({ jugadorId }) => 
   const [loading, setLoading] = useState(true);
   const [modalidad, setModalidad] = useState<string>('');
   const [categoria, setCategoria] = useState<string>('');
+  
+  // Modal State
+  const [selectedMatch, setSelectedMatch] = useState<any>(null);
+  const [showModal, setShowModal] = useState(false);
 
   const fetchHistory = useCallback(async () => {
     setLoading(true);
@@ -92,9 +97,13 @@ export const UnifiedHistory: React.FC<UnifiedHistoryProps> = ({ jugadorId }) => 
       ) : (
         <div className="grid gap-3">
           {history.map((match) => (
-            <div 
+            <button
               key={match.id} 
-              className={`bg-white rounded-2xl border ${match.win ? 'border-emerald-100 shadow-emerald-50' : 'border-slate-100 shadow-slate-50'} shadow-sm p-4 hover:border-brand-200 transition-all group overflow-hidden relative`}
+              onClick={() => {
+                setSelectedMatch(match);
+                setShowModal(true);
+              }}
+              className={`w-full text-left bg-white rounded-2xl border ${match.win ? 'border-emerald-100 shadow-emerald-50' : 'border-slate-100 shadow-slate-50'} shadow-sm p-4 hover:border-brand-200 transition-all group overflow-hidden relative`}
             >
               {/* Background gradient for Win/Loss */}
               {match.win && (
@@ -122,7 +131,7 @@ export const UnifiedHistory: React.FC<UnifiedHistoryProps> = ({ jugadorId }) => 
                     <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tighter ${
                       match.type === 'league' ? 'bg-amber-100 text-amber-700' : 'bg-indigo-100 text-indigo-700'
                     }`}>
-                      {match.type === 'league' ? 'PARTIDO DE LIGA' : 'League of Dodgeball'}
+                      {match.type === 'league' ? 'PARTIDO DE LIGA' : 'PARTIDO PLAZA'}
                     </span>
                     {!match.isRanked && (
                       <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tighter bg-slate-100 text-slate-500">
@@ -161,14 +170,26 @@ export const UnifiedHistory: React.FC<UnifiedHistoryProps> = ({ jugadorId }) => 
                     </p>
                   </div>
 
-                  <button className="p-2 bg-slate-50 text-slate-300 rounded-full hover:bg-brand-50 hover:text-brand-500 transition-colors hidden sm:block">
+                  <div className="p-2 bg-slate-50 text-slate-300 rounded-full hover:bg-brand-50 hover:text-brand-500 transition-colors hidden sm:block">
                     <ChevronRightIcon className="h-5 w-5" />
-                  </button>
+                  </div>
                 </div>
               </div>
-            </div>
+            </button>
           ))}
         </div>
+      )}
+
+      {selectedMatch && (
+        <EstadisticasPartidoModal
+          isOpen={showModal}
+          onClose={() => setShowModal(false)}
+          partidoId={selectedMatch.id}
+          partido={{
+            _id: selectedMatch.id,
+            modoEstadisticas: selectedMatch.modoEstadisticas || 'manual',
+          }}
+        />
       )}
     </div>
   );
