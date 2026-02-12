@@ -36,6 +36,12 @@ export class PlazaService {
     });
   }
 
+  static async kickPlayer(id: string, userUid: string): Promise<Lobby> {
+    return fetchWithAuth<Lobby>(`${this.API_ENDPOINT}/lobbies/${id}/players/${userUid}`, {
+      method: 'DELETE',
+    });
+  }
+
   static async joinLobby(lobbyId: string): Promise<Lobby> {
     return fetchWithAuth<Lobby>(`${this.API_ENDPOINT}/lobbies/${lobbyId}/join`, {
       method: 'POST',
@@ -47,6 +53,13 @@ export class PlazaService {
     return fetchWithAuth<Lobby>(`${this.API_ENDPOINT}/lobbies/${lobbyId}/join-official`, {
       method: 'POST',
       body: { type: 'principal' },
+    });
+  }
+
+  static async leaveLobby(lobbyId: string): Promise<Lobby> {
+    return fetchWithAuth<Lobby>(`${this.API_ENDPOINT}/lobbies/${lobbyId}/leave`, {
+      method: 'POST',
+      body: {},
     });
   }
 
@@ -96,6 +109,13 @@ export class PlazaService {
     return fetchWithAuth(`${this.API_ENDPOINT}/lobbies/${lobbyId}/rate`, {
       method: 'POST',
       body: { ratings },
+    });
+  }
+
+  static async reportAuthorityInactivity(lobbyId: string, targetRole: 'host' | 'rivalCaptain' | 'official'): Promise<any> {
+    return fetchWithAuth(`${this.API_ENDPOINT}/lobbies/${lobbyId}/report-authority`, {
+      method: 'POST',
+      body: { targetRole },
     });
   }
 

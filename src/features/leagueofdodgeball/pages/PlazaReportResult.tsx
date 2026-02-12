@@ -10,6 +10,7 @@ const PlazaReportResult: React.FC = () => {
   const navigate = useNavigate();
   const [lobby, setLobby] = useState<Lobby | null>(null);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [sets, setSets] = useState([{ teamAScore: 0, teamBScore: 0 }]);
   const [winner, setWinner] = useState<'teamA' | 'teamB' | 'draw'>('draw');
 
@@ -40,12 +41,16 @@ const PlazaReportResult: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!id) return;
+    if (!id || submitting) return;
     try {
+      setSubmitting(true);
       await PlazaService.submitResult(id, { winner, sets });
+      alert("¡Resultado enviado con éxito! Esperando confirmación del rival.");
       navigate(`/plaza/lobby/${id}`);
     } catch (err: any) {
       alert(err.message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -130,9 +135,17 @@ const PlazaReportResult: React.FC = () => {
           <div className="pt-4">
             <button
               type="submit"
-              className="w-full bg-brand-600 text-white font-bold py-4 rounded-xl hover:bg-brand-700 shadow-lg shadow-brand-100 transition-all"
+              disabled={submitting}
+              className="w-full bg-brand-600 text-white font-bold py-4 rounded-xl hover:bg-brand-700 shadow-lg shadow-brand-100 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              ENVIAR RESULTADO
+              {submitting ? (
+                <>
+                  <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ENVIANDO...
+                </>
+              ) : (
+                'ENVIAR RESULTADO'
+              )}
             </button>
             <p className="mt-4 text-[11px] text-slate-400 text-center leading-relaxed">
               Al enviar, se notificará al capitán rival o al oficial para confirmar. 

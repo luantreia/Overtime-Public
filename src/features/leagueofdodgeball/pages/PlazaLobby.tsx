@@ -85,6 +85,19 @@ const PlazaLobby: React.FC = () => {
     }
   };
 
+  const handleLeave = async () => {
+    if (!id || !window.confirm("¿Seguro que quieres salir del lobby?")) return;
+    try {
+      setActionLoading(true);
+      await PlazaService.leaveLobby(id);
+      await fetchLobby();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleCheckIn = async () => {
     if (!id) return;
     if (!navigator.geolocation) return alert("Tu dispositivo no soporta geolocalización");
@@ -180,11 +193,52 @@ const PlazaLobby: React.FC = () => {
     }
   };
 
+  const handleConfirmResult = async () => {
+    if (!id) return;
+    setActionLoading(true);
+    try {
+      await PlazaService.confirmResult(id);
+      alert("¡Resultado confirmado con éxito! Los puntos han sido procesados.");
+      await fetchLobby();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleReportInactivity = async (role: 'host' | 'rivalCaptain' | 'official') => {
+    if (!id || !window.confirm(`¿Reportar que el ${role === 'host' ? 'Host' : role === 'official' ? 'Oficial' : 'Capitán Rival'} está inactivo? Si más del 50% vota, el rol será reasignado.`)) return;
+    try {
+      setActionLoading(true);
+      const res = await PlazaService.reportAuthorityInactivity(id, role);
+      alert(res.message);
+      await fetchLobby();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleKickOfficial = async (officialUid: string) => {
     if (!id || !window.confirm("¿Expulsar a este oficial del lobby?")) return;
     try {
       setActionLoading(true);
       await PlazaService.kickOfficial(id, officialUid);
+      await fetchLobby();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleKickPlayer = async (playerUid: string) => {
+    if (!id || !window.confirm("¿Expulsar a este jugador del lobby?")) return;
+    try {
+      setActionLoading(true);
+      await PlazaService.kickPlayer(id, playerUid);
       await fetchLobby();
     } catch (err: any) {
       alert(err.message);
@@ -239,7 +293,7 @@ const PlazaLobby: React.FC = () => {
   const isOfficial = lobby.officials.some(o => o.userUid === userUid);
   const isJoined = isPlayer || isOfficial;
   const canCheckIn = isPlayer && !playerEntry.confirmed && (lobby.status === 'open' || lobby.status === 'full');
-  const isConfirmed = playerEntry?.confirmed;
+  const isConfirmed = playerEntry?.confirmed || (isOfficial && lobby.officials.find(o => o.userUid === userUid)?.confirmed);
 
   const teamA = lobby.players.filter(p => p.team === 'A');
   const teamB = lobby.players.filter(p => p.team === 'B');
@@ -249,8 +303,10 @@ const PlazaLobby: React.FC = () => {
   const confirmedB = teamB.filter(p => p.confirmed);
   const canStart = confirmedA.length >= 1 && confirmedB.length >= 1;
 
-  // Determinar quién es el Capitán Rival (para el consenso)
-  // Si ya empezó, usamos el guardado. Si no, mostramos al de mejor Karma del equipo contrario al host.
+  // Lógica de precedencia de Oficiales
+  const hasConfirmedOfficial = lobby.officials.some(o => o.confirmed);
+  const canControl = isOfficial || (isHost && !hasConfirmedOfficial);
+
   const hostEntry = lobby.players.find(p => p.userUid === lobby.host);
   const hostTeam = hostEntry ? hostEntry.team : (teamA.some(p => p.userUid === lobby.host) ? 'A' : 'B');
   const rivalPlayers = hostTeam === 'A' ? teamB : teamA;
@@ -306,15 +362,26 @@ const PlazaLobby: React.FC = () => {
           )}
         </div>
       </div>
-      {player && (
-        <div className="flex items-center gap-1">
-          {player.confirmed ? (
-            <ShieldCheckIcon className="h-5 w-5 text-green-500" title="Check-in completado" />
-          ) : (
-            <ClockIcon className="h-5 w-5 text-slate-300" title="Pendiente de llegada" />
-          )}
-        </div>
-      )}
+      <div className="flex items-center gap-1">
+        {isHost && player && player.userUid !== userUid && (lobby.status === 'open' || lobby.status === 'full') && (
+          <button 
+            onClick={() => handleKickPlayer(player.userUid)}
+            className="p-1 text-slate-300 hover:text-red-500 transition-colors mr-2"
+            title="Expulsar Jugador"
+          >
+            <TrashIcon className="h-4 w-4" />
+          </button>
+        )}
+        {player && (
+          <>
+            {player.confirmed ? (
+              <ShieldCheckIcon className="h-5 w-5 text-green-500" title="Check-in completado" />
+            ) : (
+              <ClockIcon className="h-5 w-5 text-slate-300" title="Pendiente de llegada" />
+            )}
+          </>
+        )}
+      </div>
     </div>
     );
   };
@@ -422,20 +489,22 @@ const PlazaLobby: React.FC = () => {
               </div>
             )}
 
-            {lobby.result && lobby.result.submittedBy && !lobby.result.confirmedByOpponent && (
+            {lobby.result && lobby.result.submittedBy && (!lobby.result.confirmedByOpponent || !lobby.result.confirmedByHost) && (
               <div className="w-full bg-brand-50 border border-brand-100 rounded-xl p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="bg-white p-2 rounded-lg border border-brand-200">
                     <TrophyIcon className="h-5 w-5 text-brand-600" />
                   </div>
                   <div>
-                    <p className="text-[10px] text-brand-600 font-bold uppercase tracking-wider">Resultado Pendiente</p>
+                    <p className="text-[10px] text-brand-600 font-bold uppercase tracking-wider">
+                      {(!lobby.result.confirmedByOpponent && !lobby.result.confirmedByHost) ? 'Resultado en Espera' : 'Falta 1 Confirmación'}
+                    </p>
                     <p className="text-xl font-black text-slate-900">
                       Rojo <span className="text-brand-600">{lobby.result.scoreA}</span> - <span className="text-brand-600">{lobby.result.scoreB}</span> Azul
                     </p>
                   </div>
                 </div>
-                {isHost && lobby.result.submittedBy === userUid && (
+                {lobby.result.submittedBy === userUid && (
                   <button 
                     onClick={() => navigate(`/plaza/lobby/${id}/report`)}
                     className="text-xs font-bold text-brand-700 bg-white border border-brand-200 px-3 py-1.5 rounded-lg hover:bg-brand-100 transition-colors"
@@ -447,7 +516,7 @@ const PlazaLobby: React.FC = () => {
             )}
 
             {/* Control de Partido en Vivo para Host/Oficiales */}
-            {lobby.status === 'playing' && (isHost || isOfficial) && !lobby.result?.submittedBy && (
+            {lobby.status === 'playing' && canControl && !lobby.result?.submittedBy && (
               <div className="w-full mt-4 mb-2">
                 <PlazaMatchControl 
                   lobbyId={id!} 
@@ -530,14 +599,24 @@ const PlazaLobby: React.FC = () => {
             {isHost && (lobby.status === 'open' || lobby.status === 'full') && teamA.length > 0 && teamB.length > 0 && (
               <button 
                 onClick={handleStart}
-                disabled={actionLoading || !canStart}
+                disabled={actionLoading || !canStart || !canControl}
                 className={`flex-1 min-w-[200px] font-bold py-3 px-6 rounded-xl transition-all disabled:opacity-50 ${
-                  canStart 
+                  canStart && canControl
                     ? 'bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-100' 
                     : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                 }`}
               >
-                {canStart ? 'EMPEZAR PARTIDO' : 'FALTA CHECK-IN RIVAL'}
+                {!canControl ? 'ESPERANDO OFICIAL' : (canStart ? 'EMPEZAR PARTIDO' : 'FALTA CHECK-IN RIVAL')}
+              </button>
+            )}
+
+            {isJoined && !isConfirmed && (lobby.status === 'open' || lobby.status === 'full') && (
+              <button 
+                onClick={handleLeave}
+                disabled={actionLoading}
+                className="flex-1 min-w-[200px] bg-white text-slate-600 border border-slate-200 font-bold py-3 px-6 rounded-xl hover:bg-slate-50 transition-all disabled:opacity-50"
+              >
+                Salir del Lobby
               </button>
             )}
 
@@ -551,29 +630,69 @@ const PlazaLobby: React.FC = () => {
               </button>
             )}
 
-            {lobby.status === 'playing' && lobby.result?.submittedBy && (isHost || isOfficial) && lobby.result.submittedBy === userUid && !lobby.result.confirmedByOpponent && (
-              <div className="flex-1 min-w-[200px] bg-slate-50 text-slate-400 font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 border border-slate-100 italic text-sm">
-                ESPERANDO CONFIRMACIÓN...
-              </div>
+            {lobby.status === 'playing' && lobby.result?.submittedBy && (
+              <>
+                {/* Botón de Confirmación para Capitán Rival o Host si no confirmó aún */}
+                {((userUid === lobby.rivalCaptainUid && !lobby.result.confirmedByOpponent) || 
+                  (isHost && !lobby.result.confirmedByHost) || 
+                  (isOfficial && (!lobby.result.confirmedByOpponent || !lobby.result.confirmedByHost))) && (
+                  <button 
+                    onClick={handleConfirmResult}
+                    disabled={actionLoading || (lobby.result.submittedBy === userUid && !isOfficial)}
+                    className="flex-1 min-w-[200px] bg-brand-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-brand-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {actionLoading ? (
+                      <>
+                        <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        CONFIRMANDO...
+                      </>
+                    ) : (
+                      'CONFIRMAR RESULTADO'
+                    )}
+                  </button>
+                )}
+                
+                {/* Mensaje de espera si ya confirmó pero falta el otro */}
+                {((isHost && lobby.result.confirmedByHost && !lobby.result.confirmedByOpponent) || 
+                  (userUid === lobby.rivalCaptainUid && lobby.result.confirmedByOpponent && !lobby.result.confirmedByHost)) && (
+                  <div className="flex-1 min-w-[200px] bg-slate-50 text-slate-400 font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 border border-slate-100 italic text-sm">
+                    ESPERANDO AL OTRO CAPITÁN...
+                  </div>
+                )}
+              </>
             )}
 
-            {lobby.status === 'playing' && lobby.result?.submittedBy && !lobby.result.confirmedByOpponent && (userUid === lobby.rivalCaptainUid || isOfficial) && (
-              <button 
-                onClick={() => PlazaService.confirmResult(id!).then(fetchLobby)}
-                disabled={actionLoading}
-                className="flex-1 min-w-[200px] bg-brand-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-brand-700 transition-all disabled:opacity-50"
-              >
-                CONFIRMAR RESULTADO
-              </button>
-            )}
-
-            {lobby.status === 'playing' && (isHost || isOfficial) && !lobby.result?.submittedBy && (
+            {lobby.status === 'playing' && canControl && !lobby.result?.submittedBy && (
               <button 
                 onClick={() => navigate(`/plaza/lobby/${id}/report`)}
                 className="flex-1 min-w-[200px] border border-slate-200 text-slate-400 font-bold py-3 px-6 rounded-xl hover:bg-slate-50 transition-all text-xs"
               >
                 REPORTE MANUAL (TRADICIONAL)
               </button>
+            )}
+
+            {/* Sistema de Auto-Gobernanza: Reportar Inactividad */}
+            {(lobby.status === 'playing' || (lobby.status === 'full' && !canStart)) && (
+              <div className="w-full mt-4 p-4 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                <p className="text-[10px] font-bold text-slate-400 uppercase mb-3 text-center">¿Autoridad Inactiva? Reporta para reasignar rol</p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {!isHost && (
+                    <button onClick={() => handleReportInactivity('host')} className="px-3 py-1.5 bg-white border border-slate-200 text-slate-500 rounded-lg text-[10px] font-bold hover:bg-red-50 hover:text-red-600 transition-colors">
+                      HOST AUSENTE
+                    </button>
+                  )}
+                  {userUid !== lobby.rivalCaptainUid && (
+                    <button onClick={() => handleReportInactivity('rivalCaptain')} className="px-3 py-1.5 bg-white border border-slate-200 text-slate-500 rounded-lg text-[10px] font-bold hover:bg-red-50 hover:text-red-600 transition-colors">
+                      CAPITÁN RIVAL AUSENTE
+                    </button>
+                  )}
+                  {lobby.officials.length > 0 && !isOfficial && (
+                    <button onClick={() => handleReportInactivity('official')} className="px-3 py-1.5 bg-white border border-slate-200 text-slate-500 rounded-lg text-[10px] font-bold hover:bg-red-50 hover:text-red-600 transition-colors">
+                      OFICIAL AUSENTE
+                    </button>
+                  )}
+                </div>
+              </div>
             )}
 
             {/* Cancelación Mutua durante el juego */}
@@ -644,7 +763,10 @@ const PlazaLobby: React.FC = () => {
           <p className="text-sm text-slate-500 mb-6">Tu voto ayuda a mantener una comunidad sana y justa.</p>
           
           <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
-            {lobby.players.filter(p => p.player._id !== (hasProfile ? userUid : '') && p.userUid !== userUid).map(p => (
+            {[
+              ...lobby.players.filter(p => p.player._id !== (hasProfile ? userUid : '') && p.userUid !== userUid).map(p => ({ ...p, isOfficialRole: false })),
+              ...lobby.officials.filter(o => o.userUid !== userUid).map(o => ({ ...o, isOfficialRole: true }))
+            ].map(p => (
               <div key={p.userUid} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100 gap-3">
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold overflow-hidden border border-slate-200">
@@ -652,18 +774,24 @@ const PlazaLobby: React.FC = () => {
                   </div>
                   <div>
                     <div className="text-sm font-bold text-slate-800">{p.player.alias || p.player.nombre}</div>
-                    <div className="text-[10px] text-slate-400 uppercase tracking-tighter">Equipo {p.team}</div>
+                    <div className="text-[10px] text-slate-400 uppercase tracking-tighter">
+                      {p.isOfficialRole ? 'Oficial' : `Equipo ${(p as any).team}`}
+                    </div>
                   </div>
                 </div>
                 
                 <div className="flex flex-wrap gap-2">
-                  {[
+                  {(p.isOfficialRole ? [
+                    { id: 'positive', label: '👍 Imparcial', colorClass: 'hover:border-green-400 hover:bg-green-50', activeClass: 'bg-green-600 text-white' },
+                    { id: 'expert', label: '📖 Reglas', colorClass: 'hover:border-blue-400 hover:bg-blue-50', activeClass: 'bg-blue-600 text-white' },
+                    { id: 'negative', label: '👎 Parcial/Lento', colorClass: 'hover:border-red-400 hover:bg-red-50', activeClass: 'bg-red-600 text-white' }
+                  ] : [
                     { id: 'positive', label: '👍 Bien', colorClass: 'hover:border-green-400 hover:bg-green-50', activeClass: 'bg-green-600 text-white' },
                     { id: 'fair-play', label: '🤝 Pro', colorClass: 'hover:border-blue-400 hover:bg-blue-50', activeClass: 'bg-blue-600 text-white' },
                     { id: 'mvp', label: '⭐ MVP', colorClass: 'hover:border-yellow-400 hover:bg-yellow-50', activeClass: 'bg-yellow-600 text-white' },
                     { id: 'negative', label: '👎 Mal', colorClass: 'hover:border-red-400 hover:bg-red-50', activeClass: 'bg-red-600 text-white' },
                     { id: 'no-show', label: '🚫 AFK', colorClass: 'hover:border-slate-400 hover:bg-slate-50', activeClass: 'bg-slate-700 text-white' }
-                  ].map(btn => (
+                  ]).map(btn => (
                     <button
                       key={btn.id}
                       onClick={() => setRatingData(prev => ({ ...prev, [p.player._id]: btn.id }))}

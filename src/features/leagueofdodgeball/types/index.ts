@@ -63,6 +63,7 @@ export interface Lobby {
     scoreA: number;
     scoreB: number;
     submittedBy: string;
+    confirmedByHost: boolean;
     confirmedByOpponent: boolean;
     validatedByOfficial: boolean;
     disputed: boolean;
