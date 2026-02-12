@@ -4,7 +4,6 @@ import { useAuth } from '../providers/AuthContext';
 // removed feature flag usage
 
 const links = [
-  { to: '/', label: 'Inicio' },
   { to: '/plaza', label: 'League of Dodgeball' },
   { to: '/jugadores', label: 'Jugadores' },
   { to: '/equipos', label: 'Equipos' },
@@ -79,12 +78,6 @@ const Navbar: React.FC = () => {
               >
                 {user?.nombre || 'Perfil'}
               </NavLink>
-              <button
-                onClick={logout}
-                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
-              >
-                Cerrar sesión
-              </button>
             </>
           ) : (
             <>
@@ -106,8 +99,14 @@ const Navbar: React.FC = () => {
 
         {/* Menú móvil */}
         {isMenuOpen && (
-          <div className="absolute top-full left-0 right-0 z-50 border-t border-slate-200 bg-white px-4 py-3 lg:hidden">
-            <div className="flex flex-col gap-2">
+          <>
+            {/* Overlay background for mobile menu */}
+            <div 
+              className="fixed inset-0 top-[73px] z-40 bg-slate-900/20 backdrop-blur-sm lg:hidden"
+              onClick={() => setIsMenuOpen(false)}
+            />
+            <div className="absolute top-full left-0 right-0 z-50 border-t border-slate-200 bg-white px-4 py-3 shadow-xl lg:hidden">
+              <div className="flex flex-col gap-2">
                 {links.map(({ to, label }) => (
                   <NavLink
                     key={to}
@@ -149,15 +148,6 @@ const Navbar: React.FC = () => {
                     >
                       {user?.nombre || 'Perfil'}
                     </NavLink>
-                    <button
-                      onClick={() => {
-                        logout();
-                        setIsMenuOpen(false);
-                      }}
-                      className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
-                    >
-                      Cerrar sesión
-                    </button>
                   </div>
               ) : (
                 <div className="mt-2 flex items-center gap-3">
@@ -179,7 +169,8 @@ const Navbar: React.FC = () => {
               )}
             </div>
           </div>
-        )}
+        </>
+      )}
       </div>
     </header>
   );
