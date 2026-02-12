@@ -12,7 +12,7 @@ const links = [
 ];
 
 const Navbar: React.FC = () => {
-  const { isAuthenticated, logout, user, isLoading } = useAuth();
+  const { isAuthenticated, user, isLoading } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   // feature flags removed
 
