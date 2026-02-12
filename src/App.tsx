@@ -14,10 +14,10 @@ const Competencias = lazy(() => import('./features/competencias/pages/Competenci
 const CompetenciaDetalle = lazy(() => import('./features/competencias/pages/CompetenciaDetalle'));
 const Partidos = lazy(() => import('./features/partidos/pages/Partidos'));
 const PartidoDetalle = lazy(() => import('./features/partidos/pages/PartidoDetalle'));
-const PlazaExplorar = lazy(() => import('./features/plaza/pages/PlazaExplorar'));
-const PlazaLobby = lazy(() => import('./features/plaza/pages/PlazaLobby'));
-const PlazaCrear = lazy(() => import('./features/plaza/pages/PlazaCrear'));
-const PlazaReportResult = lazy(() => import('./features/plaza/pages/PlazaReportResult'));
+const PlazaExplorar = lazy(() => import('./features/leagueofdodgeball/pages/PlazaExplorar'));
+const PlazaLobby = lazy(() => import('./features/leagueofdodgeball/pages/PlazaLobby'));
+const PlazaCrear = lazy(() => import('./features/leagueofdodgeball/pages/PlazaCrear'));
+const PlazaReportResult = lazy(() => import('./features/leagueofdodgeball/pages/PlazaReportResult'));
 const SolicitudesPage = lazy(() => import('./features/solicitudes/pages/SolicitudesPage'));
 const Perfil = lazy(() => import('./features/perfil/pages/PerfilPage'));
 const LoginPage = lazy(() => import('./features/auth/pages/LoginPage'));
