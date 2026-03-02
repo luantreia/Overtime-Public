@@ -39,55 +39,62 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
   const [viewType, setViewType] = useState<"line" | "area">("line");
   const [visiblePlayersCount, setVisiblePlayersCount] = useState(5);
 
-  const topPlayers = useMemo(() => leaderboard.slice(0, 10), [leaderboard]);
+  const topPlayers = useMemo(() => (leaderboard || []).slice(0, 10), [leaderboard]);
 
-  const { data: evolutionaryData, isLoading } = useQuery({
+  const { data: evolutionaryData, isLoading, isError } = useQuery({
     queryKey: ["ranked-evolution", competenciaId, seasonId, topPlayers.map(p => p.playerId).join(","), timeFilter],
     queryFn: async () => {
+      // Intentar obtener el historial de los TOP 10
       const results = await Promise.all(
         topPlayers.map(async (player) => {
-          const detail = await RankedService.getPlayerDetail(player.playerId, {
-            competition: competenciaId,
-            season: seasonId,
-            modalidad,
-            categoria,
-          });
-          
-          let history = (detail.history || []).map((h: any) => ({
-            ...h,
-            date: new Date(h.updatedAt || h.createdAt),
-            postRating: Number(h.postRating)
-          })).sort((a: any, b: any) => a.date.getTime() - b.date.getTime());
+          try {
+            const detail = await RankedService.getPlayerDetail(player.playerId, {
+              competition: competenciaId,
+              season: seasonId,
+              modalidad,
+              categoria,
+            });
+            
+            let history = (detail.history || []).map((h: any) => ({
+              ...h,
+              date: new Date(h.updatedAt || h.createdAt),
+              postRating: Number(h.postRating)
+            })).sort((a: any, b: any) => a.date.getTime() - b.date.getTime());
 
-          if (timeFilter === "month") {
-            const now = new Date();
-            const filterDate = new Date();
-            filterDate.setMonth(now.getMonth() - 1);
-            history = history.filter((h: any) => h.date >= filterDate);
-          }
+            if (timeFilter === "month") {
+              const filterDate = new Date();
+              filterDate.setMonth(filterDate.getMonth() - 1);
+              history = history.filter((h: any) => h.date >= filterDate);
+            }
 
-          const currentElo = Number(player.elo || player.ranking || 1500);
-          
-          // Asegurar que siempre hay POR LO MENOS 2 puntos para dibujar una linea
-          if (history.length === 0) {
-            history.push({ date: new Date(Date.now() - 86400000), postRating: 1500 });
-            history.push({ date: new Date(), postRating: currentElo });
-          } else if (history.length === 1) {
-            history.unshift({ date: new Date(history[0].date.getTime() - 86400000), postRating: 1500 });
-            if (history[1].postRating !== currentElo) {
+            const currentElo = Number(player.elo || player.ranking || 1500);
+            
+            // Forzar punto inicial y final para garantizar lineas
+            if (history.length === 0) {
+              history = [
+                { date: new Date(Date.now() - 86400000), postRating: 1500 },
+                { date: new Date(), postRating: currentElo }
+              ];
+            } else {
+              const lastEntry = history[history.length - 1];
+              if (lastEntry.postRating !== currentElo) {
                 history.push({ date: new Date(), postRating: currentElo });
+              }
+              // Asegurar que haya un punto de partida (1500) si es el primer registro
+              if (history.length === 1) {
+                history.unshift({ date: new Date(history[0].date.getTime() - 86400000), postRating: 1500 });
+              }
             }
-          } else {
-            const lastEntry = history[history.length - 1];
-            if (lastEntry.postRating !== currentElo) {
-               history.push({ date: new Date(), postRating: currentElo });
-            }
-          }
 
-          return { name: player.playerName, history };
+            return { name: player.playerName, history };
+          } catch (e) {
+            console.error("Error fetching player detail:", player.playerName, e);
+            return { name: player.playerName, history: [] };
+          }
         })
       );
 
+      // Consolidar fechas únicas para el eje X
       const allDatesSet = new Set<string>();
       results.forEach(r => r.history.forEach((h: any) => allDatesSet.add(h.date.toISOString())));
       const sortedDates = Array.from(allDatesSet).sort();
@@ -111,7 +118,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
             if (historyEntry) {
                 currentRatings[playerData.name] = historyEntry.postRating;
             }
-            entry[playerData.name] = Number(currentRatings[playerData.name]);
+            entry[playerData.name] = currentRatings[playerData.name];
         });
         chartData.push(entry);
       });
@@ -119,6 +126,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
       return { chartData, playerNames: results.map(r => r.name) };
     },
     enabled: isOpen && topPlayers.length > 0,
+    staleTime: 1000 * 60 * 5, // 5 minutos de cache
   });
 
   if (!isOpen) return null;
@@ -127,14 +135,14 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
 
   return (
     <div 
-      className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-md"
+      className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-md"
       onClick={onClose}
     >
       <div 
-        className="bg-white w-full sm:max-w-5xl h-[92vh] sm:h-[80vh] rounded-t-[32px] sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-300"
+        className="bg-white w-full sm:max-w-5xl h-[92vh] sm:h-[85vh] rounded-t-[32px] sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-300"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="px-6 py-5 flex items-center justify-between bg-white shrink-0 border-b border-slate-50">
+        <div className="px-6 py-5 flex items-center justify-between bg-white shrink-0">
           <div>
             <h3 className="text-xl font-extrabold text-slate-800 tracking-tight">Evolucion de Ranking</h3>
             <div className="flex items-center gap-2 mt-0.5">
@@ -142,21 +150,21 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Actualizado hoy</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2.5 rounded-full bg-slate-50 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all border border-slate-100">
+          <button onClick={onClose} className="p-2.5 rounded-full bg-slate-50 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        <div className="flex-1 min-h-0 flex flex-col bg-white">
+        <div className="flex-1 flex flex-col min-h-0 bg-white">
           <div className="px-6 py-4 flex flex-col gap-4 shrink-0">
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
               {[{ id: "all", label: "Temporada" }, { id: "month", label: "Ultimo Mes" }].map((f) => (
                 <button
                   key={f.id}
                   onClick={() => setTimeFilter(f.id as TimeFilter)}
-                  className={`px-5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${timeFilter === f.id ? "bg-brand-600 text-white shadow-lg shadow-brand-200" : "bg-slate-50 text-slate-500 border border-slate-100 hover:border-slate-300"}`}
+                  className={`px-5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${timeFilter === f.id ? "bg-brand-600 text-white shadow-lg" : "bg-slate-50 text-slate-500"}`}
                 >
                   {f.label}
                 </button>
@@ -165,12 +173,12 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
 
             <div className="flex items-center justify-between gap-3 bg-slate-50/80 p-1.5 rounded-2xl border border-slate-100">
                <div className="flex items-center gap-1">
-                  <button onClick={() => setViewType("line")} className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${viewType === "line" ? "bg-white text-brand-600 shadow-sm ring-1 ring-slate-100" : "text-slate-400"}`}>Lineas</button>
-                  <button onClick={() => setViewType("area")} className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${viewType === "area" ? "bg-white text-brand-600 shadow-sm ring-1 ring-slate-100" : "text-slate-400"}`}>Areas</button>
+                  <button onClick={() => setViewType("line")} className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${viewType === "line" ? "bg-white text-brand-600 shadow-sm" : "text-slate-400"}`}>Lineas</button>
+                  <button onClick={() => setViewType("area")} className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${viewType === "area" ? "bg-white text-brand-600 shadow-sm" : "text-slate-400"}`}>Areas</button>
                </div>
                <div className="flex items-center gap-2 pr-2">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest hidden sm:block">Mostrar</span>
-                  <select value={visiblePlayersCount} onChange={(e) => setVisiblePlayersCount(Number(e.target.value))} className="text-[11px] font-bold bg-transparent border-none p-0 focus:ring-0 text-slate-600 cursor-pointer">
+                  <select value={visiblePlayersCount} onChange={(e) => setVisiblePlayersCount(Number(e.target.value))} className="text-[11px] font-bold bg-transparent border-none p-0 focus:ring-0 text-slate-600">
                     <option value={3}>TOP 3</option>
                     <option value={5}>TOP 5</option>
                     <option value={10}>TOP 10</option>
@@ -179,41 +187,29 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
             </div>
           </div>
 
-          <div className="flex-1 w-full p-4 sm:p-6" style={{ minHeight: "350px" }}>
+          <div className="flex-1 w-full p-4 sm:p-6 min-h-[400px]">
             {isLoading ? (
-              <div className="w-full h-full flex flex-col items-center justify-center animate-pulse">
+              <div className="w-full h-full flex flex-col items-center justify-center">
                 <div className="w-12 h-12 border-4 border-slate-50 border-t-brand-500 rounded-full animate-spin"></div>
-                <p className="mt-4 text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Cargando metricas</p>
+                <p className="mt-4 text-[10px] font-black text-slate-300 uppercase tracking-widest">Cargando...</p>
               </div>
-            ) : evolutionaryData?.chartData && evolutionaryData.chartData.length > 1 ? (
-              <ResponsiveContainer width="100%" height="100%">
+            ) : isError ? (
+              <div className="w-full h-full flex flex-col items-center justify-center text-center">
+                <p className="text-red-500 font-bold">Error al cargar datos.</p>
+              </div>
+            ) : evolutionaryData?.chartData && evolutionaryData.chartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%" minHeight={350}>
                 {viewType === "line" ? (
-                  <LineChart data={evolutionaryData.chartData} margin={{ top: 10, right: 30, left: 0, bottom: 20 }}>
+                  <LineChart data={evolutionaryData.chartData} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis 
-                      dataKey="matchLabel" 
-                      fontSize={10} 
-                      fontWeight={700} 
-                      tickLine={false} 
-                      axisLine={false} 
-                      tick={{ fill: "#94a3b8" }} 
-                      dy={10}
-                    />
-                    <YAxis 
-                      domain={["dataMin - 50", "dataMax + 50"]} 
-                      fontSize={10} 
-                      fontWeight={700} 
-                      tickLine={false} 
-                      axisLine={false} 
-                      tick={{ fill: "#94a3b8" }} 
-                    />
+                    <XAxis dataKey="matchLabel" fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} dy={10} />
+                    <YAxis domain={["auto", "auto"]} fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} />
                     <Tooltip 
-                      labelFormatter={(value, payload) => payload[0]?.payload?.fullDate || value}
+                      labelFormatter={(v, p) => p[0]?.payload?.fullDate || v}
                       contentStyle={{ borderRadius: "20px", border: "none", boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "800", padding: "16px" }} 
                       itemSorter={(item) => Number(item.value) * -1}
-                      cursor={{ stroke: '#f1f5f9', strokeWidth: 2 }}
                     />
-                    <Legend verticalAlign="top" height={60} iconType="circle" wrapperStyle={{ fontSize: "10px", fontWeight: 800, paddingBottom: "20px" }} />
+                    <Legend verticalAlign="top" height={50} iconType="circle" wrapperStyle={{ fontSize: "10px", fontWeight: 800, paddingBottom: "10px" }} />
                     {evolutionaryData.playerNames.slice(0, visiblePlayersCount).map((name, index) => (
                       <Line 
                         key={name} 
@@ -229,7 +225,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                     ))}
                   </LineChart>
                 ) : (
-                  <AreaChart data={evolutionaryData.chartData} margin={{ top: 10, right: 30, left: 0, bottom: 20 }}>
+                  <AreaChart data={evolutionaryData.chartData} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
                     <defs>
                       {evolutionaryData.playerNames.slice(0, visiblePlayersCount).map((name, index) => (
                         <linearGradient key={`grad-${name}`} id={`color-${index}`} x1="0" y1="0" x2="0" y2="1">
@@ -239,29 +235,14 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                       ))}
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis 
-                      dataKey="matchLabel" 
-                      fontSize={10} 
-                      fontWeight={700} 
-                      tickLine={false} 
-                      axisLine={false} 
-                      tick={{ fill: "#94a3b8" }} 
-                      dy={10}
-                    />
-                    <YAxis 
-                      domain={["dataMin - 50", "dataMax + 50"]} 
-                      fontSize={10} 
-                      fontWeight={700} 
-                      tickLine={false} 
-                      axisLine={false} 
-                      tick={{ fill: "#94a3b8" }} 
-                    />
+                    <XAxis dataKey="matchLabel" fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} dy={10} />
+                    <YAxis domain={["auto", "auto"]} fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} />
                     <Tooltip 
-                      labelFormatter={(value, payload) => payload[0]?.payload?.fullDate || value}
+                      labelFormatter={(v, p) => p[0]?.payload?.fullDate || v}
                       contentStyle={{ borderRadius: "20px", border: "none", boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "800", padding: "16px" }} 
                       itemSorter={(item) => Number(item.value) * -1}
                     />
-                    <Legend verticalAlign="top" height={60} iconType="circle" wrapperStyle={{ fontSize: "10px", fontWeight: 800, paddingBottom: "20px" }} />
+                    <Legend verticalAlign="top" height={50} iconType="circle" wrapperStyle={{ fontSize: "10px", fontWeight: 800, paddingBottom: "10px" }} />
                     {evolutionaryData.playerNames.slice(0, visiblePlayersCount).map((name, index) => (
                       <Area 
                         key={name} 
@@ -269,8 +250,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                         dataKey={name} 
                         stroke={colors[index % colors.length]} 
                         strokeWidth={4} 
-                        fillOpacity={1} 
-                        fill={`url(#color-${index})`} 
+                        fill={`url(#color-${index})`}
                         isAnimationActive={false}
                         connectNulls 
                       />
@@ -279,20 +259,14 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                 )}
               </ResponsiveContainer>
             ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center text-center p-8 bg-slate-50/50 rounded-[32px]">
-                <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-4 shadow-sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <h4 className="text-slate-800 font-black text-sm uppercase tracking-wider">Sin evolucion suficiente</h4>
-                <p className="text-slate-400 text-xs max-w-[200px] mt-2 font-medium">Se necesitan al menos 2 enfrentamientos para ver una linea de tiempo.</p>
+              <div className="w-full h-full flex flex-col items-center justify-center text-center p-8 bg-slate-50/50 rounded-3xl">
+                <h4 className="text-slate-800 font-black text-sm uppercase tracking-wider">Sin datos de evolucion</h4>
               </div>
             )}
           </div>
 
           <div className="px-6 py-6 border-t border-slate-50 bg-white sm:hidden shrink-0">
-            <button onClick={onClose} className="w-full py-4 bg-slate-900 text-white rounded-[20px] font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-slate-200 active:scale-[0.98] transition-all">Cerrar Panel</button>
+            <button onClick={onClose} className="w-full py-4 bg-slate-900 text-white rounded-[20px] font-black text-xs uppercase tracking-[0.2em] shadow-xl">Cerrar</button>
           </div>
         </div>
       </div>
