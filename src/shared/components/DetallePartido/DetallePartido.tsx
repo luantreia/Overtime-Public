@@ -152,10 +152,10 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
     ? formatDate(partido.fecha)
     : 'Fecha no disponible';
 
-  const sets = partido.sets || [];
-  const jugadores = partido.jugadores || [];
-  const localJugadores = jugadores.filter(j => j.equipo === 'local');
-  const visitanteJugadores = jugadores.filter(j => j.equipo === 'visitante');
+  const sets = (partido as any).sets || [];
+  const jugadores = (partido as any).jugadores || [] as JugadorPartido[];
+  const localJugadores = jugadores.filter((j: any) => j.equipo === 'local');
+  const visitanteJugadores = jugadores.filter((j: any) => j.equipo === 'visitante');
 
   return (
     <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-sm border border-slate-200 p-3 sm:p-6">
