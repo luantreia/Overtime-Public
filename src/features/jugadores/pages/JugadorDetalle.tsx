@@ -1,9 +1,8 @@
-import React, { useCallback, useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toPng } from 'html-to-image';
 import { useQuery } from '@tanstack/react-query';
-import { useEntity } from '../../../shared/hooks';
-import { JugadorService, type Jugador } from '../services/jugadorService';
+import { JugadorService } from '../services/jugadorService';
 import { CompetenciaService } from '../../competencias/services/competenciaService';
 import { JugadorCompetenciaService } from '../../competencias/services/jugadorCompetenciaService';
 import { RankedService } from '../../competencias/services/rankedService';
@@ -291,8 +290,6 @@ const JugadorDetalle: React.FC = () => {
       console.error('Error changing season:', err);
     }
   };
-
-  const resultadosSorted = localCompsData;
 
   if (loading) {
     return (

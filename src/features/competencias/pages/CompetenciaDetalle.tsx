@@ -3,11 +3,11 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useEntity } from '../../../shared/hooks';
 import { CompetenciaService, type Competencia } from '../services/competenciaService';
-import { RankedService, type LeaderboardItem } from '../services/rankedService';
+import { RankedService } from '../services/rankedService';
 import { PartidoService, type Partido } from '../../partidos/services/partidoService';
-import { TemporadaService, type Temporada } from '../services/temporadaService';
+import { TemporadaService } from '../services/temporadaService';
 import { FaseService, type Fase } from '../services/faseService';
-import { JugadorCompetenciaService, type JugadorCompetencia } from '../services/jugadorCompetenciaService';
+import { JugadorCompetenciaService } from '../services/jugadorCompetenciaService';
 import {
   PlayerRankedHistoryModal,
   CompetenciaHeader,
