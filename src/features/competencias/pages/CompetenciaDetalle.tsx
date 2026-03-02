@@ -281,6 +281,9 @@ const CompetenciaDetalle: React.FC = () => {
               leaderboard={leaderboard}
               jugadoresComp={jugadoresComp}
               onPlayerClick={handlePlayerClick}
+              competenciaId={id!}
+              modalidad={(competencia as any).modalidad || 'Foam'}
+              categoria={(competencia as any).categoria || 'Libre'}
             />
           )}
         </div>

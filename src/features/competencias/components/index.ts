@@ -4,3 +4,4 @@ export * from './CompetenciaInfoTab';
 export * from './CompetenciaPartidosTab';
 export * from './CompetenciaResultadosTab';
 export * from './CompetenciaLeaderboardTab';
+export * from './RankedEvolutionChartModal';

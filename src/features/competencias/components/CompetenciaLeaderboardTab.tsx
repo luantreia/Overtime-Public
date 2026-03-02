@@ -3,6 +3,7 @@ import { type Temporada } from '../services/temporadaService';
 import { type LeaderboardItem } from '../services/rankedService';
 import { type JugadorCompetencia } from '../services/jugadorCompetenciaService';
 import { EloExplanationModal } from '../../../shared/components/EloExplanationModal';
+import { RankedEvolutionChartModal } from './RankedEvolutionChartModal';
 
 interface CompetenciaLeaderboardTabProps {
   temporadas: Temporada[];
@@ -12,6 +13,9 @@ interface CompetenciaLeaderboardTabProps {
   leaderboard: LeaderboardItem[];
   jugadoresComp: JugadorCompetencia[];
   onPlayerClick: (player: { id: string; name: string }) => void;
+  competenciaId: string;
+  modalidad: string;
+  categoria: string;
 }
 
 export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps> = ({
@@ -22,8 +26,12 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
   leaderboard,
   jugadoresComp,
   onPlayerClick,
+  competenciaId,
+  modalidad,
+  categoria,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [isChartModalOpen, setIsChartModalOpen] = useState(false);
 
   const filteredLeaderboard = useMemo(() => {
     if (!searchTerm.trim()) return leaderboard;
@@ -81,7 +89,20 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
             </div>
           </div>
         </div>
-        <div className="mb-1 flex-shrink-0">
+        <div className="mb-1 flex-shrink-0 flex items-center gap-3">
+          <button 
+            onClick={() => setIsChartModalOpen(true)}
+            className="text-sm text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1 transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0v1.125c0 1.125.507 2.097 1.307 2.668L12 10.312l5.693-3.519A3.001 3.001 0 0 1 19.5 4.5V3m-15.75 0h15.75m-15.75 0a2.25 2.25 0 0 1 2.25-2.25h11.25a2.25 2.25 0 0 1 2.25 2.25m-15.75 0v1.125" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18a2.25 2.25 0 0 0 2.25 2.25h15a2.25 2.25 0 0 0 2.25-2.25V15a2.25 2.25 0 0 0-2.25-2.25H4.5A2.25 2.25 0 0 0 2.25 15v3z" />
+            </svg>
+            Ver Evolución
+          </button>
+          
+          <div className="w-px h-4 bg-slate-300"></div>
+
           <EloExplanationModal 
             trigger={
               <button className="text-sm text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1 transition-colors">
@@ -94,6 +115,16 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
           />
         </div>
       </div>
+
+      <RankedEvolutionChartModal
+        isOpen={isChartModalOpen}
+        onClose={() => setIsChartModalOpen(false)}
+        competenciaId={competenciaId}
+        seasonId={selectedTemporada}
+        modalidad={modalidad}
+        categoria={categoria}
+        leaderboard={leaderboard}
+      />
 
       {loading ? (
         <div className="p-12 text-center">
