@@ -203,7 +203,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
         </div>
 
         {/* Chart Content */}
-        <div className="flex-1 px-4 pb-4 sm:px-6 bg-white overflow-hidden flex flex-col">
+        <div className="flex-1 w-full flex flex-col min-h-0 bg-white px-2 sm:px-6 pb-6 overflow-hidden">
           {isLoading ? (
             <div className="flex-1 flex flex-col items-center justify-center animate-pulse">
               <div className="w-12 h-12 border-4 border-slate-50 border-t-brand-500 rounded-full animate-spin"></div>
@@ -211,86 +211,110 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
             </div>
           ) : evolutionaryData?.chartData.length ? (
             <div className="flex-1 w-full min-h-0 flex flex-col">
-              <div className="flex-1 w-full min-h-[350px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  {viewType === 'line' ? (
-                    <LineChart data={evolutionaryData.chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#f8fafc" />
-                      <XAxis 
-                        dataKey="date" 
-                        fontSize={9}
-                        fontWeight={800}
-                        tickLine={false}
-                        axisLine={false}
-                        tick={{ fill: '#cbd5e1' }}
+              <ResponsiveContainer width="100%" height="100%" minHeight={350}>
+                {viewType === 'line' ? (
+                  <LineChart 
+                    data={evolutionaryData.chartData} 
+                    margin={{ top: 20, right: 30, left: 0, bottom: 20 }}
+                  >
+                    <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#f1f5f9" />
+                    <XAxis 
+                      dataKey="date" 
+                      fontSize={10}
+                      fontWeight={700}
+                      tickLine={false}
+                      axisLine={false}
+                      tick={{ fill: '#94a3b8' }}
+                      dy={10}
+                      interval="preserveStartEnd"
+                    />
+                    <YAxis 
+                      domain={['auto', 'auto']}
+                      fontSize={10}
+                      fontWeight={700}
+                      tickLine={false}
+                      axisLine={false}
+                      tick={{ fill: '#94a3b8' }}
+                      dx={-10}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        borderRadius: '20px', 
+                        border: 'none', 
+                        boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)',
+                        fontSize: '11px',
+                        fontWeight: '800',
+                        padding: '16px'
+                      }}
+                    />
+                    <Legend 
+                      verticalAlign="top" 
+                      height={50} 
+                      iconType="circle"
+                      wrapperStyle={{ fontSize: '9px', fontWeight: 800, paddingBottom: '10px' }}
+                    />
+                    {evolutionaryData.playerNames.slice(0, visiblePlayersCount).map((name, index) => (
+                      <Line
+                        key={name}
+                        type="monotone"
+                        dataKey={name}
+                        stroke={colors[index % colors.length]}
+                        strokeWidth={4}
+                        dot={false}
+                        activeDot={{ r: 6, strokeWidth: 0 }}
+                        animationDuration={1000}
                       />
-                      <YAxis 
-                        domain={['auto', 'auto']}
-                        fontSize={9}
-                        fontWeight={800}
-                        tickLine={false}
-                        axisLine={false}
-                        tick={{ fill: '#cbd5e1' }}
-                      />
-                      <Tooltip 
-                        contentStyle={{ 
-                          borderRadius: '20px', 
-                          border: 'none', 
-                          boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)',
-                          fontSize: '11px',
-                          fontWeight: '800',
-                          padding: '16px'
-                        }}
-                      />
-                      <Legend 
-                        verticalAlign="top" 
-                        height={50} 
-                        iconType="circle"
-                        wrapperStyle={{ fontSize: '9px', fontWeight: 800, paddingBottom: '10px' }}
-                      />
+                    ))}
+                  </LineChart>
+                ) : (
+                  <AreaChart 
+                    data={evolutionaryData.chartData} 
+                    margin={{ top: 20, right: 30, left: 0, bottom: 20 }}
+                  >
+                    <defs>
                       {evolutionaryData.playerNames.slice(0, visiblePlayersCount).map((name, index) => (
-                        <Line
-                          key={name}
-                          type="monotone"
-                          dataKey={name}
-                          stroke={colors[index % colors.length]}
-                          strokeWidth={4}
-                          dot={false}
-                          activeDot={{ r: 6, strokeWidth: 0 }}
-                          animationDuration={1000}
-                        />
+                        <linearGradient key={`grad-${name}`} id={`color-${index}`} x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor={colors[index % colors.length]} stopOpacity={0.4}/>
+                          <stop offset="95%" stopColor={colors[index % colors.length]} stopOpacity={0}/>
+                        </linearGradient>
                       ))}
-                    </LineChart>
-                  ) : (
-                    <AreaChart data={evolutionaryData.chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                      <defs>
-                        {evolutionaryData.playerNames.slice(0, visiblePlayersCount).map((name, index) => (
-                          <linearGradient key={`grad-${name}`} id={`color-${index}`} x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor={colors[index % colors.length]} stopOpacity={0.4}/>
-                            <stop offset="95%" stopColor={colors[index % colors.length]} stopOpacity={0}/>
-                          </linearGradient>
-                        ))}
-                      </defs>
-                      <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#f8fafc" />
-                      <XAxis dataKey="date" fontSize={9} fontWeight={800} tickLine={false} axisLine={false} tick={{ fill: '#cbd5e1' }} />
-                      <YAxis domain={['auto', 'auto']} fontSize={9} fontWeight={800} tickLine={false} axisLine={false} tick={{ fill: '#cbd5e1' }} />
-                      <Tooltip contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', fontSize: '11px' }} />
-                      <Legend verticalAlign="top" height={50} iconType="circle" wrapperStyle={{ fontSize: '9px', fontWeight: 800 }} />
-                      {evolutionaryData.playerNames.slice(0, visiblePlayersCount).map((name, index) => (
-                        <Area
-                          key={name}
-                          type="monotone"
-                          dataKey={name}
-                          stroke={colors[index % colors.length]}
-                          strokeWidth={3}
-                          fillOpacity={1}
-                          fill={`url(#color-${index})`}
-                        />
-                      ))}
-                    </AreaChart>
-                  )}
-                </ResponsiveContainer>
-              </div>
+                    </defs>
+                    <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#f1f5f9" />
+                    <XAxis 
+                      dataKey="date" 
+                      fontSize={10} 
+                      fontWeight={700} 
+                      tickLine={false} 
+                      axisLine={false} 
+                      tick={{ fill: '#94a3b8' }} 
+                      dy={10}
+                      interval="preserveStartEnd"
+                    />
+                    <YAxis 
+                      domain={['auto', 'auto']} 
+                      fontSize={10} 
+                      fontWeight={700} 
+                      tickLine={false} 
+                      axisLine={false} 
+                      tick={{ fill: '#94a3b8' }} 
+                      dx={-10}
+                    />
+                    <Tooltip contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', fontSize: '11px' }} />
+                    <Legend verticalAlign="top" height={50} iconType="circle" wrapperStyle={{ fontSize: '9px', fontWeight: 800 }} />
+                    {evolutionaryData.playerNames.slice(0, visiblePlayersCount).map((name, index) => (
+                      <Area
+                        key={name}
+                        type="monotone"
+                        dataKey={name}
+                        stroke={colors[index % colors.length]}
+                        strokeWidth={3}
+                        fillOpacity={1}
+                        fill={`url(#color-${index})`}
+                      />
+                    ))}
+                  </AreaChart>
+                )}
+              </ResponsiveContainer>
             </div>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-slate-50/50 rounded-[32px] mb-4">
