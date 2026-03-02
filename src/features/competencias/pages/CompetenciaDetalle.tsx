@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useEntity } from '../../../shared/hooks';
@@ -86,6 +86,36 @@ const CompetenciaDetalle: React.FC = () => {
     enabled: !!id && !!competencia,
   });
 
+  // React Query for Fases
+  const { data: fases = [] } = useQuery({
+    queryKey: ['fases', selectedTemporada],
+    queryFn: () => FaseService.getByTemporada(selectedTemporada),
+    enabled: !!selectedTemporada && selectedTemporada !== 'global' && (activeTab === 'partidos' || activeTab === 'resultados'),
+  });
+
+  // React Query for Partidos
+  const { data: fasePartidos = [], isLoading: loadingPartidos } = useQuery({
+    queryKey: ['partidos', id, selectedTemporada, selectedFase],
+    queryFn: async () => {
+      if (selectedFase) {
+        return PartidoService.getByFaseId(selectedFase);
+      }
+      if (selectedTemporada && selectedTemporada !== 'global') {
+        return PartidoService.getAll({ 
+          temporadaId: selectedTemporada,
+          competencia: id! 
+        });
+      }
+      return [];
+    },
+    enabled: !!id && !!competencia && (activeTab === 'partidos' || activeTab === 'resultados'),
+  });
+
+  // React Query for Fase Details (Brackets/Playoffs)
+  const faseDetails = useMemo(() => {
+    return fases.find(f => f._id === selectedFase) || null;
+  }, [fases, selectedFase]);
+
   // Modal Detail state
   const [selectedPlayer, setSelectedPlayer] = useState<{ id: string, name: string } | null>(null);
 
@@ -108,12 +138,6 @@ const CompetenciaDetalle: React.FC = () => {
     updateParams({ player: null, playerName: null });
   };
 
-  // State for Resultados (Temporadas/Fases)
-  const [fases, setFases] = useState<Fase[]>([]);
-  const [faseDetails, setFaseDetails] = useState<Fase | null>(null);
-  const [fasePartidos, setFasePartidos] = useState<Partido[]>([]);
-  const [loadingResultados, setLoadingResultados] = useState(false);
-
   // Pick last season by default if none selected
   useEffect(() => {
     if (temporadas.length > 0) {
@@ -124,93 +148,12 @@ const CompetenciaDetalle: React.FC = () => {
     }
   }, [temporadas, activeTab, searchParams, updateParams]);
 
-  const loadFases = useCallback(async (temporadaId: string) => {
-    setLoadingResultados(true);
-    try {
-      const res = await FaseService.getByTemporada(temporadaId);
-      setFases(res);
-      
-      // If no phase is selected in URL, pick the last one by default for specific tabs
-      if (res.length > 0 && !searchParams.get('fase') && activeTab === 'resultados') {
-        updateParams({ fase: res[res.length - 1]._id });
-      }
-    } catch (err) {
-      console.error('Error loading fases:', err);
-    } finally {
-      setLoadingResultados(false);
-    }
-  }, [searchParams, activeTab, updateParams]);
-
-  const loadFaseData = useCallback(async (faseId: string) => {
-    setLoadingResultados(true);
-    try {
-      // Load phase details to know the type
-      const fase = fases.find(f => f._id === faseId);
-      setFaseDetails(fase || null);
-
-      // Load matches for this phase (needed for playoffs/brackets)
-      const matches = await PartidoService.getByFaseId(faseId);
-      setFasePartidos(matches);
-    } catch (err) {
-      console.error('Error loading fase data:', err);
-    } finally {
-      setLoadingResultados(false);
-    }
-  }, [fases]);
-
-  const loadTemporadaMatches = useCallback(async (temporadaId: string) => {
-    if (!competencia) return;
-    setLoadingResultados(true);
-    try {
-      setFaseDetails(null);
-      const matches = await PartidoService.getAll({ 
-        temporadaId,
-        competencia: competencia.id 
-      });
-      setFasePartidos(matches);
-    } catch (err) {
-      console.error('Error loading temporada matches:', err);
-    } finally {
-      setLoadingResultados(false);
-    }
-  }, [competencia]);
-
-  useEffect(() => {
-    if (competencia && (activeTab === 'partidos' || activeTab === 'resultados')) {
-      // Temporadas are now handled by React Query
-    }
-  }, [competencia, activeTab]);
-
   // Effect to reset activeTab if 'resultados' is selected but competition is ranked
   useEffect(() => {
     if (isRanked && activeTab === 'resultados') {
       updateParams({ tab: 'info' });
     }
   }, [isRanked, activeTab, updateParams]);
-
-  // Effect to load phases or leaderboard when season changes
-  useEffect(() => {
-    if (activeTab === 'leaderboard') {
-      // Handled by React Query
-    } else if (selectedTemporada && selectedTemporada !== 'global') {
-      void loadFases(selectedTemporada);
-    } else {
-      setFases([]);
-      updateParams({ fase: null });
-    }
-  }, [selectedTemporada, activeTab, loadFases, updateParams]);
-
-  // Effect to load phase details and matches when phase changes
-  useEffect(() => {
-    if (selectedFase) {
-      void loadFaseData(selectedFase);
-    } else if (selectedTemporada && selectedTemporada !== 'global' && activeTab === 'partidos') {
-      void loadTemporadaMatches(selectedTemporada);
-    } else {
-      setFaseDetails(null);
-      setFasePartidos([]);
-    }
-  }, [selectedFase, selectedTemporada, activeTab, loadFaseData, loadTemporadaMatches]);
 
   if (loading) {
     return (
@@ -308,7 +251,7 @@ const CompetenciaDetalle: React.FC = () => {
               fases={fases}
               selectedFase={selectedFase}
               onFaseChange={(id) => updateParams({ fase: id })}
-              loading={loadingResultados}
+              loading={loadingPartidos}
               partidos={fasePartidos}
               onPartidoClick={(partidoId) => navigate(`/partidos/${partidoId}`)}
             />
@@ -322,7 +265,7 @@ const CompetenciaDetalle: React.FC = () => {
               fases={fases}
               selectedFase={selectedFase}
               onFaseChange={(id) => updateParams({ fase: id })}
-              loading={loadingResultados}
+              loading={loadingPartidos}
               faseDetails={faseDetails}
               fasePartidos={fasePartidos}
               onPartidoClick={(partidoId) => navigate(`/partidos/${partidoId}`)}
