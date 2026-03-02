@@ -1,37 +1,47 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { JugadorCard } from '../../../shared/components';
-import { useEntity } from '../../../shared/hooks';
 import { JugadorService, type Jugador } from '../services/jugadorService';
 import { useAuth } from '../../../app/providers/AuthContext';
 
 const Jugadores: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  // El límite ahora es cuántos mostramos inicialmente y por "batch"
+  const [displayLimit, setDisplayLimit] = useState(24);
+  
+  const observerTarget = useRef<HTMLDivElement>(null);
   
   // Filtros
   const [searchTerm, setSearchTerm] = useState('');
   const [genderFilter, setGenderFilter] = useState('');
   const [nationalityFilter, setNationalityFilter] = useState('');
 
-  const { data: paged, loading, error, refetch } = useEntity<{ items: Jugador[] }>(
-    useCallback(() => JugadorService.getAll(), [])
-  );
+  // Semilla diaria para rotación de perfiles (cambia cada 24h)
+  const discoverySeed = useMemo(() => {
+    const now = new Date();
+    return now.getFullYear() + (now.getMonth() * 31) + now.getDate();
+  }, []);
 
-  // Extraer nacionalidades únicas de los datos para el filtro
+  const { data: paged, isLoading: loading, error, refetch } = useQuery({
+    queryKey: ['jugadores-list'],
+    queryFn: () => JugadorService.getAll(),
+    staleTime: 1000 * 60 * 5, // 5 minutos de cache fresca
+  });
+
+  // Extraer nacionalidades únicas
   const nationalities = useMemo(() => {
-    if (!paged?.items) return [];
-    const unique = new Set(paged.items.map(j => j.nacionalidad).filter(Boolean));
-    return Array.from(unique).sort();
+    const items = Array.isArray(paged) ? paged : (paged as any)?.items || [];
+    const unique = new Set(items.map((j: any) => j.nacionalidad).filter(Boolean));
+    return Array.from(unique).sort() as string[];
   }, [paged]);
 
-  const filteredItems = useMemo(() => {
-    if (!paged?.items) return [];
-    let items = [...paged.items];
+  const filteredAndSortedItems = useMemo(() => {
+    const rawItems = Array.isArray(paged) ? paged : (paged as any)?.items || [];
+    let items = [...rawItems];
 
-    // Aplicar búsqueda por nombre/alias
+    // 1. Aplicar búsqueda
     if (searchTerm) {
       const lowSearch = searchTerm.toLowerCase();
       items = items.filter(j => 
@@ -40,49 +50,58 @@ const Jugadores: React.FC = () => {
       );
     }
 
-    // Aplicar filtro de género
-    if (genderFilter) {
-      items = items.filter(j => j.genero === genderFilter);
-    }
+    // 2. Aplicar filtros
+    if (genderFilter) items = items.filter(j => j.genero === genderFilter);
+    if (nationalityFilter) items = items.filter(j => j.nacionalidad === nationalityFilter);
 
-    // Aplicar filtro de nacionalidad
-    if (nationalityFilter) {
-      items = items.filter(j => j.nacionalidad === nationalityFilter);
-    }
-
-    return items;
-  }, [paged, searchTerm, genderFilter, nationalityFilter]);
-
-  const jugadores = useMemo(() => {
-    const items = [...filteredItems];
-    
-    // Función para calcular qué tan "completo" está el perfil del jugador
-    const getCompletenessScore = (j: Jugador) => {
+    // 3. Aplicar Discovery Score (el orden dinámico que definimos antes)
+    const getDiscoveryScore = (j: Jugador, seed: number) => {
       let score = 0;
       if (j.foto) score += 10;
-      if (j.alias) score += 5;
-      if (j.nacionalidad) score += 3;
-      if (j.genero) score += 2;
-      if (j.edad) score += 2;
-      
-      // Priorizar también por datos relacionales si vienen en el objeto
-      if (j.equiposCount) score += j.equiposCount * 2;
-      if (j.partidosCount) score += j.partidosCount * 2;
-      if (Array.isArray(j.equipos)) score += j.equipos.length * 3;
-      if (Array.isArray(j.partidos)) score += j.partidos.length * 2;
-      
-      return score;
+      if (j.alias) score += 8;
+      if (j.userId || j.perfilReclamado) score += 15;
+      const activity = (j.partidosCount || 0) + (j.equiposCount || 0) * 2;
+      score += Math.min(activity, 30);
+      const playerIdStr = (j._id || j.id || '0').toString();
+      const idHash = playerIdStr.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+      const dailyNoise = (idHash + seed) % 15;
+      return score + dailyNoise;
     };
 
-    // Ordenamos: más completos primero
-    items.sort((a, b) => getCompletenessScore(b) - getCompletenessScore(a));
+    items.sort((a, b) => getDiscoveryScore(b, discoverySeed) - getDiscoveryScore(a, discoverySeed));
+    
+    return items;
+  }, [paged, searchTerm, genderFilter, nationalityFilter, discoverySeed]);
 
-    const start = (page - 1) * limit;
-    return items.slice(start, start + limit);
-  }, [filteredItems, page, limit]);
+  // Jugadores a mostrar actualmente (el "slide" del infinite scroll)
+  const jugadoresVisible = useMemo(() => {
+    return filteredAndSortedItems.slice(0, displayLimit);
+  }, [filteredAndSortedItems, displayLimit]);
 
-  const total = filteredItems.length;
-  const totalPages = useMemo(() => (limit > 0 ? Math.max(1, Math.ceil(total / limit)) : 1), [total, limit]);
+  const hasMore = displayLimit < filteredAndSortedItems.length;
+
+  // Intersection Observer para disparar la carga de más elementos
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          setDisplayLimit((prev) => prev + 24);
+        }
+      },
+      { threshold: 0.1, rootMargin: '100px' }
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => observer.disconnect();
+  }, [hasMore]);
+
+  // Resetear el scroll cuando cambian los filtros
+  useEffect(() => {
+    setDisplayLimit(24);
+  }, [searchTerm, genderFilter, nationalityFilter]);
 
   if (loading) {
     return (
@@ -99,9 +118,11 @@ const Jugadores: React.FC = () => {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <p className="mb-4 text-red-600">Error al cargar jugadores: {error}</p>
+          <p className="mb-4 text-red-600">
+            Error al cargar jugadores: {error instanceof Error ? error.message : 'Error desconocido'}
+          </p>
           <button
-            onClick={refetch}
+            onClick={() => refetch()}
             className="rounded-lg bg-brand-600 px-4 py-2 text-white hover:bg-brand-700"
           >
             Reintentar
@@ -186,67 +207,47 @@ const Jugadores: React.FC = () => {
           </div>
         </div>
 
-        {!jugadores || jugadores.length === 0 ? (
+        {!jugadoresVisible || jugadoresVisible.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-slate-500">No hay jugadores disponibles</p>
           </div>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {jugadores.map((jugador) => {
-              const jugadorId = jugador._id || jugador.id;
-              return (
-              <JugadorCard
-                key={jugadorId}
-                jugador={jugador}
-                variante="activo"
-                actions={
-                  <button
-                    onClick={() => navigate(`/jugadores/${jugadorId}`)}
-                    className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm text-white hover:bg-brand-700"
-                  >
-                    Ver detalles
-                  </button>
-                }
-              />
-            );
-            })}
-          </div>
-        )}
+          <>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {jugadoresVisible.map((jugador) => {
+                const jugadorId = jugador._id || jugador.id;
+                return (
+                <JugadorCard
+                  key={jugadorId}
+                  jugador={jugador}
+                  variante="activo"
+                  actions={
+                    <button
+                      onClick={() => navigate(`/jugadores/${jugadorId}`)}
+                      className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm text-white hover:bg-brand-700 w-full font-bold shadow-sm"
+                    >
+                      Ver perfil
+                    </button>
+                  }
+                />
+              );
+              })}
+            </div>
 
-        {/* Pagination controls */}
-        <div className="mt-8 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-slate-600">Mostrar</span>
-            <select
-              value={limit}
-              onChange={(e) => { setPage(1); setLimit(parseInt(e.target.value)); }}
-              className="rounded-lg border border-slate-300 text-sm px-2 py-1"
-            >
-              <option value={12}>12</option>
-              <option value={20}>20</option>
-              <option value={36}>36</option>
-              <option value={44}>44</option>
-            </select>
-            <span className="text-sm text-slate-600">por página</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page <= 1}
-              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 disabled:opacity-50"
-            >
-              ← Anterior
-            </button>
-            <span className="text-sm text-slate-700">Página {page} de {totalPages}</span>
-            <button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page >= totalPages}
-              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 disabled:opacity-50"
-            >
-              Siguiente →
-            </button>
-          </div>
-        </div>
+            {/* Target para el Intersection Observer */}
+            <div ref={observerTarget} className="h-20 flex items-center justify-center mt-8">
+              {hasMore && (
+                <div className="flex flex-col items-center gap-2">
+                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-brand-200 border-t-brand-600"></div>
+                  <p className="text-xs text-slate-400 font-medium">Cargando más jugadores...</p>
+                </div>
+              )}
+              {!hasMore && filteredAndSortedItems.length > 0 && (
+                <p className="text-sm text-slate-400 font-medium">✨ Has llegado al final del directorio</p>
+              )}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
