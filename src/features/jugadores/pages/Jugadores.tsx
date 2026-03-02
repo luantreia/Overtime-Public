@@ -160,7 +160,7 @@ const Jugadores: React.FC = () => {
               type="text"
               placeholder="Ej: Agustin..."
               value={searchTerm}
-              onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
+              onChange={(e) => { setSearchTerm(e.target.value); }}
               className="w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 border"
             />
           </div>
@@ -169,7 +169,7 @@ const Jugadores: React.FC = () => {
             <select
               id="gender"
               value={genderFilter}
-              onChange={(e) => { setGenderFilter(e.target.value); setPage(1); }}
+              onChange={(e) => { setGenderFilter(e.target.value); }}
               className="w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 border"
             >
               <option value="">Todos</option>
@@ -183,7 +183,7 @@ const Jugadores: React.FC = () => {
             <select
               id="nationality"
               value={nationalityFilter}
-              onChange={(e) => { setNationalityFilter(e.target.value); setPage(1); }}
+              onChange={(e) => { setNationalityFilter(e.target.value); }}
               className="w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 border"
             >
               <option value="">Todas</option>
@@ -198,7 +198,6 @@ const Jugadores: React.FC = () => {
                 setSearchTerm('');
                 setGenderFilter('');
                 setNationalityFilter('');
-                setPage(1);
               }}
               className="w-full rounded-lg border border-slate-300 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 transition-colors"
             >
