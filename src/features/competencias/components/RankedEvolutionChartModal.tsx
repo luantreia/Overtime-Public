@@ -55,7 +55,8 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
           
           let history = (detail.history || []).map((h: any) => ({
             ...h,
-            date: new Date(h.updatedAt || h.createdAt)
+            date: new Date(h.updatedAt || h.createdAt),
+            postRating: Number(h.postRating)
           })).sort((a: any, b: any) => a.date.getTime() - b.date.getTime());
 
           if (timeFilter === "month") {
@@ -65,15 +66,22 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
             history = history.filter((h: any) => h.date >= filterDate);
           }
 
-          const currentElo = player.elo || player.ranking || 1500;
-          const lastEntry = history[history.length - 1];
+          const currentElo = Number(player.elo || player.ranking || 1500);
           
-          if (!lastEntry || lastEntry.postRating !== currentElo) {
-            history.push({
-              date: new Date(),
-              preRating: lastEntry ? lastEntry.postRating : 1500,
-              postRating: currentElo
-            } as any);
+          // Asegurar que siempre hay POR LO MENOS 2 puntos para dibujar una linea
+          if (history.length === 0) {
+            history.push({ date: new Date(Date.now() - 86400000), postRating: 1500 });
+            history.push({ date: new Date(), postRating: currentElo });
+          } else if (history.length === 1) {
+            history.unshift({ date: new Date(history[0].date.getTime() - 86400000), postRating: 1500 });
+            if (history[1].postRating !== currentElo) {
+                history.push({ date: new Date(), postRating: currentElo });
+            }
+          } else {
+            const lastEntry = history[history.length - 1];
+            if (lastEntry.postRating !== currentElo) {
+               history.push({ date: new Date(), postRating: currentElo });
+            }
           }
 
           return { name: player.playerName, history };
@@ -88,7 +96,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
       const currentRatings: Record<string, number> = {};
 
       results.forEach(r => {
-          currentRatings[r.name] = r.history.length > 0 ? r.history[0].preRating : 1500;
+          currentRatings[r.name] = r.history.length > 0 ? r.history[0].postRating : 1500;
       });
 
       sortedDates.forEach((isoDate, index) => {
@@ -123,7 +131,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
       onClick={onClose}
     >
       <div 
-        className="bg-white w-full sm:max-w-5xl h-[92vh] sm:h-auto sm:max-h-[90vh] rounded-t-[32px] sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-300"
+        className="bg-white w-full sm:max-w-5xl h-[92vh] sm:h-[80vh] rounded-t-[32px] sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-300"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-6 py-5 flex items-center justify-between bg-white shrink-0 border-b border-slate-50">
@@ -141,7 +149,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
           </button>
         </div>
 
-        <div className="flex-1 min-h-0 overflow-hidden flex flex-col bg-white">
+        <div className="flex-1 min-h-0 flex flex-col bg-white">
           <div className="px-6 py-4 flex flex-col gap-4 shrink-0">
             <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
               {[{ id: "all", label: "Temporada" }, { id: "month", label: "Ultimo Mes" }].map((f) => (
@@ -171,118 +179,114 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
             </div>
           </div>
 
-          <div className="flex-1 w-full relative px-2 sm:px-6 pb-6 lg:pb-8">
+          <div className="flex-1 w-full p-4 sm:p-6" style={{ minHeight: "350px" }}>
             {isLoading ? (
-              <div className="absolute inset-0 flex flex-col items-center justify-center animate-pulse">
+              <div className="w-full h-full flex flex-col items-center justify-center animate-pulse">
                 <div className="w-12 h-12 border-4 border-slate-50 border-t-brand-500 rounded-full animate-spin"></div>
                 <p className="mt-4 text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Cargando metricas</p>
               </div>
-            ) : evolutionaryData?.chartData && evolutionaryData.chartData.length > 0 ? (
-              <div className="w-full h-full min-h-[350px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  {viewType === "line" ? (
-                    <LineChart data={evolutionaryData.chartData} margin={{ top: 10, right: 30, left: 0, bottom: 40 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                      <XAxis 
-                        dataKey="matchLabel" 
-                        fontSize={10} 
-                        fontWeight={700} 
-                        tickLine={false} 
-                        axisLine={false} 
-                        tick={{ fill: "#94a3b8" }} 
-                        dy={10}
+            ) : evolutionaryData?.chartData && evolutionaryData.chartData.length > 1 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                {viewType === "line" ? (
+                  <LineChart data={evolutionaryData.chartData} margin={{ top: 10, right: 30, left: 0, bottom: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis 
+                      dataKey="matchLabel" 
+                      fontSize={10} 
+                      fontWeight={700} 
+                      tickLine={false} 
+                      axisLine={false} 
+                      tick={{ fill: "#94a3b8" }} 
+                      dy={10}
+                    />
+                    <YAxis 
+                      domain={["dataMin - 50", "dataMax + 50"]} 
+                      fontSize={10} 
+                      fontWeight={700} 
+                      tickLine={false} 
+                      axisLine={false} 
+                      tick={{ fill: "#94a3b8" }} 
+                    />
+                    <Tooltip 
+                      labelFormatter={(value, payload) => payload[0]?.payload?.fullDate || value}
+                      contentStyle={{ borderRadius: "20px", border: "none", boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "800", padding: "16px" }} 
+                      itemSorter={(item) => Number(item.value) * -1}
+                      cursor={{ stroke: '#f1f5f9', strokeWidth: 2 }}
+                    />
+                    <Legend verticalAlign="top" height={60} iconType="circle" wrapperStyle={{ fontSize: "10px", fontWeight: 800, paddingBottom: "20px" }} />
+                    {evolutionaryData.playerNames.slice(0, visiblePlayersCount).map((name, index) => (
+                      <Line 
+                        key={name} 
+                        type="stepAfter" 
+                        dataKey={name} 
+                        stroke={colors[index % colors.length]} 
+                        strokeWidth={4} 
+                        dot={{ r: 4, strokeWidth: 0, fill: colors[index % colors.length] }} 
+                        activeDot={{ r: 6, strokeWidth: 0 }} 
+                        isAnimationActive={false}
+                        connectNulls 
                       />
-                      <YAxis 
-                        domain={["auto", "auto"]} 
-                        fontSize={10} 
-                        fontWeight={700} 
-                        tickLine={false} 
-                        axisLine={false} 
-                        tick={{ fill: "#94a3b8" }} 
-                        dx={-5} 
-                      />
-                      <Tooltip 
-                        labelFormatter={(value, payload) => payload[0]?.payload?.fullDate || value}
-                        contentStyle={{ borderRadius: "20px", border: "none", boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "800", padding: "16px" }} 
-                        itemSorter={(item) => Number(item.value) * -1}
-                        cursor={{ stroke: '#f1f5f9', strokeWidth: 2 }}
-                      />
-                      <Legend verticalAlign="top" height={60} iconType="circle" wrapperStyle={{ fontSize: "10px", fontWeight: 800, paddingBottom: "20px" }} />
+                    ))}
+                  </LineChart>
+                ) : (
+                  <AreaChart data={evolutionaryData.chartData} margin={{ top: 10, right: 30, left: 0, bottom: 20 }}>
+                    <defs>
                       {evolutionaryData.playerNames.slice(0, visiblePlayersCount).map((name, index) => (
-                        <Line 
-                          key={name} 
-                          type="stepAfter" 
-                          dataKey={name} 
-                          stroke={colors[index % colors.length]} 
-                          strokeWidth={4} 
-                          dot={{ r: 4, strokeWidth: 0, fill: colors[index % colors.length] }} 
-                          activeDot={{ r: 6, strokeWidth: 0 }} 
-                          isAnimationActive={false}
-                          connectNulls 
-                        />
+                        <linearGradient key={`grad-${name}`} id={`color-${index}`} x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor={colors[index % colors.length]} stopOpacity={0.4}/>
+                          <stop offset="95%" stopColor={colors[index % colors.length]} stopOpacity={0}/>
+                        </linearGradient>
                       ))}
-                    </LineChart>
-                  ) : (
-                    <AreaChart data={evolutionaryData.chartData} margin={{ top: 10, right: 30, left: 0, bottom: 40 }}>
-                      <defs>
-                        {evolutionaryData.playerNames.slice(0, visiblePlayersCount).map((name, index) => (
-                          <linearGradient key={`grad-${name}`} id={`color-${index}`} x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor={colors[index % colors.length]} stopOpacity={0.4}/>
-                            <stop offset="95%" stopColor={colors[index % colors.length]} stopOpacity={0}/>
-                          </linearGradient>
-                        ))}
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                      <XAxis 
-                        dataKey="matchLabel" 
-                        fontSize={10} 
-                        fontWeight={700} 
-                        tickLine={false} 
-                        axisLine={false} 
-                        tick={{ fill: "#94a3b8" }} 
-                        dy={10}
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis 
+                      dataKey="matchLabel" 
+                      fontSize={10} 
+                      fontWeight={700} 
+                      tickLine={false} 
+                      axisLine={false} 
+                      tick={{ fill: "#94a3b8" }} 
+                      dy={10}
+                    />
+                    <YAxis 
+                      domain={["dataMin - 50", "dataMax + 50"]} 
+                      fontSize={10} 
+                      fontWeight={700} 
+                      tickLine={false} 
+                      axisLine={false} 
+                      tick={{ fill: "#94a3b8" }} 
+                    />
+                    <Tooltip 
+                      labelFormatter={(value, payload) => payload[0]?.payload?.fullDate || value}
+                      contentStyle={{ borderRadius: "20px", border: "none", boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "800", padding: "16px" }} 
+                      itemSorter={(item) => Number(item.value) * -1}
+                    />
+                    <Legend verticalAlign="top" height={60} iconType="circle" wrapperStyle={{ fontSize: "10px", fontWeight: 800, paddingBottom: "20px" }} />
+                    {evolutionaryData.playerNames.slice(0, visiblePlayersCount).map((name, index) => (
+                      <Area 
+                        key={name} 
+                        type="stepAfter" 
+                        dataKey={name} 
+                        stroke={colors[index % colors.length]} 
+                        strokeWidth={4} 
+                        fillOpacity={1} 
+                        fill={`url(#color-${index})`} 
+                        isAnimationActive={false}
+                        connectNulls 
                       />
-                      <YAxis 
-                        domain={["auto", "auto"]} 
-                        fontSize={10} 
-                        fontWeight={700} 
-                        tickLine={false} 
-                        axisLine={false} 
-                        tick={{ fill: "#94a3b8" }} 
-                        dx={-5} 
-                      />
-                      <Tooltip 
-                        labelFormatter={(value, payload) => payload[0]?.payload?.fullDate || value}
-                        contentStyle={{ borderRadius: "20px", border: "none", boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "800", padding: "16px" }} 
-                        itemSorter={(item) => Number(item.value) * -1}
-                      />
-                      <Legend verticalAlign="top" height={60} iconType="circle" wrapperStyle={{ fontSize: "10px", fontWeight: 800, paddingBottom: "20px" }} />
-                      {evolutionaryData.playerNames.slice(0, visiblePlayersCount).map((name, index) => (
-                        <Area 
-                          key={name} 
-                          type="stepAfter" 
-                          dataKey={name} 
-                          stroke={colors[index % colors.length]} 
-                          strokeWidth={3} 
-                          fillOpacity={1} 
-                          fill={`url(#color-${index})`} 
-                          isAnimationActive={false}
-                          connectNulls 
-                        />
-                      ))}
-                    </AreaChart>
-                  )}
-                </ResponsiveContainer>
-              </div>
+                    ))}
+                  </AreaChart>
+                )}
+              </ResponsiveContainer>
             ) : (
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8 bg-slate-50/50 rounded-[32px] m-4">
+              <div className="w-full h-full flex flex-col items-center justify-center text-center p-8 bg-slate-50/50 rounded-[32px]">
                 <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-4 shadow-sm">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h4 className="text-slate-800 font-black text-sm uppercase tracking-wider">Historial vacio</h4>
-                <p className="text-slate-400 text-xs max-w-[200px] mt-2 font-medium">No hay suficientes enfrentamientos en este periodo para trazar una evolucion.</p>
+                <h4 className="text-slate-800 font-black text-sm uppercase tracking-wider">Sin evolucion suficiente</h4>
+                <p className="text-slate-400 text-xs max-w-[200px] mt-2 font-medium">Se necesitan al menos 2 enfrentamientos para ver una linea de tiempo.</p>
               </div>
             )}
           </div>
