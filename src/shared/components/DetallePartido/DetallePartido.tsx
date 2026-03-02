@@ -236,7 +236,7 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-slate-200">
-                  {sets.map((set) => (
+                  {sets.map((set: SetData) => (
                     <tr key={set.numeroSet} className="hover:bg-slate-50">
                       <td className="px-3 py-4 sm:px-6 whitespace-nowrap text-sm font-medium text-slate-900">
                         {set.numeroSet}
@@ -256,7 +256,7 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
                           {set.ganador === 'local' ? partido.equipoLocal?.nombre : set.ganador === 'visitante' ? partido.equipoVisitante?.nombre : '-'}
                         </span>
                       </td>
-                      {sets.some(s => s.tiempo) && (
+                      {sets.some((s: SetData) => s.tiempo) && (
                         <td className="px-3 py-4 sm:px-6 whitespace-nowrap text-sm text-slate-500">
                           {set.tiempo || '-'}
                         </td>
