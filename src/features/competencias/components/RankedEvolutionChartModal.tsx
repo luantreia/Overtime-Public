@@ -88,7 +88,6 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
       const chartData: any[] = [];
       const currentRatings: Record<string, number> = {};
 
-      // Inicializar con el rating inicial
       results.forEach(r => {
           currentRatings[r.name] = r.history.length > 0 ? r.history[0].preRating : 1500;
       });
@@ -187,7 +186,10 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                       <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#f1f5f9" />
                       <XAxis dataKey="date" fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} dy={10} interval="preserveStartEnd" />
                       <YAxis domain={["auto", "auto"]} fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} dx={-10} />
-                      <Tooltip contentStyle={{ borderRadius: "20px", border: "none", boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "800", padding: "16px" }} />
+                      <Tooltip 
+                        contentStyle={{ borderRadius: "20px", border: "none", boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "800", padding: "16px" }} 
+                        itemSorter={(item) => Number(item.value) * -1}
+                      />
                       <Legend verticalAlign="top" height={50} iconType="circle" wrapperStyle={{ fontSize: "9px", fontWeight: 800, paddingBottom: "10px" }} />
                       {evolutionaryData.playerNames.slice(0, visiblePlayersCount).map((name, index) => (
                         <Line key={name} type="stepAfter" dataKey={name} stroke={colors[index % colors.length]} strokeWidth={4} dot={false} activeDot={{ r: 6, strokeWidth: 0 }} animationDuration={1000} />
@@ -206,7 +208,10 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                       <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#f1f5f9" />
                       <XAxis dataKey="date" fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} dy={10} interval="preserveStartEnd" />
                       <YAxis domain={["auto", "auto"]} fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} dx={-10} />
-                      <Tooltip contentStyle={{ borderRadius: "20px", border: "none", boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "800", padding: "16px" }} />
+                      <Tooltip 
+                        contentStyle={{ borderRadius: "20px", border: "none", boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "800", padding: "16px" }} 
+                        itemSorter={(item) => Number(item.value) * -1}
+                      />
                       <Legend verticalAlign="top" height={50} iconType="circle" wrapperStyle={{ fontSize: "9px", fontWeight: 800, paddingBottom: "10px" }} />
                       {evolutionaryData.playerNames.slice(0, visiblePlayersCount).map((name, index) => (
                         <Area key={name} type="stepAfter" dataKey={name} stroke={colors[index % colors.length]} strokeWidth={3} fillOpacity={1} fill={`url(#color-${index})`} />
