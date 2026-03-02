@@ -24,7 +24,7 @@ interface RankedEvolutionChartModalProps {
   leaderboard: any[];
 }
 
-type TimeFilter = 'all' | 'month' | 'quarter' | 'year';
+type TimeFilter = 'all' | 'month';
 
 export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps> = ({
   isOpen,
@@ -60,13 +60,10 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
           })).sort((a: any, b: any) => a.date.getTime() - b.date.getTime());
 
           // Apply time filters
-          if (timeFilter !== 'all') {
+          if (timeFilter === 'month') {
             const now = new Date();
             const filterDate = new Date();
-            if (timeFilter === 'month') filterDate.setMonth(now.getMonth() - 1);
-            else if (timeFilter === 'quarter') filterDate.setMonth(now.getMonth() - 3);
-            else if (timeFilter === 'year') filterDate.setFullYear(now.getFullYear() - 1);
-            
+            filterDate.setMonth(now.getMonth() - 1);
             history = history.filter((h: any) => h.date >= filterDate);
           }
 
@@ -77,10 +74,11 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
         })
       );
 
-      // Create a unified timeline of all dates
+      // Create a unified timeline of all dates across all players
       const allDates = new Set<string>();
       results.forEach(r => r.history.forEach((h: any) => {
-          allDates.add(h.date.toISOString().split('T')[0]);
+          // Use full ISO string including time for better precision if many matches on same day
+          allDates.add(h.date.toISOString());
       }));
       
       const sortedDates = Array.from(allDates).sort();
@@ -88,20 +86,21 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
       const chartData: any[] = [];
       const currentRatings: Record<string, number> = {};
 
-      // Initialize ratings
+      // Initialize ratings from the very first available preRating in the set or baseline
       results.forEach(r => {
           currentRatings[r.name] = r.history.length > 0 ? r.history[0].preRating : 1500;
       });
 
-      sortedDates.forEach((date, index) => {
+      sortedDates.forEach((isoDate, index) => {
+        const dateObj = new Date(isoDate);
         const entry: any = { 
-          date: new Date(date).toLocaleDateString(undefined, { day: '2-digit', month: 'short' }),
-          displayDate: date,
+          date: dateObj.toLocaleDateString(undefined, { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }),
+          displayDate: isoDate,
           matchIndex: index + 1 
         };
         
         results.forEach(playerData => {
-            const historyEntry = playerData.history.find((h: any) => h.date.toISOString().startsWith(date));
+            const historyEntry = playerData.history.find((h: any) => h.date.toISOString() === isoDate);
             if (historyEntry) {
                 currentRatings[playerData.name] = historyEntry.postRating;
             }
@@ -155,10 +154,8 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
         <div className="px-6 pb-4 bg-white flex flex-col gap-4">
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 pointer-events-auto">
             {[
-              { id: 'all', label: 'Histórico' },
-              { id: 'year', label: '1 Año' },
-              { id: 'quarter', label: '3 Meses' },
-              { id: 'month', label: '1 Mes' },
+              { id: 'all', label: 'Temporada' },
+              { id: 'month', label: 'Último Mes' },
             ].map((f) => (
               <button
                 key={f.id}
