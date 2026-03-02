@@ -96,8 +96,9 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
 
       return p;
     },
-    refetchInterval: (data) => {
-      // Solo refrescar automáticamente si el partido está en curso/activo
+    refetchInterval: (query) => {
+      // El primer argumento en v5 es el objeto Query, los datos están en query.state.data
+      const data = query.state.data as any;
       const estado = data?.estado?.toLowerCase() || '';
       return (estado.includes('curso') || estado.includes('activa') || estado.includes('vivo')) ? 30000 : false;
     },
