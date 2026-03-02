@@ -54,11 +54,19 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
               categoria,
             });
             
-            let history = (detail.history || []).map((h: any) => ({
-              ...h,
-              date: new Date(h.updatedAt || h.createdAt),
-              postRating: Number(h.postRating)
-            })).sort((a: any, b: any) => a.date.getTime() - b.date.getTime());
+            // FILTRADO ESTRICTO: Solo historial de esta competencia y temporada
+            let history = (detail.history || [])
+              .filter((h: any) => {
+                const matchesCompetition = h.competitionId === competenciaId || h.competition === competenciaId;
+                const matchesSeason = !seasonId || h.seasonId === seasonId || h.season === seasonId;
+                return matchesCompetition && matchesSeason;
+              })
+              .map((h: any) => ({
+                ...h,
+                date: new Date(h.updatedAt || h.createdAt),
+                postRating: Number(h.postRating)
+              }))
+              .sort((a: any, b: any) => a.date.getTime() - b.date.getTime());
 
             if (timeFilter === "month") {
               const filterDate = new Date();
@@ -68,20 +76,13 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
 
             const currentElo = Number(player.elo || player.ranking || 1500);
             
+            // Si tiene historial, nos aseguramos que empiece desde su primer rating
+            // Si NO tiene historial en esta competencia, creamos un punto base
             if (history.length === 0) {
-              history = [
-                { date: new Date(Date.now() - 86400000 * 2), postRating: 1500 },
-                { date: new Date(Date.now() - 86400000), postRating: 1500 },
-                { date: new Date(), postRating: currentElo }
-              ];
-            } else {
-              const lastEntry = history[history.length - 1];
-              if (lastEntry.postRating !== currentElo) {
-                history.push({ date: new Date(), postRating: currentElo });
-              }
-              if (history.length === 1) {
-                history.unshift({ date: new Date(history[0].date.getTime() - 86400000), postRating: 1500 });
-              }
+               // Evitamos crear puntos ficticios "hoy" si no hay partidos
+               history = [
+                 { date: new Date(Date.now() - 1000), postRating: currentElo }
+               ];
             }
 
             return { name: player.playerName, history };
@@ -98,6 +99,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
       const chartData: any[] = [];
       const currentRatings: Record<string, number> = {};
 
+      // Inicialización con el primer valor real de cada jugador
       results.forEach(r => {
           currentRatings[r.name] = r.history.length > 0 ? r.history[0].postRating : 1500;
       });
@@ -114,7 +116,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
             if (historyEntry) {
                 currentRatings[playerData.name] = historyEntry.postRating;
             }
-            entry[playerData.name] = Number(currentRatings[playerData.name]);
+            entry[playerData.name] = currentRatings[playerData.name];
         });
         chartData.push(entry);
       });
@@ -142,7 +144,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
             <h3 className="text-xl font-extrabold text-slate-800 tracking-tight">Evolucion de Ranking</h3>
             <div className="flex items-center gap-2 mt-0.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Actualizado hoy</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Datos filtrados</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2.5 rounded-full bg-slate-50 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all">
@@ -159,7 +161,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                 <button
                   key={f.id}
                   onClick={() => setTimeFilter(f.id as TimeFilter)}
-                  className={`px-5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${timeFilter === f.id ? "bg-brand-600 text-white shadow-lg shadow-brand-200" : "bg-slate-50 text-slate-500 border border-slate-100 hover:border-slate-300"}`}
+                  className={`px-5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${timeFilter === f.id ? "bg-brand-600 text-white shadow-lg" : "bg-slate-50 text-slate-500 border border-slate-100"}`}
                 >
                   {f.label}
                 </button>
@@ -172,7 +174,6 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                   <button onClick={() => setViewType("area")} className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${viewType === "area" ? "bg-white text-brand-600 shadow-sm ring-1 ring-slate-100" : "text-slate-400"}`}>Areas</button>
                </div>
                <div className="flex items-center gap-2 pr-2">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest hidden sm:block">Mostrar</span>
                   <select value={visiblePlayersCount} onChange={(e) => setVisiblePlayersCount(Number(e.target.value))} className="text-[11px] font-bold bg-transparent border-none p-0 focus:ring-0 text-slate-600 cursor-pointer">
                     <option value={3}>TOP 3</option>
                     <option value={5}>TOP 5</option>
@@ -182,18 +183,18 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
             </div>
           </div>
 
-          <div className="flex-1 w-full flex flex-col min-h-0 relative mb-4">
+          <div className="flex-1 w-full p-4 sm:p-6 min-h-[400px]">
             {isLoading ? (
-              <div className="absolute inset-0 flex flex-col items-center justify-center animate-pulse">
+              <div className="w-full h-full flex flex-col items-center justify-center">
                 <div className="w-12 h-12 border-4 border-slate-50 border-t-brand-500 rounded-full animate-spin"></div>
-                <p className="mt-4 text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Cargando metricas</p>
+                <p className="mt-4 text-[10px] font-bold text-slate-300 uppercase tracking-widest">Calculando historial...</p>
               </div>
             ) : isError ? (
-               <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8">
-                  <p className="text-red-400 text-xs font-bold uppercase">Error al obtener ranking</p>
+               <div className="w-full h-full flex flex-col items-center justify-center text-center">
+                  <p className="text-red-400 text-xs font-bold uppercase">Error de conexion</p>
                </div>
             ) : evolutionaryData?.chartData && evolutionaryData.chartData.length > 0 ? (
-              <div className="w-full h-full min-h-[400px]">
+              <div className="w-full h-full" style={{ minHeight: "400px" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   {viewType === "line" ? (
                     <LineChart data={evolutionaryData.chartData} margin={{ top: 20, right: 30, left: 10, bottom: 40 }}>
@@ -204,7 +205,6 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                         labelFormatter={(v, p) => p[0]?.payload?.fullDate || v}
                         contentStyle={{ borderRadius: "20px", border: "none", boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "800", padding: "16px" }} 
                         itemSorter={(item) => Number(item.value) * -1}
-                        cursor={{ stroke: '#f1f5f9', strokeWidth: 2 }}
                       />
                       <Legend verticalAlign="top" height={60} iconType="circle" wrapperStyle={{ fontSize: "10px", fontWeight: 800, paddingBottom: "20px" }} />
                       {evolutionaryData.playerNames.slice(0, visiblePlayersCount).map((name, index) => (
@@ -257,13 +257,8 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                 </ResponsiveContainer>
               </div>
             ) : (
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8 bg-slate-50/50 rounded-[32px] m-4">
-                <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-slate-100">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <h4 className="text-slate-800 font-black text-sm uppercase tracking-wider">Historial insuficiente</h4>
+              <div className="w-full h-full flex flex-col items-center justify-center text-center p-8 bg-slate-50/50 rounded-3xl">
+                <h4 className="text-slate-800 font-black text-sm uppercase tracking-wider italic">Sin partidos en este periodo</h4>
               </div>
             )}
           </div>
