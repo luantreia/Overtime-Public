@@ -54,7 +54,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
 
       // Transform into a format recharts likes: [{ matchIndex: 0, PlayerA: 1500, PlayerB: 1500 }, ...]
       const maxMatches = Math.max(...results.map(r => r.history.length));
-      const chartData = [];
+      const chartData: any[] = [];
 
       for (let i = 0; i < maxMatches; i++) {
         const entry: any = { matchIndex: i + 1 };
