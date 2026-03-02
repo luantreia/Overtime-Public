@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+ï»¿import React, { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { RankedService } from "../services/rankedService";
 import {
@@ -65,8 +65,8 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
             history = history.filter((h: any) => h.date >= filterDate);
           }
 
-          const lastEntry = history[history.length - 1];
           const currentElo = player.elo || player.ranking || 1500;
+          const lastEntry = history[history.length - 1];
           
           if (!lastEntry || lastEntry.postRating !== currentElo) {
             history.push({
@@ -87,7 +87,6 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
       const chartData: any[] = [];
       const currentRatings: Record<string, number> = {};
 
-      // Inicializar con el primer rating conocido o 1500
       results.forEach(r => {
           currentRatings[r.name] = r.history.length > 0 ? r.history[0].preRating : 1500;
       });
@@ -124,12 +123,12 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
       onClick={onClose}
     >
       <div 
-        className="bg-white w-full sm:max-w-5xl h-[92vh] sm:h-auto sm:max-h-[85vh] rounded-t-[32px] sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-300"
+        className="bg-white w-full sm:max-w-5xl h-[92vh] sm:h-auto sm:max-h-[90vh] rounded-t-[32px] sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-300"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="px-6 py-5 flex items-center justify-between bg-white shrink-0">
+        <div className="px-6 py-5 flex items-center justify-between bg-white shrink-0 border-b border-slate-50">
           <div>
-            <h3 className="text-xl font-extrabold text-slate-800 tracking-tight">Evolución de Ranking</h3>
+            <h3 className="text-xl font-extrabold text-slate-800 tracking-tight">Evolucion de Ranking</h3>
             <div className="flex items-center gap-2 mt-0.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Actualizado hoy</p>
@@ -142,10 +141,10 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto no-scrollbar flex flex-col min-h-0">
-          <div className="px-6 pb-4 bg-white flex flex-col gap-4 shrink-0">
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 pointer-events-auto">
-              {[{ id: "all", label: "Temporada" }, { id: "month", label: "Último Mes" }].map((f) => (
+        <div className="flex-1 min-h-0 overflow-hidden flex flex-col bg-white">
+          <div className="px-6 py-4 flex flex-col gap-4 shrink-0">
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+              {[{ id: "all", label: "Temporada" }, { id: "month", label: "Ultimo Mes" }].map((f) => (
                 <button
                   key={f.id}
                   onClick={() => setTimeFilter(f.id as TimeFilter)}
@@ -158,8 +157,8 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
 
             <div className="flex items-center justify-between gap-3 bg-slate-50/80 p-1.5 rounded-2xl border border-slate-100">
                <div className="flex items-center gap-1">
-                  <button onClick={() => setViewType("line")} className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${viewType === "line" ? "bg-white text-brand-600 shadow-sm ring-1 ring-slate-100" : "text-slate-400"}`}>Líneas</button>
-                  <button onClick={() => setViewType("area")} className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${viewType === "area" ? "bg-white text-brand-600 shadow-sm ring-1 ring-slate-100" : "text-slate-400"}`}>Áreas</button>
+                  <button onClick={() => setViewType("line")} className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${viewType === "line" ? "bg-white text-brand-600 shadow-sm ring-1 ring-slate-100" : "text-slate-400"}`}>Lineas</button>
+                  <button onClick={() => setViewType("area")} className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${viewType === "area" ? "bg-white text-brand-600 shadow-sm ring-1 ring-slate-100" : "text-slate-400"}`}>Areas</button>
                </div>
                <div className="flex items-center gap-2 pr-2">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest hidden sm:block">Mostrar</span>
@@ -172,17 +171,17 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
             </div>
           </div>
 
-          <div className="flex-1 w-full flex flex-col min-h-[450px] bg-white px-2 sm:px-6 pb-6 lg:pb-8">
+          <div className="flex-1 w-full relative px-2 sm:px-6 pb-6 lg:pb-8">
             {isLoading ? (
-              <div className="flex-1 flex flex-col items-center justify-center animate-pulse">
+              <div className="absolute inset-0 flex flex-col items-center justify-center animate-pulse">
                 <div className="w-12 h-12 border-4 border-slate-50 border-t-brand-500 rounded-full animate-spin"></div>
-                <p className="mt-4 text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Cargando métricas</p>
+                <p className="mt-4 text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Cargando metricas</p>
               </div>
             ) : evolutionaryData?.chartData && evolutionaryData.chartData.length > 0 ? (
-              <div className="flex-1 w-full h-[450px] sm:h-[550px]">
+              <div className="w-full h-full min-h-[350px]">
                 <ResponsiveContainer width="100%" height="100%">
                   {viewType === "line" ? (
-                    <LineChart data={evolutionaryData.chartData} margin={{ top: 20, right: 30, left: 10, bottom: 20 }}>
+                    <LineChart data={evolutionaryData.chartData} margin={{ top: 10, right: 30, left: 0, bottom: 40 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                       <XAxis 
                         dataKey="matchLabel" 
@@ -193,14 +192,22 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                         tick={{ fill: "#94a3b8" }} 
                         dy={10}
                       />
-                      <YAxis domain={["auto", "auto"]} fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} dx={-10} />
+                      <YAxis 
+                        domain={["auto", "auto"]} 
+                        fontSize={10} 
+                        fontWeight={700} 
+                        tickLine={false} 
+                        axisLine={false} 
+                        tick={{ fill: "#94a3b8" }} 
+                        dx={-5} 
+                      />
                       <Tooltip 
                         labelFormatter={(value, payload) => payload[0]?.payload?.fullDate || value}
                         contentStyle={{ borderRadius: "20px", border: "none", boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "800", padding: "16px" }} 
                         itemSorter={(item) => Number(item.value) * -1}
                         cursor={{ stroke: '#f1f5f9', strokeWidth: 2 }}
                       />
-                      <Legend verticalAlign="top" height={50} iconType="circle" wrapperStyle={{ fontSize: "9px", fontWeight: 800, paddingBottom: "10px" }} />
+                      <Legend verticalAlign="top" height={60} iconType="circle" wrapperStyle={{ fontSize: "10px", fontWeight: 800, paddingBottom: "20px" }} />
                       {evolutionaryData.playerNames.slice(0, visiblePlayersCount).map((name, index) => (
                         <Line 
                           key={name} 
@@ -210,13 +217,13 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                           strokeWidth={4} 
                           dot={{ r: 4, strokeWidth: 0, fill: colors[index % colors.length] }} 
                           activeDot={{ r: 6, strokeWidth: 0 }} 
-                          animationDuration={500}
+                          isAnimationActive={false}
                           connectNulls 
                         />
                       ))}
                     </LineChart>
                   ) : (
-                    <AreaChart data={evolutionaryData.chartData} margin={{ top: 20, right: 30, left: 10, bottom: 20 }}>
+                    <AreaChart data={evolutionaryData.chartData} margin={{ top: 10, right: 30, left: 0, bottom: 40 }}>
                       <defs>
                         {evolutionaryData.playerNames.slice(0, visiblePlayersCount).map((name, index) => (
                           <linearGradient key={`grad-${name}`} id={`color-${index}`} x1="0" y1="0" x2="0" y2="1">
@@ -235,13 +242,21 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                         tick={{ fill: "#94a3b8" }} 
                         dy={10}
                       />
-                      <YAxis domain={["auto", "auto"]} fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} dx={-10} />
+                      <YAxis 
+                        domain={["auto", "auto"]} 
+                        fontSize={10} 
+                        fontWeight={700} 
+                        tickLine={false} 
+                        axisLine={false} 
+                        tick={{ fill: "#94a3b8" }} 
+                        dx={-5} 
+                      />
                       <Tooltip 
                         labelFormatter={(value, payload) => payload[0]?.payload?.fullDate || value}
                         contentStyle={{ borderRadius: "20px", border: "none", boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "800", padding: "16px" }} 
                         itemSorter={(item) => Number(item.value) * -1}
                       />
-                      <Legend verticalAlign="top" height={50} iconType="circle" wrapperStyle={{ fontSize: "9px", fontWeight: 800, paddingBottom: "10px" }} />
+                      <Legend verticalAlign="top" height={60} iconType="circle" wrapperStyle={{ fontSize: "10px", fontWeight: 800, paddingBottom: "20px" }} />
                       {evolutionaryData.playerNames.slice(0, visiblePlayersCount).map((name, index) => (
                         <Area 
                           key={name} 
@@ -251,7 +266,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                           strokeWidth={3} 
                           fillOpacity={1} 
                           fill={`url(#color-${index})`} 
-                          animationDuration={500}
+                          isAnimationActive={false}
                           connectNulls 
                         />
                       ))}
@@ -260,19 +275,19 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                 </ResponsiveContainer>
               </div>
             ) : (
-              <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-slate-50/50 rounded-[32px] mb-4">
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8 bg-slate-50/50 rounded-[32px] m-4">
                 <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-4 shadow-sm">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h4 className="text-slate-800 font-black text-sm uppercase tracking-wider">Historial vacío</h4>
-                <p className="text-slate-400 text-xs max-w-[200px] mt-2 font-medium">No hay suficientes enfrentamientos en este periodo para trazar una evolución.</p>
+                <h4 className="text-slate-800 font-black text-sm uppercase tracking-wider">Historial vacio</h4>
+                <p className="text-slate-400 text-xs max-w-[200px] mt-2 font-medium">No hay suficientes enfrentamientos en este periodo para trazar una evolucion.</p>
               </div>
             )}
           </div>
 
-          <div className="px-6 py-6 border-t border-slate-50 bg-white sm:hidden">
+          <div className="px-6 py-6 border-t border-slate-50 bg-white sm:hidden shrink-0">
             <button onClick={onClose} className="w-full py-4 bg-slate-900 text-white rounded-[20px] font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-slate-200 active:scale-[0.98] transition-all">Cerrar Panel</button>
           </div>
         </div>
