@@ -65,7 +65,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
             history = history.filter((h: any) => h.date >= filterDate);
           }
 
-          // Inyectar punto actual si es diferente al último historial
+          // Inyectar punto actual
           const lastEntry = history[history.length - 1];
           const currentElo = player.elo || player.ranking || 1500;
           
@@ -81,6 +81,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
         })
       );
 
+      // Recolectar todas las fechas ÚNICAS para sincronizar el eje X
       const allDates = new Set<string>();
       results.forEach(r => r.history.forEach((h: any) => allDates.add(h.date.toISOString())));
       const sortedDates = Array.from(allDates).sort();
@@ -88,6 +89,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
       const chartData: any[] = [];
       const currentRatings: Record<string, number> = {};
 
+      // Inicializar con el rating base
       results.forEach(r => {
           currentRatings[r.name] = r.history.length > 0 ? r.history[0].preRating : 1500;
       });
@@ -95,8 +97,11 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
       sortedDates.forEach((isoDate, index) => {
         const dateObj = new Date(isoDate);
         const entry: any = { 
-          date: dateObj.toLocaleDateString(undefined, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }),
-          matchIndex: index + 1 
+          // ETIQUETA DEL EJE X: Ahora muestra "P1", "P2", etc.
+          matchLabel: `P${index + 1}`,
+          // GUARDAMOS LA FECHA para el Tooltip
+          fullDate: dateObj.toLocaleDateString(undefined, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }),
+          isoDate: isoDate
         };
         
         results.forEach(playerData => {
@@ -184,9 +189,19 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                   {viewType === "line" ? (
                     <LineChart data={evolutionaryData.chartData} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
                       <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#f1f5f9" />
-                      <XAxis dataKey="date" fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} dy={10} interval="preserveStartEnd" />
+                      <XAxis 
+                        dataKey="matchLabel" 
+                        fontSize={10} 
+                        fontWeight={700} 
+                        tickLine={false} 
+                        axisLine={false} 
+                        tick={{ fill: "#94a3b8" }} 
+                        dy={10} 
+                        interval={0}
+                      />
                       <YAxis domain={["auto", "auto"]} fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} dx={-10} />
                       <Tooltip 
+                        labelFormatter={(value, payload) => payload[0]?.payload?.fullDate || value}
                         contentStyle={{ borderRadius: "20px", border: "none", boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "800", padding: "16px" }} 
                         itemSorter={(item) => Number(item.value) * -1}
                       />
@@ -206,9 +221,19 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                         ))}
                       </defs>
                       <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#f1f5f9" />
-                      <XAxis dataKey="date" fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} dy={10} interval="preserveStartEnd" />
+                      <XAxis 
+                        dataKey="matchLabel" 
+                        fontSize={10} 
+                        fontWeight={700} 
+                        tickLine={false} 
+                        axisLine={false} 
+                        tick={{ fill: "#94a3b8" }} 
+                        dy={10} 
+                        interval={0}
+                      />
                       <YAxis domain={["auto", "auto"]} fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} dx={-10} />
                       <Tooltip 
+                        labelFormatter={(value, payload) => payload[0]?.payload?.fullDate || value}
                         contentStyle={{ borderRadius: "20px", border: "none", boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "800", padding: "16px" }} 
                         itemSorter={(item) => Number(item.value) * -1}
                       />
