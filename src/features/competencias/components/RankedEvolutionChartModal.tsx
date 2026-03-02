@@ -123,8 +123,14 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
   ];
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-md transition-opacity">
-      <div className="bg-white w-full sm:max-w-5xl h-[95vh] sm:h-auto sm:max-h-[85vh] rounded-t-[32px] sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-300">
+    <div 
+      className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-md transition-opacity"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-white w-full sm:max-w-5xl h-[95vh] sm:h-auto sm:max-h-[85vh] rounded-t-[32px] sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-300"
+        onClick={(e) => e.stopPropagation()}
+      >
         
         {/* Header - Mobile First */}
         <div className="px-6 py-5 flex items-center justify-between bg-white">
