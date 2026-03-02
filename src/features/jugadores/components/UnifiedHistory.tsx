@@ -52,17 +52,17 @@ export const UnifiedHistory: React.FC<UnifiedHistoryProps> = ({ jugadorId }) => 
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-4 items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
           <CalendarDaysIcon className="h-6 w-6 text-brand-600" />
           Historial Unificado
         </h3>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full sm:w-auto">
           <select 
             value={modalidad}
             onChange={(e) => setModalidad(e.target.value)}
-            className="text-xs font-bold bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 py-1"
+            className="flex-1 sm:flex-none text-xs font-bold bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 py-1"
           >
             <option value="">Filtro Modalidad</option>
             <option value="Foam">Foam</option>
@@ -71,7 +71,7 @@ export const UnifiedHistory: React.FC<UnifiedHistoryProps> = ({ jugadorId }) => 
           <select 
             value={categoria}
             onChange={(e) => setCategoria(e.target.value)}
-            className="text-xs font-bold bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 py-1"
+            className="flex-1 sm:flex-none text-xs font-bold bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 py-1"
           >
             <option value="">Filtro Categoría</option>
             <option value="Masculino">Masculino</option>

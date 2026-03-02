@@ -53,18 +53,18 @@ export const DashboardMaestro: React.FC<DashboardMaestroProps> = ({ jugadorId, j
 
   return (
     <div className="space-y-6">
-      {/* Selector de Categoria y Modalidad */}
-      <div className="flex flex-wrap gap-4 items-center bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-        <div className="flex items-center gap-2 text-sm font-bold text-slate-500 uppercase tracking-wider">
+      {/* Selector de Categoria y Modalidad - Responsive Fix */}
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+        <div className="flex items-center gap-2 text-sm font-bold text-slate-500 uppercase tracking-wider shrink-0">
           <IdentificationIcon className="h-5 w-5" />
           <span>Filtros Maestro</span>
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex flex-1 gap-2 w-full">
           <select 
             value={modalidad}
             onChange={(e) => setModalidad(e.target.value)}
-            className="text-xs font-bold bg-slate-50 border-none rounded-lg focus:ring-2 focus:ring-brand-500 pr-8"
+            className="flex-1 text-xs font-bold bg-slate-50 border-none rounded-lg focus:ring-2 focus:ring-brand-500 pr-8"
           >
             <option value="">Todas las Modalidades</option>
             <option value="Foam">Foam</option>
@@ -74,7 +74,7 @@ export const DashboardMaestro: React.FC<DashboardMaestroProps> = ({ jugadorId, j
           <select 
             value={categoria}
             onChange={(e) => setCategoria(e.target.value)}
-            className="text-xs font-bold bg-slate-50 border-none rounded-lg focus:ring-2 focus:ring-brand-500 pr-8"
+            className="flex-1 text-xs font-bold bg-slate-50 border-none rounded-lg focus:ring-2 focus:ring-brand-500 pr-8"
           >
             <option value="">Todas las Categorías</option>
             <option value="Masculino">Masculino</option>

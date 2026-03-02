@@ -132,8 +132,8 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl max-h-[90vh] flex flex-col border border-slate-200">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 p-2 sm:p-4 backdrop-blur-sm">
+      <div className="w-full max-w-lg rounded-2xl bg-white p-4 sm:p-6 shadow-2xl max-h-[90vh] flex flex-col border border-slate-200">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
              {playerStack.length > 0 && (

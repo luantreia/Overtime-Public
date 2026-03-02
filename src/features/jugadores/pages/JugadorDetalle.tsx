@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toPng } from 'html-to-image';
+import { useQuery } from '@tanstack/react-query';
 import { useEntity } from '../../../shared/hooks';
 import { JugadorService, type Jugador } from '../services/jugadorService';
 import { CompetenciaService } from '../../competencias/services/competenciaService';
@@ -23,139 +24,20 @@ const JugadorDetalle: React.FC = () => {
   const { user } = useAuth();
   const { addToast } = useToast();
   
-  const [competenciasData, setCompetenciasData] = useState<any[]>([]);
-  const [loadingComps, setLoadingComps] = useState(false);
-  const [actionLoading, setActionLoading] = useState(false);
-  const [showAllComps, setShowAllComps] = useState(false);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'history' | 'leagues'>('dashboard');
-
-  // Modal State
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedCompForModal, setSelectedCompForModal] = useState<any>(null);
-
-  const handleOpenModal = (compData: any) => {
-    setSelectedCompForModal(compData);
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-  };
-
-  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
-
-  const handleExportImage = async (idx: number, compName: string) => {
-    const node = cardRefs.current[idx];
-    if (node) {
-      try {
-        const dataUrl = await toPng(node, {
-          filter: (el: any) => {
-            // Ignorar elementos marcados explícitamente, botones y selects
-            if (
-              el.classList?.contains('no-export') || 
-              el.tagName === 'BUTTON' || 
-              el.tagName === 'SELECT'
-            ) return false;
-            return true;
-          },
-          backgroundColor: '#ffffff',
-          style: {
-            borderRadius: '16px'
-          },
-          cacheBust: true,
-        });
-        
-        const link = document.createElement('a');
-        const playerName = jugador?.nombre?.replace(/\s+/g, '-') || 'jugador';
-        const competitionName = compName.replace(/\s+/g, '-') || 'competencia';
-        link.download = `ranking-${playerName}-${competitionName}.png`;
-        link.href = dataUrl;
-        link.click();
-      } catch (err) {
-        console.error('Error generating image', err);
-      }
-    }
-  };
-
-  const handleClaim = async () => {
-    if (!id || !user) return;
-    try {
-      setActionLoading(true);
-      await JugadorService.claim(id);
-      addToast({
-        type: 'success',
-        title: 'Solicitud enviada',
-        message: 'Tu solicitud para reclamar este perfil ha sido enviada con éxito. Un administrador lo validará pronto.'
-      });
-    } catch (err: any) {
-      addToast({
-        type: 'error',
-        title: 'Error al reclamar',
-        message: err.message
-      });
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleSeasonChange = async (compIdx: number, seasonId: string) => {
-    const freshData = [...competenciasData];
-    const data = freshData[compIdx];
-    if (!data) return;
-
-    try {
-      if (data.isRanked) {
-        const res = await RankedService.getRankContext(id!, {
-          modalidad: data.competencia.modalidad || 'Foam',
-          categoria: data.competencia.categoria || 'Libre',
-          competition: data.competencia._id || data.competencia.id,
-          season: seasonId === 'global' ? undefined : seasonId
-        });
-        
-        if (res.ok) {
-          freshData[compIdx] = { 
-            ...data, 
-            rankedData: { ...res, selectedSeasonId: seasonId } 
-          };
-          setCompetenciasData(freshData);
-        }
-      } else {
-        const selectedSeason = data.allSeasons.find((s: any) => s._id === seasonId);
-        if (!selectedSeason) return;
-
-        const fasesRes = await FaseService.getByTemporada(selectedSeason._id);
-        let normalData = null;
-        if (fasesRes.length > 0) {
-          const lastFase = fasesRes[fasesRes.length - 1];
-          let matches: any[] = [];
-          if (lastFase.tipo === 'playoff') {
-            matches = await PartidoService.getByFaseId(lastFase._id);
-          }
-          normalData = {
-            temporada: selectedSeason,
-            fase: lastFase,
-            matches
-          };
-        }
-        freshData[compIdx] = { ...data, normalData };
-        setCompetenciasData(freshData);
-      }
-    } catch (err) {
-      console.error('Error changing season:', err);
-    }
-  };
-
-  const { data: jugador, loading, error } = useEntity<Jugador>(
-    useCallback(() => {
+  const { data: jugador, isLoading: loading, error } = useQuery({
+    queryKey: ['jugador', id],
+    queryFn: () => {
       if (!id) throw new Error('ID de jugador no proporcionado');
       return JugadorService.getById(id);
-    }, [id])
-  );
+    },
+    enabled: !!id,
+  });
 
-  const loadCompetenciasInfo = useCallback(async () => {
-    if (!id) return;
-    setLoadingComps(true);
-    try {
+  const { data: competenciasData = [], isLoading: loadingComps } = useQuery({
+    queryKey: ['jugador-competencias-detalle', id],
+    queryFn: async () => {
+      if (!id) return [];
+      
       // Intentar obtener de ambas fuentes para máxima cobertura
       const [jcArray, allComps] = await Promise.all([
         JugadorCompetenciaService.getByJugador(id),
@@ -268,7 +150,7 @@ const JugadorDetalle: React.FC = () => {
       });
 
       const results = await Promise.all(compsPromises);
-      const sortedResults = results
+      return results
         .filter((r): r is any => r !== null)
         .sort((a, b) => {
           // Prioridad: 1. Por matchCount, 2. Ranked primero si tienen mismo count
@@ -277,19 +159,140 @@ const JugadorDetalle: React.FC = () => {
           if (a.isRanked !== b.isRanked) return a.isRanked ? -1 : 1;
           return 0;
         });
-      setCompetenciasData(sortedResults);
-    } catch (err) {
-      console.error('Error loading player competitions:', err);
-    } finally {
-      setLoadingComps(false);
-    }
-  }, [id]);
+    },
+    enabled: !!id && !!jugador,
+  });
 
+  const [localCompsData, setLocalCompsData] = useState<any[]>([]);
+
+  // Sync React Query data to local state for specific interactions like handleSeasonChange
   useEffect(() => {
-    if (jugador && id) {
-      void loadCompetenciasInfo();
+    if (competenciasData) {
+      setLocalCompsData(competenciasData);
     }
-  }, [jugador, id, loadCompetenciasInfo]);
+  }, [competenciasData]);
+
+  const [actionLoading, setActionLoading] = useState(false);
+  const [showAllComps, setShowAllComps] = useState(false);
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'history' | 'leagues'>('dashboard');
+
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedCompForModal, setSelectedCompForModal] = useState<any>(null);
+
+  const handleOpenModal = (compData: any) => {
+    setSelectedCompForModal(compData);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  const handleExportImage = async (idx: number, compName: string) => {
+    const node = cardRefs.current[idx];
+    if (node) {
+      try {
+        const dataUrl = await toPng(node, {
+          filter: (el: any) => {
+            // Ignorar elementos marcados explícitamente, botones y selects
+            if (
+              el.classList?.contains('no-export') || 
+              el.tagName === 'BUTTON' || 
+              el.tagName === 'SELECT'
+            ) return false;
+            return true;
+          },
+          backgroundColor: '#ffffff',
+          style: {
+            borderRadius: '16px'
+          },
+          cacheBust: true,
+        });
+        
+        const link = document.createElement('a');
+        const playerName = jugador?.nombre?.replace(/\s+/g, '-') || 'jugador';
+        const competitionName = compName.replace(/\s+/g, '-') || 'competencia';
+        link.download = `ranking-${playerName}-${competitionName}.png`;
+        link.href = dataUrl;
+        link.click();
+      } catch (err) {
+        console.error('Error generating image', err);
+      }
+    }
+  };
+
+  const handleClaim = async () => {
+    if (!id || !user) return;
+    try {
+      setActionLoading(true);
+      await JugadorService.claim(id);
+      addToast({
+        type: 'success',
+        title: 'Solicitud enviada',
+        message: 'Tu solicitud para reclamar este perfil ha sido enviada con éxito. Un administrador lo validará pronto.'
+      });
+    } catch (err: any) {
+      addToast({
+        type: 'error',
+        title: 'Error al reclamar',
+        message: err.message
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleSeasonChange = async (compIdx: number, seasonId: string) => {
+    const freshData = [...localCompsData];
+    const data = freshData[compIdx];
+    if (!data) return;
+
+    try {
+      if (data.isRanked) {
+        const res = await RankedService.getRankContext(id!, {
+          modalidad: data.competencia.modalidad || 'Foam',
+          categoria: data.competencia.categoria || 'Libre',
+          competition: data.competencia._id || data.competencia.id,
+          season: seasonId === 'global' ? undefined : seasonId
+        });
+        
+        if (res.ok) {
+          freshData[compIdx] = { 
+            ...data, 
+            rankedData: { ...res, selectedSeasonId: seasonId } 
+          };
+          setLocalCompsData(freshData);
+        }
+      } else {
+        const selectedSeason = data.allSeasons.find((s: any) => s._id === seasonId);
+        if (!selectedSeason) return;
+
+        const fasesRes = await FaseService.getByTemporada(selectedSeason._id);
+        let normalData = null;
+        if (fasesRes.length > 0) {
+          const lastFase = fasesRes[fasesRes.length - 1];
+          let matches: any[] = [];
+          if (lastFase.tipo === 'playoff') {
+            matches = await PartidoService.getByFaseId(lastFase._id);
+          }
+          normalData = {
+            temporada: selectedSeason,
+            fase: lastFase,
+            matches
+          };
+        }
+        freshData[compIdx] = { ...data, normalData };
+        setLocalCompsData(freshData);
+      }
+    } catch (err) {
+      console.error('Error changing season:', err);
+    }
+  };
+
+  const resultadosSorted = localCompsData;
 
   if (loading) {
     return (
@@ -306,7 +309,9 @@ const JugadorDetalle: React.FC = () => {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <p className="mb-4 text-red-600">Error al cargar jugador: {error || 'No encontrado'}</p>
+          <p className="mb-4 text-red-600">
+            Error al cargar jugador: {error instanceof Error ? error.message : (error || 'No encontrado')}
+          </p>
           <button 
             onClick={() => navigate('/jugadores')} 
             className="text-brand-600 hover:underline"
@@ -397,32 +402,34 @@ const JugadorDetalle: React.FC = () => {
               </section>
             </div>
 
-            {/* Navigation Tabs */}
-            <div className="flex items-center gap-1 p-1 bg-slate-100/50 rounded-2xl w-full sm:w-fit mt-8 mb-8 border border-slate-100">
-               <button 
-                onClick={() => setActiveTab('dashboard')}
-                className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-                  activeTab === 'dashboard' ? 'bg-white text-brand-700 shadow-sm shadow-brand-100 ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700'
-                }`}
-               >
-                 Dashboard
-               </button>
-               <button 
-                onClick={() => setActiveTab('history')}
-                className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-                  activeTab === 'history' ? 'bg-white text-brand-700 shadow-sm shadow-brand-100 ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700'
-                }`}
-               >
-                 Historial
-               </button>
-               <button 
-                onClick={() => setActiveTab('leagues')}
-                className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-                  activeTab === 'leagues' ? 'bg-white text-brand-700 shadow-sm shadow-brand-100 ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700'
-                }`}
-               >
-                 Ligas / Torneos
-               </button>
+            {/* Navigation Tabs - Responsive Scroll */}
+            <div className="overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 mt-8 mb-8">
+              <div className="flex items-center gap-1 p-1 bg-slate-100/50 rounded-2xl w-max min-w-full sm:w-fit border border-slate-100">
+                 <button 
+                  onClick={() => setActiveTab('dashboard')}
+                  className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+                    activeTab === 'dashboard' ? 'bg-white text-brand-700 shadow-sm shadow-brand-100 ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700'
+                  }`}
+                 >
+                   Dashboard
+                 </button>
+                 <button 
+                  onClick={() => setActiveTab('history')}
+                  className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+                    activeTab === 'history' ? 'bg-white text-brand-700 shadow-sm shadow-brand-100 ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700'
+                  }`}
+                 >
+                   Historial
+                 </button>
+                 <button 
+                  onClick={() => setActiveTab('leagues')}
+                  className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+                    activeTab === 'leagues' ? 'bg-white text-brand-700 shadow-sm shadow-brand-100 ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700'
+                  }`}
+                 >
+                   Ligas / Torneos
+                 </button>
+              </div>
             </div>
 
             {/* TAB CONTENT: DASHBOARD */}
