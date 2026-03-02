@@ -31,8 +31,8 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
   categoria,
   leaderboard,
 }) => {
-  // We'll fetch history for the top 5 players to show evolution
-  const topPlayers = leaderboard.slice(0, 5);
+  // We'll fetch history for the top players to show evolution
+  const topPlayers = leaderboard.slice(0, 20);
 
   const { data: evolutionaryData, isLoading } = useQuery({
     queryKey: ['ranked-evolution', competenciaId, seasonId, topPlayers.map(p => p.playerId).join(',')],
@@ -77,7 +77,18 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
 
   if (!isOpen) return null;
 
-  const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6'];
+  const colors = [
+    '#3b82f6', // blue
+    '#ef4444', // red
+    '#10b981', // emerald
+    '#f59e0b', // amber
+    '#8b5cf6', // violet
+    '#ec4899', // pink
+    '#06b6d4', // cyan
+    '#f97316', // orange
+    '#84cc16', // lime
+    '#64748b'  // slate
+  ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
@@ -85,7 +96,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
         <div className="p-6 border-b border-slate-200 flex justify-between items-center">
           <div>
             <h3 className="text-xl font-bold text-slate-900">Evolución del Ranking</h3>
-            <p className="text-sm text-slate-500">Muestra la evolución del ELO de los mejores 5 jugadores partido a partido.</p>
+            <p className="text-sm text-slate-500">Muestra la evolución del ELO de los mejores 10 jugadores partido a partido.</p>
           </div>
           <button
             onClick={onClose}
