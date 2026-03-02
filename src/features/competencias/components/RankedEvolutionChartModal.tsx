@@ -80,13 +80,14 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
         })
       );
 
-      const allDates = new Set<string>();
-      results.forEach(r => r.history.forEach((h: any) => allDates.add(h.date.toISOString())));
-      const sortedDates = Array.from(allDates).sort();
+      const allDatesSet = new Set<string>();
+      results.forEach(r => r.history.forEach((h: any) => allDatesSet.add(h.date.toISOString())));
+      const sortedDates = Array.from(allDatesSet).sort();
 
       const chartData: any[] = [];
       const currentRatings: Record<string, number> = {};
 
+      // Inicializar con el primer rating conocido o 1500
       results.forEach(r => {
           currentRatings[r.name] = r.history.length > 0 ? r.history[0].preRating : 1500;
       });
@@ -96,7 +97,6 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
         const entry: any = { 
           matchLabel: `P${index + 1}`,
           fullDate: dateObj.toLocaleDateString(undefined, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }),
-          isoDate: isoDate
         };
         
         results.forEach(playerData => {
@@ -172,18 +172,18 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
             </div>
           </div>
 
-          <div className="flex-1 w-full flex flex-col min-h-[400px] bg-white px-2 sm:px-6 pb-6 lg:pb-8">
+          <div className="flex-1 w-full flex flex-col min-h-[450px] bg-white px-2 sm:px-6 pb-6 lg:pb-8">
             {isLoading ? (
               <div className="flex-1 flex flex-col items-center justify-center animate-pulse">
                 <div className="w-12 h-12 border-4 border-slate-50 border-t-brand-500 rounded-full animate-spin"></div>
                 <p className="mt-4 text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Cargando métricas</p>
               </div>
-            ) : evolutionaryData?.chartData.length ? (
-              <div className="flex-1 w-full min-h-[400px] h-[400px] sm:h-[500px]">
+            ) : evolutionaryData?.chartData && evolutionaryData.chartData.length > 0 ? (
+              <div className="flex-1 w-full h-[450px] sm:h-[550px]">
                 <ResponsiveContainer width="100%" height="100%">
                   {viewType === "line" ? (
-                    <LineChart data={evolutionaryData.chartData} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
-                      <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#f1f5f9" />
+                    <LineChart data={evolutionaryData.chartData} margin={{ top: 20, right: 30, left: 10, bottom: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                       <XAxis 
                         dataKey="matchLabel" 
                         fontSize={10} 
@@ -192,7 +192,6 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                         axisLine={false} 
                         tick={{ fill: "#94a3b8" }} 
                         dy={10}
-                        interval={0}
                       />
                       <YAxis domain={["auto", "auto"]} fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} dx={-10} />
                       <Tooltip 
@@ -203,11 +202,21 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                       />
                       <Legend verticalAlign="top" height={50} iconType="circle" wrapperStyle={{ fontSize: "9px", fontWeight: 800, paddingBottom: "10px" }} />
                       {evolutionaryData.playerNames.slice(0, visiblePlayersCount).map((name, index) => (
-                        <Line key={name} type="stepAfter" dataKey={name} stroke={colors[index % colors.length]} strokeWidth={4} dot={{ r: 3, strokeWidth: 0, fill: colors[index % colors.length] }} activeDot={{ r: 6, strokeWidth: 0 }} isAnimationActive={false} connectNulls />
+                        <Line 
+                          key={name} 
+                          type="stepAfter" 
+                          dataKey={name} 
+                          stroke={colors[index % colors.length]} 
+                          strokeWidth={4} 
+                          dot={{ r: 4, strokeWidth: 0, fill: colors[index % colors.length] }} 
+                          activeDot={{ r: 6, strokeWidth: 0 }} 
+                          animationDuration={500}
+                          connectNulls 
+                        />
                       ))}
                     </LineChart>
                   ) : (
-                    <AreaChart data={evolutionaryData.chartData} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
+                    <AreaChart data={evolutionaryData.chartData} margin={{ top: 20, right: 30, left: 10, bottom: 20 }}>
                       <defs>
                         {evolutionaryData.playerNames.slice(0, visiblePlayersCount).map((name, index) => (
                           <linearGradient key={`grad-${name}`} id={`color-${index}`} x1="0" y1="0" x2="0" y2="1">
@@ -216,7 +225,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                           </linearGradient>
                         ))}
                       </defs>
-                      <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#f1f5f9" />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                       <XAxis 
                         dataKey="matchLabel" 
                         fontSize={10} 
@@ -225,7 +234,6 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                         axisLine={false} 
                         tick={{ fill: "#94a3b8" }} 
                         dy={10}
-                        interval={0}
                       />
                       <YAxis domain={["auto", "auto"]} fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} dx={-10} />
                       <Tooltip 
@@ -235,7 +243,17 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                       />
                       <Legend verticalAlign="top" height={50} iconType="circle" wrapperStyle={{ fontSize: "9px", fontWeight: 800, paddingBottom: "10px" }} />
                       {evolutionaryData.playerNames.slice(0, visiblePlayersCount).map((name, index) => (
-                        <Area key={name} type="stepAfter" dataKey={name} stroke={colors[index % colors.length]} strokeWidth={3} fillOpacity={1} fill={`url(#color-${index})`} isAnimationActive={false} connectNulls />
+                        <Area 
+                          key={name} 
+                          type="stepAfter" 
+                          dataKey={name} 
+                          stroke={colors[index % colors.length]} 
+                          strokeWidth={3} 
+                          fillOpacity={1} 
+                          fill={`url(#color-${index})`} 
+                          animationDuration={500}
+                          connectNulls 
+                        />
                       ))}
                     </AreaChart>
                   )}
