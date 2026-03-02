@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../../app/providers/AuthContext';
 import api from '../../../shared/api/client';
 import { PartidoService } from '../../partidos/services/partidoService';
@@ -7,26 +8,19 @@ import { CompetenciaService } from '../../competencias/services/competenciaServi
 
 const LandingPage: React.FC = () => {
   const { isAuthenticated } = useAuth();
-  const [loading, setLoading] = useState(true);
   
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        await Promise.all([
-          api.insights().catch(() => null),
-          PartidoService.getFinalizados(),
-          PartidoService.getProximos(),
-          CompetenciaService.getAll()
-        ]);
-      } catch (e: any) {
-        console.error('Error cargando iniciales', e);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    })();
-    return () => { mounted = false; };
-  }, []);
+  const { isLoading: loading } = useQuery({
+    queryKey: ['landing-data'],
+    queryFn: async () => {
+      return Promise.all([
+        api.insights().catch(() => null),
+        PartidoService.getFinalizados(),
+        PartidoService.getProximos(),
+        CompetenciaService.getAll()
+      ]);
+    },
+    staleTime: 1000 * 60 * 10, // 10 minutos de cache para la landing
+  });
 
   if (loading) {
     return (

@@ -1,8 +1,8 @@
 import React from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useEntity } from '../../hooks';
+import { useQuery } from '@tanstack/react-query';
 import { PartidoService, type Partido } from '../../../features/partidos/services/partidoService';
-import { formatDate, formatDateTime } from '../../../shared/utils copy/formatDate';
+import { formatDateTime } from '../../../shared/utils copy/formatDate';
 import { PlayerRankedHistoryModal } from '../../../features/competencias/components/PlayerRankedHistoryModal';
 
 interface DetallePartidoProps {
@@ -34,23 +34,18 @@ interface JugadorPartido {
 const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   
-  const { data: partido, loading, error } = useEntity<Partido & {
-    sets?: SetData[];
-    jugadores?: JugadorPartido[];
-    estadisticas?: any;
-    esRanked?: boolean;
-    competenciaId?: string;
-  }>(
-    React.useCallback(async () => {
+  const { data: partido, isLoading: loading, error } = useQuery({
+    queryKey: ['partido-detalle', partidoId],
+    queryFn: async () => {
       const p = await PartidoService.getById(partidoId) as any;
       if (!p) return null;
 
       // Extract competencia ID
       p.competenciaId = p.competencia?._id || p.competencia?.id || (typeof p.competencia === 'string' ? p.competencia : undefined);
 
-      // Detectar si es ranked (usando isRanked del backend o esRanked si ya viene mapeado)
+      // Detectar si es ranked
       const isRanked = p.isRanked || p.esRanked || p.tipo === 'ranked' || (p.competencia && p.competencia.rankedEnabled);
-      p.esRanked = isRanked;
+      p.esRanked = !!isRanked;
 
       // Cargar sets si no vienen poblados
       if (!p.sets || p.sets.length === 0) {
@@ -64,19 +59,13 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
         }));
       }
 
-      if (isRanked) {
+      if (p.esRanked) {
         const mp = await PartidoService.getMatchPlayers(partidoId);
-        
-        // Deduplicar jugadores: El sistema guarda deltas para Rank Global (temporadaId: null) 
-        // y para Rank de Temporada. Priorizamos el de temporada si existe.
         const jugadoresMap = new Map();
         mp.forEach((m: any) => {
           const pid = m.playerId?._id || m.playerId;
           const current = jugadoresMap.get(pid);
-          // Si no existe o si el nuevo tiene temporadaId, lo guardamos
-          if (!current || m.temporadaId) {
-            jugadoresMap.set(pid, m);
-          }
+          if (!current || m.temporadaId) jugadoresMap.set(pid, m);
         });
 
         const localColor = p.rankedMeta?.teamColors?.local || 'rojo';
@@ -106,8 +95,14 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
       }
 
       return p;
-    }, [partidoId])
-  );
+    },
+    refetchInterval: (data) => {
+      // Solo refrescar automáticamente si el partido está en curso/activo
+      const estado = data?.estado?.toLowerCase() || '';
+      return (estado.includes('curso') || estado.includes('activa') || estado.includes('vivo')) ? 15000 : false;
+    },
+    staleTime: 5000,
+  });
 
   const handlePlayerClick = (id: string, name: string) => {
     setSearchParams(prev => {
@@ -117,14 +112,11 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
     }, { replace: true });
   };
 
-  const closePlayerModal = () => {
-    setSearchParams(prev => {
-      prev.delete('player');
-      prev.delete('playerName');
-      return prev;
-    }, { replace: true });
-  };
-
+  if (!partido) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <div className="text-center">
+          <p className="text-slate-500">No se encontró la información del partido.</p>
   if (loading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
@@ -136,11 +128,12 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
     );
   }
 
-  if (error || !partido) {
+  if (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error);
     return (
       <div className="flex min-h-[400px] items-center justify-center">
         <div className="text-center">
-          <p className="mb-4 text-red-600">Error al cargar partido: {error || 'No encontrado'}</p>
+          <p className="mb-4 text-red-600">Error al cargar partido: {errorMsg}</p>
         </div>
       </div>
     );

@@ -1,8 +1,8 @@
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { CompetenciaCard } from '../../../shared/components';
 import { OrganizacionCard } from '../../../shared/components';
-import { useEntity } from '../../../shared/hooks';
 import { CompetenciaService, type Competencia } from '../services/competenciaService';
 import { OrganizacionService, type Organizacion } from '../services/organizacionService';
 
@@ -26,15 +26,22 @@ const Competencias: React.FC = () => {
   const navigate = useNavigate();
   const [selectedOrganizacion, setSelectedOrganizacion] = useState<Organizacion | null>(null);
 
-  const { data: entidades, loading, error, refetch } = useEntity<Organizacion[] | Competencia[]>(
-    useCallback(() => {
-      if (selectedOrganizacion) {
-        return CompetenciaService.getAll();
-      } else {
-        return OrganizacionService.getAll();
-      }
-    }, [selectedOrganizacion])
-  );
+  const { data: organizaciones = [], isLoading: loadingOrgs, error: errorOrgs, refetch: refetchOrgs } = useQuery({
+    queryKey: ['organizaciones'],
+    queryFn: () => OrganizacionService.getAll(),
+    enabled: !selectedOrganizacion,
+  });
+
+  const { data: competencias = [], isLoading: loadingComps, error: errorComps, refetch: refetchComps } = useQuery({
+    queryKey: ['competencias', selectedOrganizacion?.id],
+    queryFn: () => CompetenciaService.getAll(),
+    enabled: !!selectedOrganizacion,
+  });
+
+  const loading = selectedOrganizacion ? loadingComps : loadingOrgs;
+  const error = selectedOrganizacion ? errorComps : errorOrgs;
+  const refetch = selectedOrganizacion ? refetchComps : refetchOrgs;
+  const entidades = selectedOrganizacion ? (competencias as Competencia[]).filter(c => (c.organizacion?._id || c.organizacion?.id) === selectedOrganizacion.id) : organizaciones;
 
   if (loading) {
     return (
@@ -50,14 +57,15 @@ const Competencias: React.FC = () => {
   }
 
   if (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error);
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <p className="mb-4 text-red-600">
-            Error al cargar {selectedOrganizacion ? 'competencias' : 'organizaciones'}: {error}
+            Error al cargar {selectedOrganizacion ? 'competencias' : 'organizaciones'}: {errorMsg}
           </p>
           <button
-            onClick={refetch}
+            onClick={() => refetch()}
             className="rounded-lg bg-brand-600 px-4 py-2 text-white hover:bg-brand-700"
           >
             Reintentar
