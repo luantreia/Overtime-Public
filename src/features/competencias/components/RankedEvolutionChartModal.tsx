@@ -55,7 +55,8 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
           
           let history = (detail.history || []).map((h: any) => ({
             ...h,
-            date: new Date(h.createdAt || h.updatedAt)
+            // Prioritize updatedAt for more recent changes if createdAt is identical
+            date: new Date(h.updatedAt || h.createdAt)
           })).sort((a: any, b: any) => a.date.getTime() - b.date.getTime());
 
           if (timeFilter === "month") {
@@ -63,6 +64,17 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
             const filterDate = new Date();
             filterDate.setMonth(now.getMonth() - 1);
             history = history.filter((h: any) => h.date >= filterDate);
+          }
+
+          // Force include current rating as the final point to ensure synchronization with leaderboard
+          const lastHistoryEntry = history[history.length - 1];
+          if (lastHistoryEntry && lastHistoryEntry.postRating !== player.elo) {
+            history.push({
+              ...lastHistoryEntry,
+              date: new Date(), // Current timestamp to place it at the end
+              preRating: lastHistoryEntry.postRating,
+              postRating: player.elo
+            });
           }
 
           return { name: player.playerName, history };
@@ -115,7 +127,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
       >
         <div className="px-6 py-5 flex items-center justify-between bg-white shrink-0">
           <div>
-            <h3 className="text-xl font-extrabold text-slate-800 tracking-tight">Evolución de Ranking</h3>
+            <h3 className="text-xl font-extrabold text-slate-800 tracking-tight">Evoluciï¿½n de Ranking</h3>
             <div className="flex items-center gap-2 mt-0.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Actualizado hoy</p>
@@ -131,7 +143,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
         <div className="flex-1 overflow-y-auto no-scrollbar flex flex-col min-h-0">
           <div className="px-6 pb-4 bg-white flex flex-col gap-4 shrink-0">
             <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
-              {[{ id: "all", label: "Temporada" }, { id: "month", label: "Último Mes" }].map((f) => (
+              {[{ id: "all", label: "Temporada" }, { id: "month", label: "ï¿½ltimo Mes" }].map((f) => (
                 <button
                   key={f.id}
                   onClick={() => setTimeFilter(f.id as TimeFilter)}
@@ -144,8 +156,8 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
 
             <div className="flex items-center justify-between gap-3 bg-slate-50/80 p-1.5 rounded-2xl border border-slate-100">
                <div className="flex items-center gap-1">
-                  <button onClick={() => setViewType("line")} className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all ${viewType === "line" ? "bg-white text-brand-600 shadow-sm" : "text-slate-400"}`}>Líneas</button>
-                  <button onClick={() => setViewType("area")} className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all ${viewType === "area" ? "bg-white text-brand-600 shadow-sm" : "text-slate-400"}`}>Áreas</button>
+                  <button onClick={() => setViewType("line")} className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all ${viewType === "line" ? "bg-white text-brand-600 shadow-sm" : "text-slate-400"}`}>Lï¿½neas</button>
+                  <button onClick={() => setViewType("area")} className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all ${viewType === "area" ? "bg-white text-brand-600 shadow-sm" : "text-slate-400"}`}>ï¿½reas</button>
                </div>
                <div className="flex items-center gap-2 pr-2">
                   <select value={visiblePlayersCount} onChange={(e) => setVisiblePlayersCount(Number(e.target.value))} className="text-[11px] font-bold bg-transparent border-none p-0 focus:ring-0 text-slate-600 cursor-pointer">
@@ -200,7 +212,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
               </div>
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-slate-50/50 rounded-[32px] mb-4">
-                <h4 className="text-slate-800 font-black text-sm uppercase tracking-wider">Historial vacío</h4>
+                <h4 className="text-slate-800 font-black text-sm uppercase tracking-wider">Historial vacï¿½o</h4>
               </div>
             )}
           </div>
