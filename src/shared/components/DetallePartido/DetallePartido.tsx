@@ -99,24 +99,20 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
     refetchInterval: (data) => {
       // Solo refrescar automáticamente si el partido está en curso/activo
       const estado = data?.estado?.toLowerCase() || '';
-      return (estado.includes('curso') || estado.includes('activa') || estado.includes('vivo')) ? 15000 : false;
+      return (estado.includes('curso') || estado.includes('activa') || estado.includes('vivo')) ? 30000 : false;
     },
+    refetchIntervalInBackground: false,
     staleTime: 5000,
   });
 
-  const handlePlayerClick = (id: string, name: string) => {
+  const closePlayerModal = () => {
     setSearchParams(prev => {
-      prev.set('player', id);
-      prev.set('playerName', name);
+      prev.delete('player');
+      prev.delete('playerName');
       return prev;
     }, { replace: true });
   };
 
-  if (!partido) {
-    return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <div className="text-center">
-          <p className="text-slate-500">No se encontró la información del partido.</p>
   if (loading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
@@ -134,6 +130,16 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
       <div className="flex min-h-[400px] items-center justify-center">
         <div className="text-center">
           <p className="mb-4 text-red-600">Error al cargar partido: {errorMsg}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!partido) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <div className="text-center">
+          <p className="text-slate-500">No se encontró la información del partido.</p>
         </div>
       </div>
     );
