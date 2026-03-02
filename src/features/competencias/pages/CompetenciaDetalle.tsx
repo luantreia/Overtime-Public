@@ -4,9 +4,9 @@ import { useQuery } from '@tanstack/react-query';
 import { useEntity } from '../../../shared/hooks';
 import { CompetenciaService, type Competencia } from '../services/competenciaService';
 import { RankedService } from '../services/rankedService';
-import { PartidoService, type Partido } from '../../partidos/services/partidoService';
+import { PartidoService } from '../../partidos/services/partidoService';
 import { TemporadaService } from '../services/temporadaService';
-import { FaseService, type Fase } from '../services/faseService';
+import { FaseService } from '../services/faseService';
 import { JugadorCompetenciaService } from '../services/jugadorCompetenciaService';
 import {
   PlayerRankedHistoryModal,

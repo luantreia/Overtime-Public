@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { PartidoService, type Partido } from '../../../features/partidos/services/partidoService';
+import { PartidoService } from '../../../features/partidos/services/partidoService';
 import { formatDate, formatDateTime } from '../../../shared/utils copy/formatDate';
 import { PlayerRankedHistoryModal } from '../../../features/competencias/components/PlayerRankedHistoryModal';
 
@@ -105,6 +105,14 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
     refetchIntervalInBackground: false,
     staleTime: 5000,
   });
+
+  const handlePlayerClick = (id: string, name: string) => {
+    setSearchParams(prev => {
+      prev.set('player', id);
+      prev.set('playerName', name);
+      return prev;
+    }, { replace: true });
+  };
 
   const closePlayerModal = () => {
     setSearchParams(prev => {
@@ -290,7 +298,7 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
                   <h3 className="text-base sm:text-lg font-medium text-slate-900 truncate">{partido.equipoLocal?.nombre || 'Local'}</h3>
                 </div>
                 <div className="space-y-1.5 sm:space-y-2">
-                  {localJugadores.map((jugador) => (
+                  {localJugadores.map((jugador: JugadorPartido) => (
                     <div 
                       key={jugador.id} 
                       onClick={() => partido.esRanked && handlePlayerClick(jugador.id, jugador.nombre)}
@@ -352,7 +360,7 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
                   <h3 className="text-base sm:text-lg font-medium text-slate-900 truncate">{partido.equipoVisitante?.nombre || 'Visitante'}</h3>
                 </div>
                 <div className="space-y-1.5 sm:space-y-2">
-                  {visitanteJugadores.map((jugador) => (
+                  {visitanteJugadores.map((jugador: JugadorPartido) => (
                     <div 
                       key={jugador.id} 
                       onClick={() => partido.esRanked && handlePlayerClick(jugador.id, jugador.nombre)}
