@@ -230,7 +230,7 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
                     <th className="px-3 py-3 sm:px-6 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">{partido.equipoLocal?.nombre || 'Local'}</th>
                     <th className="px-3 py-3 sm:px-6 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">{partido.equipoVisitante?.nombre || 'Visitante'}</th>
                     <th className="px-3 py-3 sm:px-6 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ganador</th>
-                    {sets.some(s => s.tiempo) && (
+                    {sets.some((s: SetData) => s.tiempo) && (
                       <th className="px-3 py-3 sm:px-6 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Tiempo</th>
                     )}
                   </tr>
