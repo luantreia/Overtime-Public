@@ -1,10 +1,26 @@
-// This is a simple Service Worker for basic PWA functionality
 const CACHE_NAME = 'overtime-v1';
+const ASSETS_TO_CACHE = [
+  '/',
+  '/index.html',
+  '/manifest.json',
+  '/logo.png',
+  '/logo192.png',
+  '/logo512.png'
+];
 
 self.addEventListener('install', (event) => {
-  // Perform install steps
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(ASSETS_TO_CACHE);
+    })
+  );
 });
 
 self.addEventListener('fetch', (event) => {
-  // Simple pass-through for now, can be expanded for offline support
+  event.respondWith(
+    caches.match(event.request).then((response) => {
+      // Return cached asset or fetch from network
+      return response || fetch(event.request);
+    })
+  );
 });

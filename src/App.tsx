@@ -1,6 +1,8 @@
 import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
+import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import Navbar from './app/layout/Navbar';
 import ProtectedRoute from './app/routes/ProtectedRoute';
 import { FeatureFlagsProvider } from './shared/config/featureFlags';
@@ -9,12 +11,17 @@ import { FeatureFlagsProvider } from './shared/config/featureFlags';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 30, // 30 minutes
+      staleTime: 1000 * 60 * 60 * 24, // 24 hours (for offline first)
+      gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days
       retry: 1,
       refetchOnWindowFocus: false,
     },
   },
+});
+
+// Configure Persister (LocalStorage)
+const persister = createSyncStoragePersister({
+  storage: window.localStorage,
 });
 
 // Lazy load components
@@ -37,7 +44,10 @@ const LoginPage = lazy(() => import('./features/auth/pages/LoginPage'));
 const RegisterPage = lazy(() => import('./features/auth/pages/RegisterPage'));
 
 const App: React.FC = () => (
-  <QueryClientProvider client={queryClient}>
+  <PersistQueryClientProvider 
+    client={queryClient} 
+    persistOptions={{ persister }}
+  >
     <FeatureFlagsProvider>
     <div className="App">
       <Navbar />
@@ -90,5 +100,5 @@ const App: React.FC = () => (
       </div>
     </div>
     </FeatureFlagsProvider>
-  </QueryClientProvider>
+  </PersistQueryClientProvider>
 );export default App;
