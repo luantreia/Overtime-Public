@@ -41,7 +41,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
 
   const topPlayers = useMemo(() => (leaderboard || []).slice(0, 10), [leaderboard]);
 
-  const { data: evolutionaryData, isLoading, isError } = useQuery({
+  const { data: evolutionaryData, isLoading } = useQuery({
     queryKey: ["ranked-evolution", competenciaId, seasonId, topPlayers.map(p => p.playerId).join(","), timeFilter],
     queryFn: async () => {
       const results = await Promise.all(
