@@ -55,7 +55,6 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
           
           let history = (detail.history || []).map((h: any) => ({
             ...h,
-            // Prioritize updatedAt for more recent changes if createdAt is identical
             date: new Date(h.updatedAt || h.createdAt)
           })).sort((a: any, b: any) => a.date.getTime() - b.date.getTime());
 
@@ -66,18 +65,16 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
             history = history.filter((h: any) => h.date >= filterDate);
           }
 
-          // Force include current rating as the final point to ensure synchronization with leaderboard
-          // This must happen AFTER all filters to ensure it's always the last point regardless of view
-          const currentEloPoint = {
-            date: new Date(), // Current timestamp to place it at the end
-            preRating: history.length > 0 ? history[history.length - 1].postRating : 1500,
-            postRating: player.elo || player.ranking || 1500
-          };
-
-          // Only push if the last entry in history isn't already this ELO at this exact moment
+          // Inyectar punto actual si es diferente al último historial
           const lastEntry = history[history.length - 1];
-          if (!lastEntry || lastEntry.postRating !== currentEloPoint.postRating) {
-            history.push(currentEloPoint as any);
+          const currentElo = player.elo || player.ranking || 1500;
+          
+          if (!lastEntry || lastEntry.postRating !== currentElo) {
+            history.push({
+              date: new Date(),
+              preRating: lastEntry ? lastEntry.postRating : 1500,
+              postRating: currentElo
+            } as any);
           }
 
           return { name: player.playerName, history };
@@ -91,6 +88,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
       const chartData: any[] = [];
       const currentRatings: Record<string, number> = {};
 
+      // Inicializar con el rating inicial
       results.forEach(r => {
           currentRatings[r.name] = r.history.length > 0 ? r.history[0].preRating : 1500;
       });
@@ -104,7 +102,9 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
         
         results.forEach(playerData => {
             const historyEntry = playerData.history.find((h: any) => h.date.toISOString() === isoDate);
-            if (historyEntry) currentRatings[playerData.name] = historyEntry.postRating;
+            if (historyEntry) {
+                currentRatings[playerData.name] = historyEntry.postRating;
+            }
             entry[playerData.name] = currentRatings[playerData.name];
         });
         chartData.push(entry);
@@ -130,7 +130,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
       >
         <div className="px-6 py-5 flex items-center justify-between bg-white shrink-0">
           <div>
-            <h3 className="text-xl font-extrabold text-slate-800 tracking-tight">Evoluciï¿½n de Ranking</h3>
+            <h3 className="text-xl font-extrabold text-slate-800 tracking-tight">Evolución de Ranking</h3>
             <div className="flex items-center gap-2 mt-0.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Actualizado hoy</p>
@@ -145,12 +145,12 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
 
         <div className="flex-1 overflow-y-auto no-scrollbar flex flex-col min-h-0">
           <div className="px-6 pb-4 bg-white flex flex-col gap-4 shrink-0">
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
-              {[{ id: "all", label: "Temporada" }, { id: "month", label: "ï¿½ltimo Mes" }].map((f) => (
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 pointer-events-auto">
+              {[{ id: "all", label: "Temporada" }, { id: "month", label: "Último Mes" }].map((f) => (
                 <button
                   key={f.id}
                   onClick={() => setTimeFilter(f.id as TimeFilter)}
-                  className={`px-5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${timeFilter === f.id ? "bg-brand-600 text-white shadow-lg" : "bg-slate-50 text-slate-500 border border-slate-100"}`}
+                  className={`px-5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${timeFilter === f.id ? "bg-brand-600 text-white shadow-lg shadow-brand-200" : "bg-slate-50 text-slate-500 border border-slate-100 hover:border-slate-300"}`}
                 >
                   {f.label}
                 </button>
@@ -159,10 +159,11 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
 
             <div className="flex items-center justify-between gap-3 bg-slate-50/80 p-1.5 rounded-2xl border border-slate-100">
                <div className="flex items-center gap-1">
-                  <button onClick={() => setViewType("line")} className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all ${viewType === "line" ? "bg-white text-brand-600 shadow-sm" : "text-slate-400"}`}>Lï¿½neas</button>
-                  <button onClick={() => setViewType("area")} className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all ${viewType === "area" ? "bg-white text-brand-600 shadow-sm" : "text-slate-400"}`}>ï¿½reas</button>
+                  <button onClick={() => setViewType("line")} className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${viewType === "line" ? "bg-white text-brand-600 shadow-sm ring-1 ring-slate-100" : "text-slate-400"}`}>Líneas</button>
+                  <button onClick={() => setViewType("area")} className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${viewType === "area" ? "bg-white text-brand-600 shadow-sm ring-1 ring-slate-100" : "text-slate-400"}`}>Áreas</button>
                </div>
                <div className="flex items-center gap-2 pr-2">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest hidden sm:block">Mostrar</span>
                   <select value={visiblePlayersCount} onChange={(e) => setVisiblePlayersCount(Number(e.target.value))} className="text-[11px] font-bold bg-transparent border-none p-0 focus:ring-0 text-slate-600 cursor-pointer">
                     <option value={3}>TOP 3</option>
                     <option value={5}>TOP 5</option>
@@ -176,6 +177,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
             {isLoading ? (
               <div className="flex-1 flex flex-col items-center justify-center animate-pulse">
                 <div className="w-12 h-12 border-4 border-slate-50 border-t-brand-500 rounded-full animate-spin"></div>
+                <p className="mt-4 text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Cargando métricas</p>
               </div>
             ) : evolutionaryData?.chartData.length ? (
               <div className="flex-1 w-full min-h-0 flex flex-col">
@@ -185,10 +187,10 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                       <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#f1f5f9" />
                       <XAxis dataKey="date" fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} dy={10} interval="preserveStartEnd" />
                       <YAxis domain={["auto", "auto"]} fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} dx={-10} />
-                      <Tooltip contentStyle={{ borderRadius: "20px", border: "none", boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)", fontSize: "11px" }} />
-                      <Legend verticalAlign="top" height={50} iconType="circle" wrapperStyle={{ fontSize: "9px", fontWeight: 800 }} />
+                      <Tooltip contentStyle={{ borderRadius: "20px", border: "none", boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "800", padding: "16px" }} />
+                      <Legend verticalAlign="top" height={50} iconType="circle" wrapperStyle={{ fontSize: "9px", fontWeight: 800, paddingBottom: "10px" }} />
                       {evolutionaryData.playerNames.slice(0, visiblePlayersCount).map((name, index) => (
-                        <Line key={name} type="monotone" dataKey={name} stroke={colors[index % colors.length]} strokeWidth={4} dot={false} activeDot={{ r: 6, strokeWidth: 0 }} animationDuration={1000} />
+                        <Line key={name} type="stepAfter" dataKey={name} stroke={colors[index % colors.length]} strokeWidth={4} dot={false} activeDot={{ r: 6, strokeWidth: 0 }} animationDuration={1000} />
                       ))}
                     </LineChart>
                   ) : (
@@ -204,10 +206,10 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                       <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#f1f5f9" />
                       <XAxis dataKey="date" fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} dy={10} interval="preserveStartEnd" />
                       <YAxis domain={["auto", "auto"]} fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} dx={-10} />
-                      <Tooltip contentStyle={{ borderRadius: "20px", border: "none", boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)", fontSize: "11px" }} />
-                      <Legend verticalAlign="top" height={50} iconType="circle" wrapperStyle={{ fontSize: "9px", fontWeight: 800 }} />
+                      <Tooltip contentStyle={{ borderRadius: "20px", border: "none", boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "800", padding: "16px" }} />
+                      <Legend verticalAlign="top" height={50} iconType="circle" wrapperStyle={{ fontSize: "9px", fontWeight: 800, paddingBottom: "10px" }} />
                       {evolutionaryData.playerNames.slice(0, visiblePlayersCount).map((name, index) => (
-                        <Area key={name} type="monotone" dataKey={name} stroke={colors[index % colors.length]} strokeWidth={3} fillOpacity={1} fill={`url(#color-${index})`} />
+                        <Area key={name} type="stepAfter" dataKey={name} stroke={colors[index % colors.length]} strokeWidth={3} fillOpacity={1} fill={`url(#color-${index})`} />
                       ))}
                     </AreaChart>
                   )}
@@ -215,13 +217,19 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
               </div>
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-slate-50/50 rounded-[32px] mb-4">
-                <h4 className="text-slate-800 font-black text-sm uppercase tracking-wider">Historial vacï¿½o</h4>
+                <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h4 className="text-slate-800 font-black text-sm uppercase tracking-wider">Historial vacío</h4>
+                <p className="text-slate-400 text-xs max-w-[200px] mt-2 font-medium">No hay suficientes enfrentamientos en este periodo para trazar una evolución.</p>
               </div>
             )}
           </div>
 
           <div className="px-6 py-6 border-t border-slate-50 bg-white sm:hidden">
-            <button onClick={onClose} className="w-full py-4 bg-slate-900 text-white rounded-[20px] font-black text-xs uppercase transition-all">Cerrar Panel</button>
+            <button onClick={onClose} className="w-full py-4 bg-slate-900 text-white rounded-[20px] font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-slate-200 active:scale-[0.98] transition-all">Cerrar Panel</button>
           </div>
         </div>
       </div>
