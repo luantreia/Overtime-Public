@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { useEntity } from '../../../shared/hooks';
 import { CompetenciaService, type Competencia } from '../services/competenciaService';
 import { RankedService, type LeaderboardItem } from '../services/rankedService';
@@ -37,10 +38,53 @@ const CompetenciaDetalle: React.FC = () => {
     }, { replace: true });
   }, [setSearchParams]);
 
-  // State for Leaderboard
-  const [leaderboard, setLeaderboard] = useState<LeaderboardItem[]>([]);
-  const [jugadoresComp, setJugadoresComp] = useState<JugadorCompetencia[]>([]);
-  const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
+  const { data: competencia, loading, error } = useEntity<Competencia>(
+    useCallback(() => {
+      if (!id) throw new Error('ID de competencia no proporcionado');
+      return CompetenciaService.getById(id);
+    }, [id])
+  );
+
+  const isRanked = competencia ? (competencia as any).rankedEnabled === true : false;
+
+  // React Query for Leaderboard
+  const { 
+    data: leaderboardData, 
+    isLoading: loadingLeaderboard 
+  } = useQuery({
+    queryKey: ['leaderboard', id, selectedTemporada],
+    queryFn: async () => {
+      if (!competencia) return null;
+      const modalidad = (competencia as any).modalidad || 'Foam';
+      const categoria = (competencia as any).categoria || 'Libre';
+      return RankedService.getLeaderboard({
+        modalidad,
+        categoria,
+        competition: competencia.id,
+        season: selectedTemporada || undefined,
+        limit: 500
+      });
+    },
+    enabled: !!competencia && isRanked && activeTab === 'leaderboard',
+  });
+
+  // React Query for Jugadores Competencia
+  const { 
+    data: jugadoresComp = [] 
+  } = useQuery({
+    queryKey: ['jugadores-competencia', id],
+    queryFn: () => JugadorCompetenciaService.getByCompetencia(id!),
+    enabled: !!id && !!competencia,
+  });
+
+  const leaderboard = leaderboardData?.items || [];
+
+  // React Query for Temporadas
+  const { data: temporadas = [] } = useQuery({
+    queryKey: ['temporadas', id],
+    queryFn: () => TemporadaService.getByCompetencia(id!),
+    enabled: !!id && !!competencia,
+  });
 
   // Modal Detail state
   const [selectedPlayer, setSelectedPlayer] = useState<{ id: string, name: string } | null>(null);
@@ -65,68 +109,20 @@ const CompetenciaDetalle: React.FC = () => {
   };
 
   // State for Resultados (Temporadas/Fases)
-  const [temporadas, setTemporadas] = useState<Temporada[]>([]);
   const [fases, setFases] = useState<Fase[]>([]);
   const [faseDetails, setFaseDetails] = useState<Fase | null>(null);
   const [fasePartidos, setFasePartidos] = useState<Partido[]>([]);
   const [loadingResultados, setLoadingResultados] = useState(false);
 
-  const { data: competencia, loading, error } = useEntity<Competencia>(
-    useCallback(() => {
-      if (!id) throw new Error('ID de competencia no proporcionado');
-      return CompetenciaService.getById(id);
-    }, [id])
-  );
-
-  const isRanked = competencia ? (competencia as any).rankedEnabled === true : false;
-
-  const loadLeaderboard = useCallback(async () => {
-    if (!competencia) return;
-    setLoadingLeaderboard(true);
-    try {
-      // Defaulting to Foam/Libre if not specified in competencia, or using competencia properties
-      const modalidad = (competencia as any).modalidad || 'Foam';
-      const categoria = (competencia as any).categoria || 'Libre';
-      
-      const [leaderboardRes, jugadoresCompRes] = await Promise.all([
-        RankedService.getLeaderboard({
-          modalidad,
-          categoria,
-          competition: competencia.id,
-          season: selectedTemporada || undefined,
-          limit: 50
-        }),
-        JugadorCompetenciaService.getByCompetencia(competencia.id)
-      ]);
-
-      setLeaderboard(leaderboardRes.items);
-      setJugadoresComp(jugadoresCompRes);
-    } catch (err) {
-      console.error('Error loading leaderboard:', err);
-    } finally {
-      setLoadingLeaderboard(false);
-    }
-  }, [competencia, selectedTemporada]);
-
-  const loadTemporadas = useCallback(async () => {
-    if (!competencia) return;
-    setLoadingResultados(true);
-    try {
-      const res = await TemporadaService.getByCompetencia(competencia.id);
-      setTemporadas(res);
-      
-      // If no season is selected in URL, pick the last one
-      // If it's "global" but we are not in leaderboard, also pick the last one
+  // Pick last season by default if none selected
+  useEffect(() => {
+    if (temporadas.length > 0) {
       const current = searchParams.get('temporada');
-      if (res.length > 0 && (!current || (current === 'global' && activeTab !== 'leaderboard'))) {
-        updateParams({ temporada: res[res.length - 1]._id });
+      if (!current || (current === 'global' && activeTab !== 'leaderboard')) {
+        updateParams({ temporada: temporadas[temporadas.length - 1]._id });
       }
-    } catch (err) {
-      console.error('Error loading temporadas:', err);
-    } finally {
-      setLoadingResultados(false);
     }
-  }, [competencia, activeTab, searchParams, updateParams]);
+  }, [temporadas, activeTab, searchParams, updateParams]);
 
   const loadFases = useCallback(async (temporadaId: string) => {
     setLoadingResultados(true);
@@ -180,13 +176,10 @@ const CompetenciaDetalle: React.FC = () => {
   }, [competencia]);
 
   useEffect(() => {
-    if (competencia && (competencia as any).rankedEnabled && activeTab === 'leaderboard') {
-      void loadTemporadas();
-    }
     if (competencia && (activeTab === 'partidos' || activeTab === 'resultados')) {
-      void loadTemporadas();
+      // Temporadas are now handled by React Query
     }
-  }, [competencia, activeTab, loadTemporadas]);
+  }, [competencia, activeTab]);
 
   // Effect to reset activeTab if 'resultados' is selected but competition is ranked
   useEffect(() => {
@@ -198,14 +191,14 @@ const CompetenciaDetalle: React.FC = () => {
   // Effect to load phases or leaderboard when season changes
   useEffect(() => {
     if (activeTab === 'leaderboard') {
-      void loadLeaderboard();
+      // Handled by React Query
     } else if (selectedTemporada && selectedTemporada !== 'global') {
       void loadFases(selectedTemporada);
     } else {
       setFases([]);
       updateParams({ fase: null });
     }
-  }, [selectedTemporada, activeTab, loadLeaderboard, loadFases, updateParams]);
+  }, [selectedTemporada, activeTab, loadFases, updateParams]);
 
   // Effect to load phase details and matches when phase changes
   useEffect(() => {

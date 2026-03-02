@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { type Temporada } from '../services/temporadaService';
 import { type LeaderboardItem } from '../services/rankedService';
 import { type JugadorCompetencia } from '../services/jugadorCompetenciaService';
@@ -23,24 +23,65 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
   jugadoresComp,
   onPlayerClick,
 }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredLeaderboard = useMemo(() => {
+    if (!searchTerm.trim()) return leaderboard;
+    const term = searchTerm.toLowerCase();
+    return leaderboard.filter(item => 
+      (item.playerName || '').toLowerCase().includes(term) ||
+      (typeof item.playerId === 'string' ? item.playerId.toLowerCase().includes(term) : false)
+    );
+  }, [leaderboard, searchTerm]);
+
   return (
     <div className="p-6">
-      <div className="flex items-end justify-between mb-6 gap-4">
-        <div className="w-full sm:w-1/3">
-          <label htmlFor="temporada-leaderboard" className="block text-sm font-medium text-slate-700 mb-1">Temporada</label>
-          <select
-            id="temporada-leaderboard"
-            value={selectedTemporada || "global"}
-            onChange={(e) => onTemporadaChange(e.target.value)}
-            className="block w-full rounded-md border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 border"
-          >
-            <option value="global">Histórico Global</option>
-            {temporadas.map((t) => (
-              <option key={t._id} value={t._id}>{t.nombre}</option>
-            ))}
-          </select>
+      <div className="flex flex-col md:flex-row items-start md:items-end justify-between mb-6 gap-4">
+        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-2/3">
+          <div className="w-full sm:w-1/2">
+            <label htmlFor="temporada-leaderboard" className="block text-sm font-medium text-slate-700 mb-1">Temporada</label>
+            <select
+              id="temporada-leaderboard"
+              value={selectedTemporada || "global"}
+              onChange={(e) => onTemporadaChange(e.target.value)}
+              className="block w-full rounded-md border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 border"
+            >
+              <option value="global">Histórico Global</option>
+              {temporadas.map((t) => (
+                <option key={t._id} value={t._id}>{t.nombre}</option>
+              ))}
+            </select>
+          </div>
+          <div className="w-full sm:w-1/2">
+            <label htmlFor="search-leaderboard" className="block text-sm font-medium text-slate-700 mb-1">Buscar Jugador</label>
+            <div className="relative">
+              <input
+                id="search-leaderboard"
+                type="text"
+                placeholder="Nombre o ID..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="block w-full rounded-md border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 pl-9 border"
+              />
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg className="h-4 w-4 text-slate-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+                </svg>
+              </div>
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+                >
+                  <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          </div>
         </div>
-        <div className="mb-1">
+        <div className="mb-1 flex-shrink-0">
           <EloExplanationModal 
             trigger={
               <button className="text-sm text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1 transition-colors">
@@ -65,7 +106,6 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
         </div>
       ) : (
         <>
-          {/* Vista de tabla para desktop */}
           <div className="hidden md:block overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-200">
               <thead className="bg-slate-50">
@@ -79,7 +119,8 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-slate-200">
-                {leaderboard.map((item, index) => {
+                {filteredLeaderboard.map((item) => {
+                  const originalIndex = leaderboard.findIndex(l => l.playerId === item.playerId);
                   const playerId = typeof item.playerId === 'object' ? (item.playerId as any)._id : item.playerId;
                   const jugadorCompInfo = jugadoresComp.find(jc => {
                     const jcPlayerId = typeof jc.jugador === 'object' ? jc.jugador._id : jc.jugador;
@@ -105,7 +146,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                       className="hover:bg-brand-50/30 cursor-pointer transition-colors"
                       onClick={() => onPlayerClick({ id: playerId, name: item.playerName || playerId })}
                     >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{index + 1}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{originalIndex + 1}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
                           <div className="relative w-12 h-12 flex-shrink-0">
@@ -148,7 +189,8 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
           </div>
 
           <div className="md:hidden space-y-4">
-            {leaderboard.map((item, index) => {
+            {filteredLeaderboard.map((item) => {
+              const originalIndex = leaderboard.findIndex(l => l.playerId === item.playerId);
               const playerId = typeof item.playerId === 'object' ? (item.playerId as any)._id : item.playerId;
               const jugadorCompInfo = jugadoresComp.find(jc => {
                 const jcPlayerId = typeof jc.jugador === 'object' ? jc.jugador._id : jc.jugador;
@@ -186,7 +228,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                         {initials}
                       </div>
                       <div className="absolute -top-1 -left-1 w-5 h-5 bg-slate-800 text-white text-[10px] font-bold rounded-full flex items-center justify-center z-20 border border-white shadow-sm">
-                        {index + 1}
+                        {originalIndex + 1}
                       </div>
                     </div>
 
@@ -219,6 +261,11 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
               );
             })}
           </div>
+          {filteredLeaderboard.length === 0 && (
+            <div className="p-12 text-center text-slate-500">
+              No se encontraron jugadores que coincidan con tu búsqueda.
+            </div>
+          )}
         </>
       )}
     </div>
