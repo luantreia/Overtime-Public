@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { RankedService } from '../services/rankedService';
 import {
@@ -10,6 +10,8 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  AreaChart,
+  Area,
 } from 'recharts';
 
 interface RankedEvolutionChartModalProps {
@@ -22,6 +24,8 @@ interface RankedEvolutionChartModalProps {
   leaderboard: any[];
 }
 
+type TimeFilter = 'all' | 'month' | 'quarter' | 'year';
+
 export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps> = ({
   isOpen,
   onClose,
@@ -31,11 +35,15 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
   categoria,
   leaderboard,
 }) => {
-  // We'll fetch history for the top players to show evolution
-  const topPlayers = leaderboard.slice(0, 20);
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
+  const [viewType, setViewType] = useState<'line' | 'area'>('line');
+  const [visiblePlayersCount, setVisiblePlayersCount] = useState(5);
+
+  // We'll fetch history for up to 10 players, but show based on visiblePlayersCount
+  const topPlayers = useMemo(() => leaderboard.slice(0, 10), [leaderboard]);
 
   const { data: evolutionaryData, isLoading } = useQuery({
-    queryKey: ['ranked-evolution', competenciaId, seasonId, topPlayers.map(p => p.playerId).join(',')],
+    queryKey: ['ranked-evolution', competenciaId, seasonId, topPlayers.map(p => p.playerId).join(','), timeFilter],
     queryFn: async () => {
       const results = await Promise.all(
         topPlayers.map(async (player) => {
@@ -45,30 +53,62 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
             modalidad,
             categoria,
           });
+          
+          let history = (detail.history || []).map((h: any) => ({
+            ...h,
+            date: new Date(h.createdAt || h.updatedAt)
+          })).sort((a: any, b: any) => a.date.getTime() - b.date.getTime());
+
+          // Apply time filters
+          if (timeFilter !== 'all') {
+            const now = new Date();
+            const filterDate = new Date();
+            if (timeFilter === 'month') filterDate.setMonth(now.getMonth() - 1);
+            else if (timeFilter === 'quarter') filterDate.setMonth(now.getMonth() - 3);
+            else if (timeFilter === 'year') filterDate.setFullYear(now.getFullYear() - 1);
+            
+            history = history.filter((h: any) => h.date >= filterDate);
+          }
+
           return {
             name: player.playerName,
-            history: (detail.history || []).reverse(), // Oldest to newest
+            history,
           };
         })
       );
 
-      // Transform into a format recharts likes: [{ matchIndex: 0, PlayerA: 1500, PlayerB: 1500 }, ...]
-      const maxMatches = Math.max(...results.map(r => r.history.length));
-      const chartData: any[] = [];
+      // Create a unified timeline of all dates
+      const allDates = new Set<string>();
+      results.forEach(r => r.history.forEach((h: any) => {
+          allDates.add(h.date.toISOString().split('T')[0]);
+      }));
+      
+      const sortedDates = Array.from(allDates).sort();
 
-      for (let i = 0; i < maxMatches; i++) {
-        const entry: any = { matchIndex: i + 1 };
+      const chartData: any[] = [];
+      const currentRatings: Record<string, number> = {};
+
+      // Initialize ratings
+      results.forEach(r => {
+          currentRatings[r.name] = r.history.length > 0 ? r.history[0].preRating : 1500;
+      });
+
+      sortedDates.forEach((date, index) => {
+        const entry: any = { 
+          date: new Date(date).toLocaleDateString(undefined, { day: '2-digit', month: 'short' }),
+          displayDate: date,
+          matchIndex: index + 1 
+        };
+        
         results.forEach(playerData => {
-            // Find the rating at this point or use the last available one
-            const historyEntry = playerData.history[i];
+            const historyEntry = playerData.history.find((h: any) => h.date.toISOString().startsWith(date));
             if (historyEntry) {
-                entry[playerData.name] = historyEntry.postRating;
-            } else if (i > 0 && chartData[i-1][playerData.name]) {
-                entry[playerData.name] = chartData[i-1][playerData.name];
+                currentRatings[playerData.name] = historyEntry.postRating;
             }
+            entry[playerData.name] = currentRatings[playerData.name];
         });
         chartData.push(entry);
-      }
+      });
 
       return { chartData, playerNames: results.map(r => r.name) };
     },
@@ -78,89 +118,197 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
   if (!isOpen) return null;
 
   const colors = [
-    '#3b82f6', // blue
-    '#ef4444', // red
-    '#10b981', // emerald
-    '#f59e0b', // amber
-    '#8b5cf6', // violet
-    '#ec4899', // pink
-    '#06b6d4', // cyan
-    '#f97316', // orange
-    '#84cc16', // lime
-    '#64748b'  // slate
+    '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6',
+    '#ec4899', '#06b6d4', '#f97316', '#84cc16', '#64748b'
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col">
-        <div className="p-6 border-b border-slate-200 flex justify-between items-center">
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-md transition-opacity">
+      <div className="bg-white w-full sm:max-w-5xl h-[95vh] sm:h-auto sm:max-h-[85vh] rounded-t-[32px] sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-300">
+        
+        {/* Header - Mobile First */}
+        <div className="px-6 py-5 flex items-center justify-between bg-white">
           <div>
-            <h3 className="text-xl font-bold text-slate-900">Evolución del Ranking</h3>
-            <p className="text-sm text-slate-500">Muestra la evolución del ELO de los mejores 10 jugadores partido a partido.</p>
+            <h3 className="text-xl font-extrabold text-slate-800 tracking-tight">Evolución de Ranking</h3>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Actualizado hoy</p>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 transition-colors"
+            className="p-2.5 rounded-full bg-slate-50 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all border border-slate-100"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        <div className="p-6 flex-1 overflow-auto bg-slate-50/50">
+        {/* Filters Bar - Scrollable on mobile */}
+        <div className="px-6 pb-4 bg-white flex flex-col gap-4">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 pointer-events-auto">
+            {[
+              { id: 'all', label: 'Histórico' },
+              { id: 'year', label: '1 Año' },
+              { id: 'quarter', label: '3 Meses' },
+              { id: 'month', label: '1 Mes' },
+            ].map((f) => (
+              <button
+                key={f.id}
+                onClick={() => setTimeFilter(f.id as TimeFilter)}
+                className={`px-5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                  timeFilter === f.id 
+                    ? 'bg-brand-600 text-white shadow-lg shadow-brand-200' 
+                    : 'bg-slate-50 text-slate-500 border border-slate-100 hover:border-slate-300'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center justify-between gap-3 bg-slate-50/80 p-1.5 rounded-2xl border border-slate-100">
+             <div className="flex items-center gap-1">
+                <button 
+                  onClick={() => setViewType('line')}
+                  className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${viewType === 'line' ? 'bg-white text-brand-600 shadow-sm ring-1 ring-slate-100' : 'text-slate-400'}`}
+                >
+                  Líneas
+                </button>
+                <button 
+                  onClick={() => setViewType('area')}
+                  className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${viewType === 'area' ? 'bg-white text-brand-600 shadow-sm ring-1 ring-slate-100' : 'text-slate-400'}`}
+                >
+                  Áreas
+                </button>
+             </div>
+
+             <div className="flex items-center gap-2 pr-2">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest hidden sm:block">Mostrar</span>
+                <select 
+                  value={visiblePlayersCount}
+                  onChange={(e) => setVisiblePlayersCount(Number(e.target.value))}
+                  className="text-[11px] font-bold bg-transparent border-none p-0 focus:ring-0 text-slate-600 cursor-pointer"
+                >
+                  <option value={3}>TOP 3</option>
+                  <option value={5}>TOP 5</option>
+                  <option value={10}>TOP 10</option>
+                </select>
+             </div>
+          </div>
+        </div>
+
+        {/* Chart Content */}
+        <div className="flex-1 px-4 pb-4 sm:px-6 bg-white overflow-hidden flex flex-col">
           {isLoading ? (
-            <div className="h-[400px] flex items-center justify-center">
-              <div className="flex flex-col items-center">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600 mb-4"></div>
-                <p className="text-slate-600">Procesando historial de jugadores...</p>
-              </div>
+            <div className="flex-1 flex flex-col items-center justify-center animate-pulse">
+              <div className="w-12 h-12 border-4 border-slate-50 border-t-brand-500 rounded-full animate-spin"></div>
+              <p className="mt-4 text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Cargando métricas</p>
             </div>
           ) : evolutionaryData?.chartData.length ? (
-            <div className="h-[500px] w-full bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={evolutionaryData.chartData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                  <XAxis 
-                    dataKey="matchIndex" 
-                    label={{ value: 'Partidos Jugados', position: 'insideBottom', offset: -5 }} 
-                  />
-                  <YAxis 
-                    domain={['auto', 'auto']}
-                    label={{ value: 'Rating ELO', angle: -90, position: 'insideLeft' }}
-                  />
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                  />
-                  <Legend verticalAlign="top" height={36}/>
-                  {evolutionaryData.playerNames.map((name, index) => (
-                    <Line
-                      key={name}
-                      type="monotone"
-                      dataKey={name}
-                      stroke={colors[index % colors.length]}
-                      strokeWidth={3}
-                      dot={{ r: 4, strokeWidth: 2 }}
-                      activeDot={{ r: 6, strokeWidth: 0 }}
-                      animationDuration={1500}
-                    />
-                  ))}
-                </LineChart>
-              </ResponsiveContainer>
+            <div className="flex-1 w-full min-h-0 flex flex-col">
+              <div className="flex-1 w-full min-h-[350px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  {viewType === 'line' ? (
+                    <LineChart data={evolutionaryData.chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#f8fafc" />
+                      <XAxis 
+                        dataKey="date" 
+                        fontSize={9}
+                        fontWeight={800}
+                        tickLine={false}
+                        axisLine={false}
+                        tick={{ fill: '#cbd5e1' }}
+                      />
+                      <YAxis 
+                        domain={['auto', 'auto']}
+                        fontSize={9}
+                        fontWeight={800}
+                        tickLine={false}
+                        axisLine={false}
+                        tick={{ fill: '#cbd5e1' }}
+                      />
+                      <Tooltip 
+                        contentStyle={{ 
+                          borderRadius: '20px', 
+                          border: 'none', 
+                          boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)',
+                          fontSize: '11px',
+                          fontWeight: '800',
+                          padding: '16px'
+                        }}
+                      />
+                      <Legend 
+                        verticalAlign="top" 
+                        height={50} 
+                        iconType="circle"
+                        wrapperStyle={{ fontSize: '9px', fontWeight: 800, paddingBottom: '10px' }}
+                      />
+                      {evolutionaryData.playerNames.slice(0, visiblePlayersCount).map((name, index) => (
+                        <Line
+                          key={name}
+                          type="monotone"
+                          dataKey={name}
+                          stroke={colors[index % colors.length]}
+                          strokeWidth={4}
+                          dot={false}
+                          activeDot={{ r: 6, strokeWidth: 0 }}
+                          animationDuration={1000}
+                        />
+                      ))}
+                    </LineChart>
+                  ) : (
+                    <AreaChart data={evolutionaryData.chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <defs>
+                        {evolutionaryData.playerNames.slice(0, visiblePlayersCount).map((name, index) => (
+                          <linearGradient key={`grad-${name}`} id={`color-${index}`} x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={colors[index % colors.length]} stopOpacity={0.4}/>
+                            <stop offset="95%" stopColor={colors[index % colors.length]} stopOpacity={0}/>
+                          </linearGradient>
+                        ))}
+                      </defs>
+                      <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#f8fafc" />
+                      <XAxis dataKey="date" fontSize={9} fontWeight={800} tickLine={false} axisLine={false} tick={{ fill: '#cbd5e1' }} />
+                      <YAxis domain={['auto', 'auto']} fontSize={9} fontWeight={800} tickLine={false} axisLine={false} tick={{ fill: '#cbd5e1' }} />
+                      <Tooltip contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', fontSize: '11px' }} />
+                      <Legend verticalAlign="top" height={50} iconType="circle" wrapperStyle={{ fontSize: '9px', fontWeight: 800 }} />
+                      {evolutionaryData.playerNames.slice(0, visiblePlayersCount).map((name, index) => (
+                        <Area
+                          key={name}
+                          type="monotone"
+                          dataKey={name}
+                          stroke={colors[index % colors.length]}
+                          strokeWidth={3}
+                          fillOpacity={1}
+                          fill={`url(#color-${index})`}
+                        />
+                      ))}
+                    </AreaChart>
+                  )}
+                </ResponsiveContainer>
+              </div>
             </div>
           ) : (
-            <div className="h-[400px] flex items-center justify-center text-slate-500 italic">
-              No hay datos suficientes para mostrar la evolución.
+            <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-slate-50/50 rounded-[32px] mb-4">
+              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h4 className="text-slate-800 font-black text-sm uppercase tracking-wider">Historial vacío</h4>
+              <p className="text-slate-400 text-xs max-w-[200px] mt-2 font-medium">No hay suficientes enfrentamientos en este periodo para trazar una evolución.</p>
             </div>
           )}
         </div>
 
-        <div className="p-4 border-t border-slate-200 bg-slate-50 flex justify-end">
+        {/* Footer actions for mobile */}
+        <div className="px-6 py-6 border-t border-slate-50 bg-white sm:hidden">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-white border border-slate-300 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+            className="w-full py-4 bg-slate-900 text-white rounded-[20px] font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-slate-200 active:scale-[0.98] transition-all"
           >
-            Cerrar
+            Cerrar Panel
           </button>
         </div>
       </div>
