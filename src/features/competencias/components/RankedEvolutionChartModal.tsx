@@ -67,14 +67,17 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
           }
 
           // Force include current rating as the final point to ensure synchronization with leaderboard
-          const lastHistoryEntry = history[history.length - 1];
-          if (lastHistoryEntry && lastHistoryEntry.postRating !== player.elo) {
-            history.push({
-              ...lastHistoryEntry,
-              date: new Date(), // Current timestamp to place it at the end
-              preRating: lastHistoryEntry.postRating,
-              postRating: player.elo
-            });
+          // This must happen AFTER all filters to ensure it's always the last point regardless of view
+          const currentEloPoint = {
+            date: new Date(), // Current timestamp to place it at the end
+            preRating: history.length > 0 ? history[history.length - 1].postRating : 1500,
+            postRating: player.elo || player.ranking || 1500
+          };
+
+          // Only push if the last entry in history isn't already this ELO at this exact moment
+          const lastEntry = history[history.length - 1];
+          if (!lastEntry || lastEntry.postRating !== currentEloPoint.postRating) {
+            history.push(currentEloPoint as any);
           }
 
           return { name: player.playerName, history };
