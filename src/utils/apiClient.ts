@@ -21,4 +21,4 @@ export function setAuthTokens({ accessToken, refreshToken }: { accessToken: stri
   }
 }
 
-export { authFetch as fetchWithAuth } from '../shared/utils copy/authFetch';
+export { authFetch as fetchWithAuth } from '../shared/utils/authFetch';
