@@ -86,7 +86,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
     setVisiblePlayersCount(5);
   }, [isOpen]);
 
-  const leaderboard = leaderboardData?.items || [];
+  const leaderboard = useMemo(() => leaderboardData?.items || [], [leaderboardData]);
 
   const seasonOptions = useMemo(() => {
     return [{ _id: "global", nombre: "Histórico Global" }, ...temporadas];
@@ -388,7 +388,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
             color: chartColors[i % chartColors.length] 
         })) 
     };
-  }, [rawPlayersData, matchesData, timeFilter, selectedSeason]);
+  }, [rawPlayersData, matchesData, timeFilter]);
 
   const isBusy = loadingPlayers || loadingLeaderboard || loadingTemporadas || !competencia;
 
