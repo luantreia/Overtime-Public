@@ -26,13 +26,6 @@ interface RankedEvolutionChartModalProps {
 type TimeFilter = "all" | "month";
 
 // Interfaces para mejorar type safety
-interface PlayerChartInfo {
-    matchLabel: string;
-    fullDate: string;
-    isStartNode?: boolean;
-    isEndNode?: boolean;
-    [key: string]: any;
-}
 
 export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps> = ({
   isOpen,
@@ -138,9 +131,6 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
 
         return { ...player, history, usedEvents: new Set<number>() };
     });
-
-
-    const allDatesSet = new Set<string>();
     
     // 4. Construcción del gráfico basado en PARTIDOS (Skeleton)
     
@@ -445,7 +435,6 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                                       const match = p.payload[`${p.dataKey}_match`];
                                       const diff = p.payload[`${p.dataKey}_diff`];
                                       const isPositive = diff > 0;
-                                      const isNegative = diff < 0;
 
                                       return (
                                         <div key={p.dataKey} className="flex flex-col gap-1">
