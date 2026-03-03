@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { RankedService } from "../services/rankedService";
+import { PartidoService } from "../../partidos/services/partidoService";
 import {
   LineChart,
   Line,
@@ -24,6 +25,15 @@ interface RankedEvolutionChartModalProps {
 
 type TimeFilter = "all" | "month";
 
+// Interfaces para mejorar type safety
+interface PlayerChartInfo {
+    matchLabel: string;
+    fullDate: string;
+    isStartNode?: boolean;
+    isEndNode?: boolean;
+    [key: string]: any;
+}
+
 export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps> = ({
   isOpen,
   onClose,
@@ -33,95 +43,309 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
   categoria,
   leaderboard,
 }) => {
+  // DEBUG: Para verificar qué llega del componente padre
+  console.log("[RankedModal] Props recibidas:", { competenciaId, seasonId, modalidad, categoria, topPlayersCount: leaderboard?.length, isOpen });
+
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("all");
   const [visiblePlayersCount, setVisiblePlayersCount] = useState(5);
 
-  const topPlayers = useMemo(() => (leaderboard || []).slice(0, 10), [leaderboard]);
+  const topPlayers = useMemo(() => {
+    const players = (leaderboard || []).slice(0, 10);
+    console.log("[RankedModal] Top Players procesados:", players.length);
+    return players;
+  }, [leaderboard]);
 
-  const { data: evolutionaryData, isLoading } = useQuery({
-    queryKey: ["ranked-evolution", competenciaId, seasonId, topPlayers.map(p => p.playerId).join(","), timeFilter],
+  // Nueva consulta para obtener los partidos reales de la competencia/temporada
+  const { data: matchesData } = useQuery({
+    queryKey: ["competition-matches", competenciaId, seasonId],
     queryFn: async () => {
+      try {
+        const filters: any = { competenciaId };
+        if (seasonId && seasonId !== "global") filters.temporadaId = seasonId;
+        const res = await PartidoService.getAll(filters);
+        console.log("[RankedModal] Partidos cargados:", res?.length || 0);
+        return res;
+      } catch (err) {
+        console.error("[RankedModal] Error cargando partidos:", err);
+        return [];
+      }
+    },
+    enabled: isOpen,
+  });
+
+  const { data: rawPlayersData, isLoading } = useQuery({
+    queryKey: ["ranked-evolution-raw", competenciaId, seasonId, topPlayers.map(p => p.playerId).join(",")],
+    queryFn: async () => {
+      console.log("[RankedModal] Iniciando fetch de evolución para jugadores...");
       const results = await Promise.all(
         topPlayers.map(async (player) => {
           try {
+            // DISCRIMINACIÓN DE NIVELES DE RANKING (Sincronizado con Backend)
             const detail = await RankedService.getPlayerDetail(player.playerId, {
               competition: competenciaId,
-              season: seasonId,
+              season: seasonId === "global" ? "" : seasonId, // El backend ya interpreta "global" o "" como temporada nula
               modalidad,
               categoria,
             });
             
-            // FILTRADO ESTRICTO: Solo historial de esta competencia y temporada
-            // Agregamos log de depuración interno para ID
-            let history = (detail.history || [])
-              .filter((h: any) => {
-                const hCompId = (h.competitionId || h.competition || "").toString();
-                const targetCompId = competenciaId.toString();
-                const hSeasonId = (h.seasonId || h.season || "").toString();
-                const targetSeasonId = (seasonId || "").toString();
+            console.log(`[RankedChart] Respuesta para ${player.playerName}:`, detail);
 
-                const matchesCompetition = hCompId === targetCompId;
-                const matchesSeason = !targetSeasonId || hSeasonId === targetSeasonId;
-                
-                return matchesCompetition && matchesSeason;
-              })
+            // Intentamos buscar el historial en varios posibles nombres de campo
+            const rawHistory = detail.history || (detail as any).items || (detail as any).data || (detail as any).ratings || [];
+            
+            const history = rawHistory
               .map((h: any) => ({
                 ...h,
                 date: new Date(h.updatedAt || h.createdAt),
-                postRating: Number(h.postRating)
+                postRating: Number(h.postRating || h.rating || h.newRating || h.ratingActual || 0)
               }))
               .sort((a: any, b: any) => a.date.getTime() - b.date.getTime());
 
-            if (timeFilter === "month") {
-              const filterDate = new Date();
-              filterDate.setMonth(filterDate.getMonth() - 1);
-              history = history.filter((h: any) => h.date >= filterDate);
-            }
-
-            return { name: player.playerName, history, currentElo: Number(player.elo || player.ranking || 1500) };
+            return { 
+                id: player.playerId,
+                name: player.playerName, 
+                history, 
+                currentElo: Number(player.elo || player.ranking || 1500) 
+            };
           } catch (e) {
-            return { name: player.playerName, history: [], currentElo: 1500 };
+            console.error(`[RankedChart] Error en jugador ${player.playerName}:`, e);
+            return { id: player.playerId, name: player.playerName, history: [], currentElo: 1500 };
           }
         })
       );
-
-      const allDatesSet = new Set<string>();
-      results.forEach(r => r.history.forEach((h: any) => allDatesSet.add(h.date.toISOString())));
-      const sortedDates = Array.from(allDatesSet).sort();
-
-      const chartData: any[] = [];
-      const currentRatings: Record<string, number> = {};
-
-      // Inicialización con el primer valor real de cada jugador
-      results.forEach(r => {
-          currentRatings[r.name] = r.history.length > 0 ? r.history[0].preRating || 1500 : 1500;
-      });
-
-      sortedDates.forEach((isoDate, index) => {
-        const dateObj = new Date(isoDate);
-        const entry: any = { 
-          matchLabel: `P${index + 1}`,
-          fullDate: dateObj.toLocaleDateString(undefined, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }),
-        };
-        
-        results.forEach(playerData => {
-            const historyEntry = playerData.history.find((h: any) => h.date.toISOString() === isoDate);
-            if (historyEntry) {
-                currentRatings[playerData.name] = historyEntry.postRating;
-            }
-            entry[playerData.name] = Number(currentRatings[playerData.name]);
-        });
-        chartData.push(entry);
-      });
-
-      return { chartData, playerNames: results.map(r => r.name) };
+      return results;
     },
     enabled: isOpen && topPlayers.length > 0,
   });
 
-  if (!isOpen) return null;
+  // Procesamiento de datos combinado (Historia + Partidos + Filtros)
+  const evolutionaryData = useMemo(() => {
+    if (!rawPlayersData) return { chartData: [], playerInfo: [] };
 
-  const colors = ["#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#f97316", "#84cc16", "#64748b"];
+    // 1. Filtrar asegurando tipos de Fecha
+    const filteredResults = rawPlayersData.map(player => {
+        // Aseguramos que las fechas sean objetos Date reales
+        let history = (player.history || []).map((h: any) => ({
+            ...h,
+            date: h.date instanceof Date ? h.date : new Date(h.date)
+        }));
+
+        // Validar que la fecha sea válida
+        history = history.filter((h: any) => h.date && !isNaN(h.date.getTime()));
+
+        // SORT history ascending
+        history.sort((a: any, b: any) => a.date.getTime() - b.date.getTime());
+
+        return { ...player, history, usedEvents: new Set<number>() };
+    });
+
+
+    const allDatesSet = new Set<string>();
+    
+    // 4. Construcción del gráfico basado en PARTIDOS (Skeleton)
+    
+    const chartData: any[] = [];
+    const playerLastKnownRating: Record<string, number> = {}; // Para mantener el estado actual de la línea
+    
+    // Configuración de colores (usamos la misma paleta que en el render, pero definida aquí para el useMemo)
+    const chartColors = ["#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#f97316", "#84cc16", "#64748b"];
+
+    // Filtro de fecha de corte
+    let cutoffDate = new Date(0); // Default: Desde el principio de los tiempos
+    if (timeFilter === "month") {
+        const d = new Date();
+        d.setMonth(d.getMonth() - 1);
+        cutoffDate = d;
+    }
+
+    // PASO A: Determinar estado INICIAL (Punto de partida)
+    const startEntry: any = { 
+        matchLabel: "Inicio", 
+        fullDate: cutoffDate.toLocaleDateString(),
+        isStartNode: true 
+    };
+    
+    filteredResults.forEach((r, idx) => {
+        const key = `player_${idx}`;
+        // Buscar el rating que tenía el jugador justo antes o en el momento del corte
+        let startRating = 1500;
+        
+        // Buscamos el último evento ANTES de la fecha de corte
+        const eventBefore = [...r.history].reverse().find((h: any) => h.date < cutoffDate);
+        
+        if (eventBefore) {
+            startRating = eventBefore.postRating;
+        } else if (r.history.length > 0) {
+            // Si no hay evento antes, tomamos el preRating del primer evento disponible
+            startRating = r.history[0].preRating || 1500;
+        }
+
+        playerLastKnownRating[key] = startRating;
+        startEntry[key] = startRating;
+
+        // Avanzar el cursor de historial hasta la fecha de corte para no procesar eventos viejos
+        // OJO: No debemos avanzar ciegamente, sino estar listos para el primer partido > cutoffDate
+        // Si hay eventos "sueltos" entre cutoff y primer partido, los ignoramos o asumimos que son ajustes
+        // Vamos a dejar que el loop de partidos encuentre su evento correspondiente.
+    });
+    chartData.push(startEntry);
+
+    // PASO B: Procesar PARTIDO A PARTIDO
+    const relevantMatches = (matchesData || [])
+        .filter((m: any) => {
+            if (!m.fecha) return false;
+            const dateStr = m.fecha.includes('T') ? m.fecha : `${m.fecha}T${m.hora || "00:00"}`;
+            const matchDate = new Date(dateStr);
+            return !isNaN(matchDate.getTime()) && matchDate >= cutoffDate;
+        })
+        .sort((a: any, b: any) => {
+            const dateA = new Date(a.fecha.includes('T') ? a.fecha : `${a.fecha}T${a.hora || "00:00"}`);
+            const dateB = new Date(b.fecha.includes('T') ? b.fecha : `${b.fecha}T${b.hora || "00:00"}`);
+            return dateA.getTime() - dateB.getTime();
+        });
+
+    relevantMatches.forEach((match: any, index: number) => {
+        const dateStr = match.fecha.includes('T') ? match.fecha : `${match.fecha}T${match.hora || "00:00"}`;
+        const matchDate = new Date(dateStr);
+        const entry: any = {
+            matchLabel: `P${index + 1}`,
+            fullDate: matchDate.toLocaleDateString(undefined, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }),
+        };
+
+        let hasRelevantPlayers = false;
+
+        filteredResults.forEach((player: any, idx: number) => {
+            const key = `player_${idx}`;
+            
+            // 1. Determinar si el jugador PARTICIPÓ en el partido (ID match || Name match)
+            
+            // Función auxiliar para normalizar cadenas (minúsculas, sin acentos)
+            const normalize = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+
+            const pId = String(player.id || "").trim();
+            const pName = normalize(player.name || "");
+            
+            const localObj = match.equipoLocal || {};
+            const visitObj = match.equipoVisitante || {};
+            
+            // IDs de equipos
+            const localId = String(localObj.id || localObj._id || "").trim();
+            const visitId = String(visitObj.id || visitObj._id || "").trim();
+            
+            // Nombres de equipos
+            const localName = normalize(localObj.nombre || "");
+            const visitName = normalize(visitObj.nombre || "");
+            
+            // Lógica de coincidencia: ID exacto O Nombre normalizado
+            const isLocal = (pId && localId && pId === localId) || (pName && localName && pName === localName);
+            const isVisit = (pId && visitId && pId === visitId) || (pName && visitName && pName === visitName);
+            
+            const mId = String(match.id || match._id || "").trim();
+
+            // 2. Buscar evento de ranking correspondiente en el historial
+            // INTENTO 1: Buscar por Match ID explícito
+            let eventMatchIdx = player.history.findIndex((h: any, i: number) => {
+                const hMatchId = String(h.partidoId || h.matchId || h.idPartido || h.partido || h.referencia || h.referenciaId || "").trim();
+                return hMatchId && mId && hMatchId === mId && !player.usedEvents.has(i);
+            });
+
+            // INTENTO 2: Si no hay match ID, usar proximidad temporal (fallback)
+            if (eventMatchIdx === -1 && player.history.length > 0) {
+                 const rangeStart = matchDate.getTime() - (3 * 24 * 60 * 60 * 1000); // ampliar a 3 días antes por si se registró tarde
+                 const rangeEnd = matchDate.getTime() + (3 * 24 * 60 * 60 * 1000);   // 3 dias despues
+                 
+                 let minDiff = Infinity;
+
+                 player.history.forEach((h: any, i: number) => {
+                     if (player.usedEvents.has(i)) return; // Ya usado en otro partido
+
+                     const t = h.date.getTime();
+                     if (t >= rangeStart && t <= rangeEnd) {
+                         const diff = Math.abs(t - matchDate.getTime());
+                         if (diff < minDiff) {
+                             minDiff = diff;
+                             eventMatchIdx = i;
+                         }
+                     }
+                 });
+                 
+                 // Solo asignar si la diferencia es razonable (ej. menos de 48 horas) 
+                 if (minDiff > 48 * 60 * 60 * 1000) {
+                     eventMatchIdx = -1;
+                 }
+            }
+
+            const eventMatch = eventMatchIdx !== -1 ? player.history[eventMatchIdx] : null;
+
+            // ¿Jugó el partido?
+            // Sí: Su ID/nombre coincide con el equipo (Padel 1v1) O encontramos un evento de historia que encaja.
+            const played = isLocal || isVisit || !!eventMatch;
+
+            if (played) {
+                hasRelevantPlayers = true;
+                
+                if (eventMatch) {
+                    player.usedEvents.add(eventMatchIdx);
+                    const prevRating = playerLastKnownRating[key];
+                    entry[key] = (eventMatch as any).postRating;
+                    entry[`${key}_diff`] = (eventMatch as any).postRating - prevRating;
+                    entry[`${key}_match`] = {
+                        local: localObj.nombre,
+                        visitante: visitObj.nombre,
+                        resultado: match.resultado,
+                        fase: match.fase
+                    };
+                    playerLastKnownRating[key] = (eventMatch as any).postRating;
+                } else {
+                    // Jugó pero no encontramos evento de ranking/historial.
+                    // IMPORTANTE: Mostramos el punto con el mismo rating anterior (diff 0) 
+                    // para indicar visualmente que participó en este partido.
+                    entry[key] = playerLastKnownRating[key];
+                    entry[`${key}_diff`] = 0; // Sin cambio detectado
+                    entry[`${key}_match`] = {
+                        local: localObj.nombre,
+                        visitante: visitObj.nombre, 
+                        resultado: match.resultado,
+                        fase: match.fase,
+                        note: "Sin cambio de ranking registrado"
+                    };
+                }
+            } else {
+                // NO JUGÓ
+                entry[key] = null;
+            }
+        });
+
+        if (hasRelevantPlayers) {
+            chartData.push(entry);
+        }
+    });
+
+    // PASO C: Punto FINAL (Estado Actual)
+    const endEntry: any = { 
+        matchLabel: "Actual", 
+        fullDate: "Ahora",
+        isEndNode: true
+    };
+    filteredResults.forEach((_, idx) => {
+        const key = `player_${idx}`;
+        endEntry[key] = playerLastKnownRating[key];
+    });
+    chartData.push(endEntry);
+
+
+    console.log("[RankedModal] Chart Data finalizada:", chartData.length, "puntos");
+    return { 
+        chartData, 
+        playerInfo: filteredResults.map((r, i) => ({ 
+            name: r.name, 
+            key: `player_${i}`, 
+            color: chartColors[i % chartColors.length] 
+        })) 
+    };
+  }, [rawPlayersData, matchesData, timeFilter]);
+
+  if (!isOpen) return null;
 
   return (
     <div 
@@ -147,7 +371,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
           </button>
         </div>
 
-        <div className="flex-1 flex flex-col min-h-0 bg-white">
+         <div className="flex-1 flex flex-col min-h-0 bg-white">
           <div className="px-6 py-4 flex items-center justify-between gap-4 shrink-0 overflow-hidden">
             <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth">
               {[{ id: "all", label: "Total" }, { id: "month", label: "Mes" }].map((f) => (
@@ -173,20 +397,20 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                 <option value={10}>10</option>
               </select>
               <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="MD19 9l-7 7-7-7" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
               </svg>
             </div>
           </div>
 
-          <div className="flex-1 w-full p-4 sm:p-6 min-h-[400px]">
+          <div className="flex-1 w-full p-4 sm:p-6 min-h-[400px] flex flex-col">
             {isLoading ? (
               <div className="w-full h-full flex flex-col items-center justify-center">
                 <div className="w-12 h-12 border-4 border-slate-50 border-t-brand-500 rounded-full animate-spin"></div>
                 <p className="mt-4 text-[10px] font-black text-slate-300 uppercase tracking-widest">Calculando puntos...</p>
               </div>
             ) : evolutionaryData?.chartData && evolutionaryData.chartData.length > 0 ? (
-              <div className="w-full h-full min-h-[400px]">
-                <ResponsiveContainer width="100%" height="100%">
+              <div style={{ width: '100%', height: 400, position: 'relative' }}>
+                <ResponsiveContainer width="99%" height="100%">
                     <LineChart data={evolutionaryData.chartData} margin={{ top: 10, right: 30, left: 0, bottom: 40 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                       <XAxis dataKey="matchLabel" fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} dy={10} />
@@ -195,16 +419,84 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                         labelFormatter={(v, p) => p[0]?.payload?.fullDate || v}
                         contentStyle={{ borderRadius: "20px", border: "none", boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "800", padding: "16px" }} 
                         itemSorter={(item) => Number(item.value) * -1}
+                        content={({ active, payload, label }) => {
+                          if (active && payload && payload.length) {
+                             // Si es nodo inicial o final, simplificar tooltip
+                             if (payload[0].payload.isStartNode) {
+                                return (
+                                    <div className="bg-white px-4 py-2 rounded-xl shadow-xl border border-slate-100">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase">Inicio de periodo</p>
+                                    </div>
+                                );
+                             }
+                             if (payload[0].payload.isEndNode) {
+                                return (
+                                    <div className="bg-white px-4 py-2 rounded-xl shadow-xl border border-slate-100">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase">Estado Actual</p>
+                                    </div>
+                                );
+                             }
+
+                             return (
+                               <div className="bg-white p-4 rounded-2xl shadow-2xl border border-slate-100 min-w-[200px]">
+                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{payload[0].payload.fullDate}</p>
+                                 <div className="space-y-3">
+                                   {payload.map((p: any) => {
+                                      const match = p.payload[`${p.dataKey}_match`];
+                                      const diff = p.payload[`${p.dataKey}_diff`];
+                                      const isPositive = diff > 0;
+                                      const isNegative = diff < 0;
+
+                                      return (
+                                        <div key={p.dataKey} className="flex flex-col gap-1">
+                                          <div className="flex items-center justify-between gap-4">
+                                            <div className="flex items-center gap-2">
+                                              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color }}></div>
+                                              <span className="text-slate-700 font-extrabold">{p.name}</span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5">
+                                              {diff !== undefined && diff !== 0 && (
+                                                <span className={`text-[9px] font-black ${isPositive ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                                  {isPositive ? '+' : ''}{diff}
+                                                </span>
+                                              )}
+                                              <span className="text-brand-600 font-black">{p.value}</span>
+                                            </div>
+                                          </div>
+                                          {match && (
+                                            <div className="ml-4 pl-2 border-l-2 border-slate-100 py-1 mt-1 bg-slate-50/50 rounded-r-lg">
+                                               <p className="text-[9px] text-slate-500 font-bold leading-tight">
+                                                 <span className="text-slate-400 font-black">VS: </span>
+                                                 {match.local} vs {match.visitante}
+                                               </p>
+                                               <div className="flex items-center justify-between mt-0.5">
+                                                 <p className="text-[9px] text-emerald-600 font-black">
+                                                   Result: {match.resultado}
+                                                 </p>
+                                                 {match.fase && <span className="text-[8px] px-1.5 py-0.5 bg-slate-200 text-slate-500 rounded font-bold uppercase tracking-wider">{match.fase}</span>}
+                                               </div>
+                                            </div>
+                                          )}
+                                        </div>
+                                      );
+                                   })}
+                                 </div>
+                               </div>
+                             );
+                          }
+                          return null;
+                        }}
                       />
                       <Legend verticalAlign="top" height={60} iconType="circle" wrapperStyle={{ fontSize: "10px", fontWeight: 800, paddingBottom: "20px" }} />
-                      {evolutionaryData.playerNames.slice(0, visiblePlayersCount).map((name, index) => (
+                      {(evolutionaryData.playerInfo || []).slice(0, visiblePlayersCount).map((info, index) => (
                         <Line 
-                          key={name} 
+                          key={info.key} 
                           type="stepAfter" 
-                          dataKey={name} 
-                          stroke={colors[index % colors.length]} 
+                          dataKey={info.key}
+                          name={info.name} 
+                          stroke={info.color} 
                           strokeWidth={4} 
-                          dot={{ r: 4, strokeWidth: 0, fill: colors[index % colors.length] }} 
+                          dot={{ r: 4, strokeWidth: 0, fill: info.color }} 
                           activeDot={{ r: 6, strokeWidth: 0 }} 
                           isAnimationActive={false}
                           connectNulls 
