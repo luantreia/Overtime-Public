@@ -1,1 +1,1 @@
-export * from '../shared/utils copy/formatDate';
+export * from '../shared/utils/formatDate';

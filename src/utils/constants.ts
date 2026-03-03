@@ -1,1 +1,1 @@
-export * from '../shared/utils copy/constants/index';
+export * from '../shared/utils/constants/index';

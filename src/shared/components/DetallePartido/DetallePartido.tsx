@@ -2,7 +2,7 @@ import React from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { PartidoService } from '../../../features/partidos/services/partidoService';
-import { formatDate, formatDateTime } from '../../../shared/utils copy/formatDate';
+import { formatDate, formatDateTime } from '../../../shared/utils/formatDate';
 import { PlayerRankedHistoryModal } from '../../../features/competencias/components/PlayerRankedHistoryModal';
 
 interface DetallePartidoProps {
