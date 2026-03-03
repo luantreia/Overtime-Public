@@ -1,8 +1,8 @@
 {
   "name": "overtime-public",
   "version": "0.1.0",
-  "homepage": ".",
   "private": true,
+  "homepage": ".",
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@tanstack/query-sync-storage-persister": "^5.90.24",
