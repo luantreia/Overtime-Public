@@ -7,6 +7,9 @@ import { AuthProvider } from './app/providers/AuthContext';
 import { ToastProvider } from './shared/components/Toast/ToastProvider';
 import { SolicitudesProvider } from './app/providers/SolicitudesContext';
 
+// Versión de build (cambia con cada deploy). Usa REACT_APP_VERSION si la defines en el build, si no cae a la versión del package.
+const BUILD_VERSION = process.env.REACT_APP_VERSION || process.env.npm_package_version || 'dev';
+
 // Escudo contra problemas de caché (Pantalla en blanco tras nuevas versiones)
 class GlobalErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
   constructor(props: { children: React.ReactNode }) {
@@ -53,6 +56,30 @@ class GlobalErrorBoundary extends React.Component<{ children: React.ReactNode },
 
 const container = document.getElementById('root');
 if (container) {
+  // Limpieza automática cuando cambia la versión: borra caches y recarga una sola vez.
+  try {
+    const w = window as any;
+    const storedVersion = localStorage.getItem('APP_VERSION');
+    const alreadyRefreshed = sessionStorage.getItem('version_cleared') === '1';
+
+    if (storedVersion && storedVersion !== BUILD_VERSION && !alreadyRefreshed) {
+      sessionStorage.setItem('version_cleared', '1');
+      if ('caches' in w) {
+        caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k)))).finally(() => {
+          localStorage.setItem('APP_VERSION', BUILD_VERSION);
+          w.location.reload();
+        });
+      } else {
+        localStorage.setItem('APP_VERSION', BUILD_VERSION);
+        w.location.reload();
+      }
+    } else if (!storedVersion || storedVersion !== BUILD_VERSION) {
+      localStorage.setItem('APP_VERSION', BUILD_VERSION);
+    }
+  } catch (err) {
+    console.warn('Version check failed', err);
+  }
+
   const root = createRoot(container);
   root.render(
     <React.StrictMode>
@@ -76,10 +103,6 @@ if (container) {
       for (let registration of registrations) {
         registration.unregister();
         console.log('Service Worker eliminado para evitar problemas de caché 404.');
-      }
-      // Forzamos un reload una sola vez para asegurar que limpió la basura
-      if (registrations.length > 0) {
-        window.location.reload();
       }
     });
   }
