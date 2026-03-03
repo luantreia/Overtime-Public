@@ -40,11 +40,12 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
   console.log("[RankedModal] Props recibidas:", { competenciaId, seasonId, modalidad, categoria, topPlayersCount: leaderboard?.length, isOpen });
 
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("all");
-  const [visiblePlayersCount, setVisiblePlayersCount] = useState(5);
+  const [visiblePlayersCount, setVisiblePlayersCount] = useState<number>(5); // -1 means ALL
+  const [playerFilter, setPlayerFilter] = useState("");
 
   const topPlayers = useMemo(() => {
-    const players = (leaderboard || []).slice(0, 10);
-    console.log("[RankedModal] Top Players procesados:", players.length);
+    const players = leaderboard || [];
+    console.log("[RankedModal] Jugadores procesados (todos):", players.length);
     return players;
   }, [leaderboard]);
 
@@ -138,7 +139,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
     const playerLastKnownRating: Record<string, number> = {}; // Para mantener el estado actual de la línea
     
     // Configuración de colores (usamos la misma paleta que en el render, pero definida aquí para el useMemo)
-    const chartColors = ["#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#f97316", "#84cc16", "#64748b"];
+    const chartColors = ["#f59e0b", "#3b82f6", "#10b981", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#f97316", "#84cc16", "#64748b"];
 
     // Filtro de fecha de corte
     let cutoffDate = new Date(0); // Default: Desde el principio de los tiempos
@@ -375,20 +376,32 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
               ))}
             </div>
 
-            <div className="flex items-center gap-2 bg-slate-50/80 px-3 py-2 rounded-xl border border-slate-100 shrink-0">
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest hidden xs:block">Top</span>
+            <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 shadow-sm shrink-0">
+              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest hidden xs:block">Top</span>
               <select 
                 value={visiblePlayersCount} 
                 onChange={(e) => setVisiblePlayersCount(Number(e.target.value))} 
-                className="text-[11px] font-bold bg-transparent border-none p-0 focus:ring-0 text-slate-600 cursor-pointer appearance-none outline-none"
+                className="text-[11px] font-bold bg-transparent border-none p-0 focus:ring-0 text-slate-700 cursor-pointer appearance-none outline-none"
               >
                 <option value={3}>3</option>
                 <option value={5}>5</option>
                 <option value={10}>10</option>
               </select>
               <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
               </svg>
+            </div>
+
+            <div className="flex items-center gap-2 bg-slate-50/80 px-3 py-2 rounded-xl border border-slate-100 w-full max-w-xs">
+              <input
+                value={playerFilter}
+                onChange={(e) => setPlayerFilter(e.target.value)}
+                placeholder="Buscar jugador"
+                className="w-full text-[11px] font-bold bg-transparent border-none p-0 focus:ring-0 text-slate-600 placeholder:text-slate-400"
+              />
+              {playerFilter && (
+                <button onClick={() => setPlayerFilter("")} className="text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
+              )}
             </div>
           </div>
 
@@ -476,8 +489,20 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                           return null;
                         }}
                       />
-                      <Legend verticalAlign="top" height={60} iconType="circle" wrapperStyle={{ fontSize: "10px", fontWeight: 800, paddingBottom: "20px" }} />
-                      {(evolutionaryData.playerInfo || []).slice(0, visiblePlayersCount).map((info, index) => (
+                              <Legend verticalAlign="top" height={60} iconType="circle" wrapperStyle={{ fontSize: "10px", fontWeight: 800, paddingBottom: "20px" }} />
+                              {(() => {
+                                const list = (evolutionaryData.playerInfo || []).filter((p) =>
+                                  !playerFilter
+                                    ? true
+                                    : p.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(
+                                        playerFilter.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                                      )
+                                );
+                                const visible = playerFilter
+                                  ? list
+                                  : (visiblePlayersCount === -1 ? list : list.slice(0, visiblePlayersCount));
+                                return visible;
+                              })().map((info, index) => (
                         <Line 
                           key={info.key} 
                           type="stepAfter" 
