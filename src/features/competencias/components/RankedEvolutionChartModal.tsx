@@ -491,7 +491,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
             color: chartColors[i % chartColors.length] 
         })) 
     };
-  }, [rawPlayersData, matchesData, timeFilter]);
+  }, [rawPlayersData, matchesData, timeFilter, selectedSeason, seasonInitialized, temporadas]);
 
   const isBusy = loadingPlayers || loadingLeaderboard || loadingTemporadas || !competencia;
 
