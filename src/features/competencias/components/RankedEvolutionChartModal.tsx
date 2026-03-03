@@ -1,6 +1,8 @@
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { RankedService } from "../services/rankedService";
+import { CompetenciaService, type Competencia } from "../services/competenciaService";
+import { RankedService, type LeaderboardItem, type LeaderboardResponse } from "../services/rankedService";
+import { TemporadaService, type Temporada } from "../services/temporadaService";
 import { PartidoService } from "../../partidos/services/partidoService";
 import {
   LineChart,
@@ -17,10 +19,6 @@ interface RankedEvolutionChartModalProps {
   isOpen: boolean;
   onClose: () => void;
   competenciaId: string;
-  seasonId?: string;
-  modalidad: string;
-  categoria: string;
-  leaderboard: any[];
 }
 
 type TimeFilter = "all" | "month";
@@ -31,19 +29,74 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
   isOpen,
   onClose,
   competenciaId,
-  seasonId,
-  modalidad,
-  categoria,
-  leaderboard,
 }) => {
-  // DEBUG: Para verificar qué llega del componente padre
-  console.log("[RankedModal] Props recibidas:", { competenciaId, seasonId, modalidad, categoria, topPlayersCount: leaderboard?.length, isOpen });
+  console.log("[RankedModal] Props recibidas:", { competenciaId, isOpen });
 
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("all");
   const [visiblePlayersCount, setVisiblePlayersCount] = useState<number>(5); // -1 means ALL
   const [playerFilter, setPlayerFilter] = useState("");
+  const [selectedSeason, setSelectedSeason] = useState<string>("global");
 
-  const topPlayers = useMemo(() => {
+  const { data: competencia } = useQuery<Competencia | undefined>({
+    queryKey: ["competencia", competenciaId, "ranked-chart"],
+    queryFn: () => CompetenciaService.getById(competenciaId),
+    enabled: isOpen && !!competenciaId,
+  });
+
+  const modalidad = (competencia as any)?.modalidad || "Foam";
+  const categoria = (competencia as any)?.categoria || "Libre";
+
+  const { data: temporadas = [], isLoading: loadingTemporadas } = useQuery<Temporada[]>({
+    queryKey: ["temporadas", competenciaId, "ranked-chart"],
+    queryFn: () => TemporadaService.getByCompetencia(competenciaId),
+    enabled: isOpen && !!competenciaId,
+  });
+
+  useEffect(() => {
+    if (!isOpen) return;
+    if (!selectedSeason && temporadas.length > 0) {
+      setSelectedSeason(temporadas[temporadas.length - 1]._id);
+    }
+  }, [isOpen, selectedSeason, temporadas]);
+
+  const { data: leaderboardData, isLoading: loadingLeaderboard } = useQuery<LeaderboardResponse | null>({
+    queryKey: ["ranked-evolution-leaderboard", competenciaId, selectedSeason, modalidad, categoria],
+    queryFn: () => RankedService.getLeaderboard({
+      modalidad,
+      categoria,
+      competition: competenciaId,
+      season: selectedSeason === "global" ? undefined : selectedSeason,
+      limit: 500,
+    }),
+    enabled: isOpen && !!competencia && !!competenciaId,
+  });
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setTimeFilter("all");
+    setPlayerFilter("");
+    setVisiblePlayersCount(5);
+  }, [selectedSeason, isOpen]);
+
+  useEffect(() => {
+    if (isOpen) return;
+    setSelectedSeason("global");
+    setTimeFilter("all");
+    setPlayerFilter("");
+    setVisiblePlayersCount(5);
+  }, [isOpen]);
+
+  const leaderboard = leaderboardData?.items || [];
+
+  const seasonOptions = useMemo(() => {
+    return [{ _id: "global", nombre: "Histórico Global" }, ...temporadas];
+  }, [temporadas]);
+
+  const selectedSeasonLabel = useMemo(() => {
+    return seasonOptions.find((t) => t._id === selectedSeason)?.nombre || "Histórico Global";
+  }, [seasonOptions, selectedSeason]);
+
+  const topPlayers: LeaderboardItem[] = useMemo(() => {
     const players = leaderboard || [];
     console.log("[RankedModal] Jugadores procesados (todos):", players.length);
     return players;
@@ -51,11 +104,11 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
 
   // Nueva consulta para obtener los partidos reales de la competencia/temporada
   const { data: matchesData } = useQuery({
-    queryKey: ["competition-matches", competenciaId, seasonId],
+    queryKey: ["competition-matches", competenciaId, selectedSeason],
     queryFn: async () => {
       try {
-        const filters: any = { competenciaId };
-        if (seasonId && seasonId !== "global") filters.temporadaId = seasonId;
+        const filters: any = { competenciaId, competencia: competenciaId };
+        if (selectedSeason && selectedSeason !== "global") filters.temporadaId = selectedSeason;
         const res = await PartidoService.getAll(filters);
         console.log("[RankedModal] Partidos cargados:", res?.length || 0);
         return res;
@@ -64,11 +117,11 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
         return [];
       }
     },
-    enabled: isOpen,
+    enabled: isOpen && !!competenciaId,
   });
 
-  const { data: rawPlayersData, isLoading } = useQuery({
-    queryKey: ["ranked-evolution-raw", competenciaId, seasonId, topPlayers.map(p => p.playerId).join(",")],
+  const { data: rawPlayersData, isLoading: loadingPlayers } = useQuery({
+    queryKey: ["ranked-evolution-raw", competenciaId, selectedSeason, topPlayers.map(p => p.playerId).join(",")],
     queryFn: async () => {
       console.log("[RankedModal] Iniciando fetch de evolución para jugadores...");
       const results = await Promise.all(
@@ -77,7 +130,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
             // DISCRIMINACIÓN DE NIVELES DE RANKING (Sincronizado con Backend)
             const detail = await RankedService.getPlayerDetail(player.playerId, {
               competition: competenciaId,
-              season: seasonId === "global" ? "" : seasonId, // El backend ya interpreta "global" o "" como temporada nula
+              season: selectedSeason === "global" ? "" : selectedSeason, // El backend ya interpreta "global" o "" como temporada nula
               modalidad,
               categoria,
             });
@@ -99,7 +152,8 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                 id: player.playerId,
                 name: player.playerName, 
                 history, 
-                currentElo: Number(player.elo || player.ranking || 1500) 
+                // rating es el campo tipado; dejamos fallback por si el backend envía alias antiguos
+                currentElo: Number(player.rating ?? (player as any).elo ?? (player as any).ranking ?? 1500) 
             };
           } catch (e) {
             console.error(`[RankedChart] Error en jugador ${player.playerName}:`, e);
@@ -109,7 +163,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
       );
       return results;
     },
-    enabled: isOpen && topPlayers.length > 0,
+    enabled: isOpen && topPlayers.length > 0 && !!competencia,
   });
 
   // Procesamiento de datos combinado (Historia + Partidos + Filtros)
@@ -334,7 +388,9 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
             color: chartColors[i % chartColors.length] 
         })) 
     };
-  }, [rawPlayersData, matchesData, timeFilter]);
+  }, [rawPlayersData, matchesData, timeFilter, selectedSeason]);
+
+  const isBusy = loadingPlayers || loadingLeaderboard || loadingTemporadas || !competencia;
 
   if (!isOpen) return null;
 
@@ -352,7 +408,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
             <h3 className="text-xl font-extrabold text-slate-800 tracking-tight">Evolucion de Ranking</h3>
             <div className="flex items-center gap-2 mt-0.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Temporada Seleccionada</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Temporada: {selectedSeasonLabel}</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2.5 rounded-full bg-slate-50 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all border border-slate-100">
@@ -363,7 +419,24 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
         </div>
 
          <div className="flex-1 flex flex-col min-h-0 bg-white">
-          <div className="px-6 py-4 flex items-center justify-between gap-4 shrink-0 overflow-hidden">
+          <div className="px-6 py-4 flex items-center justify-between gap-4 shrink-0 overflow-hidden flex-wrap">
+            <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 shadow-sm">
+              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest hidden xs:block">Temporada</span>
+              <select
+                value={selectedSeason}
+                onChange={(e) => setSelectedSeason(e.target.value)}
+                disabled={loadingTemporadas || seasonOptions.length === 0}
+                className="text-[11px] font-bold bg-transparent border-none p-0 focus:ring-0 text-slate-700 cursor-pointer appearance-none outline-none"
+              >
+                {seasonOptions.map((t) => (
+                  <option key={t._id} value={t._id}>{t.nombre}</option>
+                ))}
+              </select>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+
             <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth">
               {[{ id: "all", label: "Total" }, { id: "month", label: "Mes" }].map((f) => (
                 <button
@@ -406,7 +479,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
           </div>
 
           <div className="flex-1 w-full p-4 sm:p-6 min-h-[400px] flex flex-col">
-            {isLoading ? (
+            {isBusy ? (
               <div className="w-full h-full flex flex-col items-center justify-center">
                 <div className="w-12 h-12 border-4 border-slate-50 border-t-brand-500 rounded-full animate-spin"></div>
                 <p className="mt-4 text-[10px] font-black text-slate-300 uppercase tracking-widest">Calculando puntos...</p>
@@ -494,7 +567,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                                 const list = (evolutionaryData.playerInfo || []).filter((p) =>
                                   !playerFilter
                                     ? true
-                                    : p.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(
+                                    : (p.name || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(
                                         playerFilter.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
                                       )
                                 );

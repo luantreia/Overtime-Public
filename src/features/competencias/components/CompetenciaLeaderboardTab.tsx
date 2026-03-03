@@ -14,8 +14,6 @@ interface CompetenciaLeaderboardTabProps {
   jugadoresComp: JugadorCompetencia[];
   onPlayerClick: (player: { id: string; name: string }) => void;
   competenciaId: string;
-  modalidad: string;
-  categoria: string;
 }
 
 export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps> = ({
@@ -27,8 +25,6 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
   jugadoresComp,
   onPlayerClick,
   competenciaId,
-  modalidad,
-  categoria,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isChartModalOpen, setIsChartModalOpen] = useState(false);
@@ -120,10 +116,6 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
         isOpen={isChartModalOpen}
         onClose={() => setIsChartModalOpen(false)}
         competenciaId={competenciaId}
-        seasonId={selectedTemporada}
-        modalidad={modalidad}
-        categoria={categoria}
-        leaderboard={leaderboard}
       />
 
       {loading ? (
