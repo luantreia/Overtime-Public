@@ -70,16 +70,17 @@ if (container) {
     </React.StrictMode>
   );
 
-  // Register service worker
+  // Eliminar el service worker problemático que genera pantallas en blanco
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js')
-        .then(registration => {
-          console.log('SW registered: ', registration);
-        })
-        .catch(registrationError => {
-          console.log('SW registration failed: ', registrationError);
-        });
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      for (let registration of registrations) {
+        registration.unregister();
+        console.log('Service Worker eliminado para evitar problemas de caché 404.');
+      }
+      // Forzamos un reload una sola vez para asegurar que limpió la basura
+      if (registrations.length > 0) {
+        window.location.reload();
+      }
     });
   }
 }
