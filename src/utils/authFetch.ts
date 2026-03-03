@@ -1,1 +1,1 @@
-export * from '../shared/utils copy/authFetch';
+export * from '../shared/utils/authFetch';
