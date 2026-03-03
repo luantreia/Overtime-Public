@@ -116,6 +116,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
         isOpen={isChartModalOpen}
         onClose={() => setIsChartModalOpen(false)}
         competenciaId={competenciaId}
+        defaultSeasonId={selectedTemporada}
       />
 
       {loading ? (

@@ -19,6 +19,7 @@ interface RankedEvolutionChartModalProps {
   isOpen: boolean;
   onClose: () => void;
   competenciaId: string;
+  defaultSeasonId?: string;
 }
 
 type TimeFilter = "all" | "month";
@@ -29,13 +30,15 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
   isOpen,
   onClose,
   competenciaId,
+  defaultSeasonId,
 }) => {
   console.log("[RankedModal] Props recibidas:", { competenciaId, isOpen });
 
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("all");
   const [visiblePlayersCount, setVisiblePlayersCount] = useState<number>(5); // -1 means ALL
   const [playerFilter, setPlayerFilter] = useState("");
-  const [selectedSeason, setSelectedSeason] = useState<string>("global");
+  const [selectedSeason, setSelectedSeason] = useState<string>(defaultSeasonId || "");
+  const [seasonInitialized, setSeasonInitialized] = useState(false);
 
   const { data: competencia } = useQuery<Competencia | undefined>({
     queryKey: ["competencia", competenciaId, "ranked-chart"],
@@ -53,22 +56,45 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
   });
 
   useEffect(() => {
-    if (!isOpen) return;
-    if (!selectedSeason && temporadas.length > 0) {
-      setSelectedSeason(temporadas[temporadas.length - 1]._id);
+    if (!isOpen || seasonInitialized) return;
+    if (defaultSeasonId) {
+      setSelectedSeason(defaultSeasonId);
+      setSeasonInitialized(true);
+      return;
     }
-  }, [isOpen, selectedSeason, temporadas]);
+    if (temporadas.length > 0) {
+      setSelectedSeason(temporadas[temporadas.length - 1]._id);
+      setSeasonInitialized(true);
+    }
+  }, [isOpen, temporadas, defaultSeasonId, seasonInitialized]);
 
   const { data: leaderboardData, isLoading: loadingLeaderboard } = useQuery<LeaderboardResponse | null>({
     queryKey: ["ranked-evolution-leaderboard", competenciaId, selectedSeason, modalidad, categoria],
-    queryFn: () => RankedService.getLeaderboard({
-      modalidad,
-      categoria,
-      competition: competenciaId,
-      season: selectedSeason === "global" ? undefined : selectedSeason,
-      limit: 500,
-    }),
-    enabled: isOpen && !!competencia && !!competenciaId,
+    queryFn: async () => {
+      const seasonParam = selectedSeason === "global" ? undefined : selectedSeason;
+      const primary = await RankedService.getLeaderboard({
+        modalidad,
+        categoria,
+        competition: competenciaId,
+        season: seasonParam,
+        limit: 500,
+      });
+
+      // Fallback: si la temporada "0" no devuelve jugadores, intentar sin season (global histórico)
+      if ((primary?.items?.length ?? 0) === 0 && selectedSeason === "0") {
+        const fallback = await RankedService.getLeaderboard({
+          modalidad,
+          categoria,
+          competition: competenciaId,
+          season: undefined,
+          limit: 500,
+        });
+        return fallback;
+      }
+
+      return primary;
+    },
+    enabled: isOpen && !!competencia && !!competenciaId && seasonInitialized,
   });
 
   useEffect(() => {
@@ -80,11 +106,12 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
 
   useEffect(() => {
     if (isOpen) return;
-    setSelectedSeason("global");
+    setSelectedSeason(defaultSeasonId || "");
+    setSeasonInitialized(false);
     setTimeFilter("all");
     setPlayerFilter("");
     setVisiblePlayersCount(5);
-  }, [isOpen]);
+  }, [isOpen, defaultSeasonId]);
 
   const leaderboard = useMemo(() => leaderboardData?.items || [], [leaderboardData]);
 
@@ -102,22 +129,59 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
     return players;
   }, [leaderboard]);
 
+  const getMatchDate = (match: any) => {
+    const raw = match?.fecha || match?.fechaPartido || match?.date || match?.createdAt || match?.updatedAt;
+    if (!raw) return null;
+    const hour = match?.hora || "00:00";
+    const dateStr = typeof raw === "string" && raw.includes("T") ? raw : `${raw}T${hour}`;
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? null : d;
+  };
+
   // Nueva consulta para obtener los partidos reales de la competencia/temporada
   const { data: matchesData } = useQuery({
     queryKey: ["competition-matches", competenciaId, selectedSeason],
     queryFn: async () => {
       try {
-        const filters: any = { competenciaId, competencia: competenciaId };
-        if (selectedSeason && selectedSeason !== "global") filters.temporadaId = selectedSeason;
-        const res = await PartidoService.getAll(filters);
-        console.log("[RankedModal] Partidos cargados:", res?.length || 0);
+        // Incluimos ambos nombres de campos para maximizar compatibilidad con el backend
+        const baseFilters: any = {
+          competition: competenciaId,
+          competitionId: competenciaId,
+          competencia: competenciaId,
+          competenciaId,
+        };
+
+        // Caso global: traer todos los partidos por competencia
+        if (!selectedSeason || selectedSeason === "global") {
+          const res = await PartidoService.getAll(baseFilters);
+          console.log("[RankedModal] Partidos cargados (global):", res?.length || 0);
+          return res;
+        }
+
+        // Caso temporada específica: mandar ambos nombres de campo por compatibilidad (temporadaId/temporada)
+        const seasonFilters = {
+          ...baseFilters,
+          season: selectedSeason,
+          seasonId: selectedSeason,
+          temporadaId: selectedSeason,
+          temporada: selectedSeason,
+        };
+        let res = await PartidoService.getAll(seasonFilters);
+        console.log("[RankedModal] Partidos cargados (season):", res?.length || 0, seasonFilters);
+
+        // Fallback: si la temporada "0" no devuelve nada, reintentar sin season (global histórico)
+        if ((res?.length || 0) === 0 && selectedSeason === "0") {
+          res = await PartidoService.getAll(baseFilters);
+          console.log("[RankedModal] Fallback partidos season 0 => global:", res?.length || 0);
+        }
+
         return res;
       } catch (err) {
         console.error("[RankedModal] Error cargando partidos:", err);
         return [];
       }
     },
-    enabled: isOpen && !!competenciaId,
+    enabled: isOpen && !!competenciaId && seasonInitialized,
   });
 
   const { data: rawPlayersData, isLoading: loadingPlayers } = useQuery({
@@ -163,12 +227,14 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
       );
       return results;
     },
-    enabled: isOpen && topPlayers.length > 0 && !!competencia,
+    enabled: isOpen && topPlayers.length > 0 && !!competencia && seasonInitialized,
   });
 
   // Procesamiento de datos combinado (Historia + Partidos + Filtros)
   const evolutionaryData = useMemo(() => {
+    if (!seasonInitialized) return { chartData: [], playerInfo: [] };
     if (!rawPlayersData) return { chartData: [], playerInfo: [] };
+    console.log("[RankedModal] evo memo - matchesData:", matchesData?.length || 0, "season:", selectedSeason, "timeFilter:", timeFilter, "init:", seasonInitialized);
 
     // 1. Filtrar asegurando tipos de Fecha
     const filteredResults = rawPlayersData.map(player => {
@@ -195,13 +261,56 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
     // Configuración de colores (usamos la misma paleta que en el render, pero definida aquí para el useMemo)
     const chartColors = ["#f59e0b", "#3b82f6", "#10b981", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#f97316", "#84cc16", "#64748b"];
 
+    // PASO 0: Procesar todos los partidos relevantes para determinar fechas de corte y visualización
+    // Fallback: si el endpoint de partidos devuelve vacío, generamos pseudo-partidos desde los histories
+    const historyBasedMatches = filteredResults.flatMap((player) => {
+      return (player.history || [])
+        .filter((h: any) => h.date && !isNaN(h.date.getTime()))
+        .map((h: any) => {
+          const matchId = String(h.partidoId || h.matchId || h.idPartido || h.partido || h.referencia || h.referenciaId || "").trim();
+          const key = matchId || `hist-${h.date.getTime()}`;
+          return {
+            _id: key,
+            id: key,
+            createdAt: h.date,
+            updatedAt: h.date,
+            fecha: h.date,
+            _parsedDate: h.date instanceof Date ? h.date : new Date(h.date),
+            fromHistory: true,
+          };
+        });
+    });
+
+    const rawMatches = (matchesData && matchesData.length > 0 ? matchesData : historyBasedMatches) || [];
+
+    const relevantMatches = rawMatches
+      .map((m: any) => ({ ...m, _parsedDate: m._parsedDate || getMatchDate(m) }))
+      .filter((m: any) => m._parsedDate)
+      .sort((a: any, b: any) => a._parsedDate.getTime() - b._parsedDate.getTime());
+
+    console.log("[RankedModal] evo memo - relevantMatches:", relevantMatches.length);
+
     // Filtro de fecha de corte
     let cutoffDate = new Date(0); // Default: Desde el principio de los tiempos
     if (timeFilter === "month") {
-        const d = new Date();
+        // Opción 1: Anclar al final de la temporada seleccionada o último partido disponible
+        let referenceDate = new Date(); // Fallback date
+        
+        const lastMatch = relevantMatches.length > 0 ? relevantMatches[relevantMatches.length - 1] : null;
+
+        if (lastMatch?._parsedDate) {
+          referenceDate = lastMatch._parsedDate;
+        } else if (selectedSeason !== "global") {
+            // Si no hay partidos pero hay temporada, intentar usar fecha de fin de temporada
+            const season = temporadas.find(t => t._id === selectedSeason);
+            if (season?.fechaFin) referenceDate = new Date(season.fechaFin);
+        }
+
+        const d = new Date(referenceDate);
         d.setMonth(d.getMonth() - 1);
         cutoffDate = d;
     }
+      console.log("[RankedModal] evo memo - cutoffDate:", cutoffDate.toISOString());
 
     // PASO A: Determinar estado INICIAL (Punto de partida)
     const startEntry: any = { 
@@ -235,23 +344,9 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
     });
     chartData.push(startEntry);
 
-    // PASO B: Procesar PARTIDO A PARTIDO
-    const relevantMatches = (matchesData || [])
-        .filter((m: any) => {
-            if (!m.fecha) return false;
-            const dateStr = m.fecha.includes('T') ? m.fecha : `${m.fecha}T${m.hora || "00:00"}`;
-            const matchDate = new Date(dateStr);
-            return !isNaN(matchDate.getTime()) && matchDate >= cutoffDate;
-        })
-        .sort((a: any, b: any) => {
-            const dateA = new Date(a.fecha.includes('T') ? a.fecha : `${a.fecha}T${a.hora || "00:00"}`);
-            const dateB = new Date(b.fecha.includes('T') ? b.fecha : `${b.fecha}T${b.hora || "00:00"}`);
-            return dateA.getTime() - dateB.getTime();
-        });
-
-    relevantMatches.forEach((match: any, index: number) => {
-        const dateStr = match.fecha.includes('T') ? match.fecha : `${match.fecha}T${match.hora || "00:00"}`;
-        const matchDate = new Date(dateStr);
+    // PASO B: Procesar PARTIDO A PARTIDO (Filtrados por la fecha de corte calculada)
+    relevantMatches.filter((m: any) => m._parsedDate && m._parsedDate >= cutoffDate).forEach((match: any, index: number) => {
+      const matchDate = match._parsedDate as Date;
         const entry: any = {
             matchLabel: `P${index + 1}`,
             fullDate: matchDate.toLocaleDateString(undefined, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }),
@@ -329,7 +424,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
             if (played) {
                 hasRelevantPlayers = true;
                 
-                if (eventMatch) {
+              if (eventMatch) {
                     player.usedEvents.add(eventMatchIdx);
                     const prevRating = playerLastKnownRating[key];
                     entry[key] = (eventMatch as any).postRating;
@@ -351,7 +446,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                         local: localObj.nombre,
                         visitante: visitObj.nombre, 
                         resultado: match.resultado,
-                        fase: match.fase,
+                  fase: match.fase,
                         note: "Sin cambio de ranking registrado"
                     };
                 }
@@ -362,7 +457,15 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
         });
 
         if (hasRelevantPlayers) {
-            chartData.push(entry);
+          chartData.push(entry);
+        } else {
+          console.log("[RankedModal] match sin jugadores relevantes", {
+            matchLabel: entry.matchLabel,
+            fullDate: entry.fullDate,
+            matchId: match.id || match._id,
+            local: match.equipoLocal?.nombre,
+            visitante: match.equipoVisitante?.nombre
+          });
         }
     });
 
@@ -485,8 +588,8 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                 <p className="mt-4 text-[10px] font-black text-slate-300 uppercase tracking-widest">Calculando puntos...</p>
               </div>
             ) : evolutionaryData?.chartData && evolutionaryData.chartData.length > 0 ? (
-              <div style={{ width: '100%', height: 400, position: 'relative' }}>
-                <ResponsiveContainer width="99%" height="100%">
+              <div className="w-full" style={{ height: 400, minWidth: 0, minHeight: 320, position: 'relative' }}>
+                <ResponsiveContainer width="100%" height="100%" aspect={2.4}>
                     <LineChart data={evolutionaryData.chartData} margin={{ top: 10, right: 30, left: 0, bottom: 40 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                       <XAxis dataKey="matchLabel" fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} dy={10} />

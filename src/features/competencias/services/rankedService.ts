@@ -54,7 +54,10 @@ export class RankedService {
       limit: String(params.limit ?? 50),
     });
     if (params.competition && params.competition !== 'null') sp.set('competition', params.competition);
-    if (params.season && params.season !== 'null' && params.season !== 'global') sp.set('season', params.season);
+    // Permitir temporada "0" (global histórica del backend) aunque sea falsy
+    if (params.season !== undefined && params.season !== null && params.season !== 'null' && params.season !== 'global') {
+      sp.set('season', String(params.season));
+    }
     
     return fetchWithAuth<LeaderboardResponse>(`${this.BASE}/leaderboard?${sp.toString()}`);
   }
@@ -70,7 +73,9 @@ export class RankedService {
       categoria: params.categoria,
     });
     if (params.competition && params.competition !== 'null') sp.set('competition', params.competition);
-    if (params.season && params.season !== 'null' && params.season !== 'global') sp.set('season', params.season);
+    if (params.season !== undefined && params.season !== null && params.season !== 'null' && params.season !== 'global') {
+      sp.set('season', String(params.season));
+    }
     
     return fetchWithAuth<PlayerRankedDetail>(`${this.BASE}/players/${playerId}/detail?${sp.toString()}`);
   }
@@ -86,7 +91,9 @@ export class RankedService {
       categoria: params.categoria,
     });
     if (params.competition && params.competition !== 'null') sp.set('competition', params.competition);
-    if (params.season && params.season !== 'null' && params.season !== 'global') sp.set('season', params.season);
+    if (params.season !== undefined && params.season !== null && params.season !== 'null' && params.season !== 'global') {
+      sp.set('season', String(params.season));
+    }
     
     return fetchWithAuth<{ ok: boolean; rank: number | null; context: any[] }>(`${this.BASE}/players/${playerId}/rank-context?${sp.toString()}`);
   }
