@@ -10,8 +10,6 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  AreaChart,
-  Area,
 } from "recharts";
 
 interface RankedEvolutionChartModalProps {
@@ -36,7 +34,6 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
   leaderboard,
 }) => {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("all");
-  const [viewType, setViewType] = useState<"line" | "area">("line");
   const [visiblePlayersCount, setVisiblePlayersCount] = useState(5);
 
   const topPlayers = useMemo(() => (leaderboard || []).slice(0, 10), [leaderboard]);
@@ -151,32 +148,33 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
         </div>
 
         <div className="flex-1 flex flex-col min-h-0 bg-white">
-          <div className="px-6 py-4 flex flex-col gap-4 shrink-0">
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-              {[{ id: "all", label: "Historial Total" }, { id: "month", label: "Ultimo Mes" }].map((f) => (
+          <div className="px-6 py-4 flex items-center justify-between gap-4 shrink-0 overflow-hidden">
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth">
+              {[{ id: "all", label: "Total" }, { id: "month", label: "Mes" }].map((f) => (
                 <button
                   key={f.id}
                   onClick={() => setTimeFilter(f.id as TimeFilter)}
-                  className={`px-5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${timeFilter === f.id ? "bg-brand-600 text-white shadow-lg shadow-brand-200" : "bg-slate-50 text-slate-500"}`}
+                  className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition-all ${timeFilter === f.id ? "bg-brand-600 text-white shadow-lg shadow-brand-200" : "bg-slate-50 text-slate-500 hover:bg-slate-100"}`}
                 >
                   {f.label}
                 </button>
               ))}
             </div>
 
-            <div className="flex items-center justify-between gap-3 bg-slate-50/80 p-1.5 rounded-2xl border border-slate-100">
-               <div className="flex items-center gap-1">
-                  <button onClick={() => setViewType("line")} className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${viewType === "line" ? "bg-white text-brand-600 shadow-sm ring-1 ring-slate-100" : "text-slate-400"}`}>Lineas</button>
-                  <button onClick={() => setViewType("area")} className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${viewType === "area" ? "bg-white text-brand-600 shadow-sm ring-1 ring-slate-100" : "text-slate-400"}`}>Areas</button>
-               </div>
-               <div className="flex items-center gap-2 pr-2">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest hidden sm:block">Mostrar</span>
-                  <select value={visiblePlayersCount} onChange={(e) => setVisiblePlayersCount(Number(e.target.value))} className="text-[11px] font-bold bg-transparent border-none p-0 focus:ring-0 text-slate-600 cursor-pointer">
-                    <option value={3}>TOP 3</option>
-                    <option value={5}>TOP 5</option>
-                    <option value={10}>TOP 10</option>
-                  </select>
-               </div>
+            <div className="flex items-center gap-2 bg-slate-50/80 px-3 py-2 rounded-xl border border-slate-100 shrink-0">
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest hidden xs:block">Top</span>
+              <select 
+                value={visiblePlayersCount} 
+                onChange={(e) => setVisiblePlayersCount(Number(e.target.value))} 
+                className="text-[11px] font-bold bg-transparent border-none p-0 focus:ring-0 text-slate-600 cursor-pointer appearance-none outline-none"
+              >
+                <option value={3}>3</option>
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+              </select>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="MD19 9l-7 7-7-7" />
+              </svg>
             </div>
           </div>
 
@@ -189,7 +187,6 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
             ) : evolutionaryData?.chartData && evolutionaryData.chartData.length > 0 ? (
               <div className="w-full h-full min-h-[400px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  {viewType === "line" ? (
                     <LineChart data={evolutionaryData.chartData} margin={{ top: 10, right: 30, left: 0, bottom: 40 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                       <XAxis dataKey="matchLabel" fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} dy={10} />
@@ -214,39 +211,6 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                         />
                       ))}
                     </LineChart>
-                  ) : (
-                    <AreaChart data={evolutionaryData.chartData} margin={{ top: 10, right: 30, left: 0, bottom: 40 }}>
-                      <defs>
-                        {evolutionaryData.playerNames.slice(0, visiblePlayersCount).map((name, index) => (
-                          <linearGradient key={`grad-${name}`} id={`color-${index}`} x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor={colors[index % colors.length]} stopOpacity={0.4}/>
-                            <stop offset="95%" stopColor={colors[index % colors.length]} stopOpacity={0}/>
-                          </linearGradient>
-                        ))}
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                      <XAxis dataKey="matchLabel" fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} dy={10} />
-                      <YAxis domain={["auto", "auto"]} fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} dx={-10} padding={{ top: 20, bottom: 20 }} />
-                      <Tooltip 
-                        labelFormatter={(v, p) => p[0]?.payload?.fullDate || v}
-                        contentStyle={{ borderRadius: "20px", border: "none", boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "800", padding: "16px" }} 
-                        itemSorter={(item) => Number(item.value) * -1}
-                      />
-                      <Legend verticalAlign="top" height={60} iconType="circle" wrapperStyle={{ fontSize: "10px", fontWeight: 800, paddingBottom: "20px" }} />
-                      {evolutionaryData.playerNames.slice(0, visiblePlayersCount).map((name, index) => (
-                        <Area 
-                          key={name} 
-                          type="stepAfter" 
-                          dataKey={name} 
-                          stroke={colors[index % colors.length]} 
-                          strokeWidth={4} 
-                          fill={`url(#color-${index})`}
-                          isAnimationActive={false}
-                          connectNulls 
-                        />
-                      ))}
-                    </AreaChart>
-                  )}
                 </ResponsiveContainer>
               </div>
             ) : (
