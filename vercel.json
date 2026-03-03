@@ -1,7 +1,16 @@
 {
   "headers": [
     {
-      "source": "/(index\\.html|service-worker\\.js|manifest\\.json)",
+      "source": "/(index\\.html|service-worker\\.js|manifest\\.json|)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/",
       "headers": [
         {
           "key": "Cache-Control",
