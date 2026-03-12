@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { PlazaService } from '../services/plazaService';
 import { Lobby } from '../types';
 import { Link, useNavigate } from 'react-router-dom';
+import { CompetenciaService, type Competencia } from '../../competencias/services/competenciaService';
 import { LoadingSpinner } from '../../../shared/components/LoadingSpinner';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
+import { CompetenciaCard } from '../../../shared/components';
 import { MapPinIcon, CalendarIcon, UsersIcon, TrophyIcon, ListBulletIcon, MapIcon } from '@heroicons/react/24/outline';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -25,6 +27,17 @@ const PlazaExplorar: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+  const [rankedCompetencias, setRankedCompetencias] = useState<Competencia[]>([]);
+  const [rankedLoading, setRankedLoading] = useState(true);
+  const [rankedError, setRankedError] = useState<string | null>(null);
+
+  const mapEstadoVariante = (estado: any): 'proximamente' | 'en_curso' | 'finalizada' => {
+    if (!estado) return 'proximamente';
+    const normalized = String(estado).toLowerCase();
+    if (normalized.includes('curso') || normalized.includes('activa')) return 'en_curso';
+    if (normalized.includes('final')) return 'finalizada';
+    return 'proximamente';
+  };
 
   useEffect(() => {
     // Attempt to get user location for better results
@@ -65,6 +78,24 @@ const PlazaExplorar: React.FC = () => {
     }
   }, [location]);
 
+  useEffect(() => {
+    const fetchRankedCompetencias = async () => {
+      try {
+        setRankedLoading(true);
+        setRankedError(null);
+        const data = await CompetenciaService.getAll({ rankedEnabled: true, tipo: 'ranked' });
+        const rankedOnly = data.filter((comp: any) => comp.rankedEnabled === true || comp.tipo === 'ranked' || comp.esRanked === true || comp.isRanked === true);
+        setRankedCompetencias(rankedOnly.length ? rankedOnly : data);
+      } catch (err: any) {
+        setRankedError(err?.message || 'No pudimos cargar las competencias rank.');
+      } finally {
+        setRankedLoading(false);
+      }
+    };
+
+    fetchRankedCompetencias();
+  }, []);
+
   if (loading) return <LoadingSpinner />;
   if (error) return <ErrorMessage message={error} />;
 
@@ -73,7 +104,7 @@ const PlazaExplorar: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
-            La Plaza
+            Dodgeball Calle
             <span className="px-2 py-1 text-xs font-semibold bg-brand-100 text-brand-700 rounded-full">Beta</span>
           </h1>
           <p className="text-slate-600 mt-1">Crea o únete a partidos rankeados en tu zona.</p>
@@ -247,6 +278,49 @@ const PlazaExplorar: React.FC = () => {
           </MapContainer>
         </div>
       )}
+
+      <div className="space-y-4">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+              Competencias Ranked
+              <span className="px-2 py-0.5 text-[11px] font-semibold rounded-full bg-indigo-100 text-indigo-700">Ladder</span>
+            </h2>
+            <p className="text-sm text-slate-600">Sube en el ranking oficial jugando temporadas rankeadas.</p>
+          </div>
+          <Link
+            to="/competencias"
+            className="text-sm font-semibold text-brand-600 hover:text-brand-700"
+          >
+            Ver todas →
+          </Link>
+        </div>
+
+        {rankedLoading ? (
+          <div className="flex items-center gap-3 text-slate-500 text-sm">
+            <div className="h-5 w-5 rounded-full border-2 border-brand-200 border-t-brand-600 animate-spin" aria-hidden />
+            <span>Cargando competencias ranked...</span>
+          </div>
+        ) : rankedError ? (
+          <ErrorMessage message={rankedError} />
+        ) : rankedCompetencias.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-slate-200 bg-white p-6 text-center">
+            <p className="text-sm font-semibold text-slate-900">Aún no hay competencias ranked activas.</p>
+            <p className="text-sm text-slate-500">Vuelve pronto o revisa todas las competencias disponibles.</p>
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {rankedCompetencias.slice(0, 3).map((competencia) => (
+              <CompetenciaCard
+                key={competencia.id}
+                competencia={competencia}
+                variante={mapEstadoVariante((competencia as any).estado)}
+                onClick={() => navigate(`/competencias/${competencia.id}`)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
