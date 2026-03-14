@@ -145,9 +145,9 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
               <tbody className="bg-white divide-y divide-slate-200">
                 {filteredLeaderboard.map((item) => {
                   const originalIndex = leaderboard.findIndex(l => l.playerId === item.playerId);
-                  const playerId = typeof item.playerId === 'object' ? (item.playerId as any)._id : item.playerId;
+                  const playerId = typeof item.playerId === 'object' ? (item.playerId as any)?._id : item.playerId;
                   const jugadorCompInfo = jugadoresComp.find(jc => {
-                    const jcPlayerId = typeof jc.jugador === 'object' ? jc.jugador._id : jc.jugador;
+                    const jcPlayerId = typeof jc.jugador === 'object' ? (jc.jugador as any)?._id : jc.jugador;
                     return jcPlayerId === playerId;
                   });
 
@@ -215,9 +215,9 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
           <div className="md:hidden space-y-4">
             {filteredLeaderboard.map((item) => {
               const originalIndex = leaderboard.findIndex(l => l.playerId === item.playerId);
-              const playerId = typeof item.playerId === 'object' ? (item.playerId as any)._id : item.playerId;
+              const playerId = typeof item.playerId === 'object' ? (item.playerId as any)?._id : item.playerId;
               const jugadorCompInfo = jugadoresComp.find(jc => {
-                const jcPlayerId = typeof jc.jugador === 'object' ? jc.jugador._id : jc.jugador;
+                const jcPlayerId = typeof jc.jugador === 'object' ? (jc.jugador as any)?._id : jc.jugador;
                 return jcPlayerId === playerId;
               });
 
