@@ -16,6 +16,7 @@ interface CompetenciaLeaderboardTabProps {
   jugadoresComp: JugadorCompetencia[];
   onPlayerClick: (player: { id: string; name: string }) => void;
   competenciaId: string;
+  competenciaNombre: string;
 }
 
 const getPlayerId = (item: LeaderboardItem): string => {
@@ -61,16 +62,28 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
   jugadoresComp,
   onPlayerClick,
   competenciaId: _competenciaId,
+  competenciaNombre,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isChartModalOpen, setIsChartModalOpen] = useState(false);
   const [comparingPlayers, setComparingPlayers] = useState<string[]>([]);
   const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
-  const [shareConfig, setShareConfig] = useState<{ isOpen: boolean; player: LeaderboardItem | null; rank: number }>({
+  const [shareConfig, setShareConfig] = useState<{
+    isOpen: boolean;
+    player: LeaderboardItem | null;
+    rank: number;
+    playerPhoto?: string;
+  }>({
     isOpen: false,
     player: null,
     rank: 0,
+    playerPhoto: undefined,
   });
+
+  const temporadaNombre = useMemo(() => {
+    if (!selectedTemporada || selectedTemporada === 'global') return 'Histórico Global';
+    return temporadas.find((temporada) => temporada._id === selectedTemporada)?.nombre || 'Temporada';
+  }, [selectedTemporada, temporadas]);
 
   const filteredLeaderboard = useMemo(() => {
     if (!searchTerm.trim()) return leaderboard;
@@ -262,6 +275,9 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
           onClose={() => setShareConfig((prev) => ({ ...prev, isOpen: false }))}
           player={shareConfig.player}
           rank={shareConfig.rank}
+          playerPhoto={shareConfig.playerPhoto}
+          temporadaNombre={temporadaNombre}
+          competenciaNombre={competenciaNombre}
         />
       )}
 
@@ -377,7 +393,12 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              setShareConfig({ isOpen: true, player: item, rank: originalIndex + 1 });
+                              setShareConfig({
+                                isOpen: true,
+                                player: item,
+                                rank: originalIndex + 1,
+                                playerPhoto: playerFoto,
+                              });
                             }}
                             className="p-1.5 rounded-full bg-slate-50 text-slate-400 hover:bg-brand-100 hover:text-brand-600 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
                             title="Compartir Rank"
@@ -523,7 +544,12 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        setShareConfig({ isOpen: true, player: item, rank: originalIndex + 1 });
+                        setShareConfig({
+                          isOpen: true,
+                          player: item,
+                          rank: originalIndex + 1,
+                          playerPhoto: playerFoto,
+                        });
                       }}
                       className="p-1.5 rounded-full bg-slate-100 text-slate-500 hover:bg-brand-100 hover:text-brand-600 transition-colors"
                       title="Compartir Rank"

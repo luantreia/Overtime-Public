@@ -282,6 +282,7 @@ const CompetenciaDetalle: React.FC = () => {
               jugadoresComp={jugadoresComp}
               onPlayerClick={handlePlayerClick}
               competenciaId={id!}
+              competenciaNombre={(competencia as any)?.nombre || 'Competencia'}
             />
           )}
         </div>

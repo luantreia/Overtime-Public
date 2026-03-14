@@ -8,11 +8,31 @@ interface ShareRankModalProps {
   onClose: () => void;
   player: LeaderboardItem;
   rank: number;
+  playerPhoto?: string;
+  temporadaNombre: string;
+  competenciaNombre: string;
 }
 
-export const ShareRankModal: React.FC<ShareRankModalProps> = ({ isOpen, onClose, player, rank }) => {
+export const ShareRankModal: React.FC<ShareRankModalProps> = ({
+  isOpen,
+  onClose,
+  player,
+  rank,
+  playerPhoto,
+  temporadaNombre,
+  competenciaNombre,
+}) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(false);
+  const playerName = player.playerName || 'Jugador';
+  const initials = playerName
+    .split(' ')
+    .map((token) => token[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+  const today = new Date().toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const temporadaLabel = `${temporadaNombre} · ${today}`;
 
   const handleShare = async () => {
     if (!cardRef.current) return;
@@ -20,7 +40,7 @@ export const ShareRankModal: React.FC<ShareRankModalProps> = ({ isOpen, onClose,
     try {
       const dataUrl = await toPng(cardRef.current, { cacheBust: true, pixelRatio: 2 });
       const link = document.createElement('a');
-      link.download = `overtime-rank-${player.playerName?.replace(/\s+/g, '-').toLowerCase()}.png`;
+      link.download = `overtime-rank-${playerName.replace(/\s+/g, '-').toLowerCase()}.png`;
       link.href = dataUrl;
       link.click();
     } catch (err) {
@@ -30,7 +50,7 @@ export const ShareRankModal: React.FC<ShareRankModalProps> = ({ isOpen, onClose,
     }
   };
 
-  const badge = { label: 'Temporada', color: 'from-brand-600 to-indigo-700' };
+  const badge = { color: 'from-brand-600 to-indigo-700' };
 
   return (
     <ModalBase isOpen={isOpen} onClose={onClose} title="Compartir mi Ranking" size="md">
@@ -46,17 +66,17 @@ export const ShareRankModal: React.FC<ShareRankModalProps> = ({ isOpen, onClose,
           </div>
 
           <div className="my-auto flex flex-col items-center text-center">
-            <div className="text-xl font-bold uppercase tracking-[0.2em] mb-4 opacity-80">Mi Temporada</div>
+            <div className="text-xl font-bold uppercase tracking-[0.2em] mb-4 opacity-80">{temporadaLabel}</div>
             
             <div className="w-32 h-32 rounded-full border-4 border-white/50 bg-white/20 flex items-center justify-center text-4xl font-black mb-6 shadow-xl backdrop-blur-sm">
-              {player.playerName?.slice(0, 2).toUpperCase()}
+              {playerPhoto ? (
+                <img src={playerPhoto} alt={playerName} className="w-full h-full rounded-full object-cover" />
+              ) : (
+                initials
+              )}
             </div>
 
-            <h2 className="text-3xl font-black mb-2 drop-shadow-md">{player.playerName}</h2>
-            
-            <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-white text-slate-900 text-sm font-black uppercase mb-8 shadow-lg">
-              Rango {badge.label}
-            </div>
+            <h2 className="text-3xl font-black mb-8 drop-shadow-md">{playerName}</h2>
 
             <div className="grid grid-cols-2 gap-8 w-full">
                 <div className="flex flex-col">
@@ -72,10 +92,10 @@ export const ShareRankModal: React.FC<ShareRankModalProps> = ({ isOpen, onClose,
 
           <div className="mt-auto pt-8 border-t border-white/20 flex justify-between items-end">
              <div className="flex flex-col">
-                <span className="text-[10px] font-black uppercase opacity-60">Competencia oficial</span>
-                <span className="text-sm font-bold">Liga Regional</span>
+               <span className="text-[10px] font-black uppercase opacity-60">Competencia</span>
+               <span className="text-sm font-bold">{competenciaNombre}</span>
              </div>
-             <div className="text-lg font-black tracking-tighter">OVERTIME.app</div>
+             <div className="text-lg font-black tracking-tighter">overtime</div>
           </div>
         </div>
 
