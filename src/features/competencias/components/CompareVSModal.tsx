@@ -43,7 +43,7 @@ const VsTooltip: React.FC<VsTooltipProps> = ({ active, payload, player1Name, pla
   const raw = rawBySubject[point.subject];
   const formatRaw = (value: number) => {
     if (point.subject === 'ELO Rating') return value.toFixed(1);
-    if (point.subject === 'Partidos (score)') return `${Math.round(value)} partidos`;
+    if (point.subject === 'Partidos') return `${Math.round(value)} partidos`;
     if (point.subject === 'Victorias') return `${Math.round(value)} victorias`;
     if (point.subject === 'Tendencia') return `${value >= 0 ? '+' : ''}${value.toFixed(1)} Δ`;
     return `${value.toFixed(1)}%`;
@@ -55,11 +55,11 @@ const VsTooltip: React.FC<VsTooltipProps> = ({ active, payload, player1Name, pla
       <div className="space-y-1.5 text-xs">
         <div className="flex justify-between gap-3">
           <span className="font-bold text-fuchsia-600">{player1Name}</span>
-          <span className="text-slate-700">{point.A.toFixed(1)} score · {formatRaw(raw?.a ?? point.A)}</span>
+          <span className="text-slate-700">{formatRaw(raw?.a ?? point.A)}</span>
         </div>
         <div className="flex justify-between gap-3">
           <span className="font-bold text-indigo-600">{player2Name}</span>
-          <span className="text-slate-700">{point.B.toFixed(1)} score · {formatRaw(raw?.b ?? point.B)}</span>
+          <span className="text-slate-700">{formatRaw(raw?.b ?? point.B)}</span>
         </div>
       </div>
     </div>
@@ -91,8 +91,8 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({ isOpen, onClose,
   const eloMax = 2200;
   const normalizeElo = (rating: number) => clamp(((rating - eloMin) / (eloMax - eloMin)) * 100, 0, 100);
 
-  const maxMatches = Math.max(player1Matches, player2Matches, 10);
-  const maxWins = Math.max(player1Wins, player2Wins, 5);
+  const matchesReferenceCap = 120;
+  const winsReferenceCap = 80;
 
   const player1Winrate = (player1Wins / (player1Matches || 1)) * 100;
   const player2Winrate = (player2Wins / (player2Matches || 1)) * 100;
@@ -118,15 +118,15 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({ isOpen, onClose,
       fullMark: 100,
     },
     {
-      subject: 'Partidos (score)',
-      A: normalizeByCap(player1Matches, maxMatches),
-      B: normalizeByCap(player2Matches, maxMatches),
+      subject: 'Partidos',
+      A: normalizeByCap(player1Matches, matchesReferenceCap),
+      B: normalizeByCap(player2Matches, matchesReferenceCap),
       fullMark: 100,
     },
     {
       subject: 'Victorias',
-      A: normalizeByCap(player1Wins, maxWins),
-      B: normalizeByCap(player2Wins, maxWins),
+      A: normalizeByCap(player1Wins, winsReferenceCap),
+      B: normalizeByCap(player2Wins, winsReferenceCap),
       fullMark: 100,
     },
     {
@@ -140,7 +140,7 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({ isOpen, onClose,
   const rawBySubject: Record<string, { a: number; b: number }> = {
     'ELO Rating': { a: player1Rating, b: player2Rating },
     'Winrate %': { a: player1Winrate, b: player2Winrate },
-    'Partidos (score)': { a: player1Matches, b: player2Matches },
+    'Partidos': { a: player1Matches, b: player2Matches },
     'Victorias': { a: player1Wins, b: player2Wins },
     'Tendencia': { a: Number(player1.lastDelta || 0), b: Number(player2.lastDelta || 0) },
   };
@@ -199,7 +199,7 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({ isOpen, onClose,
         </div>
 
         <p className="mt-2 text-center text-xs font-medium text-slate-500">
-          Métricas regularizadas a escala 0-100 para comparar ELO, experiencia y performance sin sesgo de magnitud.
+          Ejes normalizados internamente para comparar magnitudes distintas; tooltip muestra valores reales.
         </p>
 
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
