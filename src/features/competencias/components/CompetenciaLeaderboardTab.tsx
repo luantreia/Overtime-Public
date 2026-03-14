@@ -28,6 +28,13 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isChartModalOpen, setIsChartModalOpen] = useState(false);
+  const [comparingPlayers, setComparingPlayers] = useState<string[]>([]);
+
+  const toggleCompare = (id: string) => {
+    setComparingPlayers(prev => 
+      prev.includes(id) ? prev.filter(p => p !== id) : prev.length < 2 ? [...prev, id] : [prev[1], id]
+    );
+  };
 
   const filteredLeaderboard = useMemo(() => {
     if (!searchTerm.trim()) return leaderboard;
@@ -112,12 +119,49 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
         </div>
       </div>
 
-      <RankedEvolutionChartModal
-        isOpen={isChartModalOpen}
-        onClose={() => setIsChartModalOpen(false)}
-        competenciaId={competenciaId}
-        defaultSeasonId={selectedTemporada}
-      />
+      {/* Compare Floating Action Bar */}
+      {comparingPlayers.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-white shadow-2xl border border-brand-200 rounded-full px-6 py-3 flex items-center gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <div className="flex -space-x-3">
+            {comparingPlayers.map(pid => {
+              const p = leaderboard.find(l => (typeof l.playerId === 'object' ? (l.playerId as any)._id : l.playerId) === pid);
+              return (
+                <div key={pid} className="w-10 h-10 rounded-full border-2 border-white bg-brand-100 flex items-center justify-center text-xs font-bold text-brand-700 shadow-sm overflow-hidden">
+                  {p?.playerName?.slice(0, 2).toUpperCase() || '??'}
+                </div>
+              );
+            })}
+            {comparingPlayers.length < 2 && (
+              <div className="w-10 h-10 rounded-full border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-slate-400">
+                <span className="text-xl">+</span>
+              </div>
+            )}
+          </div>
+          
+          <div className="h-8 w-px bg-slate-200"></div>
+          
+          <div className="flex items-center gap-2">
+            <button 
+              disabled={comparingPlayers.length < 2}
+              className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${
+                comparingPlayers.length === 2 
+                ? 'bg-brand-600 text-white hover:bg-brand-700 shadow-md transform hover:-translate-y-0.5' 
+                : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+              }`}
+            >
+              Comparar VS
+            </button>
+            <button 
+              onClick={() => setComparingPlayers([])}
+              className="p-2 text-slate-400 hover:text-red-500 transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="p-12 text-center">
@@ -163,31 +207,79 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                     .toUpperCase();
 
                   const winrate = item.matchesPlayed > 0 ? (item.wins || 0) / item.matchesPlayed * 100 : 0;
+                  
+                  // ELO-based Badge logic
+                  const getRankBadge = (elo: number) => {
+                    if (elo >= 1500) return { label: 'Diamante', color: 'bg-indigo-100 text-indigo-700 border-indigo-200' };
+                    if (elo >= 1200) return { label: 'Oro', color: 'bg-amber-100 text-amber-700 border-amber-200' };
+                    if (elo >= 1000) return { label: 'Plata', color: 'bg-slate-200 text-slate-700 border-slate-300' };
+                    return { label: 'Bronce', color: 'bg-orange-100 text-orange-700 border-orange-200' };
+                  };
+                  const badge = getRankBadge(Number(item.rating));
                     
                   return (
                     <tr 
                       key={playerId} 
-                      className="hover:bg-brand-50/30 cursor-pointer transition-colors"
+                      className={`transition-all duration-200 cursor-pointer ${
+                        comparingPlayers.includes(playerId) 
+                          ? 'bg-brand-50 border-l-4 border-brand-500 shadow-inner' 
+                          : 'hover:bg-brand-50/50 hover:scale-[1.01] hover:shadow-sm'
+                      }`}
                       onClick={() => onPlayerClick({ id: playerId, name: item.playerName || playerId })}
                     >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{originalIndex + 1}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-3">
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleCompare(playerId);
+                            }}
+                            className={`p-1.5 rounded-full border transition-all ${
+                              comparingPlayers.includes(playerId)
+                                ? 'bg-brand-600 border-brand-600 text-white'
+                                : 'bg-white border-slate-200 text-slate-400 hover:border-brand-500 hover:text-brand-500'
+                            }`}
+                            title="Comparar"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                              <path d="M5.127 4.49a.75.75 0 011.017.346L9 10.428l2.856-5.592a.75.75 0 111.332.678L10 11.635V16a.75.75 0 01-1.5 0v-4.365L5.474 5.507a.75.75 0 01.347-1.016z" />
+                            </svg>
+                          </button>
+                          <span className="text-sm text-slate-500 font-medium whitespace-nowrap">
+                            {originalIndex < 3 ? (
+                              <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
+                                originalIndex === 0 ? 'bg-amber-400 text-white' : 
+                                originalIndex === 1 ? 'bg-slate-300 text-white' : 
+                                'bg-amber-600 text-white'
+                              }`}>
+                                {originalIndex + 1}
+                              </span>
+                            ) : originalIndex + 1}
+                          </span>
+                        </div>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
                           <div className="relative w-12 h-12 flex-shrink-0">
                             <img 
                               src={playerFoto || ''}
                               alt={item.playerName || 'Jugador'}
-                              className="absolute inset-0 w-12 h-12 rounded-full object-cover bg-slate-100 border border-slate-200 shadow-md z-10"
+                              className="absolute inset-0 w-12 h-12 rounded-full object-cover bg-slate-100 border border-slate-200 shadow-sm z-10 transition-transform group-hover:scale-110"
                               onError={(e) => { (e.target as HTMLImageElement).classList.add('hidden'); }}
                             />
                             <div className="absolute inset-0 w-12 h-12 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-sm font-bold border border-brand-200">
                               {initials}
                             </div>
                           </div>
-                          <div className="text-sm font-medium text-slate-900">{item.playerName || playerId}</div>
+                          <div>
+                            <div className="text-sm font-bold text-slate-900">{item.playerName || playerId}</div>
+                            <span className={`mt-0.5 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold border ${badge.color}`}>
+                              {badge.label}
+                            </span>
+                          </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-900">{Number(item.rating).toFixed(3)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-black text-brand-600">{Number(item.rating).toFixed(1)}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`text-sm font-black ${winrate >= 50 ? 'text-emerald-500' : 'text-slate-400'}`}>
                           {winrate.toFixed(1)}%
@@ -233,11 +325,19 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                 .toUpperCase();
 
               const winrate = item.matchesPlayed > 0 ? (item.wins || 0) / item.matchesPlayed * 100 : 0;
+              
+              const getRankBadge = (elo: number) => {
+                if (elo >= 1500) return { label: 'Diamante', color: 'bg-indigo-100 text-indigo-700 border-indigo-200' };
+                if (elo >= 1200) return { label: 'Oro', color: 'bg-amber-100 text-amber-700 border-amber-200' };
+                if (elo >= 1000) return { label: 'Plata', color: 'bg-slate-200 text-slate-700 border-slate-300' };
+                return { label: 'Bronce', color: 'bg-orange-100 text-orange-700 border-orange-200' };
+              };
+              const badge = getRankBadge(Number(item.rating));
                 
               return (
                 <div 
                   key={playerId} 
-                  className="bg-white border border-slate-200 rounded-lg p-3 shadow-sm active:bg-slate-50 cursor-pointer"
+                  className="bg-white border border-slate-200 rounded-lg p-3 shadow-sm active:scale-95 transition-all cursor-pointer hover:border-brand-300"
                   onClick={() => onPlayerClick({ id: playerId, name: item.playerName || playerId })}
                 >
                   <div className="flex items-center gap-3">
@@ -251,7 +351,11 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                       <div className="absolute inset-0 w-12 h-12 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-sm font-bold border border-brand-200">
                         {initials}
                       </div>
-                      <div className="absolute -top-1 -left-1 w-5 h-5 bg-slate-800 text-white text-[10px] font-bold rounded-full flex items-center justify-center z-20 border border-white shadow-sm">
+                      <div className={`absolute -top-1 -left-1 w-5 h-5 text-white text-[10px] font-bold rounded-full flex items-center justify-center z-20 border border-white shadow-sm ${
+                        originalIndex === 0 ? 'bg-amber-400' : 
+                        originalIndex === 1 ? 'bg-slate-400' : 
+                        originalIndex === 2 ? 'bg-amber-600' : 'bg-slate-800'
+                      }`}>
                         {originalIndex + 1}
                       </div>
                     </div>
@@ -260,16 +364,21 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                       <div className="text-sm font-bold text-slate-900 truncate">
                         {item.playerName || playerId}
                       </div>
-                      <div className="text-[11px] text-slate-500 mt-0.5">
-                        {item.matchesPlayed} {item.matchesPlayed === 1 ? 'partido' : 'partidos'} • <span className="font-bold text-emerald-600">{winrate.toFixed(0)}% W</span>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className={`px-1 rounded-[4px] text-[9px] font-black uppercase border ${badge.color}`}>
+                          {badge.label}
+                        </span>
+                        <span className="text-[10px] text-slate-500">
+                          {winrate.toFixed(0)}% Winrate
+                        </span>
                       </div>
                     </div>
 
                     <div className="text-right flex-shrink-0">
-                      <div className="text-sm font-black text-slate-900 leading-none">
-                        {Number(item.rating).toFixed(3)}
+                      <div className="text-sm font-black text-brand-600 leading-none">
+                        {Number(item.rating).toFixed(1)}
                       </div>
-                      <div className="text-[9px] text-slate-500 font-medium mb-1 uppercase tracking-wider">ELO</div>
+                      <div className="text-[8px] text-slate-400 font-bold mb-1 uppercase tracking-tighter">RATING</div>
                       {item.lastDelta !== undefined ? (
                         <div className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
                           item.lastDelta > 0 ? 'bg-green-100 text-green-700' : item.lastDelta < 0 ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'
