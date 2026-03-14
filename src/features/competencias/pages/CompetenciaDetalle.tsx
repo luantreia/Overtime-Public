@@ -283,6 +283,8 @@ const CompetenciaDetalle: React.FC = () => {
               onPlayerClick={handlePlayerClick}
               competenciaId={id!}
               competenciaNombre={(competencia as any)?.nombre || 'Competencia'}
+              modalidad={(competencia as any)?.modalidad || 'Foam'}
+              categoria={(competencia as any)?.categoria || 'Libre'}
             />
           )}
         </div>

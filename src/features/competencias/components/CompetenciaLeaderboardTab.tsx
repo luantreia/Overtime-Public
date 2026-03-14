@@ -17,6 +17,8 @@ interface CompetenciaLeaderboardTabProps {
   onPlayerClick: (player: { id: string; name: string }) => void;
   competenciaId: string;
   competenciaNombre: string;
+  modalidad: string;
+  categoria: string;
 }
 
 const getPlayerId = (item: LeaderboardItem): string => {
@@ -63,6 +65,8 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
   onPlayerClick,
   competenciaId: _competenciaId,
   competenciaNombre,
+  modalidad,
+  categoria,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isChartModalOpen, setIsChartModalOpen] = useState(false);
@@ -267,7 +271,15 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
         </div>
       )}
 
-      <CompareVSModal isOpen={isCompareModalOpen} onClose={() => setIsCompareModalOpen(false)} players={selectedPlayers} />
+      <CompareVSModal
+        isOpen={isCompareModalOpen}
+        onClose={() => setIsCompareModalOpen(false)}
+        players={selectedPlayers}
+        modalidad={modalidad}
+        categoria={categoria}
+        competition={_competenciaId}
+        season={selectedTemporada === 'global' ? undefined : selectedTemporada}
+      />
 
       {shareConfig.player && (
         <ShareRankModal

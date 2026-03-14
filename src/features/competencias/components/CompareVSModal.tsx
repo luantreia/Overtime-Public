@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ResponsiveContainer,
   Radar,
@@ -10,12 +10,21 @@ import {
   Tooltip
 } from 'recharts';
 import ModalBase from '../../../shared/components/ModalBase/ModalBase';
-import { type LeaderboardItem } from '../services/rankedService';
+import { RankedService, type LeaderboardItem } from '../services/rankedService';
 
 interface CompareVSModalProps {
   isOpen: boolean;
   onClose: () => void;
   players: LeaderboardItem[];
+  modalidad: string;
+  categoria: string;
+  competition?: string;
+  season?: string;
+}
+
+interface SetStats {
+  won: number;
+  lost: number;
 }
 
 interface RadarPoint {
@@ -66,7 +75,42 @@ const VsTooltip: React.FC<VsTooltipProps> = ({ active, payload, player1Name, pla
   );
 };
 
-export const CompareVSModal: React.FC<CompareVSModalProps> = ({ isOpen, onClose, players }) => {
+const getSafePlayerId = (player: LeaderboardItem): string => {
+  if (typeof player.playerId === 'string') return player.playerId;
+  const candidate = player.playerId as unknown as { _id?: string };
+  return candidate?._id || '';
+};
+
+const computeSetStats = (history: any[]): SetStats => {
+  let won = 0;
+  let lost = 0;
+
+  for (const item of history || []) {
+    const local = Number(item?.partidoId?.marcadorLocal);
+    const visitante = Number(item?.partidoId?.marcadorVisitante);
+    if (!Number.isFinite(local) || !Number.isFinite(visitante)) continue;
+
+    if (item?.teamColor === 'rojo') {
+      won += local;
+      lost += visitante;
+    } else if (item?.teamColor === 'azul') {
+      won += visitante;
+      lost += local;
+    }
+  }
+
+  return { won, lost };
+};
+
+export const CompareVSModal: React.FC<CompareVSModalProps> = ({
+  isOpen,
+  onClose,
+  players,
+  modalidad,
+  categoria,
+  competition,
+  season,
+}) => {
   if (players.length < 2) return null;
 
   const PolarAngleAxisCompat = PolarAngleAxis as unknown as React.ComponentType<any>;
@@ -74,6 +118,9 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({ isOpen, onClose,
 
   const player1 = players[0];
   const player2 = players[1];
+  const player1Id = getSafePlayerId(player1);
+  const player2Id = getSafePlayerId(player2);
+  const [setStatsByPlayer, setSetStatsByPlayer] = useState<Record<string, SetStats>>({});
   const player1Wins = player1.wins ?? 0;
   const player2Wins = player2.wins ?? 0;
   const player1Rating = Number(player1.rating || 0);
@@ -145,6 +192,40 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({ isOpen, onClose,
     'Tendencia': { a: Number(player1.lastDelta || 0), b: Number(player2.lastDelta || 0) },
   };
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadSetStats = async () => {
+      if (!isOpen) return;
+      try {
+        const [detail1, detail2] = await Promise.all([
+          RankedService.getPlayerDetail(player1Id, { modalidad, categoria, competition, season }),
+          RankedService.getPlayerDetail(player2Id, { modalidad, categoria, competition, season }),
+        ]);
+
+        if (cancelled) return;
+
+        setSetStatsByPlayer({
+          [player1Id]: computeSetStats(detail1.history || []),
+          [player2Id]: computeSetStats(detail2.history || []),
+        });
+      } catch {
+        if (!cancelled) {
+          setSetStatsByPlayer({});
+        }
+      }
+    };
+
+    loadSetStats();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, player1Id, player2Id, modalidad, categoria, competition, season]);
+
+  const player1SetStats = useMemo(() => setStatsByPlayer[player1Id], [setStatsByPlayer, player1Id]);
+  const player2SetStats = useMemo(() => setStatsByPlayer[player2Id], [setStatsByPlayer, player2Id]);
+
   return (
     <ModalBase isOpen={isOpen} onClose={onClose} title="Comparativa Directa (VS)" size="xl">
       <div className="p-4 md:p-6">
@@ -156,6 +237,9 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({ isOpen, onClose,
             </div>
             <div className="text-sm font-bold text-slate-900 truncate w-full">{player1.playerName}</div>
             <div className="text-[10px] font-black text-brand-600 uppercase tracking-tighter">Player A</div>
+            <div className="text-[10px] font-bold text-slate-500 mt-1">
+              Sets: {player1SetStats?.won ?? '-'}G / {player1SetStats?.lost ?? '-'}P
+            </div>
           </div>
 
           <div className="text-2xl font-black text-slate-300 italic">VS</div>
@@ -167,6 +251,9 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({ isOpen, onClose,
             </div>
             <div className="text-sm font-bold text-slate-900 truncate w-full">{player2.playerName}</div>
             <div className="text-[10px] font-black text-indigo-600 uppercase tracking-tighter">Player B</div>
+            <div className="text-[10px] font-bold text-slate-500 mt-1">
+              Sets: {player2SetStats?.won ?? '-'}G / {player2SetStats?.lost ?? '-'}P
+            </div>
           </div>
         </div>
 
