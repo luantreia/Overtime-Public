@@ -16,6 +16,7 @@ interface CompareVSModalProps {
   isOpen: boolean;
   onClose: () => void;
   players: LeaderboardItem[];
+  initialPlayerIds?: string[];
   modalidad: string;
   categoria: string;
   competition?: string;
@@ -106,6 +107,7 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({
   isOpen,
   onClose,
   players,
+  initialPlayerIds,
   modalidad,
   categoria,
   competition,
@@ -116,14 +118,46 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({
   const PolarAngleAxisCompat = PolarAngleAxis as unknown as React.ComponentType<any>;
   const PolarRadiusAxisCompat = PolarRadiusAxis as unknown as React.ComponentType<any>;
 
-  const player1 = hasEnoughPlayers
-    ? players[0]
-    : ({ playerId: '', playerName: 'Jugador A', rating: 0, matchesPlayed: 0, wins: 0 } as LeaderboardItem);
-  const player2 = hasEnoughPlayers
-    ? players[1]
-    : ({ playerId: '', playerName: 'Jugador B', rating: 0, matchesPlayed: 0, wins: 0 } as LeaderboardItem);
-  const player1Id = getSafePlayerId(player1);
-  const player2Id = getSafePlayerId(player2);
+  const [player1Id, setPlayer1Id] = useState<string>('');
+  const [player2Id, setPlayer2Id] = useState<string>('');
+  const [player1Query, setPlayer1Query] = useState<string>('');
+  const [player2Query, setPlayer2Query] = useState<string>('');
+
+  const playerOptions = useMemo(
+    () =>
+      players
+        .map((player) => ({
+          id: getSafePlayerId(player),
+          name: player.playerName || getSafePlayerId(player),
+          player,
+        }))
+        .filter((entry) => entry.id),
+    [players],
+  );
+
+  const defaultFallbackPlayer = { playerId: '', playerName: 'Jugador', rating: 0, matchesPlayed: 0, wins: 0 } as LeaderboardItem;
+
+  const selectedPlayer1 =
+    playerOptions.find((entry) => entry.id === player1Id)?.player ||
+    playerOptions[0]?.player ||
+    defaultFallbackPlayer;
+
+  const selectedPlayer2 =
+    playerOptions.find((entry) => entry.id === player2Id)?.player ||
+    playerOptions.find((entry) => entry.id !== getSafePlayerId(selectedPlayer1))?.player ||
+    playerOptions[1]?.player ||
+    defaultFallbackPlayer;
+
+  const player1 = {
+    ...defaultFallbackPlayer,
+    ...selectedPlayer1,
+    playerName: selectedPlayer1.playerName || 'Jugador A',
+  };
+  const player2 = {
+    ...defaultFallbackPlayer,
+    ...selectedPlayer2,
+    playerName: selectedPlayer2.playerName || 'Jugador B',
+  };
   const [setStatsByPlayer, setSetStatsByPlayer] = useState<Record<string, SetStats>>({});
   const player1Wins = player1.wins ?? 0;
   const player2Wins = player2.wins ?? 0;
@@ -196,11 +230,39 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({
     'Tendencia': { a: Number(player1.lastDelta || 0), b: Number(player2.lastDelta || 0) },
   };
 
+  const resolvePlayerByText = (text: string) => {
+    const normalized = text.trim().toLowerCase();
+    if (!normalized) return undefined;
+    return playerOptions.find(
+      (entry) => entry.name.toLowerCase() === normalized || entry.id.toLowerCase() === normalized,
+    );
+  };
+
+  useEffect(() => {
+    if (!isOpen || playerOptions.length === 0) return;
+
+    const initialA = initialPlayerIds?.[0] && playerOptions.some((entry) => entry.id === initialPlayerIds[0])
+      ? initialPlayerIds[0]
+      : playerOptions[0]?.id;
+
+    const initialB = initialPlayerIds?.[1] && playerOptions.some((entry) => entry.id === initialPlayerIds[1])
+      ? initialPlayerIds[1]
+      : playerOptions.find((entry) => entry.id !== initialA)?.id;
+
+    const playerA = playerOptions.find((entry) => entry.id === initialA);
+    const playerB = playerOptions.find((entry) => entry.id === initialB);
+
+    if (initialA) setPlayer1Id(initialA);
+    if (initialB) setPlayer2Id(initialB);
+    setPlayer1Query(playerA?.name || '');
+    setPlayer2Query(playerB?.name || '');
+  }, [isOpen, initialPlayerIds, playerOptions]);
+
   useEffect(() => {
     let cancelled = false;
 
     const loadSetStats = async () => {
-      if (!isOpen || !hasEnoughPlayers || !player1Id || !player2Id) return;
+      if (!isOpen || !hasEnoughPlayers || !player1Id || !player2Id || player1Id === player2Id) return;
       try {
         const [detail1, detail2] = await Promise.all([
           RankedService.getPlayerDetail(player1Id, { modalidad, categoria, competition, season }),
@@ -235,6 +297,96 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({
   return (
     <ModalBase isOpen={isOpen} onClose={onClose} title="Comparativa Directa (VS)" size="xl">
       <div className="p-4 md:p-6">
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-3 mb-6 items-end">
+          <div>
+            <label htmlFor="vs-player-a" className="block text-xs font-bold text-slate-600 mb-1">
+              Jugador A
+            </label>
+            <input
+              id="vs-player-a"
+              list="vs-player-options"
+              type="text"
+              value={player1Query}
+              onChange={(e) => {
+                const nextValue = e.target.value;
+                setPlayer1Query(nextValue);
+                const match = resolvePlayerByText(nextValue);
+                if (match && match.id !== player2Id) {
+                  setPlayer1Id(match.id);
+                  setPlayer1Query(match.name);
+                }
+              }}
+              onBlur={() => {
+                const match = resolvePlayerByText(player1Query);
+                if (match && match.id !== player2Id) {
+                  setPlayer1Id(match.id);
+                  setPlayer1Query(match.name);
+                  return;
+                }
+                const fallback = playerOptions.find((entry) => entry.id === player1Id);
+                setPlayer1Query(fallback?.name || '');
+              }}
+              placeholder="Nombre o ID"
+              className="block w-full rounded-xl border border-slate-300 p-2.5 text-sm focus:border-brand-500 focus:ring-brand-500"
+            />
+          </div>
+
+          <button
+            type="button"
+            className="h-10 px-3 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            onClick={() => {
+              if (!player1Id || !player2Id) return;
+              const playerA = playerOptions.find((entry) => entry.id === player1Id);
+              const playerB = playerOptions.find((entry) => entry.id === player2Id);
+              setPlayer1Id(player2Id);
+              setPlayer2Id(player1Id);
+              setPlayer1Query(playerB?.name || '');
+              setPlayer2Query(playerA?.name || '');
+            }}
+          >
+            Intercambiar
+          </button>
+
+          <div>
+            <label htmlFor="vs-player-b" className="block text-xs font-bold text-slate-600 mb-1">
+              Jugador B
+            </label>
+            <input
+              id="vs-player-b"
+              list="vs-player-options"
+              type="text"
+              value={player2Query}
+              onChange={(e) => {
+                const nextValue = e.target.value;
+                setPlayer2Query(nextValue);
+                const match = resolvePlayerByText(nextValue);
+                if (match && match.id !== player1Id) {
+                  setPlayer2Id(match.id);
+                  setPlayer2Query(match.name);
+                }
+              }}
+              onBlur={() => {
+                const match = resolvePlayerByText(player2Query);
+                if (match && match.id !== player1Id) {
+                  setPlayer2Id(match.id);
+                  setPlayer2Query(match.name);
+                  return;
+                }
+                const fallback = playerOptions.find((entry) => entry.id === player2Id);
+                setPlayer2Query(fallback?.name || '');
+              }}
+              placeholder="Nombre o ID"
+              className="block w-full rounded-xl border border-slate-300 p-2.5 text-sm focus:border-brand-500 focus:ring-brand-500"
+            />
+          </div>
+
+          <datalist id="vs-player-options">
+            {playerOptions.map((entry) => (
+              <option key={entry.id} value={entry.name} />
+            ))}
+          </datalist>
+        </div>
+
         <div className="flex justify-between items-center mb-8 gap-4 overflow-x-auto pb-2">
           {/* Player 1 Card */}
           <div className="flex-1 min-w-[140px] p-4 rounded-2xl bg-brand-50 border border-brand-100 flex flex-col items-center text-center">

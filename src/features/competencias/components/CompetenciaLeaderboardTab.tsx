@@ -250,9 +250,9 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsCompareModalOpen(true)}
-              disabled={comparingPlayers.length < 2}
+              disabled={comparingPlayers.length < 1}
               className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${
-                comparingPlayers.length === 2
+                comparingPlayers.length >= 1
                   ? 'bg-brand-600 text-white hover:bg-brand-700 shadow-md transform hover:-translate-y-0.5'
                   : 'bg-slate-100 text-slate-400 cursor-not-allowed'
               }`}
@@ -274,7 +274,8 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
       <CompareVSModal
         isOpen={isCompareModalOpen}
         onClose={() => setIsCompareModalOpen(false)}
-        players={selectedPlayers}
+        players={leaderboard}
+        initialPlayerIds={comparingPlayers}
         modalidad={modalidad}
         categoria={categoria}
         competition={_competenciaId}
