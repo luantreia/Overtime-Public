@@ -682,8 +682,8 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                                     ? true
                                     : (() => {
                                         const name = normalize(p.name || "");
-                                        const matches1 = !filter1 || name.includes(filter1);
-                                        const matches2 = !filter2 || name.includes(filter2);
+                                        const matches1 = !!filter1 && name.includes(filter1);
+                                        const matches2 = !!filter2 && name.includes(filter2);
                                         return matches1 || matches2;
                                       })()
                                 );
