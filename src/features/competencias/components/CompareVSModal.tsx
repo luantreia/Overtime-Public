@@ -111,13 +111,17 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({
   competition,
   season,
 }) => {
-  if (players.length < 2) return null;
+  const hasEnoughPlayers = players.length >= 2;
 
   const PolarAngleAxisCompat = PolarAngleAxis as unknown as React.ComponentType<any>;
   const PolarRadiusAxisCompat = PolarRadiusAxis as unknown as React.ComponentType<any>;
 
-  const player1 = players[0];
-  const player2 = players[1];
+  const player1 = hasEnoughPlayers
+    ? players[0]
+    : ({ playerId: '', playerName: 'Jugador A', rating: 0, matchesPlayed: 0, wins: 0 } as LeaderboardItem);
+  const player2 = hasEnoughPlayers
+    ? players[1]
+    : ({ playerId: '', playerName: 'Jugador B', rating: 0, matchesPlayed: 0, wins: 0 } as LeaderboardItem);
   const player1Id = getSafePlayerId(player1);
   const player2Id = getSafePlayerId(player2);
   const [setStatsByPlayer, setSetStatsByPlayer] = useState<Record<string, SetStats>>({});
@@ -196,7 +200,7 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({
     let cancelled = false;
 
     const loadSetStats = async () => {
-      if (!isOpen) return;
+      if (!isOpen || !hasEnoughPlayers || !player1Id || !player2Id) return;
       try {
         const [detail1, detail2] = await Promise.all([
           RankedService.getPlayerDetail(player1Id, { modalidad, categoria, competition, season }),
@@ -221,10 +225,12 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [isOpen, player1Id, player2Id, modalidad, categoria, competition, season]);
+  }, [isOpen, hasEnoughPlayers, player1Id, player2Id, modalidad, categoria, competition, season]);
 
   const player1SetStats = useMemo(() => setStatsByPlayer[player1Id], [setStatsByPlayer, player1Id]);
   const player2SetStats = useMemo(() => setStatsByPlayer[player2Id], [setStatsByPlayer, player2Id]);
+
+  if (!hasEnoughPlayers) return null;
 
   return (
     <ModalBase isOpen={isOpen} onClose={onClose} title="Comparativa Directa (VS)" size="xl">
