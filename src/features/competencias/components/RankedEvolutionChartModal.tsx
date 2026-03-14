@@ -35,6 +35,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("all");
   const [visiblePlayersCount, setVisiblePlayersCount] = useState<number>(5); // -1 means ALL
   const [playerFilter, setPlayerFilter] = useState("");
+  const [playerFilter2, setPlayerFilter2] = useState("");
   const [selectedSeason, setSelectedSeason] = useState<string>(defaultSeasonId || "");
   const [seasonInitialized, setSeasonInitialized] = useState(false);
   const [isMobileView, setIsMobileView] = useState<boolean>(() => {
@@ -109,6 +110,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
     if (!isOpen) return;
     setTimeFilter("all");
     setPlayerFilter("");
+    setPlayerFilter2("");
     setVisiblePlayersCount(5);
   }, [selectedSeason, isOpen]);
 
@@ -118,6 +120,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
     setSeasonInitialized(false);
     setTimeFilter("all");
     setPlayerFilter("");
+    setPlayerFilter2("");
     setVisiblePlayersCount(5);
   }, [isOpen, defaultSeasonId]);
 
@@ -567,6 +570,18 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                 <button onClick={() => setPlayerFilter("")} className="text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
               )}
             </div>
+
+            <div className="flex items-center gap-2 bg-slate-50/80 px-3 py-2 rounded-xl border border-slate-100 col-span-2 sm:col-span-1 w-full sm:max-w-xs">
+              <input
+                value={playerFilter2}
+                onChange={(e) => setPlayerFilter2(e.target.value)}
+                placeholder="Buscar jugador 2"
+                className="w-full text-[11px] font-bold bg-transparent border-none p-0 focus:ring-0 text-slate-600 placeholder:text-slate-400"
+              />
+              {playerFilter2 && (
+                <button onClick={() => setPlayerFilter2("")} className="text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
+              )}
+            </div>
           </div>
 
           <div className="flex-1 w-full p-3 sm:p-6 min-h-[360px] flex flex-col">
@@ -655,18 +670,28 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                       />
                               <Legend verticalAlign="top" height={isMobileView ? 44 : 60} iconType="circle" wrapperStyle={{ fontSize: isMobileView ? "9px" : "10px", fontWeight: 800, paddingBottom: isMobileView ? "8px" : "20px" }} />
                               {(() => {
+                                const normalize = (value: string) =>
+                                  value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+                                const filter1 = normalize(playerFilter.trim());
+                                const filter2 = normalize(playerFilter2.trim());
+                                const hasAnyFilter = !!filter1 || !!filter2;
+
                                 const list = (evolutionaryData.playerInfo || []).filter((p) =>
-                                  !playerFilter
+                                  !hasAnyFilter
                                     ? true
-                                    : (p.name || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(
-                                        playerFilter.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-                                      )
+                                    : (() => {
+                                        const name = normalize(p.name || "");
+                                        const matches1 = !filter1 || name.includes(filter1);
+                                        const matches2 = !filter2 || name.includes(filter2);
+                                        return matches1 || matches2;
+                                      })()
                                 );
-                                const visible = playerFilter
+                                const visible = hasAnyFilter
                                   ? list
                                   : (visiblePlayersCount === -1 ? list : list.slice(0, visiblePlayersCount));
                                 return visible;
-                              })().map((info, index) => (
+                              })().map((info) => (
                         <Line 
                           key={info.key} 
                           type="stepAfter" 
