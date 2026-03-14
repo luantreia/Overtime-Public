@@ -9,7 +9,7 @@ import {
   Legend,
   Tooltip
 } from 'recharts';
-import { ModalBase } from '../../../shared/components/ModalBase/ModalBase';
+import ModalBase from '../../../shared/components/ModalBase/ModalBase';
 import { type LeaderboardItem } from '../services/rankedService';
 
 interface CompareVSModalProps {
@@ -23,6 +23,8 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({ isOpen, onClose,
 
   const player1 = players[0];
   const player2 = players[1];
+  const player1Wins = player1.wins ?? 0;
+  const player2Wins = player2.wins ?? 0;
 
   // Mocking/Calculating stats for Radar
   // In a real scenario, we might want to fetch more detailed stats, 
@@ -36,8 +38,8 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({ isOpen, onClose,
     },
     {
       subject: 'Winrate %',
-      A: (player1.wins / (player1.matchesPlayed || 1)) * 100,
-      B: (player2.wins / (player2.matchesPlayed || 1)) * 100,
+      A: (player1Wins / (player1.matchesPlayed || 1)) * 100,
+      B: (player2Wins / (player2.matchesPlayed || 1)) * 100,
       fullMark: 100,
     },
     {
@@ -48,9 +50,9 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({ isOpen, onClose,
     },
     {
       subject: 'Victorias',
-      A: player1.wins,
-      B: player2.wins,
-      fullMark: Math.max(player1.wins, player2.wins, 20),
+      A: player1Wins,
+      B: player2Wins,
+      fullMark: Math.max(player1Wins, player2Wins, 20),
     },
     {
       subject: 'Tendencia',
@@ -61,7 +63,7 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({ isOpen, onClose,
   ];
 
   return (
-    <ModalBase isOpen={isOpen} onClose={onClose} title="Comparativa Directa (VS)" maxWidth="max-w-4xl">
+    <ModalBase isOpen={isOpen} onClose={onClose} title="Comparativa Directa (VS)" size="xl">
       <div className="p-4 md:p-6">
         <div className="flex justify-between items-center mb-8 gap-4 overflow-x-auto pb-2">
           {/* Player 1 Card */}

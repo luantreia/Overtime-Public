@@ -13,9 +13,9 @@ import {
   CompetenciaHeader,
   CompetenciaInfoTab,
   CompetenciaPartidosTab,
-  CompetenciaResultadosTab,
-  CompetenciaLeaderboardTab
+  CompetenciaResultadosTab
 } from '../components';
+import { CompetenciaLeaderboardTab } from '../components/CompetenciaLeaderboardTab';
 
 const CompetenciaDetalle: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -276,7 +276,7 @@ const CompetenciaDetalle: React.FC = () => {
             <CompetenciaLeaderboardTab
               temporadas={temporadas}
               selectedTemporada={selectedTemporada}
-              onTemporadaChange={(id) => updateParams({ temporada: id })}
+              onTemporadaChange={(id: string) => updateParams({ temporada: id })}
               loading={loadingLeaderboard}
               leaderboard={leaderboard}
               jugadoresComp={jugadoresComp}

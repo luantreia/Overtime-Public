@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { toPng } from 'html-to-image';
-import { ModalBase } from '../../../shared/components/ModalBase/ModalBase';
+import ModalBase from '../../../shared/components/ModalBase/ModalBase';
 import { type LeaderboardItem } from '../services/rankedService';
 
 interface ShareRankModalProps {
@@ -30,17 +30,10 @@ export const ShareRankModal: React.FC<ShareRankModalProps> = ({ isOpen, onClose,
     }
   };
 
-  const getRankBadge = (elo: number) => {
-    if (elo >= 1500) return { label: 'Diamante', color: 'from-indigo-600 to-purple-600' };
-    if (elo >= 1200) return { label: 'Oro', color: 'from-amber-400 to-yellow-600' };
-    if (elo >= 1000) return { label: 'Plata', color: 'from-slate-300 to-slate-500' };
-    return { label: 'Bronce', color: 'from-orange-400 to-orange-700' };
-  };
-
-  const badge = getRankBadge(Number(player.rating));
+  const badge = { label: 'Temporada', color: 'from-brand-600 to-indigo-700' };
 
   return (
-    <ModalBase isOpen={isOpen} onClose={onClose} title="Compartir mi Ranking" maxWidth="max-w-md">
+    <ModalBase isOpen={isOpen} onClose={onClose} title="Compartir mi Ranking" size="md">
       <div className="p-6 flex flex-col items-center">
         {/* The Capture Area (Instagram Story Style 9:16 approx) */}
         <div 

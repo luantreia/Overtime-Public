@@ -46,7 +46,7 @@ export const DashboardMaestro: React.FC<DashboardMaestroProps> = ({ jugadorId, j
     if (elo >= 1800) return { name: 'Platino', color: 'text-indigo-600', bg: 'bg-indigo-100', border: 'border-indigo-200', badge: 'bg-indigo-600' };
     if (elo >= 1600) return { name: 'Oro', color: 'text-yellow-600', bg: 'bg-yellow-100', border: 'border-yellow-200', badge: 'bg-yellow-600' };
     if (elo >= 1400) return { name: 'Plata', color: 'text-slate-500', bg: 'bg-slate-100', border: 'border-slate-200', badge: 'bg-slate-500' };
-    return { name: 'Bronce', color: 'text-orange-700', bg: 'bg-orange-100', border: 'border-orange-200', badge: 'bg-orange-700' };
+    return { name: 'Iniciante', color: 'text-slate-400', bg: 'bg-slate-50', border: 'border-slate-200', badge: 'bg-slate-400' };
   };
 
   const rank = radarData ? getRankName(radarData.elo) : null;
