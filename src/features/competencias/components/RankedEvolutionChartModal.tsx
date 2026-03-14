@@ -32,13 +32,21 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
   competenciaId,
   defaultSeasonId,
 }) => {
-  console.log("[RankedModal] Props recibidas:", { competenciaId, isOpen });
-
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("all");
   const [visiblePlayersCount, setVisiblePlayersCount] = useState<number>(5); // -1 means ALL
   const [playerFilter, setPlayerFilter] = useState("");
   const [selectedSeason, setSelectedSeason] = useState<string>(defaultSeasonId || "");
   const [seasonInitialized, setSeasonInitialized] = useState(false);
+  const [isMobileView, setIsMobileView] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return window.innerWidth < 640;
+  });
+
+  useEffect(() => {
+    const onResize = () => setIsMobileView(window.innerWidth < 640);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   const { data: competencia } = useQuery<Competencia | undefined>({
     queryKey: ["competencia", competenciaId, "ranked-chart"],
@@ -125,7 +133,6 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
 
   const topPlayers: LeaderboardItem[] = useMemo(() => {
     const players = leaderboard || [];
-    console.log("[RankedModal] Jugadores procesados (todos):", players.length);
     return players;
   }, [leaderboard]);
 
@@ -154,7 +161,6 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
         // Caso global: traer todos los partidos por competencia
         if (!selectedSeason || selectedSeason === "global") {
           const res = await PartidoService.getAll(baseFilters);
-          console.log("[RankedModal] Partidos cargados (global):", res?.length || 0);
           return res;
         }
 
@@ -167,12 +173,10 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
           temporada: selectedSeason,
         };
         let res = await PartidoService.getAll(seasonFilters);
-        console.log("[RankedModal] Partidos cargados (season):", res?.length || 0, seasonFilters);
 
         // Fallback: si la temporada "0" no devuelve nada, reintentar sin season (global histórico)
         if ((res?.length || 0) === 0 && selectedSeason === "0") {
           res = await PartidoService.getAll(baseFilters);
-          console.log("[RankedModal] Fallback partidos season 0 => global:", res?.length || 0);
         }
 
         return res;
@@ -187,7 +191,6 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
   const { data: rawPlayersData, isLoading: loadingPlayers } = useQuery({
     queryKey: ["ranked-evolution-raw", competenciaId, selectedSeason, topPlayers.map(p => p.playerId).join(",")],
     queryFn: async () => {
-      console.log("[RankedModal] Iniciando fetch de evolución para jugadores...");
       const results = await Promise.all(
         topPlayers.map(async (player) => {
           try {
@@ -198,8 +201,6 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
               modalidad,
               categoria,
             });
-            
-            console.log(`[RankedChart] Respuesta para ${player.playerName}:`, detail);
 
             // Intentamos buscar el historial en varios posibles nombres de campo
             const rawHistory = detail.history || (detail as any).items || (detail as any).data || (detail as any).ratings || [];
@@ -234,7 +235,6 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
   const evolutionaryData = useMemo(() => {
     if (!seasonInitialized) return { chartData: [], playerInfo: [] };
     if (!rawPlayersData) return { chartData: [], playerInfo: [] };
-    console.log("[RankedModal] evo memo - matchesData:", matchesData?.length || 0, "season:", selectedSeason, "timeFilter:", timeFilter, "init:", seasonInitialized);
 
     // 1. Filtrar asegurando tipos de Fecha
     const filteredResults = rawPlayersData.map(player => {
@@ -288,8 +288,6 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
       .filter((m: any) => m._parsedDate)
       .sort((a: any, b: any) => a._parsedDate.getTime() - b._parsedDate.getTime());
 
-    console.log("[RankedModal] evo memo - relevantMatches:", relevantMatches.length);
-
     // Filtro de fecha de corte
     let cutoffDate = new Date(0); // Default: Desde el principio de los tiempos
     if (timeFilter === "month") {
@@ -310,7 +308,6 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
         d.setMonth(d.getMonth() - 1);
         cutoffDate = d;
     }
-      console.log("[RankedModal] evo memo - cutoffDate:", cutoffDate.toISOString());
 
     // PASO A: Determinar estado INICIAL (Punto de partida)
     const startEntry: any = { 
@@ -458,14 +455,6 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
 
         if (hasRelevantPlayers) {
           chartData.push(entry);
-        } else {
-          console.log("[RankedModal] match sin jugadores relevantes", {
-            matchLabel: entry.matchLabel,
-            fullDate: entry.fullDate,
-            matchId: match.id || match._id,
-            local: match.equipoLocal?.nombre,
-            visitante: match.equipoVisitante?.nombre
-          });
         }
     });
 
@@ -482,7 +471,6 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
     chartData.push(endEntry);
 
 
-    console.log("[RankedModal] Chart Data finalizada:", chartData.length, "puntos");
     return { 
         chartData, 
         playerInfo: filteredResults.map((r, i) => ({ 
@@ -503,12 +491,12 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
       onClick={onClose}
     >
       <div 
-        className="bg-white w-full sm:max-w-5xl h-[92vh] sm:h-[85vh] rounded-t-[32px] sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-300"
+        className="bg-white w-full sm:max-w-5xl h-[94vh] sm:h-[85vh] rounded-t-[32px] sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-300"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="px-6 py-5 flex items-center justify-between bg-white shrink-0">
+        <div className="px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between bg-white shrink-0 border-b border-slate-100">
           <div>
-            <h3 className="text-xl font-extrabold text-slate-800 tracking-tight">Evolucion de Ranking</h3>
+            <h3 className="text-lg sm:text-xl font-extrabold text-slate-800 tracking-tight">Evolucion de Ranking</h3>
             <div className="flex items-center gap-2 mt-0.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Temporada: {selectedSeasonLabel}</p>
@@ -522,8 +510,8 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
         </div>
 
          <div className="flex-1 flex flex-col min-h-0 bg-white">
-          <div className="px-6 py-4 flex items-center justify-between gap-4 shrink-0 overflow-hidden flex-wrap">
-            <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 shadow-sm">
+          <div className="px-4 sm:px-6 py-3 sm:py-4 grid grid-cols-2 sm:flex sm:items-center sm:justify-between gap-2 sm:gap-4 shrink-0 overflow-hidden border-b border-slate-100 bg-white sm:bg-transparent sticky top-0 z-10">
+            <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 shadow-sm col-span-1">
               <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest hidden xs:block">Temporada</span>
               <select
                 value={selectedSeason}
@@ -540,7 +528,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
               </svg>
             </div>
 
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth">
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth col-span-1 justify-end sm:justify-start">
               {[{ id: "all", label: "Total" }, { id: "month", label: "Mes" }].map((f) => (
                 <button
                   key={f.id}
@@ -552,7 +540,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
               ))}
             </div>
 
-            <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 shadow-sm shrink-0">
+            <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 shadow-sm shrink-0 col-span-1">
               <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest hidden xs:block">Top</span>
               <select 
                 value={visiblePlayersCount} 
@@ -568,7 +556,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
               </svg>
             </div>
 
-            <div className="flex items-center gap-2 bg-slate-50/80 px-3 py-2 rounded-xl border border-slate-100 w-full max-w-xs">
+            <div className="flex items-center gap-2 bg-slate-50/80 px-3 py-2 rounded-xl border border-slate-100 col-span-2 sm:col-span-1 w-full sm:max-w-xs">
               <input
                 value={playerFilter}
                 onChange={(e) => setPlayerFilter(e.target.value)}
@@ -581,22 +569,22 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
             </div>
           </div>
 
-          <div className="flex-1 w-full p-4 sm:p-6 min-h-[400px] flex flex-col">
+          <div className="flex-1 w-full p-3 sm:p-6 min-h-[360px] flex flex-col">
             {isBusy ? (
               <div className="w-full h-full flex flex-col items-center justify-center">
                 <div className="w-12 h-12 border-4 border-slate-50 border-t-brand-500 rounded-full animate-spin"></div>
                 <p className="mt-4 text-[10px] font-black text-slate-300 uppercase tracking-widest">Calculando puntos...</p>
               </div>
             ) : evolutionaryData?.chartData && evolutionaryData.chartData.length > 0 ? (
-              <div className="w-full" style={{ height: 400, minWidth: 0, minHeight: 320, position: 'relative' }}>
-                <ResponsiveContainer width="100%" height="100%" aspect={2.4}>
-                    <LineChart data={evolutionaryData.chartData} margin={{ top: 10, right: 30, left: 0, bottom: 40 }}>
+              <div className="w-full" style={{ height: isMobileView ? 340 : 400, minWidth: 0, minHeight: 300, position: 'relative' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={evolutionaryData.chartData} margin={isMobileView ? { top: 8, right: 8, left: -20, bottom: 24 } : { top: 10, right: 30, left: 0, bottom: 40 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                      <XAxis dataKey="matchLabel" fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} dy={10} />
-                      <YAxis domain={["auto", "auto"]} fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} dx={-10} padding={{ top: 20, bottom: 20 }} />
+                      <XAxis dataKey="matchLabel" fontSize={isMobileView ? 9 : 10} fontWeight={700} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} dy={10} interval={isMobileView ? 'preserveStartEnd' : 0} />
+                      <YAxis hide={isMobileView} domain={["auto", "auto"]} fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} dx={-10} padding={{ top: 20, bottom: 20 }} />
                       <Tooltip 
                         labelFormatter={(v, p) => p[0]?.payload?.fullDate || v}
-                        contentStyle={{ borderRadius: "20px", border: "none", boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "800", padding: "16px" }} 
+                        contentStyle={{ borderRadius: "20px", border: "none", boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)", fontSize: isMobileView ? "10px" : "11px", fontWeight: "800", padding: isMobileView ? "12px" : "16px" }} 
                         itemSorter={(item) => Number(item.value) * -1}
                         content={({ active, payload, label }) => {
                           if (active && payload && payload.length) {
@@ -665,7 +653,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                           return null;
                         }}
                       />
-                              <Legend verticalAlign="top" height={60} iconType="circle" wrapperStyle={{ fontSize: "10px", fontWeight: 800, paddingBottom: "20px" }} />
+                              <Legend verticalAlign="top" height={isMobileView ? 44 : 60} iconType="circle" wrapperStyle={{ fontSize: isMobileView ? "9px" : "10px", fontWeight: 800, paddingBottom: isMobileView ? "8px" : "20px" }} />
                               {(() => {
                                 const list = (evolutionaryData.playerInfo || []).filter((p) =>
                                   !playerFilter
@@ -685,9 +673,9 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                           dataKey={info.key}
                           name={info.name} 
                           stroke={info.color} 
-                          strokeWidth={4} 
-                          dot={{ r: 4, strokeWidth: 0, fill: info.color }} 
-                          activeDot={{ r: 6, strokeWidth: 0 }} 
+                          strokeWidth={isMobileView ? 3 : 4} 
+                          dot={{ r: isMobileView ? 3 : 4, strokeWidth: 0, fill: info.color }} 
+                          activeDot={{ r: isMobileView ? 5 : 6, strokeWidth: 0 }} 
                           isAnimationActive={false}
                           connectNulls 
                         />
