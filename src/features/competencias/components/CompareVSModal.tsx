@@ -28,6 +28,30 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({ isOpen, onClose,
   const player2 = players[1];
   const player1Wins = player1.wins ?? 0;
   const player2Wins = player2.wins ?? 0;
+  const player1Rating = Number(player1.rating || 0);
+  const player2Rating = Number(player2.rating || 0);
+  const player1Matches = Number(player1.matchesPlayed || 0);
+  const player2Matches = Number(player2.matchesPlayed || 0);
+
+  const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+  const normalizeByCap = (value: number, cap: number) => {
+    if (cap <= 0) return 0;
+    return clamp((value / cap) * 100, 0, 100);
+  };
+
+  const eloMin = 700;
+  const eloMax = 2200;
+  const normalizeElo = (rating: number) => clamp(((rating - eloMin) / (eloMax - eloMin)) * 100, 0, 100);
+
+  const maxMatches = Math.max(player1Matches, player2Matches, 10);
+  const maxWins = Math.max(player1Wins, player2Wins, 5);
+
+  const player1Winrate = (player1Wins / (player1Matches || 1)) * 100;
+  const player2Winrate = (player2Wins / (player2Matches || 1)) * 100;
+
+  const player1Trend = Math.max(-50, Math.min(50, Number(player1.lastDelta || 0)));
+  const player2Trend = Math.max(-50, Math.min(50, Number(player2.lastDelta || 0)));
+  const normalizeTrend = (trend: number) => trend + 50;
 
   // Mocking/Calculating stats for Radar
   // In a real scenario, we might want to fetch more detailed stats, 
@@ -35,32 +59,32 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({ isOpen, onClose,
   const data = [
     {
       subject: 'ELO Rating',
-      A: player1.rating,
-      B: player2.rating,
-      fullMark: Math.max(player1.rating, player2.rating, 2000),
+      A: normalizeElo(player1Rating),
+      B: normalizeElo(player2Rating),
+      fullMark: 100,
     },
     {
       subject: 'Winrate %',
-      A: (player1Wins / (player1.matchesPlayed || 1)) * 100,
-      B: (player2Wins / (player2.matchesPlayed || 1)) * 100,
+      A: clamp(player1Winrate, 0, 100),
+      B: clamp(player2Winrate, 0, 100),
       fullMark: 100,
     },
     {
       subject: 'Partidos',
-      A: player1.matchesPlayed,
-      B: player2.matchesPlayed,
-      fullMark: Math.max(player1.matchesPlayed, player2.matchesPlayed, 50),
+      A: normalizeByCap(player1Matches, maxMatches),
+      B: normalizeByCap(player2Matches, maxMatches),
+      fullMark: 100,
     },
     {
       subject: 'Victorias',
-      A: player1Wins,
-      B: player2Wins,
-      fullMark: Math.max(player1Wins, player2Wins, 20),
+      A: normalizeByCap(player1Wins, maxWins),
+      B: normalizeByCap(player2Wins, maxWins),
+      fullMark: 100,
     },
     {
       subject: 'Tendencia',
-      A: Math.max(0, (player1.lastDelta || 0) + 50), // Normalizing delta for visual
-      B: Math.max(0, (player2.lastDelta || 0) + 50),
+      A: normalizeTrend(player1Trend),
+      B: normalizeTrend(player2Trend),
       fullMark: 100,
     },
   ];
@@ -117,6 +141,10 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({ isOpen, onClose,
             </RadarChart>
           </ResponsiveContainer>
         </div>
+
+        <p className="mt-2 text-center text-xs font-medium text-slate-500">
+          Métricas regularizadas a escala 0-100 para comparar ELO, experiencia y performance sin sesgo de magnitud.
+        </p>
 
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
