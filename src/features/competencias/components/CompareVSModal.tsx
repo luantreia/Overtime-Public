@@ -18,6 +18,54 @@ interface CompareVSModalProps {
   players: LeaderboardItem[];
 }
 
+interface RadarPoint {
+  subject: string;
+  A: number;
+  B: number;
+  fullMark: number;
+}
+
+interface VsTooltipProps {
+  active?: boolean;
+  payload?: Array<{ payload: RadarPoint }>;
+  label?: string;
+  player1Name: string;
+  player2Name: string;
+  rawBySubject: Record<string, { a: number; b: number }>;
+}
+
+const VsTooltip: React.FC<VsTooltipProps> = ({ active, payload, player1Name, player2Name, rawBySubject }) => {
+  if (!active || !payload || payload.length === 0) return null;
+
+  const point = payload[0]?.payload;
+  if (!point) return null;
+
+  const raw = rawBySubject[point.subject];
+  const formatRaw = (value: number) => {
+    if (point.subject === 'ELO Rating') return value.toFixed(1);
+    if (point.subject === 'Partidos (score)') return `${Math.round(value)} partidos`;
+    if (point.subject === 'Victorias') return `${Math.round(value)} victorias`;
+    if (point.subject === 'Tendencia') return `${value >= 0 ? '+' : ''}${value.toFixed(1)} Δ`;
+    return `${value.toFixed(1)}%`;
+  };
+
+  return (
+    <div className="rounded-xl bg-white shadow-lg border border-slate-200 p-3 min-w-[220px]">
+      <div className="text-xs font-black text-slate-700 mb-2">{point.subject}</div>
+      <div className="space-y-1.5 text-xs">
+        <div className="flex justify-between gap-3">
+          <span className="font-bold text-fuchsia-600">{player1Name}</span>
+          <span className="text-slate-700">{point.A.toFixed(1)} score · {formatRaw(raw?.a ?? point.A)}</span>
+        </div>
+        <div className="flex justify-between gap-3">
+          <span className="font-bold text-indigo-600">{player2Name}</span>
+          <span className="text-slate-700">{point.B.toFixed(1)} score · {formatRaw(raw?.b ?? point.B)}</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const CompareVSModal: React.FC<CompareVSModalProps> = ({ isOpen, onClose, players }) => {
   if (players.length < 2) return null;
 
@@ -70,7 +118,7 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({ isOpen, onClose,
       fullMark: 100,
     },
     {
-      subject: 'Partidos',
+      subject: 'Partidos (score)',
       A: normalizeByCap(player1Matches, maxMatches),
       B: normalizeByCap(player2Matches, maxMatches),
       fullMark: 100,
@@ -88,6 +136,14 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({ isOpen, onClose,
       fullMark: 100,
     },
   ];
+
+  const rawBySubject: Record<string, { a: number; b: number }> = {
+    'ELO Rating': { a: player1Rating, b: player2Rating },
+    'Winrate %': { a: player1Winrate, b: player2Winrate },
+    'Partidos (score)': { a: player1Matches, b: player2Matches },
+    'Victorias': { a: player1Wins, b: player2Wins },
+    'Tendencia': { a: Number(player1.lastDelta || 0), b: Number(player2.lastDelta || 0) },
+  };
 
   return (
     <ModalBase isOpen={isOpen} onClose={onClose} title="Comparativa Directa (VS)" size="xl">
@@ -135,7 +191,7 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({ isOpen, onClose,
                 fillOpacity={0.5}
               />
               <Tooltip 
-                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                content={<VsTooltip player1Name={player1.playerName || 'Jugador A'} player2Name={player2.playerName || 'Jugador B'} rawBySubject={rawBySubject} />}
               />
               <Legend verticalAlign="bottom" height={36}/>
             </RadarChart>
