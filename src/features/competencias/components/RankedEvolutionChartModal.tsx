@@ -510,19 +510,22 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
     };
   }, [rawPlayersData, matchesData, timeFilter, selectedSeason, seasonInitialized, temporadas]);
 
-  const selectedCompareIds = useMemo(() => {
+  const selectedComparePlayers = useMemo(() => {
     const list = (evolutionaryData.playerInfo || []) as Array<{ id: string; name: string }>;
     const filterA = normalizeText(playerFilter);
     const filterB = normalizeText(playerFilter2);
-    if (!filterA || !filterB) return [] as string[];
+    if (!filterA || !filterB) return [] as Array<{ id: string; name: string }>;
 
     const pickA = list.find((player) => normalizeText(player.name || "").includes(filterA));
     const pickB = list.find(
       (player) => player.id !== pickA?.id && normalizeText(player.name || "").includes(filterB),
     );
 
-    if (!pickA?.id || !pickB?.id) return [] as string[];
-    return [pickA.id, pickB.id];
+    if (!pickA?.id || !pickB?.id) return [] as Array<{ id: string; name: string }>;
+    return [
+      { id: pickA.id, name: pickA.name || "Jugador A" },
+      { id: pickB.id, name: pickB.name || "Jugador B" },
+    ];
   }, [evolutionaryData.playerInfo, playerFilter, playerFilter2]);
 
   const isBusy = loadingPlayers || loadingLeaderboard || loadingTemporadas || !competencia;
@@ -628,17 +631,27 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
               <button
                 type="button"
                 onClick={() => {
-                  if (selectedCompareIds.length === 2) onOpenCompareVS(selectedCompareIds);
+                  if (selectedComparePlayers.length === 2) {
+                    onOpenCompareVS(selectedComparePlayers.map((player) => player.id));
+                  }
                 }}
-                disabled={selectedCompareIds.length !== 2}
+                disabled={selectedComparePlayers.length !== 2}
                 className={`col-span-2 sm:col-span-1 rounded-xl px-3 py-2 text-[11px] font-black uppercase tracking-wider transition-all ${
-                  selectedCompareIds.length === 2
+                  selectedComparePlayers.length === 2
                     ? "bg-brand-600 text-white shadow-lg shadow-brand-200 hover:bg-brand-700"
                     : "bg-slate-100 text-slate-400 cursor-not-allowed"
                 }`}
               >
                 Ver en VS
               </button>
+            )}
+
+            {onOpenCompareVS && (
+              <p className="col-span-2 sm:col-span-1 text-[10px] font-bold text-slate-500 leading-tight">
+                {selectedComparePlayers.length === 2
+                  ? `Detectados: ${selectedComparePlayers[0].name} vs ${selectedComparePlayers[1].name}`
+                  : "Escribe dos nombres para habilitar la comparativa VS."}
+              </p>
             )}
           </div>
 
