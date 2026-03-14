@@ -71,6 +71,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
   const [searchTerm, setSearchTerm] = useState('');
   const [isChartModalOpen, setIsChartModalOpen] = useState(false);
   const [comparingPlayers, setComparingPlayers] = useState<string[]>([]);
+  const [evolutionPlayers, setEvolutionPlayers] = useState<string[]>([]);
   const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
   const [shareConfig, setShareConfig] = useState<{
     isOpen: boolean;
@@ -180,7 +181,10 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
 
         <div className="mb-1 flex-shrink-0 flex items-center gap-3">
           <button
-            onClick={() => setIsChartModalOpen(true)}
+            onClick={() => {
+              setEvolutionPlayers(comparingPlayers.slice(0, 2));
+              setIsChartModalOpen(true);
+            }}
             className="text-sm text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1 transition-colors"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -222,6 +226,12 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
         onClose={() => setIsChartModalOpen(false)}
         competenciaId={_competenciaId}
         defaultSeasonId={selectedTemporada === 'global' ? undefined : selectedTemporada}
+        initialPlayerIds={evolutionPlayers}
+        onOpenCompareVS={(playerIds) => {
+          setComparingPlayers(playerIds.slice(0, 2));
+          setIsChartModalOpen(false);
+          setIsCompareModalOpen(true);
+        }}
       />
 
       {comparingPlayers.length > 0 && (
@@ -276,6 +286,11 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
         onClose={() => setIsCompareModalOpen(false)}
         players={leaderboard}
         initialPlayerIds={comparingPlayers}
+        onOpenEvolution={(playerIds) => {
+          setEvolutionPlayers(playerIds.slice(0, 2));
+          setIsCompareModalOpen(false);
+          setIsChartModalOpen(true);
+        }}
         modalidad={modalidad}
         categoria={categoria}
         competition={_competenciaId}

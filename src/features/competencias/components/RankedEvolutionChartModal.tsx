@@ -20,9 +20,17 @@ interface RankedEvolutionChartModalProps {
   onClose: () => void;
   competenciaId: string;
   defaultSeasonId?: string;
+  initialPlayerIds?: string[];
+  onOpenCompareVS?: (playerIds: string[]) => void;
 }
 
 type TimeFilter = "all" | "month";
+
+const getSafePlayerId = (player: LeaderboardItem): string => {
+  if (typeof player.playerId === "string") return player.playerId;
+  const candidate = player.playerId as unknown as { _id?: string };
+  return candidate?._id || "";
+};
 
 // Interfaces para mejorar type safety
 
@@ -31,6 +39,8 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
   onClose,
   competenciaId,
   defaultSeasonId,
+  initialPlayerIds,
+  onOpenCompareVS,
 }) => {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("all");
   const [visiblePlayersCount, setVisiblePlayersCount] = useState<number>(5); // -1 means ALL
@@ -126,6 +136,9 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
 
   const leaderboard = useMemo(() => leaderboardData?.items || [], [leaderboardData]);
 
+  const normalizeText = (value: string) =>
+    value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+
   const seasonOptions = useMemo(() => {
     return [{ _id: "global", nombre: "Histórico Global" }, ...temporadas];
   }, [temporadas]);
@@ -138,6 +151,18 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
     const players = leaderboard || [];
     return players;
   }, [leaderboard]);
+
+  useEffect(() => {
+    if (!isOpen || !initialPlayerIds?.length || leaderboard.length === 0) return;
+
+    const byId = new Map(leaderboard.map((player) => [getSafePlayerId(player), player.playerName || ""]));
+
+    const first = byId.get(String(initialPlayerIds[0] || "").trim()) || "";
+    const second = byId.get(String(initialPlayerIds[1] || "").trim()) || "";
+
+    if (first) setPlayerFilter(first);
+    if (second) setPlayerFilter2(second);
+  }, [isOpen, initialPlayerIds, leaderboard]);
 
   const getMatchDate = (match: any) => {
     const raw = match?.fecha || match?.fechaPartido || match?.date || match?.createdAt || match?.updatedAt;
@@ -217,7 +242,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
               .sort((a: any, b: any) => a.date.getTime() - b.date.getTime());
 
             return { 
-                id: player.playerId,
+              id: getSafePlayerId(player),
                 name: player.playerName, 
                 history, 
                 // rating es el campo tipado; dejamos fallback por si el backend envía alias antiguos
@@ -225,7 +250,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
             };
           } catch (e) {
             console.error(`[RankedChart] Error en jugador ${player.playerName}:`, e);
-            return { id: player.playerId, name: player.playerName, history: [], currentElo: 1500 };
+            return { id: getSafePlayerId(player), name: player.playerName, history: [], currentElo: 1500 };
           }
         })
       );
@@ -477,12 +502,28 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
     return { 
         chartData, 
         playerInfo: filteredResults.map((r, i) => ({ 
+            id: String(r.id || ""),
             name: r.name, 
             key: `player_${i}`, 
             color: chartColors[i % chartColors.length] 
         })) 
     };
   }, [rawPlayersData, matchesData, timeFilter, selectedSeason, seasonInitialized, temporadas]);
+
+  const selectedCompareIds = useMemo(() => {
+    const list = (evolutionaryData.playerInfo || []) as Array<{ id: string; name: string }>;
+    const filterA = normalizeText(playerFilter);
+    const filterB = normalizeText(playerFilter2);
+    if (!filterA || !filterB) return [] as string[];
+
+    const pickA = list.find((player) => normalizeText(player.name || "").includes(filterA));
+    const pickB = list.find(
+      (player) => player.id !== pickA?.id && normalizeText(player.name || "").includes(filterB),
+    );
+
+    if (!pickA?.id || !pickB?.id) return [] as string[];
+    return [pickA.id, pickB.id];
+  }, [evolutionaryData.playerInfo, playerFilter, playerFilter2]);
 
   const isBusy = loadingPlayers || loadingLeaderboard || loadingTemporadas || !competencia;
 
@@ -582,6 +623,23 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                 <button onClick={() => setPlayerFilter2("")} className="text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
               )}
             </div>
+
+            {onOpenCompareVS && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (selectedCompareIds.length === 2) onOpenCompareVS(selectedCompareIds);
+                }}
+                disabled={selectedCompareIds.length !== 2}
+                className={`col-span-2 sm:col-span-1 rounded-xl px-3 py-2 text-[11px] font-black uppercase tracking-wider transition-all ${
+                  selectedCompareIds.length === 2
+                    ? "bg-brand-600 text-white shadow-lg shadow-brand-200 hover:bg-brand-700"
+                    : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                }`}
+              >
+                Ver en VS
+              </button>
+            )}
           </div>
 
           <div className="flex-1 w-full p-3 sm:p-6 min-h-[360px] flex flex-col">
@@ -670,18 +728,15 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                       />
                               <Legend verticalAlign="top" height={isMobileView ? 44 : 60} iconType="circle" wrapperStyle={{ fontSize: isMobileView ? "9px" : "10px", fontWeight: 800, paddingBottom: isMobileView ? "8px" : "20px" }} />
                               {(() => {
-                                const normalize = (value: string) =>
-                                  value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-
-                                const filter1 = normalize(playerFilter.trim());
-                                const filter2 = normalize(playerFilter2.trim());
+                                const filter1 = normalizeText(playerFilter);
+                                const filter2 = normalizeText(playerFilter2);
                                 const hasAnyFilter = !!filter1 || !!filter2;
 
                                 const list = (evolutionaryData.playerInfo || []).filter((p) =>
                                   !hasAnyFilter
                                     ? true
                                     : (() => {
-                                        const name = normalize(p.name || "");
+                                        const name = normalizeText(p.name || "");
                                         const matches1 = !!filter1 && name.includes(filter1);
                                         const matches2 = !!filter2 && name.includes(filter2);
                                         return matches1 || matches2;

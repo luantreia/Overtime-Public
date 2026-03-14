@@ -17,6 +17,7 @@ interface CompareVSModalProps {
   onClose: () => void;
   players: LeaderboardItem[];
   initialPlayerIds?: string[];
+  onOpenEvolution?: (playerIds: string[]) => void;
   modalidad: string;
   categoria: string;
   competition?: string;
@@ -108,6 +109,7 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({
   onClose,
   players,
   initialPlayerIds,
+  onOpenEvolution,
   modalidad,
   categoria,
   competition,
@@ -465,8 +467,21 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({
               </div>
             </div>
           </div>
-          <div className="flex items-center justify-center p-4">
-            <button 
+          <div className="flex items-center justify-center p-4 gap-3 w-full">
+            {onOpenEvolution && (
+              <button
+                onClick={() => {
+                  if (!player1Id || !player2Id || player1Id === player2Id) return;
+                  onOpenEvolution([player1Id, player2Id]);
+                }}
+                disabled={!player1Id || !player2Id || player1Id === player2Id}
+                className="w-full py-3 rounded-xl bg-brand-600 text-white font-bold hover:bg-brand-700 transition-colors shadow-lg disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed"
+              >
+                Ver evolución
+              </button>
+            )}
+
+            <button
               onClick={onClose}
               className="w-full py-3 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-800 transition-colors shadow-lg"
             >
