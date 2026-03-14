@@ -21,6 +21,9 @@ interface CompareVSModalProps {
 export const CompareVSModal: React.FC<CompareVSModalProps> = ({ isOpen, onClose, players }) => {
   if (players.length < 2) return null;
 
+  const PolarAngleAxisCompat = PolarAngleAxis as unknown as React.ComponentType<any>;
+  const PolarRadiusAxisCompat = PolarRadiusAxis as unknown as React.ComponentType<any>;
+
   const player1 = players[0];
   const player2 = players[1];
   const player1Wins = player1.wins ?? 0;
@@ -91,8 +94,8 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({ isOpen, onClose,
           <ResponsiveContainer width="100%" height="100%">
             <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
               <PolarGrid stroke="#e2e8f0" />
-              <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }} />
-              <PolarRadiusAxis angle={30} domain={[0, 'auto']} tick={false} axisLine={false} />
+              <PolarAngleAxisCompat dataKey="subject" tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }} />
+              <PolarRadiusAxisCompat angle={30} domain={[0, 'auto']} tick={false} axisLine={false} />
               <Radar
                 name={player1.playerName || 'Jugador A'}
                 dataKey="A"
