@@ -120,6 +120,8 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
   const filterInfo = selectedFilterId 
     ? (filterType === 'synergy' ? synergy : rivalry).find(s => s.id === selectedFilterId) 
     : null;
+  const filterDraws = filterInfo?.draws ?? 0;
+  const filterLosses = filterInfo?.losses ?? Math.max(0, (filterInfo?.matches || 0) - (filterInfo?.wins || 0) - filterDraws);
 
   const handleFilterClick = (id: string, type: 'synergy' | 'rivalry') => {
     if (selectedFilterId === id && filterType === type) {
@@ -352,7 +354,7 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
                   </h3>
                   {selectedFilterId && (
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${filterType === 'synergy' ? 'text-emerald-600 bg-emerald-50 border-emerald-100' : 'text-red-600 bg-red-50 border-red-100'}`}>
-                      {filterInfo?.wins}W - {filterInfo?.matches - filterInfo?.wins}L
+                      {filterInfo?.wins || 0}W - {filterDraws}D - {filterLosses}L
                     </span>
                   )}
                 </div>

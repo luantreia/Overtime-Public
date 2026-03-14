@@ -6,6 +6,8 @@ export interface LeaderboardItem {
   rating: number;
   matchesPlayed: number;
   wins?: number;
+  losses?: number;
+  draws?: number;
   lastDelta?: number;
 }
 
@@ -23,6 +25,8 @@ export interface PlayerRankedDetail {
     name: string;
     matches: number;
     wins: number;
+    losses?: number;
+    draws?: number;
     winrate: number;
     matchIds: string[];
   }[];
@@ -31,6 +35,8 @@ export interface PlayerRankedDetail {
     name: string;
     matches: number;
     wins: number;
+    losses?: number;
+    draws?: number;
     winrate: number;
     matchIds: string[];
   }[];
