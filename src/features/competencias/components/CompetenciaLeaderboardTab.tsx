@@ -4,6 +4,8 @@ import { type LeaderboardItem } from '../services/rankedService';
 import { type JugadorCompetencia } from '../services/jugadorCompetenciaService';
 import { EloExplanationModal } from '../../../shared/components/EloExplanationModal';
 import { RankedEvolutionChartModal } from './RankedEvolutionChartModal';
+import { CompareVSModal } from './CompareVSModal';
+import { ShareRankModal } from './ShareRankModal';
 
 interface CompetenciaLeaderboardTabProps {
   temporadas: Temporada[];
@@ -29,6 +31,12 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
   const [searchTerm, setSearchTerm] = useState('');
   const [isChartModalOpen, setIsChartModalOpen] = useState(false);
   const [comparingPlayers, setComparingPlayers] = useState<string[]>([]);
+  const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
+  const [shareConfig, setShareConfig] = useState<{ isOpen: boolean, player: LeaderboardItem | null, rank: number }>({
+    isOpen: false,
+    player: null,
+    rank: 0
+  });
 
   const toggleCompare = (id: string) => {
     setComparingPlayers(prev => 
@@ -142,6 +150,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
           
           <div className="flex items-center gap-2">
             <button 
+              onClick={() => setIsCompareModalOpen(true)}
               disabled={comparingPlayers.length < 2}
               className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${
                 comparingPlayers.length === 2 
@@ -161,6 +170,23 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
             </button>
           </div>
         </div>
+      )}
+
+      {/* Comparison Modal */}
+      <CompareVSModal 
+        isOpen={isCompareModalOpen}
+        onClose={() => setIsCompareModalOpen(false)}
+        players={comparingPlayers.map(id => leaderboard.find(l => (typeof l.playerId === 'object' ? (l.playerId as any)._id : l.playerId) === id)).filter(Boolean) as LeaderboardItem[]}
+      />
+
+      {/* Share Modal */}
+      {shareConfig.player && (
+        <ShareRankModal 
+          isOpen={shareConfig.isOpen}
+          onClose={() => setShareConfig({ ...shareConfig, isOpen: false })}
+          player={shareConfig.player}
+          rank={shareConfig.rank}
+        />
       )}
 
       {loading ? (
@@ -273,7 +299,27 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                           </div>
                           <div>
                             <div className="text-sm font-bold text-slate-900">{item.playerName || playerId}</div>
-                            <span className={`mt-0.5 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold border ${badge.color}`}>
+                            <span className={`mt-0.5 inline-flex items-center px-1.5 py-0.5 rounded-
+                        <div className="flex items-center gap-3">
+                          {Number(item.rating).toFixed(1)}
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShareConfig({
+                                isOpen: true,
+                                player: item,
+                                rank: originalIndex + 1
+                              });
+                            }}
+                            className="p-1.5 rounded-full bg-slate-50 text-slate-400 hover:bg-brand-100 hover:text-brand-600 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+                            title="Compartir Rank"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0-5.314a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0-5.314a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093" />
+                            </svg>
+                          </button>
+                        </div>
+                      r ${badge.color}`}>
                               {badge.label}
                             </span>
                           </div>
@@ -355,8 +401,25 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                         originalIndex === 0 ? 'bg-amber-400' : 
                         originalIndex === 1 ? 'bg-slate-400' : 
                         originalIndex === 2 ? 'bg-amber-600' : 'bg-slate-800'
-                      }`}>
-                        {originalIndex + 1}
+                      }`}>flex items-center justify-end gap-2">
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShareConfig({
+                              isOpen: true,
+                              player: item,
+                              rank: originalIndex + 1
+                            });
+                          }}
+                          className="p-1 rounded-full bg-slate-100 text-slate-500"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3 h-3">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0-5.314a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0-5.314a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093" />
+                          </svg>
+                        </button>
+                        <div className="text-sm font-black text-brand-600 leading-none">
+                          {Number(item.rating).toFixed(1)}
+                        </div>
                       </div>
                     </div>
 
