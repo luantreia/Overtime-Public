@@ -394,8 +394,10 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
 
                             <div className="flex items-center gap-3">
                                <div className="text-right">
-                                  <div className={`text-sm font-black ${h.delta > 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                                     {h.delta > 0 ? `+${h.delta.toFixed(2)}` : h.delta.toFixed(2)}
+                                  <div className={`text-sm font-black ${typeof h.delta === 'number' && h.delta > 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                                     {typeof h.delta === 'number'
+                                       ? (h.delta > 0 ? `+${h.delta.toFixed(2)}` : h.delta.toFixed(2))
+                                       : '0.00'}
                                   </div>
                                   <div className="text-[10px] text-slate-500 font-bold">
                                      {h.partidoId?.marcadorLocal !== undefined ? `${h.partidoId.marcadorLocal} - ${h.partidoId.marcadorVisitante}` : 'Ver detalles'}
