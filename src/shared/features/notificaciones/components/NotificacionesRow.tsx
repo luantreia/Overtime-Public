@@ -1,5 +1,5 @@
 import React from 'react';
-import type { SolicitudEdicion, SolicitudEdicionTipo } from '../../../../types/solicitudesEdicion';
+import type { SolicitudEdicionTipo } from '../../../../types/solicitudesEdicion';
 import type { NotificacionesRowProps } from '../types/notificacionesTypes';
 
 const estadoColors: Record<string, string> = {
@@ -60,27 +60,25 @@ export const NotificacionesRow: React.FC<NotificacionesRowProps> = ({
           {formatDate(solicitud.createdAt)}
         </td>
         <td className="px-3 py-3">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => onViewDetails(solicitud)}
-              className="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-200"
-            >
-              Ver Detalles
-            </button>
-          </div>
+          <button
+            onClick={() => onViewDetails(solicitud)}
+            className="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-200"
+          >
+            Ver Detalles
+          </button>
         </td>
       </tr>
       {isExpanding && (
         <tr className="border-t border-slate-100 bg-slate-50/50">
           <td colSpan={4} className="px-3 py-4">
             <div className="rounded-lg bg-white p-4">
-              <h4 className="text-sm font-medium text-slate-700 mb-2">Datos Propuestos:</h4>
+              <h4 className="mb-2 text-sm font-medium text-slate-700">Datos Propuestos:</h4>
               <pre className="overflow-x-auto rounded-lg bg-slate-100 p-3 text-xs">
                 {JSON.stringify(solicitud.datosPropuestos, null, 2)}
               </pre>
               {solicitud.motivoRechazo && (
                 <div className="mt-3">
-                  <h4 className="text-sm font-medium text-red-700 mb-1">Motivo de Rechazo:</h4>
+                  <h4 className="mb-1 text-sm font-medium text-red-700">Motivo de Rechazo:</h4>
                   <p className="text-sm text-red-600">{solicitud.motivoRechazo}</p>
                 </div>
               )}
