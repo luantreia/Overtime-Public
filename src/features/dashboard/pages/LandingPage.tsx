@@ -14,7 +14,7 @@ const LandingPage: React.FC = () => {
   const navigate = useNavigate();
 
   const { data, isLoading } = useQuery({
-    queryKey: ['landing-data'],
+    queryKey: ['landing-data-v2'],
     queryFn: async () => {
       const [insights, proximos, competencias] = await Promise.all([
         api.insights().catch(() => null),
