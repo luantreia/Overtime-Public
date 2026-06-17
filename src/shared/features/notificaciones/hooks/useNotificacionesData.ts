@@ -31,7 +31,9 @@ export const useNotificacionesData = ({
       setLoading(true);
       setError(null);
 
-      const filters: Record<string, string> = {};
+      const filters: Record<string, string> = {
+        scope,
+      };
 
       if (scope === 'mine') {
         filters.creadoPor = 'me';

@@ -52,6 +52,7 @@ export interface SolicitudFiltros {
     estado?: string;
     creadoPor?: string;
     entidad?: string;
+    scope?: 'mine' | 'related' | 'aprobables';
     page?: number;
     limit?: number;
 }
