@@ -10,34 +10,28 @@ export interface CompetenciaCardProps {
 }
 
 const badgeStyles = {
-  proximamente: {
-    label: 'Próxima',
-    className: 'bg-sky-100 text-sky-700',
-  },
-  en_curso: {
-    label: 'En curso',
-    className: 'bg-emerald-100 text-emerald-700',
-  },
-  finalizada: {
-    label: 'Finalizada',
-    className: 'bg-slate-100 text-slate-700',
-  },
+  proximamente: { label: 'Próxima', className: 'bg-sky-100 text-sky-700' },
+  en_curso: { label: 'En curso', className: 'bg-emerald-100 text-emerald-700' },
+  finalizada: { label: 'Finalizada', className: 'bg-slate-100 text-slate-500' },
+} as const;
+
+const statusDot = {
+  proximamente: 'bg-sky-400',
+  en_curso: 'bg-emerald-400 animate-pulse',
+  finalizada: 'bg-slate-300',
 } as const;
 
 const CompetenciaCard = ({ competencia, variante = 'proximamente', actions, onClick }: CompetenciaCardProps) => {
-  // Defensa contra datos corruptos
   if (!competencia) return null;
 
-  // Validar que variante sea una clave válida, si no usar proximamente
   const validVariante = (variante && variante in badgeStyles) ? variante : 'proximamente';
-  
-  // Asegurar que siempre tengamos un estilo de badge válido
   const badge = badgeStyles[validVariante];
+  if (!badge) return null;
 
-  // Si por alguna razón badge sigue siendo undefined (imposible teóricamente), fallback de emergencia
-  if (!badge) {
-    return null;
-  }
+  const isRanked = (competencia as any).rankedEnabled || (competencia as any).esRanked || (competencia as any).isRanked || (competencia as any).tipo === 'ranked';
+
+  const fechaInicio = competencia.fechaInicio ? formatDate(competencia.fechaInicio) : null;
+  const fechaFin = competencia.fechaFin ? formatDate(competencia.fechaFin) : null;
 
   const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
     if (!onClick) return;
@@ -47,65 +41,74 @@ const CompetenciaCard = ({ competencia, variante = 'proximamente', actions, onCl
     }
   };
 
-  const fechaInicioTexto = competencia.fechaInicio ? formatDate(competencia.fechaInicio) : null;
-  const fechaFinTexto = competencia.fechaFin ? formatDate(competencia.fechaFin) : null;
-
   return (
     <article
-      className={`flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-card transition ${
-        onClick ? 'cursor-pointer hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40' : ''
-      }`}
+      className={`flex flex-col rounded-2xl border bg-white shadow-sm transition overflow-hidden ${
+        validVariante === 'en_curso' ? 'border-emerald-200' : 'border-slate-200'
+      } ${onClick ? 'cursor-pointer hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40' : ''}`}
       onClick={onClick}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
       onKeyDown={handleKeyDown}
     >
-      <header className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-xs uppercase tracking-wide text-slate-400">
-            Competencia
-          </p>
-          <h3 className="text-lg font-semibold text-slate-900">
-            {competencia.nombre}
-          </h3>
-          {competencia.descripcion && (
-            <p className="text-sm text-slate-500">{competencia.descripcion}</p>
-          )}
-          {competencia.organizacion && (
-            <p className="mt-1 text-sm font-medium text-brand-600">
-              Org: {competencia.organizacion.nombre || 'Desconocida'}
-            </p>
-          )}
-        </div>
-        <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${badge.className}`}>
-          {badge.label}
-        </span>
-      </header>
+      {/* Status stripe */}
+      <div className={`h-1 w-full ${validVariante === 'en_curso' ? 'bg-emerald-400' : validVariante === 'proximamente' ? 'bg-sky-400' : 'bg-slate-200'}`} />
 
-      {(fechaInicioTexto || fechaFinTexto || competencia.equipos) && (
-        <div className="rounded-xl bg-slate-50 px-4 py-3 text-sm">
-          {competencia.equipos && (
-            <div className="mb-2">
-              <p className="font-semibold text-slate-700">Equipos participantes</p>
-              <p className="text-slate-900">{competencia.equipos}</p>
-            </div>
-          )}
-          {fechaInicioTexto && (
-            <div className="mb-2">
-              <p className="font-semibold text-slate-700">Fecha inicio</p>
-              <p className="text-slate-900">{fechaInicioTexto}</p>
-            </div>
-          )}
-          {fechaFinTexto && (
-            <div>
-              <p className="font-semibold text-slate-700">Fecha fin</p>
-              <p className="text-slate-900">{fechaFinTexto}</p>
-            </div>
-          )}
+      <div className="flex flex-col gap-3 p-5 flex-1">
+        {/* Header row */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-base font-bold text-slate-900 leading-snug truncate">{competencia.nombre}</h3>
+            {competencia.organizacion && (
+              <p className="mt-0.5 text-xs font-medium text-brand-600 truncate">
+                {competencia.organizacion.nombre || 'Sin organización'}
+              </p>
+            )}
+          </div>
+          <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+            <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${badge.className}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${statusDot[validVariante]}`} />
+              {badge.label}
+            </span>
+            {isRanked && (
+              <span className="inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-indigo-600 border border-indigo-100">
+                Ranked
+              </span>
+            )}
+          </div>
+        </div>
+
+        {competencia.descripcion && (
+          <p className="text-xs text-slate-500 line-clamp-2">{competencia.descripcion}</p>
+        )}
+
+        {/* Dates + teams */}
+        {(fechaInicio || fechaFin || competencia.equipos) && (
+          <div className="mt-auto flex flex-wrap gap-x-4 gap-y-1 pt-2 border-t border-slate-100 text-xs text-slate-500">
+            {fechaInicio && (
+              <span>
+                <span className="font-semibold text-slate-700">Inicio:</span> {fechaInicio}
+              </span>
+            )}
+            {fechaFin && (
+              <span>
+                <span className="font-semibold text-slate-700">Fin:</span> {fechaFin}
+              </span>
+            )}
+            {competencia.equipos && (
+              <span>
+                <span className="font-semibold text-slate-700">Equipos:</span> {competencia.equipos}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
+      {actions && (
+        <div className="border-t border-slate-100 bg-slate-50/50 px-5 py-3 flex flex-wrap gap-2">
+          {actions}
         </div>
       )}
-
-      {actions ? <div className="mt-auto flex flex-wrap gap-2">{actions}</div> : null}
     </article>
   );
 };

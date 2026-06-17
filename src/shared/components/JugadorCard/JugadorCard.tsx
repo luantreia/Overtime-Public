@@ -28,6 +28,23 @@ const JugadorCard = ({ jugador, variante = 'activo', actions, onClick }: Jugador
   const edad = jugador.edad ? `${jugador.edad} años` : null;
   const fechaNacimiento = jugador.fechaNacimiento ? formatDate(jugador.fechaNacimiento) : null;
 
+  const initials = jugador.nombre
+    .split(' ')
+    .map((t) => t[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+
+  const colorIndex = jugador.nombre.charCodeAt(0) % 6;
+  const gradients = [
+    'from-brand-700 to-brand-900',
+    'from-indigo-600 to-indigo-900',
+    'from-emerald-600 to-emerald-900',
+    'from-amber-600 to-amber-900',
+    'from-rose-600 to-rose-900',
+    'from-sky-600 to-sky-900',
+  ];
+
   const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
     if (!onClick) return;
     if (event.key === 'Enter' || event.key === ' ') {
@@ -54,10 +71,8 @@ const JugadorCard = ({ jugador, variante = 'activo', actions, onClick }: Jugador
           className="absolute inset-0 h-full w-full object-cover"
         />
       ) : (
-        <div className="absolute inset-0 flex h-full w-full items-center justify-center bg-slate-200 text-slate-400">
-          <svg className="h-16 w-16" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
-          </svg>
+        <div className={`absolute inset-0 flex h-full w-full items-center justify-center bg-gradient-to-br ${gradients[colorIndex]}`}>
+          <span className="text-5xl font-black text-white/80 select-none">{initials}</span>
         </div>
       )}
 

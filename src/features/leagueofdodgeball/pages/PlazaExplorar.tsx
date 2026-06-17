@@ -139,6 +139,22 @@ const PlazaExplorar: React.FC = () => {
         </div>
       </div>
 
+      <div className="rounded-2xl bg-gradient-to-br from-slate-900 to-brand-900 p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md">
+        <div>
+          <h2 className="text-base font-black text-white flex items-center gap-2">
+            <TrophyIcon className="h-5 w-5 text-amber-400" />
+            Ranking Global
+          </h2>
+          <p className="text-xs text-slate-300 mt-0.5">Los mejores jugadores de toda la plataforma, por modalidad y categoría.</p>
+        </div>
+        <Link
+          to="/ranking"
+          className="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-400 text-slate-900 text-xs font-black hover:bg-amber-300 transition-colors shadow-md"
+        >
+          Ver Ranking →
+        </Link>
+      </div>
+
       {lobbies.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-xl border-2 border-dashed border-slate-200">
           <MapPinIcon className="mx-auto h-12 w-12 text-slate-400" />
@@ -322,21 +338,6 @@ const PlazaExplorar: React.FC = () => {
         )}
       </div>
 
-      <div className="rounded-2xl bg-gradient-to-br from-slate-900 to-brand-900 p-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
-        <div>
-          <h2 className="text-xl font-black text-white flex items-center gap-2">
-            <TrophyIcon className="h-6 w-6 text-amber-400" />
-            Ranking Global
-          </h2>
-          <p className="text-sm text-slate-300 mt-0.5">Los mejores jugadores de toda la plataforma, por modalidad y categoría.</p>
-        </div>
-        <Link
-          to="/ranking"
-          className="flex-shrink-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-400 text-slate-900 text-sm font-black hover:bg-amber-300 transition-colors shadow-md"
-        >
-          Ver Ranking →
-        </Link>
-      </div>
     </div>
   );
 };

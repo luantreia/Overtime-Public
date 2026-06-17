@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../providers/AuthContext';
-// removed feature flag usage
 
 const links = [
-  { to: '/plaza', label: 'League of Dodgeball' },
+  { to: '/plaza', label: 'Plaza' },
   { to: '/jugadores', label: 'Jugadores' },
   { to: '/equipos', label: 'Equipos' },
   { to: '/competencias', label: 'Competencias' },

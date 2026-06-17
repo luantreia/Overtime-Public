@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RankedService, type LeaderboardItem } from '../../competencias/services/rankedService';
 import { CompetenciaLeaderboardTab } from '../../competencias/components/CompetenciaLeaderboardTab';
+import { TrophyIcon } from '@heroicons/react/24/outline';
 
 const MODALIDADES = ['Foam', 'Cloth'] as const;
 const CATEGORIAS = ['Masculino', 'Femenino', 'Mixto', 'Libre'] as const;
@@ -69,21 +70,31 @@ export default function RankingGlobalPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <CompetenciaLeaderboardTab
-          temporadas={[]}
-          selectedTemporada="global"
-          onTemporadaChange={() => {}}
-          loading={loading}
-          leaderboard={leaderboard}
-          jugadoresComp={[]}
-          onPlayerClick={({ id }) => navigate(`/jugadores/${id}`)}
-          competenciaId=""
-          competenciaNombre="Ranking Global"
-          modalidad={modalidad}
-          categoria={categoria}
-        />
-      </div>
+      {!loading && leaderboard.length === 0 ? (
+        <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-slate-200 bg-white py-20 text-center">
+          <TrophyIcon className="h-12 w-12 text-slate-300" />
+          <div>
+            <p className="text-base font-semibold text-slate-700">Sin resultados para {modalidad} · {categoria}</p>
+            <p className="mt-1 text-sm text-slate-400">Todavía no hay jugadores rankeados en esta categoría. ¡Jugá el primer partido!</p>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <CompetenciaLeaderboardTab
+            temporadas={[]}
+            selectedTemporada="global"
+            onTemporadaChange={() => {}}
+            loading={loading}
+            leaderboard={leaderboard}
+            jugadoresComp={[]}
+            onPlayerClick={({ id }) => navigate(`/jugadores/${id}`)}
+            competenciaId=""
+            competenciaNombre="Ranking Global"
+            modalidad={modalidad}
+            categoria={categoria}
+          />
+        </div>
+      )}
     </div>
   );
 }
