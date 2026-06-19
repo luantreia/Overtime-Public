@@ -109,4 +109,12 @@ export class JugadorService {
       method: 'POST'
     });
   }
+
+  static async getMyProfile(): Promise<Jugador | null> {
+    try {
+      return await fetchWithAuth<Jugador>(`${this.API_ENDPOINT}/me/profile`);
+    } catch {
+      return null;
+    }
+  }
 }
