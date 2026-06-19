@@ -93,7 +93,7 @@ export class JugadorService {
 
   static async update(id: string, data: Partial<Jugador>): Promise<Jugador> {
     return fetchWithAuth<Jugador>(`${this.API_ENDPOINT}/${id}`, {
-      method: 'PATCH',
+      method: 'PUT',
       body: JSON.stringify(data),
     });
   }

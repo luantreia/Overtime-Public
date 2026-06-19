@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toPng } from 'html-to-image';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { JugadorService } from '../services/jugadorService';
 import { CompetenciaService } from '../../competencias/services/competenciaService';
 import { JugadorCompetenciaService } from '../../competencias/services/jugadorCompetenciaService';
@@ -22,7 +22,9 @@ const JugadorDetalle: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { addToast } = useToast();
-  
+  const queryClient = useQueryClient();
+
+
   const { data: jugador, isLoading: loading, error } = useQuery({
     queryKey: ['jugador', id],
     queryFn: () => {
@@ -175,6 +177,10 @@ const JugadorDetalle: React.FC = () => {
   const [showAllComps, setShowAllComps] = useState(false);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'history' | 'leagues'>('dashboard');
 
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({ nombre: '', alias: '', foto: '', genero: '', nacionalidad: '', fechaNacimiento: '' });
+  const [editLoading, setEditLoading] = useState(false);
+
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCompForModal, setSelectedCompForModal] = useState<any>(null);
@@ -223,6 +229,8 @@ const JugadorDetalle: React.FC = () => {
     }
   };
 
+  const isOwner = !!(user && jugador && jugador.userId?.toString() === user.id);
+
   const handleClaim = async () => {
     if (!id || !user) return;
     try {
@@ -241,6 +249,43 @@ const JugadorDetalle: React.FC = () => {
       });
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const handleStartEdit = () => {
+    if (!jugador) return;
+    setEditForm({
+      nombre: jugador.nombre || '',
+      alias: jugador.alias || '',
+      foto: jugador.foto || '',
+      genero: jugador.genero || '',
+      nacionalidad: jugador.nacionalidad || '',
+      fechaNacimiento: jugador.fechaNacimiento
+        ? new Date(jugador.fechaNacimiento).toISOString().split('T')[0]
+        : '',
+    });
+    setIsEditing(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!id || !jugador) return;
+    try {
+      setEditLoading(true);
+      await JugadorService.update(id, {
+        nombre: editForm.nombre,
+        alias: editForm.alias || undefined,
+        foto: editForm.foto || undefined,
+        genero: editForm.genero as any || undefined,
+        nacionalidad: editForm.nacionalidad || undefined,
+        fechaNacimiento: editForm.fechaNacimiento || undefined,
+      });
+      await queryClient.invalidateQueries({ queryKey: ['jugador', id] });
+      setIsEditing(false);
+      addToast({ type: 'success', title: 'Perfil actualizado', message: 'Los datos fueron guardados correctamente.' });
+    } catch (err: any) {
+      addToast({ type: 'error', title: 'Error al guardar', message: err.message });
+    } finally {
+      setEditLoading(false);
     }
   };
 
@@ -367,9 +412,19 @@ const JugadorDetalle: React.FC = () => {
               )}
 
               {jugador.userId && (
-                <div className="flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-100 rounded-xl">
-                  <span className="flex h-2 w-2 rounded-full bg-green-500"></span>
-                  <span className="text-xs font-bold text-green-700 uppercase tracking-wider">Perfil Verificado</span>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-100 rounded-xl">
+                    <span className="flex h-2 w-2 rounded-full bg-green-500"></span>
+                    <span className="text-xs font-bold text-green-700 uppercase tracking-wider">Perfil Verificado</span>
+                  </div>
+                  {isOwner && !isEditing && (
+                    <button
+                      onClick={handleStartEdit}
+                      className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-brand-600 border border-slate-200 hover:border-brand-200 rounded-xl transition-all"
+                    >
+                      Editar
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -384,6 +439,49 @@ const JugadorDetalle: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8">
               <section className="sm:col-span-2">
                 <h2 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-4 pb-2 border-b border-slate-100">Información</h2>
+                {isEditing ? (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Nombre</label>
+                        <input className="mt-1 w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" value={editForm.nombre} onChange={e => setEditForm(p => ({ ...p, nombre: e.target.value }))} />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Alias</label>
+                        <input className="mt-1 w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" placeholder="@alias" value={editForm.alias} onChange={e => setEditForm(p => ({ ...p, alias: e.target.value }))} />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Género</label>
+                        <select className="mt-1 w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" value={editForm.genero} onChange={e => setEditForm(p => ({ ...p, genero: e.target.value }))}>
+                          <option value="">Sin especificar</option>
+                          <option value="masculino">Masculino</option>
+                          <option value="femenino">Femenino</option>
+                          <option value="otro">Otro</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Nacionalidad</label>
+                        <input className="mt-1 w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" value={editForm.nacionalidad} onChange={e => setEditForm(p => ({ ...p, nacionalidad: e.target.value }))} />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Fecha de nacimiento</label>
+                        <input type="date" className="mt-1 w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" value={editForm.fechaNacimiento} onChange={e => setEditForm(p => ({ ...p, fechaNacimiento: e.target.value }))} />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">URL de foto</label>
+                        <input className="mt-1 w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" placeholder="https://..." value={editForm.foto} onChange={e => setEditForm(p => ({ ...p, foto: e.target.value }))} />
+                      </div>
+                    </div>
+                    <div className="flex gap-2 pt-1">
+                      <button onClick={handleSaveEdit} disabled={editLoading} className="px-4 py-2 bg-brand-600 text-white text-xs font-bold rounded-lg hover:bg-brand-700 disabled:opacity-50 transition-all">
+                        {editLoading ? 'Guardando...' : 'Guardar'}
+                      </button>
+                      <button onClick={() => setIsEditing(false)} className="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-800 rounded-lg hover:bg-slate-100 transition-all">
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                ) : (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <dt className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Género</dt>
@@ -398,6 +496,7 @@ const JugadorDetalle: React.FC = () => {
                     <dd className="mt-0.5 text-sm text-slate-900 font-semibold">{jugador.edad ? `${jugador.edad} años` : 'N/A'}</dd>
                   </div>
                 </div>
+                )}
               </section>
 
               <section>
