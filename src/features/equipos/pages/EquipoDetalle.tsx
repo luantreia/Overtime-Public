@@ -2,11 +2,21 @@ import React, { useCallback, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEntity } from '../../../shared/hooks';
 import { EquipoService, type Equipo } from '../services/equipoService';
+import { useAuth } from '../../../app/providers/AuthContext';
+import { useToast } from '../../../shared/components/Toast/ToastProvider';
+import { crearSolicitudEdicion } from '../../solicitudes/services/solicitudesEdicionService';
 
 const EquipoDetalle: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { addToast } = useToast();
   const [activeTab, setActiveTab] = useState<'actual' | 'historial'>('actual');
+  const [actionLoading, setActionLoading] = useState(false);
+  const [solicitudEnviada, setSolicitudEnviada] = useState(false);
+  const [showAdminRequest, setShowAdminRequest] = useState(false);
+
+  const MAX_ADMINS = 3;
 
   const { data: equipo, loading, error } = useEntity<Equipo>(
     useCallback(() => {
@@ -63,6 +73,37 @@ const EquipoDetalle: React.FC = () => {
   }
 
   const escudo = equipo.escudo || equipo.imagen;
+  const equipoId = equipo._id || equipo.id;
+  const esAdmin = user && (
+    equipo.administradores?.some(a => a?.toString() === user.id) ||
+    equipo.creadoPor?.toString() === user.id
+  );
+
+  const handleRequestAdmin = async () => {
+    if (!user || !equipoId) return;
+    try {
+      setActionLoading(true);
+      await crearSolicitudEdicion({
+        tipo: 'usuario-solicitar-admin-equipo',
+        entidad: equipoId,
+        datosPropuestos: { equipoId },
+      });
+      setSolicitudEnviada(true);
+      addToast({
+        type: 'success',
+        title: 'Solicitud enviada',
+        message: 'Tu solicitud para administrar este equipo fue enviada. Un administrador la revisará pronto.',
+      });
+    } catch (err: any) {
+      addToast({
+        type: 'error',
+        title: 'Error',
+        message: err.message,
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 py-8">
@@ -95,6 +136,51 @@ const EquipoDetalle: React.FC = () => {
                   )}
                 </div>
               </div>
+
+              {!esAdmin && (equipo.administradores?.length ?? 0) < MAX_ADMINS && (
+                <div className="flex flex-col items-end gap-2">
+                  {solicitudEnviada ? (
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-100 rounded-lg">
+                      <span className="flex h-1.5 w-1.5 rounded-full bg-green-500"></span>
+                      <span className="text-xs font-semibold text-green-700">Solicitud enviada</span>
+                    </div>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => setShowAdminRequest(v => !v)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-400 hover:text-slate-600 hover:border-slate-300 transition-all text-xs"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Datos desactualizados
+                      </button>
+
+                      {showAdminRequest && (
+                        <div className="w-72 p-4 bg-white border border-slate-200 rounded-xl shadow-lg text-sm text-slate-600 space-y-3">
+                          <p>Si sos responsable de este equipo, podés solicitar administración para mantener el perfil actualizado.</p>
+                          {user ? (
+                            <button
+                              onClick={handleRequestAdmin}
+                              disabled={actionLoading}
+                              className="w-full py-2 bg-brand-600 text-white rounded-lg font-semibold text-xs hover:bg-brand-700 transition-all disabled:opacity-50"
+                            >
+                              {actionLoading ? 'Enviando...' : 'Solicitar administración'}
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => navigate(`/register?redirect=/equipos/${id}`)}
+                              className="w-full py-2 bg-brand-600 text-white rounded-lg font-semibold text-xs hover:bg-brand-700 transition-all"
+                            >
+                              Registrate para solicitarlo
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="mb-8">

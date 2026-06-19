@@ -5,15 +5,19 @@ export interface Equipo {
   id?: string;
   nombre: string;
   ciudad?: string;
+  pais?: string;
   organizacionId?: string;
   organizacion?: {
     id: string;
     nombre: string;
   };
+  administradores?: string[];
+  creadoPor?: string;
   miembros?: number;
   imagen?: string;
   escudo?: string;
   activo?: boolean;
+  fechaDisolucion?: string;
   competenciasJugadas?: number;
   competenciasGanadas?: number;
   partidosJugados?: number;
