@@ -360,7 +360,7 @@ const JugadorDetalle: React.FC = () => {
                     onClick={() => navigate(`/register?redirect=/jugadores/${id}`)}
                     className="flex flex-col items-center bg-brand-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-brand-100 hover:bg-brand-700 transition-all"
                   >
-                    <span>¿Sos este jugador?</span>
+                    <span>Administrar Jugador</span>
                     <span className="text-xs font-normal opacity-80">Registrate para reclamar el perfil</span>
                   </button>
                 )
