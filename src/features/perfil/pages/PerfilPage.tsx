@@ -20,7 +20,7 @@ const PerfilPage = () => {
 
   // Editar perfil
   const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [profileForm, setProfileForm] = useState({ nombre: user?.nombre ?? '', email: user?.email ?? '' });
+  const [profileForm, setProfileForm] = useState({ nombre: user?.nombre ?? '' });
   const [profileLoading, setProfileLoading] = useState(false);
 
   // Cambiar contraseña
@@ -65,7 +65,7 @@ const PerfilPage = () => {
     if (!profileForm.nombre.trim()) return;
     try {
       setProfileLoading(true);
-      await actualizarUsuario({ nombre: profileForm.nombre, email: profileForm.email });
+      await actualizarUsuario({ nombre: profileForm.nombre });
       await refreshProfile();
       setIsEditingProfile(false);
       addToast({ type: 'success', title: 'Perfil actualizado', message: 'Tus datos fueron guardados.' });
@@ -127,7 +127,7 @@ const PerfilPage = () => {
             </div>
             {!isEditingProfile && (
               <button
-                onClick={() => { setProfileForm({ nombre: user.nombre, email: user.email }); setIsEditingProfile(true); }}
+                onClick={() => { setProfileForm({ nombre: user.nombre }); setIsEditingProfile(true); }}
                 className="text-xs font-semibold text-brand-600 hover:text-brand-700 px-3 py-1.5 rounded-lg hover:bg-brand-50 transition-all"
               >
                 Editar
@@ -147,12 +147,7 @@ const PerfilPage = () => {
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Email</label>
-                <input
-                  type="email"
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-                  value={profileForm.email}
-                  onChange={e => setProfileForm(p => ({ ...p, email: e.target.value }))}
-                />
+                <p className="mt-1 text-sm text-slate-400">{user.email} <span className="text-xs">(no editable)</span></p>
               </div>
               <div className="flex gap-2 pt-1">
                 <button

@@ -1,7 +1,7 @@
 import { authFetch } from '../../../utils/authFetch';
 import type { Usuario } from '../../../types';
 
-type UpdateUsuarioPayload = Partial<Pick<Usuario, 'nombre' | 'email'>>;
+type UpdateUsuarioPayload = Pick<Usuario, 'nombre'>;
 
 type UpdatePasswordPayload = {
   passwordActual: string;
@@ -9,13 +9,13 @@ type UpdatePasswordPayload = {
 };
 
 export const actualizarUsuario = (payload: UpdateUsuarioPayload) =>
-  authFetch<Usuario>('/usuario', {
+  authFetch<Usuario>('/usuarios/actualizar', {
     method: 'PUT',
     body: payload,
   });
 
 export const cambiarPassword = (payload: UpdatePasswordPayload) =>
-  authFetch<void>('/usuario/password', {
+  authFetch<void>('/usuarios/password', {
     method: 'PATCH',
     body: payload,
   });
