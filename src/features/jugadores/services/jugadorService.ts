@@ -87,14 +87,14 @@ export class JugadorService {
   static async create(data: Omit<Jugador, '_id' | 'id' | 'createdAt' | 'updatedAt'>): Promise<Jugador> {
     return fetchWithAuth<Jugador>(`${this.API_ENDPOINT}`, {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: data as unknown as Record<string, unknown>,
     });
   }
 
   static async update(id: string, data: Partial<Jugador>): Promise<Jugador> {
     return fetchWithAuth<Jugador>(`${this.API_ENDPOINT}/${id}`, {
       method: 'PUT',
-      body: JSON.stringify(data),
+      body: data as unknown as Record<string, unknown>,
     });
   }
 
