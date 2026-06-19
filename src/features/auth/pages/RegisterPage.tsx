@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../../app/providers/AuthContext';
 import { useToast } from '../../../shared/components/Toast/ToastProvider';
 
@@ -7,6 +7,8 @@ const RegisterPage: React.FC = () => {
   const { addToast } = useToast();
   const { register } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get('redirect') || '/';
   const [formData, setFormData] = useState({
     nombre: '',
     email: '',
@@ -57,7 +59,7 @@ const RegisterPage: React.FC = () => {
         message: 'Tu cuenta ha sido creada correctamente. ¡Bienvenido!'
       });
 
-      navigate('/');
+      navigate(redirectTo);
     } catch (err: any) {
       let message = err?.message || 'Error al registrar usuario';
       // Si el backend devuelve errores de validación, mostrar el primero

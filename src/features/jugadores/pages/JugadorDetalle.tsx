@@ -346,14 +346,24 @@ const JugadorDetalle: React.FC = () => {
                 </div>
               </div>
 
-              {user && !jugador.userId && !jugador.perfilReclamado && (
-                <button
-                  onClick={handleClaim}
-                  disabled={actionLoading}
-                  className="bg-brand-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-brand-100 hover:bg-brand-700 transition-all disabled:opacity-50"
-                >
-                  {actionLoading ? 'Enviando...' : 'Reclamar este Perfil'}
-                </button>
+              {!jugador.userId && !jugador.perfilReclamado && (
+                user ? (
+                  <button
+                    onClick={handleClaim}
+                    disabled={actionLoading}
+                    className="bg-brand-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-brand-100 hover:bg-brand-700 transition-all disabled:opacity-50"
+                  >
+                    {actionLoading ? 'Enviando...' : 'Reclamar este Perfil'}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => navigate(`/register?redirect=/jugadores/${id}`)}
+                    className="flex flex-col items-center bg-brand-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-brand-100 hover:bg-brand-700 transition-all"
+                  >
+                    <span>¿Sos este jugador?</span>
+                    <span className="text-xs font-normal opacity-80">Registrate para reclamar el perfil</span>
+                  </button>
+                )
               )}
 
               {jugador.userId && (
