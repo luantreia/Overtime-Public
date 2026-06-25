@@ -123,7 +123,7 @@ const PerfilPage = () => {
               </div>
               <div>
                 <p className="font-bold text-slate-900 text-lg leading-tight">{user.nombre}</p>
-                <p className="text-sm text-slate-500">{user.email}</p>
+                <p className="text-sm text-slate-500 break-all">{user.email}</p>
                 <span className="inline-block mt-1 px-2 py-0.5 rounded-md bg-slate-100 text-xs font-semibold text-slate-600 capitalize">{user.rol}</span>
               </div>
             </div>
@@ -289,7 +289,7 @@ const PerfilPage = () => {
         <div className="rounded-2xl bg-white p-6 shadow-sm border border-slate-100">
           <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-1">Crear entidades</h2>
           <p className="text-xs text-slate-500 mb-5">Las solicitudes son revisadas por administradores antes de publicarse.</p>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {[
               { tipo: 'usuario-crear-jugador' as SolicitudEdicionTipo, label: 'Jugador', icon: '👤', color: 'bg-blue-50 text-blue-600' },
               { tipo: 'usuario-crear-equipo' as SolicitudEdicionTipo, label: 'Equipo', icon: '👥', color: 'bg-green-50 text-green-600' },

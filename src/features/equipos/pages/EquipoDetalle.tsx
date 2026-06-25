@@ -162,7 +162,7 @@ const EquipoDetalle: React.FC = () => {
                       </button>
 
                       {showAdminRequest && (
-                        <div className="w-72 p-4 bg-white border border-slate-200 rounded-xl shadow-lg text-sm text-slate-600 space-y-3">
+                        <div className="w-full sm:w-72 p-4 bg-white border border-slate-200 rounded-xl shadow-lg text-sm text-slate-600 space-y-3">
                           <p>Si sos responsable de este equipo, podés solicitar administración para mantener el perfil actualizado.</p>
                           {user ? (
                             <button
@@ -189,7 +189,7 @@ const EquipoDetalle: React.FC = () => {
             </div>
 
             <div className="mb-8">
-              <h1 className="text-4xl font-extrabold text-slate-900">{equipo.nombre}</h1>
+              <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900">{equipo.nombre}</h1>
               <div className="flex items-center gap-2 mt-2">
                 <span className="text-lg text-slate-500 flex items-center gap-1">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-slate-400">

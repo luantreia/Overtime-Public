@@ -109,7 +109,7 @@ const Equipos: React.FC = () => {
     <div className="min-h-screen bg-slate-50 py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900">Equipos</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Equipos</h1>
           <p className="mt-2 text-slate-600">Directorio de equipos registrados</p>
         </div>
 
@@ -180,7 +180,7 @@ const Equipos: React.FC = () => {
           </div>
         )}
 
-        <div className="mt-8 flex items-center justify-between">
+        <div className="mt-8 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:justify-between">
           <div className="flex items-center gap-2">
             <span className="text-sm text-slate-600">Mostrar</span>
             <select

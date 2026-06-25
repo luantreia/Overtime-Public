@@ -36,7 +36,7 @@ export default function RankingGlobalPage() {
   }, [fetchLeaderboard]);
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-6xl space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-end gap-4">
         <div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">Ranking Global</h1>

@@ -195,8 +195,8 @@ const CompetenciaDetalle: React.FC = () => {
         />
 
         {/* Tabs */}
-        <div className="mb-6 border-b border-slate-200">
-          <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+        <div className="mb-6 border-b border-slate-200 overflow-x-auto">
+          <nav className="-mb-px flex space-x-8 whitespace-nowrap" aria-label="Tabs">
             <button
               onClick={() => updateParams({ tab: 'info' })}
               className={`${

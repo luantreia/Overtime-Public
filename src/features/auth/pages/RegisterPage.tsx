@@ -82,7 +82,7 @@ const RegisterPage: React.FC = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/10 p-8 backdrop-blur">
+      <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/10 p-6 sm:p-8 backdrop-blur">
         <div className="mb-6 flex flex-col items-center">
           <img src="/logo.png" alt="Overtime Logo" className="h-20 w-auto mb-2" />
           <h1 className="mt-2 text-xl font-semibold text-white">Únete a Overtime</h1>
@@ -96,6 +96,7 @@ const RegisterPage: React.FC = () => {
               className="w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-white placeholder-slate-300 focus:border-brand-500 focus:outline-none"
               type="text"
               name="nombre"
+              autoComplete="name"
               value={formData.nombre}
               onChange={handleChange}
               required
@@ -109,6 +110,7 @@ const RegisterPage: React.FC = () => {
               className="w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-white placeholder-slate-300 focus:border-brand-500 focus:outline-none"
               type="email"
               name="email"
+              autoComplete="email"
               value={formData.email}
               onChange={handleChange}
               required
@@ -122,6 +124,7 @@ const RegisterPage: React.FC = () => {
               className="w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-white placeholder-slate-300 focus:border-brand-500 focus:outline-none"
               type="password"
               name="password"
+              autoComplete="new-password"
               value={formData.password}
               onChange={handleChange}
               required
@@ -135,6 +138,7 @@ const RegisterPage: React.FC = () => {
               className="w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-white placeholder-slate-300 focus:border-brand-500 focus:outline-none"
               type="password"
               name="confirmPassword"
+              autoComplete="new-password"
               value={formData.confirmPassword}
               onChange={handleChange}
               required

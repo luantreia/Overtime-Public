@@ -539,7 +539,7 @@ const PlazaExplorar: React.FC = () => {
           })}
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm h-[600px] relative z-0">
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm h-[300px] sm:h-[600px] relative z-0">
           <MapContainer center={location ? [location.lat, location.lng] : [-34.6037, -58.3816]} zoom={13} scrollWheelZoom className="h-full w-full">
             <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             {location && (

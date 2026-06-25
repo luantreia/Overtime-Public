@@ -198,7 +198,7 @@ const PlazaCrear: React.FC = () => {
 
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-2">Selecciona Ubicación en el Mapa</label>
-            <div className="h-64 rounded-xl overflow-hidden border border-slate-200 shadow-inner z-0">
+            <div className="h-44 sm:h-64 rounded-xl overflow-hidden border border-slate-200 shadow-inner z-0">
               <MapContainer center={[formData.lat, formData.lng]} zoom={13} style={{ height: '100%', width: '100%' }}>
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                 <LocationPicker 

@@ -191,7 +191,7 @@ const NotificacionesPage = () => {
             <option>Partidos</option>
             <option>Otras</option>
           </select>
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar…" className="w-48 rounded-lg border-slate-300 text-sm" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar…" className="w-full sm:w-48 rounded-lg border-slate-300 text-sm" />
           <label className="inline-flex items-center gap-2 text-sm text-slate-600">
             <input type="checkbox" checked={autoRefresh} onChange={(e) => setAutoRefresh(e.target.checked)} />
             Auto-refresh 30s

@@ -57,7 +57,7 @@ const LandingPage: React.FC = () => {
           <p className="mb-8 text-xl text-slate-300">Ecosistema competitivo y comunitario de dodgeball</p>
 
           {totals && (
-            <div className="mb-10 flex flex-wrap justify-center gap-8">
+            <div className="mb-10 flex flex-wrap justify-center gap-4 sm:gap-8">
               {([
                 { value: totals.jugadores, label: 'Jugadores' },
                 { value: totals.partidos, label: 'Partidos' },

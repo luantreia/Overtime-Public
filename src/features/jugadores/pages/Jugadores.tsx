@@ -139,12 +139,12 @@ const Jugadores: React.FC = () => {
     <div className="min-h-screen bg-slate-50 py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900">Jugadores</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Jugadores</h1>
           <p className="mt-2 text-slate-600">Directorio de jugadores registrados</p>
         </div>
 
         {user && (
-          <div className="mb-8 bg-brand-50 border border-brand-200 rounded-xl p-4 flex items-center justify-between gap-4">
+          <div className="mb-8 bg-brand-50 border border-brand-200 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <div className="flex items-center gap-3">
               <span className="text-xl">🏆</span>
               <p className="text-sm text-brand-800">
