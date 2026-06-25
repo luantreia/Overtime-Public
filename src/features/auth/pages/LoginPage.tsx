@@ -28,7 +28,6 @@ const LoginPage = () => {
       addToast({ type: 'success', title: 'Sesión iniciada', message: 'Bienvenido/a' });
       navigate(from, { replace: true });
     } catch (err) {
-      console.error(err);
       const message = (err as any)?.message || 'Credenciales inválidas o servicio no disponible.';
       setError(message);
       addToast({ type: 'error', title: 'No se pudo iniciar sesión', message });
@@ -54,6 +53,7 @@ const LoginPage = () => {
             <input
               id="email"
               type="email"
+              autoComplete="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               required
@@ -69,6 +69,7 @@ const LoginPage = () => {
             <input
               id="password"
               type="password"
+              autoComplete="current-password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               required
