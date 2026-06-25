@@ -15,7 +15,7 @@ export default function RankingGlobalPage() {
   usePageTitle('Ranking Global');
   const navigate = useNavigate();
   const [modalidad, setModalidad] = useState<Modalidad>('Foam');
-  const [categoria, setCategoria] = useState<Categoria>('Masculino');
+  const [categoria, setCategoria] = useState<Categoria>('Libre');
   const [leaderboard, setLeaderboard] = useState<LeaderboardItem[]>([]);
   const [loading, setLoading] = useState(false);
 

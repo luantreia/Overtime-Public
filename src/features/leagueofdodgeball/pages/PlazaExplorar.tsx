@@ -4,7 +4,7 @@ import { Lobby } from '../types';
 import { Link, useNavigate } from 'react-router-dom';
 import { LoadingSpinner } from '../../../shared/components/LoadingSpinner';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
-import { MapPinIcon, CalendarIcon, UsersIcon, TrophyIcon, ListBulletIcon, MapIcon } from '@heroicons/react/24/outline';
+import { MapPinIcon, CalendarIcon, UsersIcon, TrophyIcon, ListBulletIcon, MapIcon, InformationCircleIcon, XMarkIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -25,6 +25,7 @@ const PlazaExplorar: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+  const [showInfo, setShowInfo] = useState(false);
   useEffect(() => {
     // Attempt to get user location for better results
     if (navigator.geolocation) {
@@ -70,11 +71,95 @@ const PlazaExplorar: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Modal de ayuda */}
+      {showInfo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm" onClick={() => setShowInfo(false)}>
+          <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-6 border-b border-slate-100">
+              <div>
+                <h2 className="text-lg font-black text-slate-900">¿Cómo funciona La Plaza?</h2>
+                <p className="text-xs text-slate-500 mt-0.5">Dodgeball callejero rankeado</p>
+              </div>
+              <button onClick={() => setShowInfo(false)} className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 transition-colors">
+                <XMarkIcon className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-5">
+              {/* Flujo */}
+              <div>
+                <h3 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-3">El flujo de un partido</h3>
+                <ol className="space-y-3">
+                  {[
+                    { n: '1', title: 'Creá o unite a un lobby', desc: 'El host crea el lobby con fecha, lugar y modalidad. Cualquier jugador con perfil puede unirse.' },
+                    { n: '2', title: 'Check-in GPS', desc: 'Cuando llegás a la cancha, validás tu presencia con GPS. Tenés que estar a menos de 150m del lugar.' },
+                    { n: '3', title: 'Equilibrio de equipos', desc: 'El host puede usar "Auto-Equilibrar" para balancear los teams por ELO automáticamente.' },
+                    { n: '4', title: 'Jugá el partido', desc: 'El host o el Oficial registran los sets en tiempo real desde el panel de control.' },
+                    { n: '5', title: 'Confirmá el resultado', desc: 'El host y el capitán rival deben confirmar el marcador. Si hay desacuerdo, se puede corregir antes.' },
+                    { n: '6', title: 'Karma post-partido', desc: 'Votás la conducta de cada jugador. Esos votos afectan el Karma de todos.' },
+                  ].map(step => (
+                    <li key={step.n} className="flex gap-3">
+                      <span className="flex-shrink-0 h-6 w-6 rounded-full bg-brand-600 text-white text-xs font-black flex items-center justify-center">{step.n}</span>
+                      <div>
+                        <p className="text-sm font-bold text-slate-800">{step.title}</p>
+                        <p className="text-xs text-slate-500 mt-0.5">{step.desc}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+
+              {/* Ranking */}
+              <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 space-y-2">
+                <h3 className="text-xs font-black text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                  <TrophyIcon className="h-4 w-4" /> Puntos de ranking
+                </h3>
+                <div className="flex gap-3">
+                  <div className="flex-1 rounded-lg bg-white border border-slate-200 p-3 text-center">
+                    <p className="text-2xl font-black text-slate-700">0.3×</p>
+                    <p className="text-[10px] text-slate-500 mt-1">Sin oficial</p>
+                  </div>
+                  <div className="flex-1 rounded-lg bg-brand-50 border border-brand-200 p-3 text-center">
+                    <p className="text-2xl font-black text-brand-700">0.5×</p>
+                    <p className="text-[10px] text-brand-600 mt-1 font-medium flex items-center justify-center gap-1">
+                      <ShieldCheckIcon className="h-3 w-3" /> Con oficial
+                    </p>
+                  </div>
+                </div>
+                <p className="text-[11px] text-slate-400">El multiplicador se aplica sobre el delta ELO calculado. Los partidos sin oficial valen menos para desincentivar el auto-reporte.</p>
+              </div>
+
+              {/* Auto-gobernanza */}
+              <div className="rounded-xl bg-amber-50 border border-amber-200 p-4">
+                <h3 className="text-xs font-black text-amber-700 uppercase tracking-wider mb-2">Auto-gobernanza</h3>
+                <p className="text-xs text-amber-800">Si el host, el capitán rival o un oficial están inactivos durante el partido, cualquier jugador puede reportar su ausencia. Si más del 50% vota, el rol se reasigna automáticamente al jugador con más karma.</p>
+              </div>
+
+              {/* Requisitos */}
+              <div>
+                <h3 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Requisitos para jugar</h3>
+                <ul className="space-y-1.5 text-xs text-slate-600">
+                  <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-500 flex-shrink-0" />Necesitás un perfil de jugador vinculado a tu cuenta.</li>
+                  <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-500 flex-shrink-0" />Tenés que habilitar el GPS para el check-in y para ver lobbies cercanos.</li>
+                  <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-500 flex-shrink-0" />No asistir después de unirte baja drásticamente tu Karma.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
             Dodgeball Calle
             <span className="px-2 py-1 text-xs font-semibold bg-brand-100 text-brand-700 rounded-full">Beta</span>
+            <button
+              onClick={() => setShowInfo(true)}
+              className="text-slate-400 hover:text-brand-600 transition-colors"
+              aria-label="Cómo funciona La Plaza"
+            >
+              <InformationCircleIcon className="h-6 w-6" />
+            </button>
           </h1>
           <p className="text-slate-600 mt-1">Crea o únete a partidos rankeados en tu zona.</p>
         </div>
