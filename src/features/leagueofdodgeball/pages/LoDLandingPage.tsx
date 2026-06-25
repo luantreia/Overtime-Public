@@ -191,7 +191,7 @@ export default function LoDLandingPage() {
         <div className="mx-auto max-w-5xl space-y-10">
           <div className="text-center space-y-2">
             <h2 className="text-3xl font-black text-slate-900">¿Qué es League of Dodgeball?</h2>
-            <p className="text-slate-500 max-w-lg mx-auto">Un sistema pensado para que el dodgeball callejero tenga estructura, competencia y comunidad.</p>
+            <p className="text-slate-500 max-w-lg mx-auto">Un sistema pensado para que el dodgeball tenga estructura, competencia y comunidad.</p>
           </div>
 
           <div className="grid sm:grid-cols-3 gap-6">
