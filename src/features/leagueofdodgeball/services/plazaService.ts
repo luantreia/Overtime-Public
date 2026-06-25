@@ -9,8 +9,15 @@ export class PlazaService {
     if (lat) params.append('lat', lat.toString());
     if (lng) params.append('lng', lng.toString());
     if (radius) params.append('radius', radius.toString());
-
     return fetchWithAuth<Lobby[]>(`${this.API_ENDPOINT}/lobbies?${params.toString()}`);
+  }
+
+  static async getRecentFinished(limit = 5): Promise<Lobby[]> {
+    const all = await fetchWithAuth<Lobby[]>(`${this.API_ENDPOINT}/lobbies?all=true`);
+    return all
+      .filter(l => l.status === 'finished')
+      .sort((a, b) => new Date(b.scheduledDate).getTime() - new Date(a.scheduledDate).getTime())
+      .slice(0, limit);
   }
 
   static async getLobbyById(id: string): Promise<Lobby> {
