@@ -99,12 +99,12 @@ export default function LoDLandingPage() {
             League of Dodgeball
           </div>
           <h1 className="text-5xl sm:text-6xl font-black leading-tight tracking-tight">
-            Dodgeball.<br />
+            En el Club.<br />
             <span className="text-brand-300">En la calle.</span><br />
             Rankeado.
           </h1>
           <p className="text-lg text-slate-300 max-w-xl mx-auto leading-relaxed">
-            Encontrá partidos cerca tuyo, sumá puntos al ranking global y formá parte de la comunidad de dodgeball más activa.
+            Encontrá competencias y partidos cerca tuyo, sumá puntos al ranking global y formá parte de la comunidad de dodgeball más activa.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link to="/plaza" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-brand-500 hover:bg-brand-400 text-white font-black rounded-xl transition-colors shadow-lg shadow-brand-900/50 text-sm">
