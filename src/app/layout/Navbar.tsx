@@ -4,6 +4,7 @@ import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../providers/AuthContext';
 
 const LOD_LINKS = [
+  { to: '/lod', label: '¿Qué es LoD?' },
   { to: '/plaza', label: 'La Plaza' },
   { to: '/ranking', label: 'Ranking Global' },
   { to: '/lod/competencias', label: 'Competencias LoD' },
