@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../providers/AuthContext';
 
 const links = [
@@ -8,12 +8,17 @@ const links = [
   { to: '/equipos', label: 'Equipos' },
   { to: '/competencias', label: 'Competencias' },
   { to: '/partidos', label: 'Partidos' },
+  { to: '/ranking', label: 'Ranking' },
 ];
 
 const Navbar: React.FC = () => {
   const { isAuthenticated, user, isLoading } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  // feature flags removed
+  const location = useLocation();
+
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [location.pathname]);
 
   return (
     <header className="relative border-b border-slate-200 bg-white/70 backdrop-blur">
@@ -45,7 +50,7 @@ const Navbar: React.FC = () => {
               to={to}
               className={({ isActive }) =>
                 `rounded-lg px-3 py-2 transition-colors ${
-                  isActive ? 'bg-indigo-100 text-indigo-700' : 'hover:bg-slate-100'
+                  isActive ? 'bg-brand-100 text-brand-700' : 'hover:bg-slate-100'
                 }`
               }
             >
@@ -61,7 +66,7 @@ const Navbar: React.FC = () => {
                 to="/solicitudes"
                 className={({ isActive }) =>
                   `rounded-lg px-3 py-2 transition-colors ${
-                    isActive ? 'bg-indigo-100 text-indigo-700' : 'hover:bg-slate-100'
+                    isActive ? 'bg-brand-100 text-brand-700' : 'hover:bg-slate-100'
                   }`
                 }
               >
@@ -71,7 +76,7 @@ const Navbar: React.FC = () => {
                 to="/perfil"
                 className={({ isActive }) =>
                   `rounded-lg px-3 py-2 transition-colors ${
-                    isActive ? 'bg-indigo-100 text-indigo-700' : 'hover:bg-slate-100'
+                    isActive ? 'bg-brand-100 text-brand-700' : 'hover:bg-slate-100'
                   }`
                 }
               >
@@ -88,7 +93,7 @@ const Navbar: React.FC = () => {
               </NavLink>
               <NavLink
                 to="/register"
-                className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-indigo-700"
+                className="rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-brand-700"
               >
                 Registrarse
               </NavLink>
@@ -112,7 +117,7 @@ const Navbar: React.FC = () => {
                     to={to}
                     className={({ isActive }) =>
                       `rounded-lg px-3 py-2 transition-colors ${
-                        isActive ? 'bg-indigo-100 text-indigo-700' : 'hover:bg-slate-100'
+                        isActive ? 'bg-brand-100 text-brand-700' : 'hover:bg-slate-100'
                       }`
                     }
                     onClick={() => setIsMenuOpen(false)}
@@ -129,7 +134,7 @@ const Navbar: React.FC = () => {
                       to="/solicitudes"
                       className={({ isActive }) =>
                         `rounded-lg px-3 py-2 transition-colors ${
-                          isActive ? 'bg-indigo-100 text-indigo-700' : 'hover:bg-slate-100'
+                          isActive ? 'bg-brand-100 text-brand-700' : 'hover:bg-slate-100'
                         }`
                       }
                       onClick={() => setIsMenuOpen(false)}
@@ -140,7 +145,7 @@ const Navbar: React.FC = () => {
                       to="/perfil"
                       className={({ isActive }) =>
                         `rounded-lg px-3 py-2 transition-colors ${
-                          isActive ? 'bg-indigo-100 text-indigo-700' : 'hover:bg-slate-100'
+                          isActive ? 'bg-brand-100 text-brand-700' : 'hover:bg-slate-100'
                         }`
                       }
                       onClick={() => setIsMenuOpen(false)}
@@ -159,7 +164,7 @@ const Navbar: React.FC = () => {
                   </NavLink>
                   <NavLink
                     to="/register"
-                    className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-indigo-700"
+                    className="rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-brand-700"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Registrarse

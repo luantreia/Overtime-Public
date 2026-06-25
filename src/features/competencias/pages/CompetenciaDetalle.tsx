@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect, useState, useMemo } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { useEntity } from '../../../shared/hooks';
 import { CompetenciaService, type Competencia } from '../services/competenciaService';
+import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 import { RankedService } from '../services/rankedService';
 import { PartidoService } from '../../partidos/services/partidoService';
 import { TemporadaService } from '../services/temporadaService';
@@ -38,12 +38,16 @@ const CompetenciaDetalle: React.FC = () => {
     }, { replace: true });
   }, [setSearchParams]);
 
-  const { data: competencia, loading, error } = useEntity<Competencia>(
-    useCallback(() => {
+  const { data: competencia, isLoading: loading, error: competenciaQueryError } = useQuery<Competencia>({
+    queryKey: ['competencia', id],
+    queryFn: () => {
       if (!id) throw new Error('ID de competencia no proporcionado');
       return CompetenciaService.getById(id);
-    }, [id])
-  );
+    },
+    enabled: !!id,
+  });
+  const error = competenciaQueryError instanceof Error ? competenciaQueryError.message : competenciaQueryError ? String(competenciaQueryError) : null;
+  usePageTitle((competencia as any)?.nombre);
 
   const isRanked = competencia ? (competencia as any).rankedEnabled === true : false;
 

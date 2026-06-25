@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { RankedService, type LeaderboardItem } from '../../competencias/services/rankedService';
 import { CompetenciaLeaderboardTab } from '../../competencias/components/CompetenciaLeaderboardTab';
 import { TrophyIcon } from '@heroicons/react/24/outline';
+import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 
 const MODALIDADES = ['Foam', 'Cloth'] as const;
 const CATEGORIAS = ['Masculino', 'Femenino', 'Mixto', 'Libre'] as const;
@@ -11,6 +12,7 @@ type Modalidad = (typeof MODALIDADES)[number];
 type Categoria = (typeof CATEGORIAS)[number];
 
 export default function RankingGlobalPage() {
+  usePageTitle('Ranking Global');
   const navigate = useNavigate();
   const [modalidad, setModalidad] = useState<Modalidad>('Foam');
   const [categoria, setCategoria] = useState<Categoria>('Masculino');

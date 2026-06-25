@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../../app/providers/AuthContext';
+import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 import { useToast } from '../../../shared/components/Toast/ToastProvider';
 import SolicitudModal from '../../../shared/components/SolicitudModal/SolicitudModal';
 import { SolicitudEdicionTipo } from '../../../shared/types/solicitudesEdicion';
@@ -10,6 +11,7 @@ import { getSolicitudesEdicion } from '../../solicitudes/services/solicitudesEdi
 import { JugadorService } from '../../jugadores/services/jugadorService';
 
 const PerfilPage = () => {
+  usePageTitle('Mi Perfil');
   const { user, logout, refreshProfile } = useAuth();
   const { addToast } = useToast();
 

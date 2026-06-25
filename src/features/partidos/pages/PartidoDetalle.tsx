@@ -1,8 +1,10 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import DetallePartido from '../../../shared/components/DetallePartido';
+import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 
 const PartidoDetalle: React.FC = () => {
+  usePageTitle('Partido');
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 

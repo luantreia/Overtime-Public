@@ -1,7 +1,8 @@
-import React, { useCallback, useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useEntity } from '../../../shared/hooks';
+import { useQuery } from '@tanstack/react-query';
 import { EquipoService, type Equipo } from '../services/equipoService';
+import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 import { useAuth } from '../../../app/providers/AuthContext';
 import { useToast } from '../../../shared/components/Toast/ToastProvider';
 import { crearSolicitudEdicion } from '../../solicitudes/services/solicitudesEdicionService';
@@ -18,13 +19,17 @@ const EquipoDetalle: React.FC = () => {
 
   const MAX_ADMINS = 3;
 
-  const { data: equipo, loading, error } = useEntity<Equipo>(
-    useCallback(() => {
+  const { data: equipo, isLoading: loading, error: equipoQueryError } = useQuery<Equipo>({
+    queryKey: ['equipo', id],
+    queryFn: () => {
       if (!id) throw new Error('ID de equipo no proporcionado');
       return EquipoService.getById(id);
-    }, [id])
-  );
+    },
+    enabled: !!id,
+  });
+  const error = equipoQueryError instanceof Error ? equipoQueryError.message : equipoQueryError ? String(equipoQueryError) : null;
 
+  usePageTitle(equipo?.nombre);
   const { jugadoresActivos, jugadoresHistorial } = useMemo(() => {
     if (!equipo?.jugadoresEquipos) return { jugadoresActivos: [], jugadoresHistorial: [] };
 

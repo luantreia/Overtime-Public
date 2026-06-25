@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 import { getSolicitudesEdicion, actualizarSolicitudEdicion } from '../../solicitudes/services/solicitudesEdicionService';
 import type { SolicitudEdicion } from '../../../shared/types/solicitudesEdicion';
 import { useJugador } from '../../../app/providers/JugadorContext';
@@ -60,6 +61,7 @@ const labelTipo = (t: string) => {
 };
 
 const NotificacionesPage = () => {
+  usePageTitle('Notificaciones');
   const { jugadorSeleccionado } = useJugador();
   const { addToast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();

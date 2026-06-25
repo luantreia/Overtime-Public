@@ -1,11 +1,12 @@
 import React, { lazy, Suspense } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { QueryClient } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import Navbar from './app/layout/Navbar';
 import ProtectedRoute from './app/routes/ProtectedRoute';
 import { FeatureFlagsProvider } from './shared/config/featureFlags';
+import ErrorBoundary from './shared/components/ui/Error/ErrorBoundary';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -43,6 +44,8 @@ const SolicitudesPage = lazy(() => import('./features/solicitudes/pages/Solicitu
 const Perfil = lazy(() => import('./features/perfil/pages/PerfilPage'));
 const LoginPage = lazy(() => import('./features/auth/pages/LoginPage'));
 const RegisterPage = lazy(() => import('./features/auth/pages/RegisterPage'));
+const NotificacionesPage = lazy(() => import('./features/notificaciones/pages/NotificacionesPage'));
+const NotFoundPage = lazy(() => import('./features/error/pages/NotFoundPage'));
 
 const App: React.FC = () => (
   <PersistQueryClientProvider 
@@ -53,6 +56,7 @@ const App: React.FC = () => (
     <div className="App">
       <Navbar />
       <div className="mx-auto max-w-6xl px-4 py-6">
+        <ErrorBoundary>
         <Suspense fallback={<div className="flex min-h-screen items-center justify-center"><div className="text-center"><div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600 mx-auto"></div><p className="text-slate-600">Cargando...</p></div></div>}>
           <Routes>
             <Route path="/" element={<LandingPage />} />
@@ -97,9 +101,15 @@ const App: React.FC = () => (
                 <Perfil />
               </ProtectedRoute>
             } />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="/notificaciones" element={
+              <ProtectedRoute>
+                <NotificacionesPage />
+              </ProtectedRoute>
+            } />
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Suspense>
+        </ErrorBoundary>
       </div>
     </div>
     </FeatureFlagsProvider>

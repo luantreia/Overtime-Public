@@ -1,7 +1,9 @@
 import React from 'react';
 import { NotificacionesPanel } from '../../../shared/features/notificaciones/components/NotificacionesPanel';
+import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 
 export default function MisSolicitudesPage() {
+  usePageTitle('Mis Solicitudes');
   return (
     <NotificacionesPanel
       title="Mis Solicitudes"

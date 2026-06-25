@@ -9,9 +9,8 @@
 3.  **Ranked Leaderboards**: Página pública dedicada al ranking ELO global.
 
 ## 💡 Plan de Mejoras
-1.  **Migración a Next.js**: (Largo plazo) Sería ideal para resolver el SEO y mejorar la performance de carga inicial.
-2.  **Open Graph Tags**: Añadir meta tags dinámicos para que al compartir un link de partido en WhatsApp salga la info correcta.
-3.  **Modo Oscuro/Claro**: Toggle de tema para mejor lectura.
+1.  **Open Graph Tags**: Añadir meta tags dinámicos para que al compartir un link de partido en WhatsApp salga la info correcta (con `react-helmet-async`, sin necesidad de SSR).
+2.  **Modo Oscuro/Claro**: Toggle de tema para mejor lectura.
 
 ## 🔗 Integración
 - Debe ser extremadamente resiliente. Si la API está lenta, esta página debe mostrar "esqueletos" de carga o datos cacheados, nunca pantallas blancas de error.

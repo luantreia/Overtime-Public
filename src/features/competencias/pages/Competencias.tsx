@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 import { CompetenciaCard } from '../../../shared/components';
 import { OrganizacionCard } from '../../../shared/components';
 import { CompetenciaService, type Competencia } from '../services/competenciaService';
@@ -23,6 +24,7 @@ const mapEstadoVariante = (estado: any): 'proximamente' | 'en_curso' | 'finaliza
 };
 
 const Competencias: React.FC = () => {
+  usePageTitle('Competencias');
   const navigate = useNavigate();
   const [selectedOrganizacion, setSelectedOrganizacion] = useState<Organizacion | null>(null);
 

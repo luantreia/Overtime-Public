@@ -5,8 +5,10 @@ import { useQuery } from '@tanstack/react-query';
 import { JugadorCard } from '../../../shared/components';
 import { JugadorService, type Jugador } from '../services/jugadorService';
 import { useAuth } from '../../../app/providers/AuthContext';
+import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 
 const Jugadores: React.FC = () => {
+  usePageTitle('Jugadores');
   const navigate = useNavigate();
   const { user } = useAuth();
   // El límite ahora es cuántos mostramos inicialmente y por "batch"

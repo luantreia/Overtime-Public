@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../../app/providers/AuthContext';
+import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 import api from '../../../shared/api/client';
 import { PartidoService } from '../../partidos/services/partidoService';
 import { CompetenciaService, type Competencia } from '../../competencias/services/competenciaService';
@@ -10,6 +11,7 @@ import CompetenciaCard from '../../../shared/components/CompetenciaCard/Competen
 import type { Partido } from '../../../types';
 
 const LandingPage: React.FC = () => {
+  usePageTitle();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
@@ -30,8 +32,8 @@ const LandingPage: React.FC = () => {
   const totals = insights?.totals;
   const proximos = ((data?.proximos ?? []) as Partido[]).slice(0, 3);
   const recientes = ((insights?.destacados?.partidosRecientes ?? []) as Partido[]).slice(0, 3);
-  const competenciasActivas = ((data?.competencias ?? []) as Competencia[])
-    .filter((c: any) => {
+  const competenciasActivas = (data?.competencias ?? [] as Competencia[])
+    .filter((c: Competencia) => {
       const e = String(c.estado || '').toLowerCase();
       return e.includes('curso') || e.includes('activa');
     })

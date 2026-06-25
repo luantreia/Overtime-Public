@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../../app/providers/AuthContext';
 import { useToast } from '../../../shared/components/Toast/ToastProvider';
+import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 
 const RegisterPage: React.FC = () => {
+  usePageTitle('Registrarse');
   const { addToast } = useToast();
   const { register } = useAuth();
   const navigate = useNavigate();

@@ -1,5 +1,6 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 import { toPng } from 'html-to-image';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { JugadorService } from '../services/jugadorService';
@@ -164,15 +165,14 @@ const JugadorDetalle: React.FC = () => {
     enabled: !!id && !!jugador,
   });
 
-  const [localCompsData, setLocalCompsData] = useState<any[]>([]);
+  const [seasonOverrides, setSeasonOverrides] = useState<Record<number, Partial<{ rankedData: any; normalData: any }>>>({});
 
-  // Sync React Query data to local state for specific interactions like handleSeasonChange
-  useEffect(() => {
-    if (competenciasData) {
-      setLocalCompsData(competenciasData);
-    }
-  }, [competenciasData]);
+  const displayCompsData = useMemo(
+    () => competenciasData.map((d, i) => seasonOverrides[i] ? { ...d, ...seasonOverrides[i] } : d),
+    [competenciasData, seasonOverrides]
+  );
 
+  usePageTitle(jugador?.nombre);
   const [actionLoading, setActionLoading] = useState(false);
   const [showAllComps, setShowAllComps] = useState(false);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'history' | 'leagues'>('dashboard');
@@ -290,8 +290,7 @@ const JugadorDetalle: React.FC = () => {
   };
 
   const handleSeasonChange = async (compIdx: number, seasonId: string) => {
-    const freshData = [...localCompsData];
-    const data = freshData[compIdx];
+    const data = displayCompsData[compIdx];
     if (!data) return;
 
     try {
@@ -302,13 +301,11 @@ const JugadorDetalle: React.FC = () => {
           competition: data.competencia._id || data.competencia.id,
           season: seasonId === 'global' ? undefined : seasonId
         });
-        
         if (res.ok) {
-          freshData[compIdx] = { 
-            ...data, 
-            rankedData: { ...res, selectedSeasonId: seasonId } 
-          };
-          setLocalCompsData(freshData);
+          setSeasonOverrides(prev => ({
+            ...prev,
+            [compIdx]: { ...prev[compIdx], rankedData: { ...res, selectedSeasonId: seasonId } }
+          }));
         }
       } else {
         const selectedSeason = data.allSeasons.find((s: any) => s._id === seasonId);
@@ -322,14 +319,9 @@ const JugadorDetalle: React.FC = () => {
           if (lastFase.tipo === 'playoff') {
             matches = await PartidoService.getByFaseId(lastFase._id);
           }
-          normalData = {
-            temporada: selectedSeason,
-            fase: lastFase,
-            matches
-          };
+          normalData = { temporada: selectedSeason, fase: lastFase, matches };
         }
-        freshData[compIdx] = { ...data, normalData };
-        setLocalCompsData(freshData);
+        setSeasonOverrides(prev => ({ ...prev, [compIdx]: { ...prev[compIdx], normalData } }));
       }
     } catch (err) {
       console.error('Error changing season:', err);
@@ -566,7 +558,7 @@ const JugadorDetalle: React.FC = () => {
                 </p>
               ) : (
                 <div className="space-y-6">
-                  {competenciasData.slice(0, showAllComps ? undefined : 3).map((data, idx) => (
+                  {displayCompsData.slice(0, showAllComps ? undefined : 3).map((data, idx) => (
                     <div 
                       key={idx} 
                       ref={el => cardRefs.current[idx] = el}
@@ -745,12 +737,12 @@ const JugadorDetalle: React.FC = () => {
                     </div>
                   ))}
 
-                  {!showAllComps && competenciasData.length > 3 && (
+                  {!showAllComps && displayCompsData.length > 3 && (
                     <button 
                       onClick={() => setShowAllComps(true)}
                       className="group w-full py-4 bg-white hover:bg-brand-50 text-slate-500 hover:text-brand-600 text-xs font-black uppercase tracking-widest rounded-xl transition-all border border-slate-200 hover:border-brand-200 shadow-sm flex items-center justify-center gap-2"
                     >
-                      Ver {competenciasData.length - 3} competencias más
+                      Ver {displayCompsData.length - 3} competencias más
                       <svg className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="19 9l-7 7-7-7" />
                       </svg>

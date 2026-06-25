@@ -1,7 +1,8 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { EstadisticasPartidoModal } from '../../../shared/components/EstadisticasPartidoModal';
 import PartidoCard from '../../../shared/components/PartidoCard';
-import { useEntity } from '../../../shared/hooks';
+import { useQuery } from '@tanstack/react-query';
+import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 import { PartidoService, Partido } from '../services/partidoService';
 import { CompetenciaService, Competencia } from '../../competencias/services/competenciaService';
 import { TemporadaService, Temporada } from '../../competencias/services/temporadaService';
@@ -10,6 +11,7 @@ import { EquipoService, Equipo } from '../../equipos/services/equipoService';
 import { TablaPosiciones } from '../../../shared/components/TablaPosiciones/TablaPosiciones';
 
 const Partidos: React.FC = () => {
+  usePageTitle('Partidos');
   // Filtros
   const [competenciaId, setCompetenciaId] = useState('');
   const [temporadaId, setTemporadaId] = useState('');
@@ -65,7 +67,11 @@ const Partidos: React.FC = () => {
     }});
   }, [page, limit, competenciaId, temporadaId, faseId, equipoId, fecha, estado, esAmistoso]);
 
-  const { data: paged, loading, error, refetch } = useEntity<{ items: Partido[]; page: number; limit: number; total: number } | Partido[]>(fetchPartidosPaginated);
+  const { data: paged, isLoading: loading, error: partidosQueryError, refetch } = useQuery<{ items: Partido[]; page: number; limit: number; total: number } | Partido[]>({
+    queryKey: ['partidos-list', page, limit, competenciaId, temporadaId, faseId, equipoId, fecha, estado, esAmistoso],
+    queryFn: fetchPartidosPaginated,
+  });
+  const error = partidosQueryError instanceof Error ? partidosQueryError.message : partidosQueryError ? String(partidosQueryError) : null;
   const partidos = useMemo(() => {
     if (!paged) return [];
     let items: Partido[] = [];

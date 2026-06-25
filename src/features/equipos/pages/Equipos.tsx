@@ -1,10 +1,12 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { EquipoCard } from '../../../shared/components';
-import { useEntity } from '../../../shared/hooks';
 import { EquipoService, type Equipo } from '../services/equipoService';
+import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 
 const Equipos: React.FC = () => {
+  usePageTitle('Equipos');
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
@@ -13,9 +15,11 @@ const Equipos: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [countryFilter, setCountryFilter] = useState('');
 
-  const { data: paged, loading, error, refetch } = useEntity<Equipo[]>(
-    useCallback(() => EquipoService.getAll(), [])
-  );
+  const { data: paged, isLoading: loading, error: equiposQueryError, refetch } = useQuery<Equipo[]>({
+    queryKey: ['equipos'],
+    queryFn: () => EquipoService.getAll(),
+  });
+  const error = equiposQueryError instanceof Error ? equiposQueryError.message : equiposQueryError ? String(equiposQueryError) : null;
 
   // Extraer países únicos de los datos para el filtro
   const countries = useMemo(() => {

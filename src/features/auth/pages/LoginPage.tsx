@@ -3,8 +3,10 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../app/providers/AuthContext';
 import { useToast } from '../../../shared/components/Toast/ToastProvider';
 import { login as loginService } from '../services/authService';
+import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 
 const LoginPage = () => {
+  usePageTitle('Iniciar sesión');
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
