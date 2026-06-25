@@ -43,7 +43,7 @@ const Navbar: React.FC = () => {
   }, []);
 
   return (
-    <header className="relative border-b border-slate-200 bg-white/70 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/70 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <NavLink to="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
           <img src="/logo.png" alt="Overtime Logo" className="h-10 w-auto" />
