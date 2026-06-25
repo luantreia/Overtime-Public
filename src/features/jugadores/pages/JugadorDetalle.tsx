@@ -312,7 +312,7 @@ const JugadorDetalle: React.FC = () => {
         if (!selectedSeason) return;
 
         const fasesRes = await FaseService.getByTemporada(selectedSeason._id);
-        let normalData = null;
+        let normalData: { temporada: any; fase: any; matches: any[] } | null = null;
         if (fasesRes.length > 0) {
           const lastFase = fasesRes[fasesRes.length - 1];
           let matches: any[] = [];
