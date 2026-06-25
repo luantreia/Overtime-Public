@@ -493,8 +493,8 @@ const JugadorDetalle: React.FC = () => {
 
               <section>
                 <h2 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-4 pb-2 border-b border-slate-100">Actividad</h2>
-                <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-xl p-4 border border-slate-100 flex items-center justify-between sm:flex-col sm:justify-center sm:text-center sm:gap-1">
-                  <p className="text-2xl sm:text-3xl font-black text-brand-600 leading-none">{competenciasData.length}</p>
+                <div className="flex sm:flex-col items-center sm:items-start gap-2 sm:gap-1 pt-2 sm:pt-0">
+                  <p className="text-3xl font-black text-brand-600 leading-none">{competenciasData.length}</p>
                   <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Competencias</p>
                 </div>
               </section>
@@ -562,7 +562,7 @@ const JugadorDetalle: React.FC = () => {
                     <div 
                       key={idx} 
                       ref={el => cardRefs.current[idx] = el}
-                      className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:border-brand-200 transition-colors"
+                      className="rounded-xl border border-slate-200 overflow-hidden hover:border-brand-300 transition-colors"
                     >
                       {/* Comp Card Header - More Compact */}
                       <div
@@ -630,15 +630,15 @@ const JugadorDetalle: React.FC = () => {
                                )}
                             </div>
 
-                            <div className="flex items-center justify-around bg-indigo-50/50 p-5 rounded-lg border border-indigo-100">
-                              <div className="text-center">
-                                <p className="text-[10px] text-indigo-600 font-bold uppercase tracking-widest">Rank</p>
-                                <p className="text-xl font-black text-indigo-900 leading-none">#{data.rankedData.rank}</p>
+                            <div className="flex items-center gap-6 py-1">
+                              <div>
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Rank</p>
+                                <p className="text-2xl font-black text-indigo-700 leading-none">#{data.rankedData.rank}</p>
                               </div>
-                              <div className="h-8 w-px bg-indigo-200"></div>
-                              <div className="text-center">
-                                <p className="text-[10px] text-indigo-600 font-bold uppercase tracking-widest">ELO</p>
-                                <p className="text-xl font-black text-indigo-900 leading-none">
+                              <div className="h-8 w-px bg-slate-200"></div>
+                              <div>
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">ELO</p>
+                                <p className="text-2xl font-black text-indigo-700 leading-none">
                                   {Number(data.rankedData.context.find((it: any) => it.isCurrent)?.rating || 0).toFixed(3)}
                                 </p>
                               </div>
@@ -666,7 +666,7 @@ const JugadorDetalle: React.FC = () => {
                               </button>
                             </div>
 
-                            <div className="bg-white rounded-lg border border-slate-100 overflow-hidden shadow-sm">
+                            <div className="rounded-lg overflow-hidden border border-slate-100">
                               <table className="w-full text-[11px]">
                                 <tbody className="divide-y divide-slate-50">
                                   {data.rankedData.context.map((item: any, i: number) => (
