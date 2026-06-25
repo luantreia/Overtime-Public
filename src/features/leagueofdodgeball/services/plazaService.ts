@@ -136,6 +136,17 @@ export class PlazaService {
   static async getMyProfile(): Promise<any> {
     return fetchWithAuth('/jugadores/me/profile');
   }
+
+  static async getMyStats(): Promise<{
+    jugadorId: string;
+    nombre: string;
+    alias?: string;
+    eloGlobal: number;
+    karma: number;
+    breakdown: { modalidad: string; categoria: string; rating: number; matchesPlayed: number; wins: number; losses: number }[];
+  }> {
+    return fetchWithAuth('/jugadores/me/stats');
+  }
 }
 
 

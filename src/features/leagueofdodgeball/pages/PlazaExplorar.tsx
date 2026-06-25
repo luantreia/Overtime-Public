@@ -60,7 +60,9 @@ const PlazaExplorar: React.FC = () => {
 
   // User
   const [userUid, setUserUid] = useState<string | null>(null);
-  const [myProfile, setMyProfile] = useState<any>(null);
+  const [myStats, setMyStats] = useState<any>(null);
+  const [showEloBreakdown, setShowEloBreakdown] = useState(false);
+  const eloRef = useRef<HTMLDivElement>(null);
 
   // Filters & sort
   const [filterModalidad, setFilterModalidad] = useState<Modalidad>('all');
@@ -81,11 +83,22 @@ const PlazaExplorar: React.FC = () => {
     }
   }, []);
 
-  // Fetch my profile for ELO/Karma widget
+  // Fetch ELO/Karma stats
   useEffect(() => {
-    PlazaService.getMyProfile()
-      .then(setMyProfile)
+    PlazaService.getMyStats()
+      .then(setMyStats)
       .catch(() => {});
+  }, []);
+
+  // Close ELO breakdown on outside click
+  useEffect(() => {
+    const handle = (e: MouseEvent) => {
+      if (eloRef.current && !eloRef.current.contains(e.target as Node)) {
+        setShowEloBreakdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handle);
+    return () => document.removeEventListener('mousedown', handle);
   }, []);
 
   // GPS
@@ -256,13 +269,49 @@ const PlazaExplorar: React.FC = () => {
 
         <div className="flex items-center gap-3 flex-wrap">
           {/* ELO / Karma widget */}
-          {myProfile && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs">
-              <span className="font-black text-brand-700">{myProfile.elo ?? 1500} ELO</span>
-              <span className="text-slate-300">·</span>
-              <span className="font-black text-orange-500 flex items-center gap-0.5">
-                <StarIcon className="h-3 w-3" />{myProfile.karma ?? 0}
-              </span>
+          {myStats && (
+            <div className="relative" ref={eloRef}>
+              <button
+                onClick={() => setShowEloBreakdown(v => !v)}
+                className="flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs hover:bg-slate-100 transition-colors"
+                title="Ver ELO por categoría"
+              >
+                <span className="font-black text-brand-700">{myStats.eloGlobal} ELO</span>
+                <span className="text-slate-300">·</span>
+                <span className="font-black text-orange-500 flex items-center gap-0.5">
+                  <StarIcon className="h-3 w-3" />{myStats.karma}
+                </span>
+              </button>
+
+              {showEloBreakdown && (
+                <div className="absolute right-0 top-full mt-2 z-30 w-64 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
+                  <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider">ELO por categoría</p>
+                    <p className="text-xs text-slate-400 mt-0.5">Solo partidos de La Plaza (global)</p>
+                  </div>
+                  {myStats.breakdown.length === 0 ? (
+                    <div className="px-4 py-4 text-xs text-slate-400 text-center">
+                      Todavía no jugaste partidos rankeados.
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-slate-100">
+                      {myStats.breakdown.map((b: any, i: number) => (
+                        <div key={i} className="flex items-center justify-between px-4 py-2.5">
+                          <div>
+                            <p className="text-xs font-bold text-slate-800">{b.modalidad} · {b.categoria}</p>
+                            <p className="text-[10px] text-slate-400">{b.matchesPlayed} partidos · {b.wins}G {b.losses}P</p>
+                          </div>
+                          <span className="text-sm font-black text-brand-700">{b.rating}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
+                    <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Promedio global</span>
+                    <span className="text-sm font-black text-brand-700">{myStats.eloGlobal}</span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
