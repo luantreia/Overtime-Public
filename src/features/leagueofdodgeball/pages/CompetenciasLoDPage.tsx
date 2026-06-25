@@ -20,7 +20,10 @@ export default function CompetenciasLoDPage() {
 
   const { data: competencias = [], isLoading, error } = useQuery<Competencia[]>({
     queryKey: ['competencias-lod'],
-    queryFn: () => CompetenciaService.getAll({ rankedEnabled: true }),
+    queryFn: async () => {
+      const all = await CompetenciaService.getAll();
+      return all.filter((c: any) => c.rankedEnabled === true);
+    },
     staleTime: 0,
   });
 
