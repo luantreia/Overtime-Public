@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 import { getSolicitudesEdicion, actualizarSolicitudEdicion } from '../../solicitudes/services/solicitudesEdicionService';
@@ -78,7 +78,7 @@ const NotificacionesPage = () => {
   const [fCategoria, setFCategoria] = useState<string>(searchParams.get('categoria') || 'Todas');
   const [q, setQ] = useState<string>(searchParams.get('q') || '');
 
-  const cargar = async () => {
+  const cargar = useCallback(async () => {
     if (!jugadorSeleccionado) return;
     try {
       setLoading(true);
@@ -92,15 +92,15 @@ const NotificacionesPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [jugadorSeleccionado, fEstado]);
 
-  useEffect(() => { void cargar(); }, [fEstado, jugadorSeleccionado?.id]);
+  useEffect(() => { void cargar(); }, [cargar]);
 
   useEffect(() => {
     if (!autoRefresh || !jugadorSeleccionado) return;
     const id = window.setInterval(() => { void cargar(); }, 30000);
     return () => window.clearInterval(id);
-  }, [autoRefresh, fEstado, jugadorSeleccionado?.id]);
+  }, [autoRefresh, cargar, jugadorSeleccionado]);
 
   useEffect(() => {
     const sp = new URLSearchParams();
@@ -130,7 +130,7 @@ const NotificacionesPage = () => {
       return txt.includes(q.toLowerCase());
     };
     return (solicitudes || []).filter((s) => byJugador(s) && byCat(s) && byQ(s));
-  }, [solicitudes, jugadorSeleccionado?.id, fCategoria, q]);
+  }, [solicitudes, jugadorSeleccionado, fCategoria, q]);
 
   const [page, setPage] = useState(1);
   const pageSize = 10;
