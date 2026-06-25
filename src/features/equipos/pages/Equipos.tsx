@@ -95,7 +95,7 @@ const Equipos: React.FC = () => {
         <div className="text-center">
           <p className="mb-4 text-red-600">Error al cargar equipos: {error}</p>
           <button
-            onClick={refetch}
+            onClick={() => void refetch()}
             className="rounded-lg bg-brand-600 px-4 py-2 text-white hover:bg-brand-700"
           >
             Reintentar
