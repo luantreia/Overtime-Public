@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { usePageTitle } from '../../../shared/hooks/usePageTitle';
@@ -5,15 +6,25 @@ import { api } from '../../../shared/api/client';
 import {
   MapPinIcon, TrophyIcon, UserGroupIcon, BoltIcon,
   ShieldCheckIcon, StarIcon, ArrowRightIcon,
+  UserIcon, MagnifyingGlassIcon, EnvelopeIcon, ChartBarIcon,
 } from '@heroicons/react/24/outline';
 
-const STEPS = [
-  { n: '01', icon: MapPinIcon,     title: 'Encontrá un partido',     desc: 'Explorá los lobbies abiertos cerca tuyo. Ves la distancia, modalidad, categoría y cuántos jugadores faltan.' },
-  { n: '02', icon: UserGroupIcon,  title: 'Unite al lobby',          desc: 'Con un perfil de jugador te unís al lobby. El host puede equilibrar los equipos por ELO automáticamente.' },
-  { n: '03', icon: ShieldCheckIcon,title: 'Check-in GPS',            desc: 'Al llegar a la cancha confirmás tu presencia con GPS. Si hay un Oficial, él valida el partido.' },
-  { n: '04', icon: BoltIcon,       title: 'Jugá',                    desc: 'El host o el Oficial registran los sets en vivo. Al terminar, ambos capitanes confirman el marcador.' },
-  { n: '05', icon: TrophyIcon,     title: 'Sumá puntos de ranking',  desc: 'El resultado mueve tu ELO. Los partidos con Oficial oficial valen más (0.5×) que sin él (0.3×).' },
-  { n: '06', icon: StarIcon,       title: 'Votá la conducta',        desc: 'Post-partido calificás a cada jugador. El Karma acumulado influye en cómo el sistema te trata.' },
+const STEPS_PLAZA = [
+  { n: '01', icon: MapPinIcon,      title: 'Encontrá un partido',    desc: 'Explorá los lobbies abiertos cerca tuyo. Ves la distancia, modalidad, categoría y cuántos jugadores faltan.' },
+  { n: '02', icon: UserGroupIcon,   title: 'Unite al lobby',         desc: 'Con un perfil de jugador te unís al lobby. El host puede equilibrar los equipos por ELO automáticamente.' },
+  { n: '03', icon: ShieldCheckIcon, title: 'Check-in GPS',           desc: 'Al llegar a la cancha confirmás tu presencia con GPS. Si hay un Oficial, él valida el partido.' },
+  { n: '04', icon: BoltIcon,        title: 'Jugá',                   desc: 'El host o el Oficial registran los sets en vivo. Al terminar, ambos capitanes confirman el marcador.' },
+  { n: '05', icon: TrophyIcon,      title: 'Sumá puntos de ranking', desc: 'El resultado mueve tu ELO. Con Oficial: ×0.5 · Sin Oficial: ×0.3 — el coeficiente sube según la verificación.' },
+  { n: '06', icon: StarIcon,        title: 'Votá la conducta',       desc: 'Post-partido calificás a cada jugador. El Karma acumulado influye en cómo el sistema te trata.' },
+];
+
+const STEPS_COMPETENCIA = [
+  { n: '01', icon: MagnifyingGlassIcon, title: 'Encontrá una competencia LoD',  desc: 'Explorá las competencias con el sello LoD habilitado. Podés filtrar por modalidad y categoría.' },
+  { n: '02', icon: EnvelopeIcon,        title: 'Contactá al organizador',        desc: 'Cada competencia tiene un organizador. Escribile para saber cómo inscribirte o si hay lugar en algún equipo.' },
+  { n: '03', icon: UserIcon,            title: 'Reclamá o creá tu perfil',       desc: 'Si ya participaste en competencias registradas, tu perfil puede estar en la plataforma. Buscalo y asocialo a tu cuenta.' },
+  { n: '04', icon: BoltIcon,            title: 'Jugá los partidos',              desc: 'Los partidos son registrados por el organizador. Los resultados quedan guardados en la plataforma.' },
+  { n: '05', icon: ChartBarIcon,        title: 'ELO completo (×1)',              desc: 'Los partidos de Competencias LoD suman ELO con el coeficiente completo — sin reducción, el máximo valor posible.' },
+  { n: '06', icon: TrophyIcon,          title: 'Seguí tu progreso',              desc: 'Mirá tu posición en el ranking global y comparás tu rendimiento frente a toda la comunidad.' },
 ];
 
 const PILLARS = [
@@ -44,49 +55,50 @@ const PILLARS = [
     color: 'indigo',
     title: 'Competencias LoD',
     sub: 'Torneos con ranking verificado',
-    desc: 'Las competencias con el sello LoD tienen ranking habilitado. Participar en ellas suma más al ELO global.',
+    desc: 'Las competencias con el sello LoD tienen ranking habilitado. Participar en ellas suma el máximo ELO al ranking global.',
     ctas: [
       { label: 'Ver competencias LoD', to: '/lod/competencias' },
-      { label: 'Ver todas las competencias', to: '/competencias' },
+      { label: '¿Estás participando? Reclamá tu perfil', to: '/jugadores' },
     ],
   },
 ];
 
-const PATHS = [
+const ONBOARDING = [
   {
-    label: 'Nuevo en el dodgeball',
-    emoji: '👋',
-    desc: 'Nunca jugaste o recién empezás.',
+    n: '1',
+    icon: UserIcon,
+    title: 'Creá tu cuenta',
+    desc: 'Registrate en Overtime con tu email. Es gratis y te lleva menos de un minuto.',
     actions: [
-      { label: 'Ver jugadores de la comunidad', to: '/jugadores' },
-      { label: 'Explorar competencias', to: '/competencias' },
-      { label: 'Crear tu cuenta', to: '/register', primary: true },
+      { label: 'Crear cuenta gratis', to: '/register', primary: true },
+      { label: 'Ya tengo cuenta, iniciar sesión', to: '/login' },
     ],
   },
   {
-    label: 'Ya jugás dodgeball',
-    emoji: '🏐',
-    desc: 'Jugás en tu club o liga y querés sumar al ranking.',
+    n: '2',
+    icon: MagnifyingGlassIcon,
+    title: 'Reclamá o creá tu perfil de jugador',
+    desc: 'Si ya jugaste en alguna competencia registrada, tu perfil puede estar en la plataforma. Buscalo por nombre y asocialo a tu cuenta. Si no, creás un perfil nuevo.',
     actions: [
-      { label: 'Buscar un partido cerca', to: '/plaza' },
-      { label: 'Ver competencias LoD', to: '/lod/competencias' },
-      { label: 'Registrate y empezá', to: '/register', primary: true },
+      { label: 'Buscar mi perfil', to: '/jugadores', primary: true },
     ],
   },
   {
-    label: 'Jugador competitivo',
-    emoji: '🏆',
-    desc: 'Querés subir en el ranking y medir tu nivel.',
+    n: '3',
+    icon: MapPinIcon,
+    title: 'Empezá a jugar',
+    desc: 'Buscá un lobby en La Plaza para jugar con amigos, o contactá al organizador de una Competencia LoD para unirte a un equipo.',
     actions: [
-      { label: 'Ver el ranking global', to: '/ranking' },
-      { label: 'Explorar equipos', to: '/equipos' },
       { label: 'Ir a La Plaza', to: '/plaza', primary: true },
+      { label: 'Ver Competencias LoD', to: '/lod/competencias' },
     ],
   },
 ];
 
 export default function LoDLandingPage() {
   usePageTitle('League of Dodgeball');
+  const [showProfileFlow, setShowProfileFlow] = useState(false);
+  const [howTab, setHowTab] = useState<'plaza' | 'competencia'>('plaza');
 
   const { data: insights } = useQuery({
     queryKey: ['lod-insights'],
@@ -106,25 +118,50 @@ export default function LoDLandingPage() {
             League of Dodgeball
           </div>
           <h1 className="text-5xl sm:text-6xl font-black leading-tight tracking-tight">
-            En el Club.<br />
+            En el club.<br />
             <span className="text-brand-300">En la calle.</span><br />
             Rankeado.
           </h1>
           <p className="text-lg text-slate-300 max-w-xl mx-auto leading-relaxed">
             Encontrá competencias y partidos cerca tuyo, sumá puntos al ranking global y formá parte de la comunidad de dodgeball más activa.
           </p>
+
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link to="/plaza" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-brand-500 hover:bg-brand-400 text-white font-black rounded-xl transition-colors shadow-lg shadow-brand-900/50 text-sm">
-              <MapPinIcon className="h-4 w-4" /> Encontrá un partido cerca
+            <Link to="/ranking" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-brand-500 hover:bg-brand-400 text-white font-black rounded-xl transition-colors shadow-lg shadow-brand-900/50 text-sm">
+              <TrophyIcon className="h-4 w-4" /> Ver el ranking global
             </Link>
-            <Link to="/register" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold rounded-xl transition-colors text-sm">
-              Crear mi cuenta gratis
-            </Link>
+            <button
+              onClick={() => setShowProfileFlow(v => !v)}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold rounded-xl transition-colors text-sm"
+            >
+              <UserIcon className="h-4 w-4" /> ¿Ya jugaste? Buscá tu perfil
+            </button>
           </div>
+
+          {showProfileFlow && (
+            <div className="mx-auto max-w-sm bg-white/10 backdrop-blur border border-white/20 rounded-2xl p-5 space-y-3 text-left">
+              <p className="text-sm font-bold text-white">¿Participaste en alguna competencia registrada?</p>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Tu Perfil de Jugador puede ya estar en la plataforma. Buscalo por nombre, asocialo a tu cuenta y empezá a acumular puntos.
+              </p>
+              <div className="flex flex-col gap-2 pt-1">
+                <Link to="/jugadores" className="text-sm font-bold text-center py-2.5 px-4 rounded-xl bg-white text-brand-700 hover:bg-brand-50 transition-colors">
+                  Buscar mi perfil de jugador
+                </Link>
+                <Link to="/login" className="text-sm font-bold text-center py-2.5 px-4 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white transition-colors">
+                  Ya tengo cuenta, iniciar sesión
+                </Link>
+                <Link to="/register" className="text-xs text-slate-400 hover:text-white text-center transition-colors py-1">
+                  No tengo cuenta → Registrarme gratis
+                </Link>
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center justify-center gap-6 text-xs text-slate-400 pt-2">
             <Link to="/jugadores" className="hover:text-white transition-colors flex items-center gap-1">Ver jugadores <ArrowRightIcon className="h-3 w-3" /></Link>
             <span className="text-slate-600">·</span>
-            <Link to="/ranking" className="hover:text-white transition-colors flex items-center gap-1">Ver el ranking <ArrowRightIcon className="h-3 w-3" /></Link>
+            <Link to="/competencias" className="hover:text-white transition-colors flex items-center gap-1">Ver competencias <ArrowRightIcon className="h-3 w-3" /></Link>
             <span className="text-slate-600">·</span>
             <Link to="/equipos" className="hover:text-white transition-colors flex items-center gap-1">Ver equipos <ArrowRightIcon className="h-3 w-3" /></Link>
           </div>
@@ -182,7 +219,7 @@ export default function LoDLandingPage() {
                 <p className="text-sm text-slate-600 leading-relaxed">{p.desc}</p>
                 <div className="space-y-2 pt-1">
                   {p.ctas.map((cta, i) => (
-                    <Link key={cta.to} to={cta.to} className={`flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm font-bold transition-colors ${
+                    <Link key={cta.to + cta.label} to={cta.to} className={`flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm font-bold transition-colors ${
                       i === 0
                         ? p.color === 'brand' ? 'bg-brand-600 text-white hover:bg-brand-700' :
                           p.color === 'amber' ? 'bg-amber-500 text-white hover:bg-amber-600' :
@@ -203,18 +240,41 @@ export default function LoDLandingPage() {
       {/* ── Cómo funciona ── */}
       <section className="bg-slate-50 px-6 py-16 border-t border-slate-100">
         <div className="mx-auto max-w-5xl space-y-10">
-          <div className="text-center space-y-2">
-            <h2 className="text-3xl font-black text-slate-900">Cómo funciona un partido</h2>
-            <p className="text-slate-500">De encontrar el lobby a ganar puntos de ranking en 6 pasos.</p>
+          <div className="text-center space-y-4">
+            <h2 className="text-3xl font-black text-slate-900">Cómo funciona</h2>
+            <div className="inline-flex items-center gap-2 bg-white border border-slate-200 rounded-xl p-1.5 shadow-sm">
+              <button
+                onClick={() => setHowTab('plaza')}
+                className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${
+                  howTab === 'plaza' ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                La Plaza
+              </button>
+              <button
+                onClick={() => setHowTab('competencia')}
+                className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${
+                  howTab === 'competencia' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                Competencias LoD
+              </button>
+            </div>
+            <p className="text-slate-500 text-sm">
+              {howTab === 'plaza'
+                ? 'De encontrar el lobby a ganar puntos de ranking en 6 pasos.'
+                : 'Cómo participar en una competencia y sumar ELO completo.'
+              }
+            </p>
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {STEPS.map((s) => (
+            {(howTab === 'plaza' ? STEPS_PLAZA : STEPS_COMPETENCIA).map((s) => (
               <div key={s.n} className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
                 <div className="flex items-center gap-3">
                   <span className="text-[11px] font-black text-slate-400 tracking-widest">{s.n}</span>
                   <div className="h-8 w-8 rounded-lg bg-brand-50 flex items-center justify-center">
-                    <s.icon className="h-4 w-4 text-brand-600" />
+                    <s.icon className={`h-4 w-4 ${howTab === 'plaza' ? 'text-brand-600' : 'text-indigo-600'}`} />
                   </div>
                 </div>
                 <p className="font-black text-slate-900">{s.title}</p>
@@ -226,12 +286,25 @@ export default function LoDLandingPage() {
           <div className="text-center space-y-3">
             <p className="text-sm text-slate-500">¿Querés empezar ya?</p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Link to="/plaza" className="inline-flex items-center gap-2 px-5 py-3 bg-brand-600 text-white font-bold rounded-xl hover:bg-brand-700 transition-colors text-sm">
-                <MapPinIcon className="h-4 w-4" /> Explorar La Plaza
-              </Link>
-              <Link to="/register" className="inline-flex items-center gap-2 px-5 py-3 border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-colors text-sm">
-                Crear mi cuenta
-              </Link>
+              {howTab === 'plaza' ? (
+                <>
+                  <Link to="/plaza" className="inline-flex items-center gap-2 px-5 py-3 bg-brand-600 text-white font-bold rounded-xl hover:bg-brand-700 transition-colors text-sm">
+                    <MapPinIcon className="h-4 w-4" /> Explorar La Plaza
+                  </Link>
+                  <Link to="/register" className="inline-flex items-center gap-2 px-5 py-3 border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-colors text-sm">
+                    Crear mi cuenta
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link to="/lod/competencias" className="inline-flex items-center gap-2 px-5 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors text-sm">
+                    <TrophyIcon className="h-4 w-4" /> Ver Competencias LoD
+                  </Link>
+                  <Link to="/jugadores" className="inline-flex items-center gap-2 px-5 py-3 border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-colors text-sm">
+                    Buscar mi perfil
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -243,7 +316,7 @@ export default function LoDLandingPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-5">
               <h2 className="text-3xl font-black text-slate-900">Un sistema de puntos que tiene sentido</h2>
-              <p className="text-slate-500 leading-relaxed">No todos los partidos valen lo mismo. El ELO sube o baja según el nivel de tu rival y cómo salió el partido. El Karma refleja cómo jugaste como persona.</p>
+              <p className="text-slate-500 leading-relaxed">No todos los partidos valen lo mismo. El ELO sube o baja según el nivel de tu rival y el tipo de partido. El Karma refleja cómo jugaste como persona.</p>
               <div className="space-y-3">
                 <div className="flex items-start gap-3 p-4 rounded-xl bg-slate-50 border border-slate-200">
                   <TrophyIcon className="h-5 w-5 text-brand-600 shrink-0 mt-0.5" />
@@ -253,17 +326,30 @@ export default function LoDLandingPage() {
                   </div>
                 </div>
                 <div className="flex items-start gap-3 p-4 rounded-xl bg-slate-50 border border-slate-200">
-                  <ShieldCheckIcon className="h-5 w-5 text-brand-600 shrink-0 mt-0.5" />
+                  <ChartBarIcon className="h-5 w-5 text-brand-600 shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-bold text-slate-900 text-sm">Multiplicador por Oficial</p>
-                    <p className="text-xs text-slate-500 mt-0.5">Sin Oficial: 0.3× · Con Oficial: 0.5× — Los partidos verificados valen más para mantener la integridad del ranking.</p>
+                    <p className="font-bold text-slate-900 text-sm">Coeficiente según el partido</p>
+                    <div className="mt-1.5 space-y-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-slate-500">La Plaza sin Oficial</span>
+                        <span className="font-bold text-slate-700 bg-slate-200 px-2 py-0.5 rounded-md">×0.3</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-slate-500">La Plaza con Oficial</span>
+                        <span className="font-bold text-brand-700 bg-brand-100 px-2 py-0.5 rounded-md">×0.5</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-slate-500">Competencias LoD</span>
+                        <span className="font-bold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-md">×1 (máximo)</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200">
                   <StarIcon className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-bold text-slate-900 text-sm">Karma de conducta</p>
-                    <p className="text-xs text-slate-500 mt-0.5">Post-partido votás la conducta de cada jugador. El Karma bajo puede restringir tu acceso a lobbies de alto nivel.</p>
+                    <p className="font-bold text-slate-900 text-sm">Karma de conducta <span className="font-normal text-amber-600">(La Plaza)</span></p>
+                    <p className="text-xs text-slate-500 mt-0.5">Post-partido votás la conducta de cada jugador en La Plaza. El Karma bajo puede restringir tu acceso a lobbies de alto nivel.</p>
                   </div>
                 </div>
               </div>
@@ -303,12 +389,12 @@ export default function LoDLandingPage() {
                     <p className="text-xl font-black text-red-400 mt-1">−12 ELO</p>
                   </div>
                 </div>
-                <p className="text-[11px] text-slate-500 text-center">× 0.5 con Oficial · × 0.3 sin Oficial</p>
+                <p className="text-[11px] text-slate-500 text-center">Plaza sin Oficial ×0.3 · Plaza con Oficial ×0.5 · Competencias LoD ×1</p>
               </div>
               <Link to="/lod/competencias" className="flex items-center justify-between w-full px-4 py-3 bg-indigo-50 border border-indigo-200 rounded-xl hover:bg-indigo-100 transition-colors">
                 <div>
-                  <p className="text-sm font-bold text-indigo-900">¿Querés más puntos?</p>
-                  <p className="text-xs text-indigo-600">Jugá en una competencia LoD verificada</p>
+                  <p className="text-sm font-bold text-indigo-900">¿Querés el máximo ELO posible?</p>
+                  <p className="text-xs text-indigo-600">Jugá en una Competencia LoD verificada</p>
                 </div>
                 <ArrowRightIcon className="h-4 w-4 text-indigo-600 shrink-0" />
               </Link>
@@ -317,33 +403,36 @@ export default function LoDLandingPage() {
         </div>
       </section>
 
-      {/* ── Para qué tipo de jugador sos ── */}
+      {/* ── Por dónde empezás ── */}
       <section className="bg-slate-50 px-6 py-16 border-t border-slate-100">
         <div className="mx-auto max-w-4xl space-y-8">
           <div className="text-center space-y-2">
             <h2 className="text-3xl font-black text-slate-900">¿Por dónde empezás?</h2>
-            <p className="text-slate-500">Dependiendo de tu experiencia, el camino es distinto.</p>
+            <p className="text-slate-500">Tres pasos para ser parte de la comunidad.</p>
           </div>
 
           <div className="grid sm:grid-cols-3 gap-5">
-            {PATHS.map((path, i) => (
+            {ONBOARDING.map((step, i) => (
               <div key={i} className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 shadow-sm flex flex-col">
                 <div className="flex items-center gap-3">
-                  <span className="text-3xl">{path.emoji}</span>
-                  <div>
-                    <p className="font-black text-slate-900">{path.label}</p>
-                    <p className="text-xs text-slate-500">{path.desc}</p>
+                  <span className="h-8 w-8 rounded-full bg-brand-600 text-white text-sm font-black flex items-center justify-center shrink-0">{step.n}</span>
+                  <div className="h-8 w-8 rounded-lg bg-brand-50 flex items-center justify-center">
+                    <step.icon className="h-4 w-4 text-brand-600" />
                   </div>
                 </div>
-                <div className="flex flex-col gap-2 mt-auto pt-2">
-                  {path.actions.map((action) => (
+                <div>
+                  <p className="font-black text-slate-900">{step.title}</p>
+                  <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">{step.desc}</p>
+                </div>
+                <div className="flex flex-col gap-2 mt-auto pt-1">
+                  {step.actions.map((action) => (
                     <Link
-                      key={action.to}
+                      key={action.to + action.label}
                       to={action.to}
                       className={`text-center px-4 py-2.5 rounded-xl text-sm font-bold transition-colors ${
                         action.primary
                           ? 'bg-brand-600 text-white hover:bg-brand-700'
-                          : 'border border-slate-200 text-slate-700 hover:bg-slate-50'
+                          : 'border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs'
                       }`}
                     >
                       {action.label}
