@@ -369,7 +369,7 @@ const JugadorDetalle: React.FC = () => {
 
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
           {/* Header/Cover color */}
-          <div className="h-32 bg-gradient-to-r from-brand-600 to-indigo-600"></div>
+          <div className="h-24 sm:h-32 bg-gradient-to-r from-brand-600 to-indigo-600"></div>
           
           <div className="px-6 pb-6 sm:px-8 sm:pb-8">
             <div className="relative flex flex-col sm:flex-row justify-between items-center sm:items-end -mt-12 mb-6 gap-4">
@@ -569,8 +569,8 @@ const JugadorDetalle: React.FC = () => {
                         className="p-4 cursor-pointer flex items-center justify-between bg-slate-50/30"
                         onClick={() => navigate(`/competencias/${data.competencia._id || data.competencia.id}`)}
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="h-12 w-12 rounded-lg bg-brand-50 flex items-center justify-center text-brand-600 font-bold overflow-hidden border border-brand-100">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="h-12 w-12 rounded-lg bg-brand-50 flex items-center justify-center text-brand-600 font-bold overflow-hidden border border-brand-100 flex-shrink-0">
                             {data.competencia.imagen ? (
                               <img src={data.competencia.imagen} alt={data.competencia.nombre} className="h-full w-full object-cover" />
                             ) : (
@@ -578,8 +578,8 @@ const JugadorDetalle: React.FC = () => {
                             )}
                           </div>
                           <div>
-                            <h3 className="text-lg font-bold text-slate-900 leading-tight">{data.competencia.nombre}</h3>
-                            <div className="flex items-center gap-2 mt-0.5">
+                            <h3 className="text-base sm:text-lg font-bold text-slate-900 leading-tight">{data.competencia.nombre}</h3>
+                            <div className="flex flex-wrap items-center gap-2 mt-0.5">
                               <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
                                 data.isRanked ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700'
                               }`}>
@@ -598,7 +598,7 @@ const JugadorDetalle: React.FC = () => {
                             </div>
                           </div>
                         </div>
-                        <div className="text-slate-400 no-export">
+                        <div className="text-slate-400 no-export flex-shrink-0">
                           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="9 5l7 7-7 7" />
                           </svg>
@@ -680,7 +680,7 @@ const JugadorDetalle: React.FC = () => {
                                         <div className="h-5 w-5 rounded-full bg-slate-100 flex-shrink-0">
                                            {item.playerId?.foto && <img src={item.playerId.foto} className="h-full w-full rounded-full object-cover" alt="" />}
                                         </div>
-                                        <span className={`truncate max-w-[150px] ${item.isCurrent ? 'font-bold text-indigo-700' : 'text-slate-700'}`}>
+                                        <span className={`truncate max-w-[40%] ${item.isCurrent ? 'font-bold text-indigo-700' : 'text-slate-700'}`}>
                                           {item.playerId?.nombre || 'Desconocido'}
                                         </span>
                                       </td>
