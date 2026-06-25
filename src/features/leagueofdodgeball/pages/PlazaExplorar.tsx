@@ -286,8 +286,17 @@ const PlazaExplorar: React.FC = () => {
               {showEloBreakdown && (
                 <div className="absolute right-0 top-full mt-2 z-30 w-64 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
                   <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
-                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider">ELO por categoría</p>
-                    <p className="text-xs text-slate-400 mt-0.5">Solo partidos de La Plaza (global)</p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider">ELO por categoría</p>
+                      <div className="group relative">
+                        <InformationCircleIcon className="h-3.5 w-3.5 text-slate-400 cursor-default" />
+                        <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-52 rounded-xl bg-slate-900 text-white text-[11px] leading-relaxed px-3 py-2.5 opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-xl">
+                          El ELO se calcula combinando tus partidos de <span className="font-bold">La Plaza</span> y los de <span className="font-bold">competencias rankeadas</span>. Cada modalidad y categoría tiene su propio rating independiente.
+                          <div className="absolute left-1/2 -translate-x-1/2 top-full border-4 border-transparent border-t-slate-900" />
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-0.5">Plaza + competencias rankeadas</p>
                   </div>
                   {myStats.breakdown.length === 0 ? (
                     <div className="px-4 py-4 text-xs text-slate-400 text-center">
