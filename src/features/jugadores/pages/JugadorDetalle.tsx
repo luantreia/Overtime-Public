@@ -557,7 +557,7 @@ const JugadorDetalle: React.FC = () => {
                   Este jugador no participa actualmente en ninguna competencia.
                 </p>
               ) : (
-                <div className="space-y-6">
+                <div className="space-y-8">
                   {displayCompsData.slice(0, showAllComps ? undefined : 3).map((data, idx) => (
                     <div 
                       key={idx} 
@@ -565,8 +565,8 @@ const JugadorDetalle: React.FC = () => {
                       className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:border-brand-200 transition-colors"
                     >
                       {/* Comp Card Header - More Compact */}
-                      <div 
-                        className="p-4 cursor-pointer flex items-center justify-between bg-slate-50/30"
+                      <div
+                        className="p-5 sm:p-6 cursor-pointer flex items-center justify-between bg-slate-50/30"
                         onClick={() => navigate(`/competencias/${data.competencia._id || data.competencia.id}`)}
                       >
                         <div className="flex items-center gap-3 min-w-0">
@@ -606,7 +606,7 @@ const JugadorDetalle: React.FC = () => {
                       </div>
 
                       {/* Content Area - More Compact */}
-                      <div className="px-4 pb-4 border-t border-slate-100 pt-3">
+                      <div className="px-5 sm:px-6 pt-5 pb-6 border-t border-slate-100">
                         {data.isRanked && data.rankedData ? (
                           <div className="flex flex-col gap-4">
                             <div className="flex items-center justify-between px-1">
@@ -630,7 +630,7 @@ const JugadorDetalle: React.FC = () => {
                                )}
                             </div>
 
-                            <div className="flex items-center justify-around bg-indigo-50/50 p-3 rounded-lg border border-indigo-100">
+                            <div className="flex items-center justify-around bg-indigo-50/50 p-5 rounded-lg border border-indigo-100">
                               <div className="text-center">
                                 <p className="text-[10px] text-indigo-600 font-bold uppercase tracking-widest">Rank</p>
                                 <p className="text-xl font-black text-indigo-900 leading-none">#{data.rankedData.rank}</p>
@@ -670,13 +670,13 @@ const JugadorDetalle: React.FC = () => {
                               <table className="w-full text-[11px]">
                                 <tbody className="divide-y divide-slate-50">
                                   {data.rankedData.context.map((item: any, i: number) => (
-                                    <tr 
-                                      key={i} 
+                                    <tr
+                                      key={i}
                                       className={`${item.isCurrent ? 'bg-indigo-50/50' : ''} cursor-pointer hover:bg-slate-50 transition-colors`}
                                       onClick={() => navigate(`/jugadores/${item.playerId?._id || item.playerId}`)}
                                     >
-                                      <td className="px-3 py-2 text-slate-400 font-mono w-8 text-center">{item.rank}</td>
-                                      <td className="px-2 py-2 flex items-center gap-2">
+                                      <td className="px-3 py-3 text-slate-400 font-mono w-8 text-center">{item.rank}</td>
+                                      <td className="px-2 py-3 flex items-center gap-2">
                                         <div className="h-5 w-5 rounded-full bg-slate-100 flex-shrink-0">
                                            {item.playerId?.foto && <img src={item.playerId.foto} className="h-full w-full rounded-full object-cover" alt="" />}
                                         </div>
@@ -684,7 +684,7 @@ const JugadorDetalle: React.FC = () => {
                                           {item.playerId?.nombre || 'Desconocido'}
                                         </span>
                                       </td>
-                                      <td className="px-3 py-2 text-right font-bold text-slate-900 w-16">{item.rating ? Number(item.rating).toFixed(3) : '---'}</td>
+                                      <td className="px-3 py-3 text-right font-bold text-slate-900 w-16">{item.rating ? Number(item.rating).toFixed(3) : '---'}</td>
                                     </tr>
                                   ))}
                                 </tbody>
