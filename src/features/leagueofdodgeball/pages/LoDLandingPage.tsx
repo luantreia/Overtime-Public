@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { usePageTitle } from '../../../shared/hooks/usePageTitle';
+import { api } from '../../../shared/api/client';
 import {
   MapPinIcon, TrophyIcon, UserGroupIcon, BoltIcon,
-  ShieldCheckIcon, StarIcon, ChevronDownIcon, ArrowRightIcon,
+  ShieldCheckIcon, StarIcon, ArrowRightIcon,
 } from '@heroicons/react/24/outline';
 
 const STEPS = [
@@ -86,14 +87,20 @@ const PATHS = [
 
 export default function LoDLandingPage() {
   usePageTitle('League of Dodgeball');
-  const [openPath, setOpenPath] = useState<number | null>(null);
+
+  const { data: insights } = useQuery({
+    queryKey: ['lod-insights'],
+    queryFn: api.insights,
+    staleTime: 1000 * 60 * 5,
+  });
 
   return (
     <div className="space-y-0 -mt-6 -mx-4">
 
       {/* ── Hero ── */}
       <section className="relative bg-gradient-to-br from-slate-900 via-brand-900 to-brand-800 text-white overflow-hidden">
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+        <div className="absolute inset-0 opacity-[0.08]" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-brand-600/30 to-transparent" />
         <div className="relative mx-auto max-w-4xl px-6 py-20 text-center space-y-8">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/20 text-xs font-bold tracking-widest uppercase text-brand-200">
             League of Dodgeball
@@ -124,6 +131,24 @@ export default function LoDLandingPage() {
         </div>
       </section>
 
+      {/* ── Stats strip ── */}
+      <div className="bg-brand-600 px-6 py-5">
+        <div className="mx-auto max-w-4xl grid grid-cols-3 gap-4 text-center text-white">
+          {[
+            { label: 'Jugadores registrados', value: insights?.totals.jugadores },
+            { label: 'Partidos jugados',       value: insights?.totals.partidos },
+            { label: 'Equipos activos',        value: insights?.totals.equipos },
+          ].map(({ label, value }) => (
+            <div key={label}>
+              <p className="text-2xl sm:text-3xl font-black">
+                {value != null ? value.toLocaleString('es-AR') : '—'}
+              </p>
+              <p className="text-xs text-brand-200 mt-0.5 font-medium">{label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* ── Los tres pilares ── */}
       <section className="bg-white px-6 py-16">
         <div className="mx-auto max-w-5xl space-y-10">
@@ -134,7 +159,7 @@ export default function LoDLandingPage() {
 
           <div className="grid sm:grid-cols-3 gap-6">
             {PILLARS.map((p) => (
-              <div key={p.title} className={`rounded-2xl border-2 p-6 space-y-4 ${
+              <div key={p.title} className={`rounded-2xl border-2 p-6 space-y-4 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 ${
                 p.color === 'brand' ? 'border-brand-100 bg-brand-50' :
                 p.color === 'amber' ? 'border-amber-100 bg-amber-50' :
                 'border-indigo-100 bg-indigo-50'
@@ -185,7 +210,7 @@ export default function LoDLandingPage() {
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {STEPS.map((s) => (
-              <div key={s.n} className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3 shadow-sm">
+              <div key={s.n} className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
                 <div className="flex items-center gap-3">
                   <span className="text-[11px] font-black text-slate-400 tracking-widest">{s.n}</span>
                   <div className="h-8 w-8 rounded-lg bg-brand-50 flex items-center justify-center">
@@ -300,40 +325,31 @@ export default function LoDLandingPage() {
             <p className="text-slate-500">Dependiendo de tu experiencia, el camino es distinto.</p>
           </div>
 
-          <div className="space-y-3">
+          <div className="grid sm:grid-cols-3 gap-5">
             {PATHS.map((path, i) => (
-              <div key={i} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-                <button
-                  onClick={() => setOpenPath(openPath === i ? null : i)}
-                  className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-slate-50 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">{path.emoji}</span>
-                    <div>
-                      <p className="font-black text-slate-900">{path.label}</p>
-                      <p className="text-xs text-slate-500">{path.desc}</p>
-                    </div>
+              <div key={i} className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 shadow-sm flex flex-col">
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">{path.emoji}</span>
+                  <div>
+                    <p className="font-black text-slate-900">{path.label}</p>
+                    <p className="text-xs text-slate-500">{path.desc}</p>
                   </div>
-                  <ChevronDownIcon className={`h-5 w-5 text-slate-400 transition-transform duration-200 ${openPath === i ? 'rotate-180' : ''}`} />
-                </button>
-
-                {openPath === i && (
-                  <div className="px-5 pb-5 pt-1 flex flex-col sm:flex-row gap-2 border-t border-slate-100">
-                    {path.actions.map((action) => (
-                      <Link
-                        key={action.to}
-                        to={action.to}
-                        className={`flex-1 text-center px-4 py-2.5 rounded-xl text-sm font-bold transition-colors ${
-                          action.primary
-                            ? 'bg-brand-600 text-white hover:bg-brand-700'
-                            : 'border border-slate-200 text-slate-700 hover:bg-slate-50'
-                        }`}
-                      >
-                        {action.label}
-                      </Link>
-                    ))}
-                  </div>
-                )}
+                </div>
+                <div className="flex flex-col gap-2 mt-auto pt-2">
+                  {path.actions.map((action) => (
+                    <Link
+                      key={action.to}
+                      to={action.to}
+                      className={`text-center px-4 py-2.5 rounded-xl text-sm font-bold transition-colors ${
+                        action.primary
+                          ? 'bg-brand-600 text-white hover:bg-brand-700'
+                          : 'border border-slate-200 text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      {action.label}
+                    </Link>
+                  ))}
+                </div>
               </div>
             ))}
           </div>
