@@ -7,6 +7,7 @@ import Navbar from './app/layout/Navbar';
 import ProtectedRoute from './app/routes/ProtectedRoute';
 import { FeatureFlagsProvider } from './shared/config/featureFlags';
 import ErrorBoundary from './shared/components/ui/Error/ErrorBoundary';
+import FeedbackWidget from './shared/components/FeedbackWidget';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -116,6 +117,7 @@ const App: React.FC = () => (
         </ErrorBoundary>
       </div>
     </div>
+      <FeedbackWidget />
     </FeatureFlagsProvider>
   </PersistQueryClientProvider>
 );export default App;
