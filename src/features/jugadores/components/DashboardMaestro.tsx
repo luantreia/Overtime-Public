@@ -99,7 +99,7 @@ export const DashboardMaestro: React.FC<DashboardMaestroProps> = ({ jugadorId, j
                <ShieldCheckIcon className="h-full w-full" />
             </div>
 
-            <div className="p-8 relative">
+            <div className="p-4 relative">
               <div className="flex flex-col sm:flex-row items-center gap-6">
                 {/* Foto / Avatar con borde de Rango */}
                 <div className={`h-32 w-32 rounded-full p-1 border-4 ${rank?.border || 'border-slate-200'} shadow-lg relative`}>
