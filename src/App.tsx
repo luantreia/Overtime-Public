@@ -40,6 +40,7 @@ const PlazaLobby = lazy(() => import('./features/leagueofdodgeball/pages/PlazaLo
 const PlazaCrear = lazy(() => import('./features/leagueofdodgeball/pages/PlazaCrear'));
 const PlazaReportResult = lazy(() => import('./features/leagueofdodgeball/pages/PlazaReportResult'));
 const RankingGlobal = lazy(() => import('./features/leagueofdodgeball/pages/RankingGlobalPage'));
+const CompetenciasLoD = lazy(() => import('./features/leagueofdodgeball/pages/CompetenciasLoDPage'));
 const SolicitudesPage = lazy(() => import('./features/solicitudes/pages/SolicitudesPage'));
 const Perfil = lazy(() => import('./features/perfil/pages/PerfilPage'));
 const LoginPage = lazy(() => import('./features/auth/pages/LoginPage'));
@@ -72,6 +73,7 @@ const App: React.FC = () => (
             <Route path="/partidos/:id" element={<PartidoDetalle />} />
             
             <Route path="/ranking" element={<RankingGlobal />} />
+            <Route path="/lod/competencias" element={<CompetenciasLoD />} />
 
             {/* La Plaza Routes */}
             <Route path="/plaza" element={<PlazaExplorar />} />
