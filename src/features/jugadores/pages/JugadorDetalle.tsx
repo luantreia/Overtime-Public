@@ -371,7 +371,7 @@ const JugadorDetalle: React.FC = () => {
           {/* Header/Cover color */}
           <div className="h-24 sm:h-32 bg-gradient-to-r from-brand-600 to-indigo-600"></div>
           
-          <div className="px-6 pb-6 sm:px-8 sm:pb-8">
+          <div className="px-2 pb-6 sm:px-2 sm:pb-2">
             <div className="relative flex flex-col sm:flex-row justify-between items-center sm:items-end -mt-12 mb-6 gap-4">
               <div className="p-1 bg-white rounded-2xl shadow-sm">
                 <div className="h-24 w-24 sm:h-32 sm:w-32 rounded-xl bg-slate-100 flex items-center justify-center text-3xl font-bold text-slate-400 overflow-hidden border border-slate-100">
@@ -606,7 +606,7 @@ const JugadorDetalle: React.FC = () => {
                       </div>
 
                       {/* Content Area - More Compact */}
-                      <div className="px-5 sm:px-6 pt-5 pb-6 border-t border-slate-100">
+                      <div className="px-2 sm:px-2 pt-2 pb-2 border-t border-slate-100">
                         {data.isRanked && data.rankedData ? (
                           <div className="flex flex-col gap-4">
                             <div className="flex items-center justify-between px-1">
