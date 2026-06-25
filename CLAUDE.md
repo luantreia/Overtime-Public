@@ -2,99 +2,101 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Overview
+
+**Overtime-Public** is the public-facing portal for the Overtime dodgeball platform. It serves fans and community members with read-only league/player/team data, plus authenticated features for "La Plaza" (local pickup games), player profile management, and the edit-request workflow.
+
 ## Commands
 
 ```bash
-npm start          # Dev server (port 3000)
-npm run build      # Production build
-npm test           # React Testing Library (Jest, no test files currently exist)
+npm start       # Dev server (proxied via vercel.json; no backend proxy in package.json)
+npm run build
+npm test
 ```
 
-No lint script is configured. TypeScript errors surface via `react-scripts build`.
-
-## Architecture
-
-### Entry & Providers
-
-`src/index.tsx` wraps the app in: `GlobalErrorBoundary` → `QueryClientProvider` → `PersistQueryClientProvider` → `AuthContext` → `SolicitudesContext` → `FeatureFlagsProvider` → `BrowserRouter` → `App`.
-
-It also runs version-aware cache busting on mount: reads `APP_VERSION` from localStorage, clears React Query's persisted cache (and unregisters the Service Worker) if the stored version mismatches. This prevents stale-cache 404 loops after deploys.
-
-`FeatureFlagsProvider` (`src/shared/config/featureFlags.tsx`) fetches `/api/config` on mount and exposes feature flags (e.g., `enableGPT5`) via context. If a feature is conditionally rendered, this is where to look.
-
-`src/App.tsx` declares all routes. Every page component is `React.lazy`-loaded.
-
-### Data Fetching
-
-TanStack Query v5 is the primary data layer and the correct pattern for new code:
-- `staleTime: 24 hours`, `gcTime: 7 days`, `retry: 1`, `refetchOnWindowFocus: false` — intentionally offline-first
-- All queries are keyed by domain and entity ID (e.g., `['jugadores', id]`)
-- Data is persisted to localStorage via `@tanstack/react-query-persist-client`
-
-Services in `src/features/<domain>/services/` expose **static async methods** (e.g., `JugadorService.getAll()`, `EquipoService.getById(id)`). Components import the service class and pass its methods directly as `queryFn`.
-
-`src/shared/hooks/useEntity.ts` is a legacy hook that fetches data with plain `useState`/`useEffect`. It exists in a few older components but should not be used for new code — use TanStack Query instead.
-
-### Auth
-
-`src/app/providers/AuthContext.tsx` manages session state:
-- On mount: reads `overtime_token` from localStorage, calls `authService.getProfile()` to restore session
-- `useAuth()` returns `{ user, isAuthenticated, isLoading, login, register, logout, refreshProfile }`
-- `src/app/routes/ProtectedRoute.tsx` wraps routes that require login
-
-`src/shared/utils/authFetch.ts` is the core fetch wrapper:
-- Attaches Bearer token from localStorage
-- Automatically retries with a refreshed token on 401 (calls `/auth/refresh`, stores new tokens)
-- Used inside all service classes for authenticated endpoints
-
-### API Client
-
-There are two distinct API layers — they serve different purposes:
-
-**`src/shared/api/client.ts`** — a small collection of public (unauthenticated) endpoints: landing page insights, public player/team lists, and entity creation requests. Only used for those specific cases.
-
-**`src/shared/utils/authFetch.ts`** — the core fetch wrapper used by all feature services. It attaches the Bearer token, and on a 401 it automatically calls `/auth/refresh`, stores the new tokens, and retries the original request. Every service class (`JugadorService`, `PartidoService`, etc.) uses this internally.
-
-`src/utils/apiClient.ts` contains helper functions for reading/writing tokens to localStorage — it is not a fetch client.
-
-The base URL comes from `REACT_APP_API_URL` (set to the production Render backend). In Vercel, `/api/*` is rewritten to the Render backend by `vercel.json`.
-
-### Feature Structure
-
-Each feature under `src/features/<domain>/` contains:
-- `pages/` — route-level components
-- `services/` — one or more service classes with static methods
-- `components/` — feature-local components (when present)
-
-Feature domains: `auth`, `dashboard`, `jugadores`, `equipos`, `competencias`, `partidos`, `leagueofdodgeball`, `solicitudes`, `perfil`, `notificaciones`.
-
-The `leagueofdodgeball/` feature is the most complex: it handles geolocation-based casual match lobbies using Leaflet maps and Socket.IO (`src/shared/utils/socket.ts`).
-
-### Edit Requests (Solicitudes)
-
-The platform has a multi-step approval workflow for sensitive mutations (adding a player to a team, creating a participation, etc.). `SolicitudesContext` wraps the whole app and exposes `useSolicitudes()`:
-- `cargarOpciones(contexto)` — loads available request types for the current entity context
-- `crearSolicitud(payload)` — submits a new edit request
-
-Types are in `src/shared/types/solicitudesEdicion.ts`. There are 26+ `SolicitudEdicionTipo` values. Custom error subclasses (`SolicitudValidationError`, `SolicitudPermissionError`, `SolicitudBusinessError`) are thrown by the service layer.
-
-### Shared Components
-
-Reusable components live in `src/shared/components/`:
-- Card components: `JugadorCard`, `EquipoCard`, `CompetenciaCard`, `PartidoCard`, `OrganizacionCard`
-- UI primitives in `src/shared/components/ui/`: `Badge`, `Button`, `Modal`, `Spinner`, `Table`, `FilterControls`, etc.
-- Domain modals: `SolicitudModal`, `EstadisticasPartidoModal`, `EloExplanationModal`, `DetallePartido`
-- Layout: `TablaPosiciones` (standings table), `Bracket` (tournament bracket), `EmptyState`
-
-### Styling
-
-Tailwind CSS with a custom `brand` color palette (blue scale, `brand-50` through `brand-900`) and an `xs` breakpoint at 440px. Plugins: `@tailwindcss/forms` and `@tailwindcss/typography`.
+No lint script is configured. TypeScript is checked during build (`react-scripts build`).
 
 ## Environment
 
+`.env` at the project root:
 ```env
 REACT_APP_API_URL=https://overtime-ddyl.onrender.com/api
-REACT_APP_GPT_MODEL=         # Optional, for AI features
+REACT_APP_ENABLE_GPT5=...
+REACT_APP_GPT_MODEL=...
 ```
 
-There is no dev proxy in `package.json`. All API calls go directly to the URL in `REACT_APP_API_URL`.
+In production, `vercel.json` rewrites `/api/*` to the Render backend. In dev, all API calls go directly to the URL in `REACT_APP_API_URL` — there is no local proxy in `package.json`. If you need to point at a local backend, change `REACT_APP_API_URL` to `http://localhost:5000/api`.
+
+## Architecture
+
+### Provider Chain
+
+`index.tsx` wraps the app in: `GlobalErrorBoundary → BrowserRouter → AuthProvider → ToastProvider → SolicitudesProvider → App`
+
+`index.tsx` also manages **cache versioning**: on startup it reads `APP_VERSION` from localStorage, clears all persisted TanStack Query caches and removes any service workers if the version changed (prevents blank-screen issues after deploys).
+
+### Data Fetching
+
+TanStack Query v5 is configured in `App.tsx` with:
+- `staleTime: 24 hours`, `gcTime: 7 days` (offline-first)
+- `createSyncStoragePersister` backed by `localStorage`
+- `refetchOnWindowFocus: false`
+
+Each feature has a **service class** with static methods that call either:
+- `authFetch<T>(endpoint, options)` (`src/shared/utils/authFetch.ts`) — for authenticated requests
+- `src/shared/api/client.ts` — for unauthenticated public endpoints
+
+`authFetch` handles token refresh automatically: on 401 it POSTs to `/auth/refresh`, updates localStorage tokens, and retries the original request. If refresh fails it clears tokens.
+
+Token keys: `overtime_token` (access), `overtime_refresh_token` (refresh) — managed in `src/utils/apiClient.ts`.
+
+### Routing
+
+`App.tsx` lazy-loads all 15+ routes. Protected routes use `ProtectedRoute` (`src/app/routes/ProtectedRoute.tsx`) which checks `useAuth().isAuthenticated` and redirects to `/login` on failure.
+
+**Public routes:** `/`, `/jugadores`, `/equipos`, `/competencias`, `/partidos`, `/ranking`, `/login`, `/register`, `/plaza`
+
+**Protected routes:** `/plaza/crear`, `/plaza/lobby/:id`, `/plaza/lobby/:id/report`, `/solicitudes`, `/perfil`, `/notificaciones`
+
+### Feature Domains
+
+| Feature | Purpose |
+|---------|---------|
+| `auth` | Login, register, session restore via stored token |
+| `competencias` | Leagues/tournaments with 6 service files (competencia, fase, temporada, jugadorCompetencia, organizacion, ranked) |
+| `equipos` | Team listing and detail pages |
+| `jugadores` | Player listing with client-side infinite scroll; player detail with radar stats and history |
+| `leagueofdodgeball` | "La Plaza" — geo-filtered pickup game lobbies with team balancing and result reporting |
+| `partidos` | Match listing and detail |
+| `perfil` | User account settings |
+| `solicitudes` | Edit-request (SolicitudEdicion) approval workflow |
+| `notificaciones` | User notification center |
+
+### Shared Code Layout
+
+```
+src/shared/
+  api/client.ts          # Unauthenticated API calls (register, public listings, insights)
+  components/            # ~40 reusable components; atomic UI in components/ui/
+  config/featureFlags.tsx  # Feature flags loaded from /api/config, defaults from env vars
+  hooks/useEntity.ts     # Generic fetch hook wrapping authFetch
+  types/index.ts         # Core domain types (Usuario, Jugador, Equipo, Partido, …)
+  types/solicitudesEdicion.ts  # Edit-request types and custom error classes
+  utils/authFetch.ts     # Authenticated HTTP client with auto token refresh
+  utils/socket.ts        # Socket.IO client (Render prod or localhost:5000)
+  utils/constants/       # ITEMS_PER_PAGE, VALIDATION_RULES, API_CONFIG, ROUTES, etc.
+```
+
+Note: `src/utils/` and `src/types/` at the root contain some overlapping files with `src/shared/utils/` and `src/shared/types/`. Prefer the `src/shared/` versions — they are the primary source.
+
+### Jugadores Infinite Scroll Pattern
+
+`Jugadores.tsx` fetches all players at once (up to the backend's 1000-item cap), applies client-side filtering, sorts by a daily seed-based "discovery score" (rotates every 24h), and exposes more items in batches of 24 using an `IntersectionObserver`. There is no server-side pagination for the player list.
+
+### Edit-Request (SolicitudEdicion) Workflow
+
+Sensitive mutations don't call APIs directly — they create `SolicitudEdicion` records that go through an approval flow. `SolicitudesContext` (`src/app/providers/SolicitudesContext.tsx`) exposes `cargarOpciones(contexto)` and `crearSolicitud(payload)`. The UI entry points are `SolicitudButton` and `SolicitudModal` in `src/shared/components/`. Custom typed errors (`SolicitudValidationError`, `SolicitudPermissionError`, `SolicitudBusinessError`) are defined in `src/shared/types/solicitudesEdicion.ts`.
+
+### Tailwind Theme
+
+Custom `brand` color palette defined in `tailwind.config.js` (blue shades, `brand-50` through `brand-900`). Plugins: `@tailwindcss/forms`, `@tailwindcss/typography`.

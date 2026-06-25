@@ -70,6 +70,7 @@ const CompetenciaDetalle: React.FC = () => {
       });
     },
     enabled: !!competencia && isRanked && activeTab === 'leaderboard',
+    staleTime: 0,
   });
 
   // React Query for Jugadores Competencia
