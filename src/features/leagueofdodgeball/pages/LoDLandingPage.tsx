@@ -10,17 +10,15 @@ import {
 } from '@heroicons/react/24/outline';
 
 const STEPS_PLAZA = [
-  { n: '01', icon: MapPinIcon,      title: 'Encontrá un partido',    desc: 'Explorá los lobbies abiertos cerca tuyo. Ves la distancia, modalidad, categoría y cuántos jugadores faltan.' },
-  { n: '02', icon: UserGroupIcon,   title: 'Unite al lobby',         desc: 'Con un perfil de jugador te unís al lobby. El host puede equilibrar los equipos por ELO automáticamente.' },
-  { n: '03', icon: ShieldCheckIcon, title: 'Check-in GPS',           desc: 'Al llegar a la cancha confirmás tu presencia con GPS. Si hay un Oficial, él valida el partido.' },
-  { n: '04', icon: BoltIcon,        title: 'Jugá',                   desc: 'El host o el Oficial registran los sets en vivo. Al terminar, ambos capitanes confirman el marcador.' },
-  { n: '05', icon: TrophyIcon,      title: 'Sumá puntos de ranking', desc: 'El resultado mueve tu ELO. Con Oficial: ×0.5 · Sin Oficial: ×0.3 — el coeficiente sube según la verificación.' },
-  { n: '06', icon: StarIcon,        title: 'Votá la conducta',       desc: 'Post-partido calificás a cada jugador. El Karma acumulado influye en cómo el sistema te trata.' },
+  { n: '01', icon: MapPinIcon,    title: 'Encontrá un partido',      desc: 'Explorá los lobbies abiertos cerca tuyo. Ves la distancia, modalidad, categoría y cuántos jugadores faltan.' },
+  { n: '02', icon: UserGroupIcon, title: 'Unite y confirmá llegada',  desc: 'Con un perfil de jugador te unís al lobby. Al llegar a la cancha confirmás tu presencia con GPS.' },
+  { n: '03', icon: BoltIcon,      title: 'Jugá',                     desc: 'El host registra los sets en vivo. Al terminar, ambos capitanes confirman el marcador final.' },
+  { n: '04', icon: TrophyIcon,    title: 'Sumá puntos al ranking',   desc: 'El resultado mueve tu ELO global. Con Oficial: ×0.5 · Sin Oficial: ×0.3.' },
 ];
 
 const STEPS_COMPETENCIA = [
   { n: '01', icon: MagnifyingGlassIcon, title: 'Encontrá una competencia LoD',  desc: 'Explorá las competencias con el sello LoD habilitado. Podés filtrar por modalidad y categoría.' },
-  { n: '02', icon: EnvelopeIcon,        title: 'Contactá al organizador',        desc: 'Cada competencia tiene un organizador. Escribile para saber cómo inscribirte o si hay lugar en algún equipo.' },
+  { n: '02', icon: EnvelopeIcon,        title: 'Encontrá tu competencia',        desc: 'Entrá a Competencias LoD, buscá la de tu club y contactá al organizador desde ahí para inscribirte o unirte a un equipo.' },
   { n: '03', icon: UserIcon,            title: 'Reclamá o creá tu perfil',       desc: 'Si ya participaste en competencias registradas, tu perfil puede estar en la plataforma. Buscalo y asocialo a tu cuenta.' },
   { n: '04', icon: BoltIcon,            title: 'Jugá los partidos',              desc: 'Los partidos son registrados por el organizador. Los resultados quedan guardados en la plataforma.' },
   { n: '05', icon: ChartBarIcon,        title: 'ELO completo (×1)',              desc: 'Los partidos de Competencias LoD suman ELO con el coeficiente completo — sin reducción, el máximo valor posible.' },
@@ -127,15 +125,15 @@ export default function LoDLandingPage() {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link to="/ranking" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-brand-500 hover:bg-brand-400 text-white font-black rounded-xl transition-colors shadow-lg shadow-brand-900/50 text-sm">
-              <TrophyIcon className="h-4 w-4" /> Ver el ranking global
-            </Link>
             <button
               onClick={() => setShowProfileFlow(v => !v)}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold rounded-xl transition-colors text-sm"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-brand-500 hover:bg-brand-400 text-white font-black rounded-xl transition-colors shadow-lg shadow-brand-900/50 text-sm"
             >
               <UserIcon className="h-4 w-4" /> ¿Ya jugaste? Buscá tu perfil
             </button>
+            <Link to="/ranking" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold rounded-xl transition-colors text-sm">
+              <TrophyIcon className="h-4 w-4" /> Ver el ranking global
+            </Link>
           </div>
 
           {showProfileFlow && (
@@ -169,7 +167,7 @@ export default function LoDLandingPage() {
       </section>
 
       {/* ── Stats strip ── */}
-      <div className="bg-brand-600 px-6 py-5">
+      {insights?.totals && insights.totals.partidos > 0 && <div className="bg-brand-600 px-6 py-5">
         <div className="mx-auto max-w-4xl grid grid-cols-3 gap-4 text-center text-white">
           {[
             { label: 'Jugadores registrados', value: insights?.totals.jugadores },
@@ -184,7 +182,7 @@ export default function LoDLandingPage() {
             </div>
           ))}
         </div>
-      </div>
+      </div>}
 
       {/* ── Los tres pilares ── */}
       <section className="bg-white px-6 py-16">
