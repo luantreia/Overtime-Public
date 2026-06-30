@@ -21,11 +21,12 @@ const CompetenciaDetalle: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  
+
   // Tabs and Selections from URL
   const activeTab = (searchParams.get('tab') as 'info' | 'leaderboard' | 'partidos' | 'resultados') || 'info';
   const selectedTemporada = searchParams.get('temporada') || '';
   const selectedFase = searchParams.get('fase') || '';
+  const selectedJugadorFilter = searchParams.get('jugadorFilter') || '';
 
   const updateParams = useCallback((params: Record<string, string | null>) => {
     setSearchParams(prev => {
@@ -51,10 +52,10 @@ const CompetenciaDetalle: React.FC = () => {
 
   const isRanked = competencia ? (competencia as any).rankedEnabled === true : false;
 
-  // React Query for Leaderboard
-  const { 
-    data: leaderboardData, 
-    isLoading: loadingLeaderboard 
+  // React Query for Leaderboard — load on 'leaderboard' tab or 'info' tab (ranked) for the top-3 vitrina
+  const {
+    data: leaderboardData,
+    isLoading: loadingLeaderboard
   } = useQuery({
     queryKey: ['leaderboard', id, selectedTemporada],
     queryFn: async () => {
@@ -69,13 +70,13 @@ const CompetenciaDetalle: React.FC = () => {
         limit: 500
       });
     },
-    enabled: !!competencia && isRanked && activeTab === 'leaderboard',
+    enabled: !!competencia && isRanked && (activeTab === 'leaderboard' || activeTab === 'info'),
     staleTime: 0,
   });
 
   // React Query for Jugadores Competencia
-  const { 
-    data: jugadoresComp = [] 
+  const {
+    data: jugadoresComp = []
   } = useQuery({
     queryKey: ['jugadores-competencia', id],
     queryFn: () => JugadorCompetenciaService.getByCompetencia(id!),
@@ -83,6 +84,7 @@ const CompetenciaDetalle: React.FC = () => {
   });
 
   const leaderboard = leaderboardData?.items || [];
+  const top3Leaderboard = leaderboard.slice(0, 3);
 
   // React Query for Temporadas
   const { data: temporadas = [] } = useQuery({
@@ -100,15 +102,19 @@ const CompetenciaDetalle: React.FC = () => {
 
   // React Query for Partidos
   const { data: fasePartidos = [], isLoading: loadingPartidos } = useQuery({
-    queryKey: ['partidos', id, selectedTemporada, selectedFase],
+    queryKey: ['partidos', id, selectedTemporada, selectedFase, selectedJugadorFilter],
     queryFn: async () => {
+      const extraFilters: Record<string, string> = {};
+      if (selectedJugadorFilter) extraFilters.jugador = selectedJugadorFilter;
+
       if (selectedFase) {
-        return PartidoService.getByFaseId(selectedFase);
+        return PartidoService.getAll({ fase: selectedFase, ...extraFilters });
       }
       if (selectedTemporada && selectedTemporada !== 'global') {
-        return PartidoService.getAll({ 
+        return PartidoService.getAll({
           temporadaId: selectedTemporada,
-          competencia: id! 
+          competencia: id!,
+          ...extraFilters
         });
       }
       return [];
@@ -188,10 +194,10 @@ const CompetenciaDetalle: React.FC = () => {
     <div className="min-h-screen bg-slate-50 py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <CompetenciaHeader 
-          competencia={competencia} 
-          isRanked={isRanked} 
-          onBack={() => navigate('/competencias')} 
+        <CompetenciaHeader
+          competencia={competencia}
+          isRanked={isRanked}
+          onBack={() => navigate('/competencias')}
         />
 
         {/* Tabs */}
@@ -246,19 +252,31 @@ const CompetenciaDetalle: React.FC = () => {
 
         {/* Content */}
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 min-h-[400px]">
-          {activeTab === 'info' && <CompetenciaInfoTab competencia={competencia} />}
+          {activeTab === 'info' && (
+            <CompetenciaInfoTab
+              competencia={competencia}
+              isRanked={isRanked}
+              jugadoresComp={jugadoresComp}
+              top3Leaderboard={top3Leaderboard}
+              loadingTop3={loadingLeaderboard}
+            />
+          )}
 
           {activeTab === 'partidos' && (
             <CompetenciaPartidosTab
               temporadas={temporadas}
               selectedTemporada={selectedTemporada}
-              onTemporadaChange={(id) => updateParams({ temporada: id, fase: null })}
+              onTemporadaChange={(id) => updateParams({ temporada: id, fase: null, jugadorFilter: null })}
               fases={fases}
               selectedFase={selectedFase}
               onFaseChange={(id) => updateParams({ fase: id })}
               loading={loadingPartidos}
               partidos={fasePartidos}
               onPartidoClick={(partidoId) => navigate(`/partidos/${partidoId}`)}
+              isRanked={isRanked}
+              jugadoresComp={jugadoresComp}
+              selectedJugador={selectedJugadorFilter}
+              onJugadorChange={(jid) => updateParams({ jugadorFilter: jid || null })}
             />
           )}
 

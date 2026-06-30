@@ -7,6 +7,11 @@ export interface Temporada {
   fechaFin?: string;
   estado?: string;
   competencia?: string;
+  ganador?: {
+    _id: string;
+    nombre: string;
+    escudo?: string;
+  } | null;
 }
 
 export class TemporadaService {
