@@ -403,6 +403,73 @@ export default function LoDLandingPage() {
         </div>
       </section>
 
+      {/* ── Los 3 niveles de ranking ── */}
+      <section className="bg-slate-50 px-6 py-16 border-t border-slate-100">
+        <div className="mx-auto max-w-5xl space-y-10">
+          <div className="text-center space-y-2">
+            <h2 className="text-3xl font-black text-slate-900">Tu ELO, en 3 niveles</h2>
+            <p className="text-slate-500 max-w-lg mx-auto">Cada partido rankeado actualiza los tres simultáneamente.</p>
+          </div>
+
+          <div className="grid sm:grid-cols-3 gap-4">
+            <div className="bg-white rounded-2xl border-2 border-brand-200 p-6 space-y-3 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div className="h-10 w-10 rounded-xl bg-brand-600 flex items-center justify-center">
+                  <ChartBarIcon className="h-5 w-5 text-white" />
+                </div>
+                <span className="text-xs font-black text-brand-600 bg-brand-50 px-2 py-1 rounded-full">Más visitado</span>
+              </div>
+              <div>
+                <p className="font-black text-slate-900 text-lg">Temporada</p>
+                <p className="text-xs text-brand-600 font-bold mt-0.5">Esta edición de tu competencia</p>
+              </div>
+              <p className="text-sm text-slate-500 leading-relaxed">Tu rendimiento en la temporada actual. Se resetea con cada nueva edición del torneo.</p>
+              <Link to="/competencias" className="flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm font-bold bg-brand-600 text-white hover:bg-brand-700 transition-colors">
+                Ver mi temporada <ArrowRightIcon className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+
+            <div className="bg-white rounded-2xl border-2 border-indigo-200 p-6 space-y-3 shadow-sm">
+              <div className="h-10 w-10 rounded-xl bg-indigo-600 flex items-center justify-center">
+                <ShieldCheckIcon className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <p className="font-black text-slate-900 text-lg">Competencia</p>
+                <p className="text-xs text-indigo-600 font-bold mt-0.5">Todo el historial del torneo</p>
+              </div>
+              <p className="text-sm text-slate-500 leading-relaxed">Acumula partidos de todas las temporadas. Refleja tu trayectoria completa en el torneo.</p>
+              <Link to="/lod/competencias" className="flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm font-bold bg-indigo-600 text-white hover:bg-indigo-700 transition-colors">
+                Ver competencias <ArrowRightIcon className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+
+            <div className="bg-white rounded-2xl border-2 border-amber-200 p-6 space-y-3 shadow-sm">
+              <div className="h-10 w-10 rounded-xl bg-amber-500 flex items-center justify-center">
+                <TrophyIcon className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <p className="font-black text-slate-900 text-lg">Global</p>
+                <p className="text-xs text-amber-600 font-bold mt-0.5">Frente a toda la comunidad</p>
+              </div>
+              <p className="text-sm text-slate-500 leading-relaxed">Suma todos tus partidos rankeados: La Plaza y competencias. Tu ELO histórico completo.</p>
+              <Link to="/ranking" className="flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm font-bold bg-amber-500 text-white hover:bg-amber-600 transition-colors">
+                Ver ranking global <ArrowRightIcon className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+          </div>
+
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 flex items-start gap-4 shadow-sm">
+            <div className="h-8 w-8 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 mt-0.5">
+              <BoltIcon className="h-4 w-4 text-slate-600" />
+            </div>
+            <div>
+              <p className="font-bold text-slate-900 text-sm">Cada partido rankeado suma a los 3 niveles a la vez</p>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">Jugás en la Temporada 2 de tu club → actualiza tu posición en esa temporada, en el historial de la competencia, y en el ranking global. Un solo partido, tres rankings.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── Por dónde empezás ── */}
       <section className="bg-slate-50 px-6 py-16 border-t border-slate-100">
         <div className="mx-auto max-w-4xl space-y-8">
