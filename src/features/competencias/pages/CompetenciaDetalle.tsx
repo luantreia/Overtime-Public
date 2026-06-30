@@ -43,7 +43,7 @@ const CompetenciaDetalle: React.FC = () => {
     queryKey: ['competencia', id],
     queryFn: () => {
       if (!id) throw new Error('ID de competencia no proporcionado');
-      return CompetenciaService.getById(id);
+      return CompetenciaService.getDetalle(id);
     },
     enabled: !!id,
   });

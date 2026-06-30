@@ -35,6 +35,11 @@ export class CompetenciaService {
     return { ...data, id: data._id || data.id };
   }
 
+  static async getDetalle(id: string): Promise<Competencia> {
+    const data = await fetchWithAuth<any>(`${this.API_ENDPOINT}/${id}/detalle`);
+    return { ...data, id: data._id || data.id };
+  }
+
   static async create(data: Omit<Competencia, 'id'>): Promise<Competencia> {
     return fetchWithAuth<Competencia>(`${this.API_ENDPOINT}`, {
       method: 'POST',
