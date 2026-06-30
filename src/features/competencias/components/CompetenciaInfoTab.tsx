@@ -57,10 +57,17 @@ export const CompetenciaInfoTab: React.FC<CompetenciaInfoTabProps> = ({
   }
   const teams = Array.from(teamsMap.values()).sort((a, b) => a.nombre.localeCompare(b.nombre));
 
-  // Champions: seasons with a winner set, newest first
-  const champions = embeddedTemporadas
-    .filter(t => t.ganador)
-    .reverse();
+  // Champions: group by team, sorted by title count descending
+  const championsByTeam = (() => {
+    const map = new Map<string, { equipo: { _id: string; nombre: string; escudo?: string }; titulos: string[] }>();
+    for (const t of [...embeddedTemporadas].reverse()) {
+      if (!t.ganador) continue;
+      const g = t.ganador;
+      if (!map.has(g._id)) map.set(g._id, { equipo: g, titulos: [] });
+      map.get(g._id)!.titulos.push(t.nombre);
+    }
+    return Array.from(map.values()).sort((a, b) => b.titulos.length - a.titulos.length);
+  })();
 
   // Player photo lookup for ranked top3
   const getPlayerFoto = (playerId: string): string => {
@@ -185,39 +192,47 @@ export const CompetenciaInfoTab: React.FC<CompetenciaInfoTabProps> = ({
             </div>
           )}
 
-          {/* Not ranked: champions vitrina */}
-          {champions.length > 0 && (
+          {/* Not ranked: champions vitrina grouped by team */}
+          {championsByTeam.length > 0 && (
             <div>
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">Campeones</h3>
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">Palmarés</h3>
               <div className="flex flex-col gap-2">
-                {champions.map((t, idx) => {
-                  const ganador = t.ganador!;
-                  return (
-                    <div
-                      key={t._id}
-                      className={`flex items-center gap-3 rounded-xl border px-4 py-3 ${
-                        idx === 0
-                          ? 'border-amber-200 bg-amber-50 shadow-sm'
-                          : 'border-slate-200 bg-white'
-                      }`}
-                    >
-                      <span className="text-2xl flex-shrink-0">{idx === 0 ? '🏆' : '🥈'}</span>
-                      <div className="flex items-center gap-2 min-w-0">
-                        {ganador.escudo ? (
-                          <img src={ganador.escudo} alt={ganador.nombre} className="h-8 w-8 rounded-full object-cover border border-slate-200 flex-shrink-0" />
-                        ) : (
-                          <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600 flex-shrink-0">
-                            {getInitials(ganador.nombre)}
-                          </div>
-                        )}
-                        <div className="min-w-0">
-                          <div className="text-sm font-bold text-slate-900 truncate">{ganador.nombre}</div>
-                          <div className="text-xs text-slate-500">{t.nombre}</div>
-                        </div>
+                {championsByTeam.map(({ equipo, titulos }, idx) => (
+                  <div
+                    key={equipo._id}
+                    className={`flex items-center gap-3 rounded-xl border px-4 py-3 ${
+                      idx === 0
+                        ? 'border-amber-200 bg-amber-50 shadow-sm'
+                        : 'border-slate-200 bg-white'
+                    }`}
+                  >
+                    {/* Rank badge */}
+                    <span className="text-xl flex-shrink-0 w-7 text-center">
+                      {idx === 0 ? '🏆' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`}
+                    </span>
+
+                    {/* Escudo */}
+                    {equipo.escudo ? (
+                      <img src={equipo.escudo} alt={equipo.nombre} className="h-9 w-9 rounded-full object-cover border border-slate-200 flex-shrink-0" />
+                    ) : (
+                      <div className="h-9 w-9 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-600 flex-shrink-0">
+                        {getInitials(equipo.nombre)}
                       </div>
+                    )}
+
+                    {/* Name + seasons */}
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-bold text-slate-900">{equipo.nombre}</div>
+                      <div className="text-xs text-slate-500 truncate">{titulos.join(' · ')}</div>
                     </div>
-                  );
-                })}
+
+                    {/* Title count */}
+                    <div className="flex-shrink-0 flex items-center gap-1">
+                      <span className="text-lg font-black text-amber-500">{titulos.length}</span>
+                      <span className="text-xs text-slate-400 font-medium">{titulos.length === 1 ? 'título' : 'títulos'}</span>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
