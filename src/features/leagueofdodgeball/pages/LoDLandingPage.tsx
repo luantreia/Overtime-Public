@@ -98,7 +98,7 @@ export default function LoDLandingPage() {
                 <p className="text-xs text-brand-600 font-bold mt-0.5">Esta edición de tu competencia</p>
               </div>
               <p className="text-sm text-slate-500 leading-relaxed">Tu rendimiento en la temporada actual. Se resetea con cada nueva edición del torneo.</p>
-              <Link to="/competencias" className="flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm font-bold bg-brand-600 text-white hover:bg-brand-700 transition-colors">
+              <Link to="/lod/competencias" className="flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm font-bold bg-brand-600 text-white hover:bg-brand-700 transition-colors">
                 Ver mi temporada <ArrowRightIcon className="h-3.5 w-3.5" />
               </Link>
             </div>
