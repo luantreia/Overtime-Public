@@ -40,17 +40,6 @@ const PILLARS = [
     ],
   },
   {
-    icon: TrophyIcon,
-    color: 'amber',
-    title: 'Ranking Global',
-    sub: 'ELO por modalidad y categoría',
-    desc: 'Todos los partidos —de La Plaza y de competencias— suman al mismo ranking. Subí posiciones jugando.',
-    ctas: [
-      { label: 'Ver el ranking', to: '/ranking' },
-      { label: 'Ver jugadores', to: '/jugadores' },
-    ],
-  },
-  {
     icon: ShieldCheckIcon,
     color: 'indigo',
     title: 'Competencias LoD',
@@ -59,6 +48,17 @@ const PILLARS = [
     ctas: [
       { label: 'Ver competencias LoD', to: '/lod/competencias' },
       { label: '¿Estás participando? Reclamá tu perfil', to: '/jugadores' },
+    ],
+  },
+  {
+    icon: TrophyIcon,
+    color: 'amber',
+    title: 'Ranking Global',
+    sub: 'ELO por modalidad y categoría',
+    desc: 'Todos los partidos —de La Plaza y de competencias— suman al mismo ranking. Subí posiciones jugando.',
+    ctas: [
+      { label: 'Ver el ranking', to: '/ranking' },
+      { label: 'Ver jugadores', to: '/jugadores' },
     ],
   },
 ];
@@ -87,10 +87,10 @@ const ONBOARDING = [
     n: '3',
     icon: MapPinIcon,
     title: 'Empezá a jugar',
-    desc: 'Buscá un lobby en La Plaza para jugar con amigos, o contactá al organizador de una Competencia LoD para unirte a un equipo.',
+    desc: 'Unite a una Competencia LoD de tu club, o buscá un lobby en La Plaza para jugar un partido informal cerca tuyo.',
     actions: [
-      { label: 'Ir a La Plaza', to: '/plaza', primary: true },
-      { label: 'Ver Competencias LoD', to: '/lod/competencias' },
+      { label: 'Ver Competencias LoD', to: '/lod/competencias', primary: true },
+      { label: 'Ir a La Plaza', to: '/plaza' },
     ],
   },
 ];
@@ -516,13 +516,13 @@ export default function LoDLandingPage() {
       <section className="bg-gradient-to-br from-brand-700 to-brand-900 px-6 py-20 text-white text-center">
         <div className="mx-auto max-w-2xl space-y-6">
           <h2 className="text-4xl font-black leading-tight">¿Listo para jugar?</h2>
-          <p className="text-brand-200 text-lg">Registrate, buscá un lobby cerca tuyo y empezá a sumar puntos al ranking global.</p>
+          <p className="text-brand-200 text-lg">Unite a una competencia de tu club o encontrá un partido cerca tuyo.</p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link to="/register" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white text-brand-700 font-black rounded-xl hover:bg-brand-50 transition-colors shadow-lg text-sm">
-              Crear mi cuenta gratis
+            <Link to="/lod/competencias" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white text-brand-700 font-black rounded-xl hover:bg-brand-50 transition-colors shadow-lg text-sm">
+              <ShieldCheckIcon className="h-4 w-4" /> Ver Competencias LoD
             </Link>
             <Link to="/plaza" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white/10 hover:bg-white/20 border border-white/20 font-bold rounded-xl transition-colors text-sm">
-              <MapPinIcon className="h-4 w-4" /> Explorar sin cuenta
+              <MapPinIcon className="h-4 w-4" /> Explorar La Plaza
             </Link>
           </div>
           <div className="flex items-center justify-center gap-6 text-sm text-brand-300 pt-2">
