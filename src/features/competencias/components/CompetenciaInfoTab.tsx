@@ -169,33 +169,10 @@ export const CompetenciaInfoTab: React.FC<CompetenciaInfoTabProps> = ({
         </>
       ) : (
         <>
-          {/* Not ranked: participating teams */}
-          {teams.length > 0 && (
-            <div>
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">
-                Equipos participantes <span className="normal-case font-normal text-slate-400">({teams.length})</span>
-              </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                {teams.map(team => (
-                  <div key={team._id} className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-                    {team.escudo ? (
-                      <img src={team.escudo} alt={team.nombre} className="h-7 w-7 rounded-full object-cover flex-shrink-0" />
-                    ) : (
-                      <div className="h-7 w-7 rounded-full bg-brand-100 flex items-center justify-center text-[10px] font-bold text-brand-700 flex-shrink-0">
-                        {getInitials(team.nombre)}
-                      </div>
-                    )}
-                    <span className="text-xs font-medium text-slate-800 truncate">{team.nombre}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Not ranked: champions vitrina grouped by team */}
           {championsByTeam.length > 0 && (
             <div>
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">Palmarés</h3>
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">Hall of Fame</h3>
               <div className="flex flex-col gap-2">
                 {championsByTeam.map(({ equipo, titulos }, idx) => (
                   <div
@@ -231,6 +208,29 @@ export const CompetenciaInfoTab: React.FC<CompetenciaInfoTabProps> = ({
                       <span className="text-lg font-black text-amber-500">{titulos.length}</span>
                       <span className="text-xs text-slate-400 font-medium">{titulos.length === 1 ? 'título' : 'títulos'}</span>
                     </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Not ranked: participating teams */}
+          {teams.length > 0 && (
+            <div>
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">
+                Equipos participantes <span className="normal-case font-normal text-slate-400">({teams.length})</span>
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                {teams.map(team => (
+                  <div key={team._id} className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                    {team.escudo ? (
+                      <img src={team.escudo} alt={team.nombre} className="h-7 w-7 rounded-full object-cover flex-shrink-0" />
+                    ) : (
+                      <div className="h-7 w-7 rounded-full bg-brand-100 flex items-center justify-center text-[10px] font-bold text-brand-700 flex-shrink-0">
+                        {getInitials(team.nombre)}
+                      </div>
+                    )}
+                    <span className="text-xs font-medium text-slate-800 truncate">{team.nombre}</span>
                   </div>
                 ))}
               </div>
