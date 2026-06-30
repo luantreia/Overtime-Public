@@ -108,8 +108,9 @@ export default function LoDLandingPage() {
     <div className="space-y-0 -mt-6 -mx-4">
 
       {/* ── Hero ── */}
-      <section className="relative bg-gradient-to-br from-slate-900 via-brand-900 to-brand-800 text-white overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.08]" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+      <section className="relative bg-slate-900 text-white overflow-hidden">
+        <img src="/dodgeball-hero.jpg" alt="" className="absolute inset-0 w-full h-full object-cover opacity-40" />
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/80 via-brand-900/70 to-brand-800/60" />
         <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-brand-600/30 to-transparent" />
         <div className="relative mx-auto max-w-4xl px-6 py-20 text-center space-y-8">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/20 text-xs font-bold tracking-widest uppercase text-brand-200">
