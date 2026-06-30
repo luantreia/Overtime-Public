@@ -52,7 +52,7 @@ const CompetenciaDetalle: React.FC = () => {
 
   const isRanked = competencia ? (competencia as any).rankedEnabled === true : false;
 
-  // React Query for Leaderboard — load on 'leaderboard' tab or 'info' tab (ranked) for the top-3 vitrina
+  // React Query for Leaderboard (season-filtered) — used in the leaderboard tab
   const {
     data: leaderboardData,
     isLoading: loadingLeaderboard
@@ -70,8 +70,29 @@ const CompetenciaDetalle: React.FC = () => {
         limit: 500
       });
     },
-    enabled: !!competencia && isRanked && (activeTab === 'leaderboard' || activeTab === 'info'),
+    enabled: !!competencia && isRanked && activeTab === 'leaderboard',
     staleTime: 0,
+  });
+
+  // React Query for global historical top-3 — used only in the info tab vitrina
+  const {
+    data: top3Data,
+    isLoading: loadingTop3
+  } = useQuery({
+    queryKey: ['leaderboard-top3-global', id],
+    queryFn: async () => {
+      if (!competencia) return null;
+      const modalidad = (competencia as any).modalidad || 'Foam';
+      const categoria = (competencia as any).categoria || 'Libre';
+      return RankedService.getLeaderboard({
+        modalidad,
+        categoria,
+        competition: competencia.id,
+        limit: 3
+      });
+    },
+    enabled: !!competencia && isRanked && activeTab === 'info',
+    staleTime: 5 * 60 * 1000,
   });
 
   // React Query for Jugadores Competencia
@@ -84,7 +105,7 @@ const CompetenciaDetalle: React.FC = () => {
   });
 
   const leaderboard = leaderboardData?.items || [];
-  const top3Leaderboard = leaderboard.slice(0, 3);
+  const top3Leaderboard = top3Data?.items || [];
 
   // React Query for Temporadas
   const { data: temporadas = [] } = useQuery({
@@ -258,7 +279,7 @@ const CompetenciaDetalle: React.FC = () => {
               isRanked={isRanked}
               jugadoresComp={jugadoresComp}
               top3Leaderboard={top3Leaderboard}
-              loadingTop3={loadingLeaderboard}
+              loadingTop3={loadingTop3}
             />
           )}
 
