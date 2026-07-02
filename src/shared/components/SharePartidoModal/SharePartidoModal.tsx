@@ -226,69 +226,71 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
 
           {/* ── ENFRENTAMIENTO ── */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '8px 20px 0' }}>
-            {/* Equipos en fila */}
-            <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: 0 }}>
+            {/* Cancha de dodgeball como fondo — 18x9m proporcional */}
+            <div style={{ position: 'relative', width: '100%' }}>
+              {/* SVG cancha */}
+              <svg
+                viewBox="0 0 18 9"
+                preserveAspectRatio="none"
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                {/* Fondo cancha */}
+                <rect x="0" y="0" width="18" height="9" fill="rgba(255,255,255,0.025)" rx="0.4" />
+                {/* Borde cancha */}
+                <rect x="0.1" y="0.1" width="17.8" height="8.8" fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="0.18" rx="0.3" />
+                {/* Línea de habilitación local (6m) */}
+                <line x1="6" y1="0.1" x2="6" y2="8.9" stroke="rgba(255,255,255,0.1)" strokeWidth="0.13" strokeDasharray="0.4 0.25" />
+                {/* Línea central (9m) */}
+                <line x1="9" y1="0.1" x2="9" y2="8.9" stroke="rgba(255,255,255,0.2)" strokeWidth="0.16" />
+                {/* Círculo central */}
+                <circle cx="9" cy="4.5" r="1.2" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="0.13" />
+                {/* Línea de habilitación visitante (12m) */}
+                <line x1="12" y1="0.1" x2="12" y2="8.9" stroke="rgba(255,255,255,0.1)" strokeWidth="0.13" strokeDasharray="0.4 0.25" />
+              </svg>
 
-              {/* Local */}
-              <div style={{
-                flex: 1, display: 'flex', flexDirection: 'column',
-                alignItems: 'center', gap: 12, textAlign: 'center',
-              }}>
-                {renderEscudo(localEscudo, localNombre, 64)}
+              {/* Equipos sobre la cancha */}
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%', padding: '18px 0', gap: 0 }}>
+
+                {/* Local */}
                 <div style={{
-                  color: 'white', fontWeight: 800, fontSize: 13,
-                  lineHeight: 1.25, maxWidth: 100,
+                  flex: 1, display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', gap: 12, textAlign: 'center',
                 }}>
-                  {localNombre}
+                  {renderEscudo(localEscudo, localNombre, 64)}
+                  <div style={{ color: 'white', fontWeight: 800, fontSize: 13, lineHeight: 1.25, maxWidth: 100 }}>
+                    {localNombre}
+                  </div>
                 </div>
-              </div>
 
-              {/* Centro: VS o marcador */}
-              <div style={{
-                width: 72, flexShrink: 0, display: 'flex', flexDirection: 'column',
-                alignItems: 'center', justifyContent: 'center',
-              }}>
-                {mostrarMarcador ? (
-                  <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                    <span style={{ fontSize: 34, fontWeight: 900, color: 'white', lineHeight: 1 }}>
-                      {partido.marcadorLocal ?? 0}
+                {/* Centro: VS o marcador */}
+                <div style={{ width: 72, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {mostrarMarcador ? (
+                    <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontSize: 34, fontWeight: 900, color: 'white', lineHeight: 1 }}>
+                        {partido.marcadorLocal ?? 0}
+                      </span>
+                      <span style={{ fontSize: 20, color: 'rgba(255,255,255,0.3)', fontWeight: 700 }}>-</span>
+                      <span style={{ fontSize: 34, fontWeight: 900, color: 'white', lineHeight: 1 }}>
+                        {partido.marcadorVisitante ?? 0}
+                      </span>
+                    </div>
+                  ) : (
+                    <span style={{ fontSize: 15, fontWeight: 900, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.05em' }}>
+                      VS
                     </span>
-                    <span style={{ fontSize: 20, color: 'rgba(255,255,255,0.3)', fontWeight: 700 }}>-</span>
-                    <span style={{ fontSize: 34, fontWeight: 900, color: 'white', lineHeight: 1 }}>
-                      {partido.marcadorVisitante ?? 0}
-                    </span>
-                  </div>
-                ) : (
-                  <div style={{
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-                  }}>
-                    <div style={{
-                      width: 1, height: 28,
-                      background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.2))',
-                    }} />
-                    <span style={{
-                      fontSize: 15, fontWeight: 900, color: 'rgba(255,255,255,0.35)',
-                      letterSpacing: '0.05em',
-                    }}>VS</span>
-                    <div style={{
-                      width: 1, height: 28,
-                      background: 'linear-gradient(to bottom, rgba(255,255,255,0.2), transparent)',
-                    }} />
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
 
-              {/* Visitante */}
-              <div style={{
-                flex: 1, display: 'flex', flexDirection: 'column',
-                alignItems: 'center', gap: 12, textAlign: 'center',
-              }}>
-                {renderEscudo(visitanteEscudo, visitanteNombre, 64)}
+                {/* Visitante */}
                 <div style={{
-                  color: 'white', fontWeight: 800, fontSize: 13,
-                  lineHeight: 1.25, maxWidth: 100,
+                  flex: 1, display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', gap: 12, textAlign: 'center',
                 }}>
-                  {visitanteNombre}
+                  {renderEscudo(visitanteEscudo, visitanteNombre, 64)}
+                  <div style={{ color: 'white', fontWeight: 800, fontSize: 13, lineHeight: 1.25, maxWidth: 100 }}>
+                    {visitanteNombre}
+                  </div>
                 </div>
               </div>
             </div>
