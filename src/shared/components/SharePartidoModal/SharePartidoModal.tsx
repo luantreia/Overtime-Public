@@ -59,7 +59,6 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
   const cardRef = useRef<HTMLDivElement>(null);
   const [loadingShare, setLoadingShare] = useState(false);
   const [loadingDownload, setLoadingDownload] = useState(false);
-  const [loadingAnimated, setLoadingAnimated] = useState(false);
   const [localEscudo, setLocalEscudo] = useState<string | null>(null);
   const [visitanteEscudo, setVisitanteEscudo] = useState<string | null>(null);
 
@@ -121,87 +120,6 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
       console.error('Error descargando:', err);
     } finally {
       setLoadingDownload(false);
-    }
-  };
-
-  const handleShareAnimated = async () => {
-    if (!cardRef.current) return;
-    setLoadingAnimated(true);
-    try {
-      const dataUrl = await toPng(cardRef.current, { cacheBust: true, pixelRatio: 2, skipFonts: true });
-      const img = new Image();
-      await new Promise<void>((res, rej) => { img.onload = () => res(); img.onerror = rej; img.src = dataUrl; });
-
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d')!;
-
-      const mimeType = (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported('video/webm;codecs=vp9'))
-        ? 'video/webm;codecs=vp9'
-        : (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported('video/webm'))
-        ? 'video/webm'
-        : null;
-
-      if (!mimeType) {
-        // Fallback: descargar imagen estática si no hay soporte de video
-        const url = URL.createObjectURL(await (await fetch(dataUrl)).blob());
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename;
-        link.click();
-        URL.revokeObjectURL(url);
-        return;
-      }
-
-      const stream = canvas.captureStream(30);
-      const recorder = new MediaRecorder(stream, { mimeType });
-      const chunks: Blob[] = [];
-      recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
-      recorder.start();
-
-      const DURATION = 2200;
-      const startTime = performance.now();
-
-      await new Promise<void>(resolve => {
-        const draw = (now: number) => {
-          const t = Math.min((now - startTime) / DURATION, 1);
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          ctx.drawImage(img, 0, 0);
-
-          // Shimmer diagonal sweep: entra por la izquierda, sale por la derecha
-          const cx = (t * 1.6 - 0.3) * canvas.width;
-          const shimmer = ctx.createLinearGradient(cx - 120, 0, cx + 120, canvas.height * 0.6);
-          shimmer.addColorStop(0, 'rgba(255,255,255,0)');
-          shimmer.addColorStop(0.4, 'rgba(255,255,255,0.06)');
-          shimmer.addColorStop(0.5, 'rgba(255,255,255,0.18)');
-          shimmer.addColorStop(0.6, 'rgba(255,255,255,0.06)');
-          shimmer.addColorStop(1, 'rgba(255,255,255,0)');
-          ctx.fillStyle = shimmer;
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-          if (t < 1) { requestAnimationFrame(draw); }
-          else { recorder.stop(); resolve(); }
-        };
-        requestAnimationFrame(draw);
-      });
-
-      await new Promise<void>(resolve => { recorder.onstop = () => resolve(); });
-
-      const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
-      const videoFilename = filename.replace('.png', `.${ext}`);
-      const blob = new Blob(chunks, { type: mimeType });
-      // Download directly — navigator.share() loses user gesture after 2.2s of async animation
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = videoFilename;
-      link.click();
-      URL.revokeObjectURL(url);
-    } catch (err: any) {
-      if (err?.name !== 'AbortError') console.error('Error animado:', err);
-    } finally {
-      setLoadingAnimated(false);
     }
   };
 
@@ -478,20 +396,6 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
             )}
           </button>
         </div>
-        <button
-          onClick={handleShareAnimated}
-          disabled={loadingShare || loadingDownload || loadingAnimated}
-          className="mt-2 w-full py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-semibold text-sm hover:bg-slate-50 transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
-        >
-          {loadingAnimated ? 'Generando video…' : (
-            <>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-brand-500">
-                <path d="M4.5 4.5a3 3 0 0 0-3 3v9a3 3 0 0 0 3 3h8.25a3 3 0 0 0 3-3v-9a3 3 0 0 0-3-3H4.5ZM19.94 18.75l-2.69-2.69V7.94l2.69-2.69c.944-.945 2.56-.276 2.56 1.06v11.38c0 1.336-1.616 2.005-2.56 1.06Z" />
-              </svg>
-              Compartir como video animado
-            </>
-          )}
-        </button>
         <p className="mt-1.5 text-[10px] text-slate-400 text-center">
           Compartir abre el selector de apps en móvil
         </p>
