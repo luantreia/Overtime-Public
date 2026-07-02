@@ -222,7 +222,7 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
           </div>
 
           {/* ── ENFRENTAMIENTO ── */}
-          <div style={{ padding: '18px 20px 0' }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '12px 20px 0' }}>
             {/* Equipos en fila */}
             <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: 0 }}>
 
@@ -341,9 +341,6 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
               </div>
             </div>
           )}
-
-          {/* Espacio final */}
-          <div style={{ flex: 1, minHeight: 16 }} />
 
           {/* ── ESCENARIO ── */}
           <div style={{ padding: partido.escenario ? '0 24px 20px' : '0 0 20px', display: 'flex', alignItems: 'center', gap: 6 }}>
