@@ -179,8 +179,8 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
 
           {/* ── HEADER ── */}
           <div style={{ padding: '20px 24px 12px' }}>
-            {/* Badge de estado */}
-            <div style={{ marginBottom: 6 }}>
+            {/* Badge de estado — alineado a la derecha */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
               {estado === 'en_juego' ? (
                 <span style={{
                   display: 'inline-flex', alignItems: 'center', gap: 6,
