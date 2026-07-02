@@ -174,14 +174,11 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
             pointerEvents: 'none',
           }} />
 
+          {/* Stripe superior — borde de color de la card */}
+          <div style={{ height: 4, background: 'linear-gradient(90deg, #6366f1 0%, #818cf8 50%, #4f46e5 100%)', flexShrink: 0 }} />
+
           {/* ── HEADER ── */}
-          <div style={{ padding: '30px 24px 14px' }}>
-            {/* Detalle superior — barras degradadas */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 16 }}>
-              <div style={{ width: 36, height: 2, borderRadius: 1, background: '#6366f1' }} />
-              <div style={{ width: 22, height: 2, borderRadius: 1, background: 'rgba(99,102,241,0.45)' }} />
-              <div style={{ width: 12, height: 2, borderRadius: 1, background: 'rgba(99,102,241,0.2)' }} />
-            </div>
+          <div style={{ padding: '22px 24px 14px' }}>
             {/* Badge de estado */}
             <div style={{ marginBottom: 6 }}>
               {estado === 'en_juego' ? (
