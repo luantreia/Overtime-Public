@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { EstadisticasPartidoModal } from '../../../shared/components/EstadisticasPartidoModal';
 import PartidoCard from '../../../shared/components/PartidoCard';
 import { useQuery } from '@tanstack/react-query';
@@ -12,6 +13,7 @@ import { TablaPosiciones } from '../../../shared/components/TablaPosiciones/Tabl
 
 const Partidos: React.FC = () => {
   usePageTitle('Partidos');
+  const navigate = useNavigate();
   // Filtros
   const [competenciaId, setCompetenciaId] = useState('');
   const [temporadaId, setTemporadaId] = useState('');
@@ -226,6 +228,7 @@ const Partidos: React.FC = () => {
                 key={partido._id || partido.id}
                 partido={partido}
                 variante={partido.estado === 'finalizado' ? 'resultado' : 'proximo'}
+                onClick={() => navigate(`/partidos/${partido._id || partido.id}`)}
                 actions={
                   partido.sets && partido.sets.length > 0 ? (
                     <button
