@@ -175,7 +175,13 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
           }} />
 
           {/* ── HEADER ── */}
-          <div style={{ padding: '22px 24px 14px' }}>
+          <div style={{ padding: '30px 24px 14px' }}>
+            {/* Detalle superior — barras degradadas */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 16 }}>
+              <div style={{ width: 36, height: 2, borderRadius: 1, background: '#6366f1' }} />
+              <div style={{ width: 22, height: 2, borderRadius: 1, background: 'rgba(99,102,241,0.45)' }} />
+              <div style={{ width: 12, height: 2, borderRadius: 1, background: 'rgba(99,102,241,0.2)' }} />
+            </div>
             {/* Badge de estado */}
             <div style={{ marginBottom: 6 }}>
               {estado === 'en_juego' ? (
@@ -343,17 +349,26 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
           )}
 
           {/* ── ESCENARIO ── */}
-          <div style={{ padding: partido.escenario ? '0 24px 20px' : '0 0 20px', display: 'flex', alignItems: 'center', gap: 6 }}>
-            {partido.escenario && (
-              <>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(255,255,255,0.3)" width="12" height="12">
-                  <path fillRule="evenodd" d="m11.54 22.351.07.04.028.016a.76.76 0 0 0 .723 0l.028-.015.071-.041a16.975 16.975 0 0 0 1.144-.742 19.58 19.58 0 0 0 2.683-2.282c1.944-2.079 3.405-4.442 3.405-7.827a8.25 8.25 0 0 0-16.5 0c0 3.385 1.46 5.748 3.405 7.827a19.58 19.58 0 0 0 2.683 2.282 16.975 16.975 0 0 0 1.144.742ZM12 13.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" clipRule="evenodd" />
-                </svg>
-                <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, fontWeight: 500 }}>
-                  {partido.escenario}
-                </span>
-              </>
-            )}
+          {partido.escenario && (
+            <div style={{ padding: '0 24px 10px', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(255,255,255,0.3)" width="12" height="12">
+                <path fillRule="evenodd" d="m11.54 22.351.07.04.028.016a.76.76 0 0 0 .723 0l.028-.015.071-.041a16.975 16.975 0 0 0 1.144-.742 19.58 19.58 0 0 0 2.683-2.282c1.944-2.079 3.405-4.442 3.405-7.827a8.25 8.25 0 0 0-16.5 0c0 3.385 1.46 5.748 3.405 7.827a19.58 19.58 0 0 0 2.683 2.282 16.975 16.975 0 0 0 1.144.742ZM12 13.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" clipRule="evenodd" />
+              </svg>
+              <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, fontWeight: 500 }}>
+                {partido.escenario}
+              </span>
+            </div>
+          )}
+
+          {/* Detalle inferior — línea con rombo centrado */}
+          <div style={{ padding: '8px 24px 28px', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ flex: 1, height: 1, background: 'linear-gradient(to right, transparent, rgba(99,102,241,0.3))' }} />
+            <div style={{
+              width: 6, height: 6, borderRadius: 1, flexShrink: 0,
+              background: 'rgba(99,102,241,0.5)',
+              transform: 'rotate(45deg)',
+            }} />
+            <div style={{ flex: 1, height: 1, background: 'linear-gradient(to left, transparent, rgba(99,102,241,0.3))' }} />
           </div>
         </div>
 
