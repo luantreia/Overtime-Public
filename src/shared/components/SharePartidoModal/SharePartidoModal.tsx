@@ -243,8 +243,6 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
                 <line x1="6" y1="0.1" x2="6" y2="8.9" stroke="rgba(255,255,255,0.1)" strokeWidth="0.13" strokeDasharray="0.4 0.25" />
                 {/* Línea central (9m) */}
                 <line x1="9" y1="0.1" x2="9" y2="8.9" stroke="rgba(255,255,255,0.2)" strokeWidth="0.16" />
-                {/* Círculo central */}
-                <circle cx="9" cy="4.5" r="1.2" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="0.13" />
                 {/* Línea de habilitación visitante (12m) */}
                 <line x1="12" y1="0.1" x2="12" y2="8.9" stroke="rgba(255,255,255,0.1)" strokeWidth="0.13" strokeDasharray="0.4 0.25" />
               </svg>
