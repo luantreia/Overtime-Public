@@ -250,12 +250,12 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
                 alignItems: 'center', justifyContent: 'center',
               }}>
                 {mostrarMarcador ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                    <span style={{ fontSize: 36, fontWeight: 900, color: 'white', lineHeight: 1 }}>
+                  <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontSize: 34, fontWeight: 900, color: 'white', lineHeight: 1 }}>
                       {partido.marcadorLocal ?? 0}
                     </span>
-                    <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.3)', fontWeight: 700 }}>—</span>
-                    <span style={{ fontSize: 36, fontWeight: 900, color: 'white', lineHeight: 1 }}>
+                    <span style={{ fontSize: 20, color: 'rgba(255,255,255,0.3)', fontWeight: 700 }}>-</span>
+                    <span style={{ fontSize: 34, fontWeight: 900, color: 'white', lineHeight: 1 }}>
                       {partido.marcadorVisitante ?? 0}
                     </span>
                   </div>
