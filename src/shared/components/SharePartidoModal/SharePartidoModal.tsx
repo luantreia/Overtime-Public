@@ -175,9 +175,9 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
           }} />
 
           {/* ── HEADER ── */}
-          <div style={{ padding: '28px 24px 16px' }}>
+          <div style={{ padding: '22px 24px 14px' }}>
             {/* Badge de estado */}
-            <div style={{ marginBottom: 8 }}>
+            <div style={{ marginBottom: 6 }}>
               {estado === 'en_juego' ? (
                 <span style={{
                   display: 'inline-flex', alignItems: 'center', gap: 6,
@@ -216,17 +216,13 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
 
             {/* Línea accent */}
             <div style={{
-              marginTop: 16, height: 2, borderRadius: 1,
+              marginTop: 12, height: 2, borderRadius: 1,
               background: 'linear-gradient(90deg, #6366f1, #818cf8, transparent)',
             }} />
           </div>
 
           {/* ── ENFRENTAMIENTO ── */}
-          <div style={{
-            flex: 1, display: 'flex', flexDirection: 'column',
-            alignItems: 'center', justifyContent: 'center',
-            padding: '0 20px', gap: 0,
-          }}>
+          <div style={{ padding: '18px 20px 0' }}>
             {/* Equipos en fila */}
             <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: 0 }}>
 
@@ -295,9 +291,20 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
             </div>
           </div>
 
+          {/* Separador entre equipos y fecha */}
+          <div style={{ margin: '16px 24px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.07)' }} />
+            <div style={{ display: 'flex', gap: 4 }}>
+              {[0,1,2].map(i => (
+                <div key={i} style={{ width: 3, height: 3, borderRadius: '50%', background: 'rgba(255,255,255,0.15)' }} />
+              ))}
+            </div>
+            <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.07)' }} />
+          </div>
+
           {/* ── FECHA DESTACADA ── */}
           {fechaParsed && (
-            <div style={{ padding: '0 24px 20px' }}>
+            <div style={{ padding: '12px 24px 0' }}>
               <div style={{
                 background: 'rgba(255,255,255,0.07)',
                 border: '1px solid rgba(255,255,255,0.1)',
@@ -335,22 +342,22 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
             </div>
           )}
 
+          {/* Espacio final */}
+          <div style={{ flex: 1, minHeight: 16 }} />
+
           {/* ── ESCENARIO ── */}
-          {partido.escenario && (
-            <div style={{
-              padding: '0 24px 28px',
-              display: 'flex', alignItems: 'center', gap: 6,
-            }}>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(255,255,255,0.3)" width="12" height="12">
-                <path fillRule="evenodd" d="m11.54 22.351.07.04.028.016a.76.76 0 0 0 .723 0l.028-.015.071-.041a16.975 16.975 0 0 0 1.144-.742 19.58 19.58 0 0 0 2.683-2.282c1.944-2.079 3.405-4.442 3.405-7.827a8.25 8.25 0 0 0-16.5 0c0 3.385 1.46 5.748 3.405 7.827a19.58 19.58 0 0 0 2.683 2.282 16.975 16.975 0 0 0 1.144.742ZM12 13.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" clipRule="evenodd" />
-              </svg>
-              <span style={{
-                color: 'rgba(255,255,255,0.3)', fontSize: 11, fontWeight: 500,
-              }}>
-                {partido.escenario}
-              </span>
-            </div>
-          )}
+          <div style={{ padding: partido.escenario ? '0 24px 20px' : '0 0 20px', display: 'flex', alignItems: 'center', gap: 6 }}>
+            {partido.escenario && (
+              <>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(255,255,255,0.3)" width="12" height="12">
+                  <path fillRule="evenodd" d="m11.54 22.351.07.04.028.016a.76.76 0 0 0 .723 0l.028-.015.071-.041a16.975 16.975 0 0 0 1.144-.742 19.58 19.58 0 0 0 2.683-2.282c1.944-2.079 3.405-4.442 3.405-7.827a8.25 8.25 0 0 0-16.5 0c0 3.385 1.46 5.748 3.405 7.827a19.58 19.58 0 0 0 2.683 2.282 16.975 16.975 0 0 0 1.144.742ZM12 13.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" clipRule="evenodd" />
+                </svg>
+                <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, fontWeight: 500 }}>
+                  {partido.escenario}
+                </span>
+              </>
+            )}
+          </div>
         </div>
 
         {/* ── Botones ── */}
