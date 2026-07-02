@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { PartidoService } from '../../../features/partidos/services/partidoService';
 import { formatDate, formatDateTime } from '../../../shared/utils/formatDate';
 import { PlayerRankedHistoryModal } from '../../../features/competencias/components/PlayerRankedHistoryModal';
+import { SharePartidoModal } from '../SharePartidoModal/SharePartidoModal';
 
 interface DetallePartidoProps {
   partidoId: string;
@@ -33,6 +34,7 @@ interface JugadorPartido {
 
 const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [showShare, setShowShare] = useState(false);
   
   const { data: partido, isLoading: loading, error } = useQuery({
     queryKey: ['partido-detalle', partidoId],
@@ -169,11 +171,25 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
     <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-sm border border-slate-200 p-3 sm:p-6">
       {/* Header del Partido */}
       <div className="mb-6 sm:mb-8">
-        <div className="text-center mb-4">
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 mb-1 leading-tight">
-            {partido.nombre || `${partido.equipoLocal?.nombre || 'Local'} vs ${partido.equipoVisitante?.nombre || 'Visitante'}`}
-          </h1>
-          <p className="text-sm sm:text-base text-slate-600">{fechaTexto}</p>
+        <div className="flex items-start justify-between gap-2 mb-4">
+          <div className="text-center flex-1">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 mb-1 leading-tight">
+              {partido.nombre || `${partido.equipoLocal?.nombre || 'Local'} vs ${partido.equipoVisitante?.nombre || 'Visitante'}`}
+            </h1>
+            <p className="text-sm sm:text-base text-slate-600">{fechaTexto}</p>
+          </div>
+          <button
+            onClick={() => setShowShare(true)}
+            title="Compartir"
+            className="flex-shrink-0 flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 shadow-sm hover:bg-slate-50 transition"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+              <path fillRule="evenodd" d="M15.75 4.5a3 3 0 1 1 .825 2.066l-8.421 4.679a3.002 3.002 0 0 1 0 1.51l8.421 4.679a3 3 0 1 1-.729 1.31l-8.421-4.678a3 3 0 1 1 0-4.132l8.421-4.679a3 3 0 0 1-.096-.755Z" clipRule="evenodd" />
+            </svg>
+            Compartir
+          </button>
+        </div>
+        <div className="text-center">
           <div className="mt-2">
             <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs sm:text-sm font-medium text-blue-700">
               {partido.estado || 'Programado'}
@@ -446,6 +462,12 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
           seasonId={partido.rankedMeta?.temporadaId || (partido as any).temporadaId}
         />
       )}
+
+      <SharePartidoModal
+        isOpen={showShare}
+        onClose={() => setShowShare(false)}
+        partido={partido}
+      />
     </div>
   );
 };
