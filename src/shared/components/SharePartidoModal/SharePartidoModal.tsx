@@ -1,7 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { toPng } from 'html-to-image';
 import ModalBase from '../ModalBase/ModalBase';
-import { formatDate, formatDateTime } from '../../utils/formatDate';
 
 interface PartidoShare {
   equipoLocal?: { nombre?: string; escudo?: string };
@@ -25,12 +24,6 @@ interface SharePartidoModalProps {
 const getInitials = (name?: string) =>
   (name || '?').split(' ').map(t => t[0]).join('').slice(0, 2).toUpperCase();
 
-const badgeLabel: Record<string, string> = {
-  finalizado: 'Finalizado',
-  en_juego: 'En vivo',
-  programado: 'Próximo',
-};
-
 async function toDataUrl(url: string): Promise<string | null> {
   try {
     const res = await fetch(url, { mode: 'cors' });
@@ -46,6 +39,22 @@ async function toDataUrl(url: string): Promise<string | null> {
   }
 }
 
+// Format partido.fecha (ISO date string) into readable parts
+function parseFecha(fecha?: string, hora?: string) {
+  if (!fecha) return null;
+  // fecha might be "2025-07-15" or a full ISO string
+  const dateStr = fecha.includes('T') ? fecha : `${fecha}T00:00:00`;
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return null;
+  const DAY_NAMES = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
+  const MONTH_NAMES = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+  return {
+    dayName: DAY_NAMES[d.getDay()],
+    datePart: `${d.getDate()} ${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`,
+    timePart: hora ? `${hora} hs` : null,
+  };
+}
+
 export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, onClose, partido }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [loadingShare, setLoadingShare] = useState(false);
@@ -57,27 +66,15 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
   const visitanteNombre = partido.equipoVisitante?.nombre || partido.rival || 'Visitante';
   const estado = partido.estado || 'programado';
   const mostrarMarcador = estado === 'finalizado' || estado === 'en_juego';
-
-  // Fecha programada del partido
-  const fechaTexto = partido.fecha && partido.hora
-    ? formatDateTime(`${partido.fecha}T${partido.hora}`)
-    : partido.fecha
-    ? formatDate(partido.fecha)
-    : null;
-
+  const fechaParsed = parseFecha(partido.fecha, partido.hora);
   const filename = `partido-${localNombre.replace(/\s+/g, '-').toLowerCase()}-vs-${visitanteNombre.replace(/\s+/g, '-').toLowerCase()}.png`;
 
-  // Pre-fetch shields as data URLs so html-to-image can embed them (avoids CORS blank)
   useEffect(() => {
     if (!isOpen) return;
     setLocalEscudo(null);
     setVisitanteEscudo(null);
-    if (partido.equipoLocal?.escudo) {
-      toDataUrl(partido.equipoLocal.escudo).then(setLocalEscudo);
-    }
-    if (partido.equipoVisitante?.escudo) {
-      toDataUrl(partido.equipoVisitante.escudo).then(setVisitanteEscudo);
-    }
+    if (partido.equipoLocal?.escudo) toDataUrl(partido.equipoLocal.escudo).then(setLocalEscudo);
+    if (partido.equipoVisitante?.escudo) toDataUrl(partido.equipoVisitante.escudo).then(setVisitanteEscudo);
   }, [isOpen, partido.equipoLocal?.escudo, partido.equipoVisitante?.escudo]);
 
   const generatePng = async (): Promise<{ dataUrl: string; blob: Blob } | null> => {
@@ -98,7 +95,6 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({ files: [file], title: `${localNombre} vs ${visitanteNombre}` });
       } else {
-        // Desktop: no Web Share API → download as fallback
         const link = document.createElement('a');
         link.download = filename;
         link.href = dataUrl;
@@ -127,18 +123,25 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
     }
   };
 
-  const renderEscudo = (dataUrl: string | null, nombre: string) => {
+  const renderEscudo = (dataUrl: string | null, nombre: string, size = 72) => {
+    const sz = `${size}px`;
     if (dataUrl) {
       return (
         <img
           src={dataUrl}
           alt={nombre}
-          className="h-20 w-20 rounded-full object-cover border-2 border-white/20 shadow-lg bg-white/10"
+          style={{ width: sz, height: sz, borderRadius: '50%', objectFit: 'cover',
+            border: '2px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.08)' }}
         />
       );
     }
     return (
-      <div className="h-20 w-20 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center text-2xl font-black text-white shadow-lg">
+      <div style={{
+        width: sz, height: sz, borderRadius: '50%',
+        background: 'rgba(255,255,255,0.08)', border: '2px solid rgba(255,255,255,0.15)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: '22px', fontWeight: 900, color: 'white',
+      }}>
         {getInitials(nombre)}
       </div>
     );
@@ -147,73 +150,210 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
   return (
     <ModalBase isOpen={isOpen} onClose={onClose} title="Compartir partido" size="md">
       <div className="p-6 flex flex-col items-center">
-        {/* Card a capturar — formato story 9:16 */}
+
+        {/* ── Card capturada ── */}
         <div
           ref={cardRef}
-          className="w-[300px] aspect-[9/16] rounded-3xl overflow-hidden relative shadow-2xl flex flex-col select-none"
-          style={{ background: 'linear-gradient(160deg, #0f172a 0%, #1e293b 60%, #1e1b4b 100%)' }}
+          style={{
+            width: 300,
+            aspectRatio: '9/16',
+            borderRadius: 28,
+            overflow: 'hidden',
+            background: 'linear-gradient(165deg, #0a0f1e 0%, #0f172a 45%, #13103a 100%)',
+            display: 'flex',
+            flexDirection: 'column',
+            userSelect: 'none',
+            position: 'relative',
+          }}
         >
-          {/* Top: estado + competencia */}
-          <div className="px-7 pt-8 pb-2 flex items-center justify-between">
-            {partido.competencia?.nombre ? (
-              <span className="text-white/60 text-[11px] font-semibold uppercase tracking-wider flex-1 truncate pr-2">
+          {/* Glow central decorativo */}
+          <div style={{
+            position: 'absolute', top: '38%', left: '50%', transform: 'translate(-50%, -50%)',
+            width: 220, height: 220, borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(99,102,241,0.18) 0%, transparent 70%)',
+            pointerEvents: 'none',
+          }} />
+
+          {/* ── HEADER ── */}
+          <div style={{ padding: '28px 24px 16px' }}>
+            {/* Badge de estado */}
+            <div style={{ marginBottom: 8 }}>
+              {estado === 'en_juego' ? (
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  background: '#ef4444', color: 'white',
+                  padding: '3px 10px', borderRadius: 999,
+                  fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
+                }}>
+                  <span style={{
+                    width: 6, height: 6, borderRadius: '50%', background: 'white', display: 'inline-block'
+                  }} />
+                  En vivo
+                </span>
+              ) : (
+                <span style={{
+                  display: 'inline-block',
+                  background: estado === 'finalizado' ? 'rgba(16,185,129,0.2)' : 'rgba(99,102,241,0.25)',
+                  color: estado === 'finalizado' ? '#6ee7b7' : '#a5b4fc',
+                  padding: '3px 10px', borderRadius: 999,
+                  fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
+                }}>
+                  {estado === 'finalizado' ? 'Finalizado' : 'Próximo partido'}
+                </span>
+              )}
+            </div>
+
+            {/* Nombre de la competencia — línea separada, puede wrappear */}
+            {partido.competencia?.nombre && (
+              <div style={{
+                color: 'rgba(255,255,255,0.55)', fontSize: 12,
+                fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase',
+                lineHeight: 1.3,
+              }}>
                 {partido.competencia.nombre}
-              </span>
-            ) : <span />}
-            {estado === 'en_juego' ? (
-              <span className="flex items-center gap-1.5 rounded-full bg-red-500 px-2.5 py-1 text-[10px] font-bold text-white uppercase tracking-wide flex-shrink-0">
-                <span className="h-1.5 w-1.5 rounded-full bg-white animate-ping inline-block" />
-                En vivo
-              </span>
-            ) : (
-              <span className="rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-bold text-white/60 uppercase tracking-wide flex-shrink-0">
-                {badgeLabel[estado] || estado}
-              </span>
-            )}
-          </div>
-
-          {/* Enfrentamiento */}
-          <div className="flex-1 flex flex-col items-center justify-center px-6 gap-6">
-            {/* Local */}
-            <div className="flex flex-col items-center gap-3">
-              {renderEscudo(localEscudo, localNombre)}
-              <span className="text-white font-bold text-base text-center leading-tight max-w-[180px]">
-                {localNombre}
-              </span>
-            </div>
-
-            {/* Marcador / VS */}
-            {mostrarMarcador ? (
-              <div className="flex items-center gap-4">
-                <span className="text-5xl font-black text-white tabular-nums">{partido.marcadorLocal ?? 0}</span>
-                <span className="text-2xl font-bold text-white/30">-</span>
-                <span className="text-5xl font-black text-white tabular-nums">{partido.marcadorVisitante ?? 0}</span>
               </div>
-            ) : (
-              <span className="text-3xl font-black text-white/30">VS</span>
             )}
 
-            {/* Visitante */}
-            <div className="flex flex-col items-center gap-3">
-              {renderEscudo(visitanteEscudo, visitanteNombre)}
-              <span className="text-white font-bold text-base text-center leading-tight max-w-[180px]">
-                {visitanteNombre}
-              </span>
+            {/* Línea accent */}
+            <div style={{
+              marginTop: 16, height: 2, borderRadius: 1,
+              background: 'linear-gradient(90deg, #6366f1, #818cf8, transparent)',
+            }} />
+          </div>
+
+          {/* ── ENFRENTAMIENTO ── */}
+          <div style={{
+            flex: 1, display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center',
+            padding: '0 20px', gap: 0,
+          }}>
+            {/* Equipos en fila */}
+            <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: 0 }}>
+
+              {/* Local */}
+              <div style={{
+                flex: 1, display: 'flex', flexDirection: 'column',
+                alignItems: 'center', gap: 12, textAlign: 'center',
+              }}>
+                {renderEscudo(localEscudo, localNombre)}
+                <div style={{
+                  color: 'white', fontWeight: 800, fontSize: 13,
+                  lineHeight: 1.25, maxWidth: 100,
+                }}>
+                  {localNombre}
+                </div>
+              </div>
+
+              {/* Centro: VS o marcador */}
+              <div style={{
+                width: 72, flexShrink: 0, display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center',
+              }}>
+                {mostrarMarcador ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                    <span style={{ fontSize: 36, fontWeight: 900, color: 'white', lineHeight: 1 }}>
+                      {partido.marcadorLocal ?? 0}
+                    </span>
+                    <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.3)', fontWeight: 700 }}>—</span>
+                    <span style={{ fontSize: 36, fontWeight: 900, color: 'white', lineHeight: 1 }}>
+                      {partido.marcadorVisitante ?? 0}
+                    </span>
+                  </div>
+                ) : (
+                  <div style={{
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                  }}>
+                    <div style={{
+                      width: 1, height: 28,
+                      background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.2))',
+                    }} />
+                    <span style={{
+                      fontSize: 15, fontWeight: 900, color: 'rgba(255,255,255,0.35)',
+                      letterSpacing: '0.05em',
+                    }}>VS</span>
+                    <div style={{
+                      width: 1, height: 28,
+                      background: 'linear-gradient(to bottom, rgba(255,255,255,0.2), transparent)',
+                    }} />
+                  </div>
+                )}
+              </div>
+
+              {/* Visitante */}
+              <div style={{
+                flex: 1, display: 'flex', flexDirection: 'column',
+                alignItems: 'center', gap: 12, textAlign: 'center',
+              }}>
+                {renderEscudo(visitanteEscudo, visitanteNombre)}
+                <div style={{
+                  color: 'white', fontWeight: 800, fontSize: 13,
+                  lineHeight: 1.25, maxWidth: 100,
+                }}>
+                  {visitanteNombre}
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Footer: fecha + escenario */}
-          <div className="px-7 pb-8 pt-4 border-t border-white/10 flex flex-col gap-0.5">
-            {fechaTexto && (
-              <span className="text-white/50 text-[11px] font-medium">{fechaTexto}</span>
-            )}
-            {partido.escenario && (
-              <span className="text-white/35 text-[10px]">{partido.escenario}</span>
-            )}
-          </div>
+          {/* ── FECHA DESTACADA ── */}
+          {fechaParsed && (
+            <div style={{ padding: '0 24px 20px' }}>
+              <div style={{
+                background: 'rgba(255,255,255,0.07)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: 16, padding: '14px 20px',
+                display: 'flex', alignItems: 'center', gap: 14,
+              }}>
+                {/* Icono calendario */}
+                <div style={{
+                  width: 36, height: 36, borderRadius: 10,
+                  background: 'rgba(99,102,241,0.3)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0,
+                }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(165,180,252,0.9)" width="18" height="18">
+                    <path fillRule="evenodd" d="M6.75 2.25A.75.75 0 0 1 7.5 3v1.5h9V3A.75.75 0 0 1 18 3v1.5h.75a3 3 0 0 1 3 3v11.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V7.5a3 3 0 0 1 3-3H6V3a.75.75 0 0 1 .75-.75Zm13.5 9a1.5 1.5 0 0 0-1.5-1.5H5.25a1.5 1.5 0 0 0-1.5 1.5v7.5a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5v-7.5Z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <div style={{
+                    color: 'rgba(255,255,255,0.4)', fontSize: 10,
+                    fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
+                  }}>
+                    {fechaParsed.dayName}
+                  </div>
+                  <div style={{ color: 'white', fontSize: 15, fontWeight: 800, lineHeight: 1 }}>
+                    {fechaParsed.datePart}
+                    {fechaParsed.timePart && (
+                      <span style={{ color: 'rgba(255,255,255,0.55)', fontWeight: 600, marginLeft: 8, fontSize: 13 }}>
+                        {fechaParsed.timePart}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── ESCENARIO ── */}
+          {partido.escenario && (
+            <div style={{
+              padding: '0 24px 28px',
+              display: 'flex', alignItems: 'center', gap: 6,
+            }}>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(255,255,255,0.3)" width="12" height="12">
+                <path fillRule="evenodd" d="m11.54 22.351.07.04.028.016a.76.76 0 0 0 .723 0l.028-.015.071-.041a16.975 16.975 0 0 0 1.144-.742 19.58 19.58 0 0 0 2.683-2.282c1.944-2.079 3.405-4.442 3.405-7.827a8.25 8.25 0 0 0-16.5 0c0 3.385 1.46 5.748 3.405 7.827a19.58 19.58 0 0 0 2.683 2.282 16.975 16.975 0 0 0 1.144.742ZM12 13.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" clipRule="evenodd" />
+              </svg>
+              <span style={{
+                color: 'rgba(255,255,255,0.3)', fontSize: 11, fontWeight: 500,
+              }}>
+                {partido.escenario}
+              </span>
+            </div>
+          )}
         </div>
 
-        {/* Botones */}
+        {/* ── Botones ── */}
         <div className="mt-6 w-full flex gap-3">
           <button
             onClick={handleShare}
