@@ -80,7 +80,7 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
 
   const generatePng = async (): Promise<{ dataUrl: string; blob: Blob } | null> => {
     if (!cardRef.current) return null;
-    const dataUrl = await toPng(cardRef.current, { cacheBust: true, pixelRatio: 2 });
+    const dataUrl = await toPng(cardRef.current, { cacheBust: true, pixelRatio: 2, skipFonts: true });
     const res = await fetch(dataUrl);
     const blob = await res.blob();
     return { dataUrl, blob };
@@ -128,7 +128,7 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
     if (!cardRef.current) return;
     setLoadingAnimated(true);
     try {
-      const dataUrl = await toPng(cardRef.current, { cacheBust: true, pixelRatio: 2 });
+      const dataUrl = await toPng(cardRef.current, { cacheBust: true, pixelRatio: 2, skipFonts: true });
       const img = new Image();
       await new Promise<void>((res, rej) => { img.onload = () => res(); img.onerror = rej; img.src = dataUrl; });
 
@@ -144,12 +144,13 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
         : null;
 
       if (!mimeType) {
-        // Fallback: compartir imagen estática si no hay soporte de video
-        const blob = await (await fetch(dataUrl)).blob();
-        const file = new File([blob], filename, { type: 'image/png' });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({ files: [file], title: `${localNombre} vs ${visitanteNombre}` });
-        }
+        // Fallback: descargar imagen estática si no hay soporte de video
+        const url = URL.createObjectURL(await (await fetch(dataUrl)).blob());
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(url);
         return;
       }
 
@@ -190,18 +191,13 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
       const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
       const videoFilename = filename.replace('.png', `.${ext}`);
       const blob = new Blob(chunks, { type: mimeType });
-      const file = new File([blob], videoFilename, { type: mimeType });
-
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: `${localNombre} vs ${visitanteNombre}` });
-      } else {
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = videoFilename;
-        link.click();
-        URL.revokeObjectURL(url);
-      }
+      // Download directly — navigator.share() loses user gesture after 2.2s of async animation
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = videoFilename;
+      link.click();
+      URL.revokeObjectURL(url);
     } catch (err: any) {
       if (err?.name !== 'AbortError') console.error('Error animado:', err);
     } finally {
