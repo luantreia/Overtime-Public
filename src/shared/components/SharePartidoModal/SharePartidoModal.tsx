@@ -155,9 +155,9 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
         <div
           ref={cardRef}
           style={{
-            width: 300,
-            aspectRatio: '9/16',
-            borderRadius: 28,
+            width: 320,
+            aspectRatio: '3/4',
+            borderRadius: 24,
             overflow: 'hidden',
             background: 'linear-gradient(165deg, #0a0f1e 0%, #0f172a 45%, #13103a 100%)',
             display: 'flex',
@@ -178,7 +178,7 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
           <div style={{ height: 4, background: 'linear-gradient(90deg, #6366f1 0%, #818cf8 50%, #4f46e5 100%)', flexShrink: 0 }} />
 
           {/* ── HEADER ── */}
-          <div style={{ padding: '22px 24px 14px' }}>
+          <div style={{ padding: '20px 24px 12px' }}>
             {/* Badge de estado */}
             <div style={{ marginBottom: 6 }}>
               {estado === 'en_juego' ? (
@@ -219,13 +219,13 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
 
             {/* Línea accent */}
             <div style={{
-              marginTop: 12, height: 2, borderRadius: 1,
+              marginTop: 8, height: 2, borderRadius: 1,
               background: 'linear-gradient(90deg, #6366f1, #818cf8, transparent)',
             }} />
           </div>
 
           {/* ── ENFRENTAMIENTO ── */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '12px 20px 0' }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '8px 20px 0' }}>
             {/* Equipos en fila */}
             <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: 0 }}>
 
@@ -234,7 +234,7 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
                 flex: 1, display: 'flex', flexDirection: 'column',
                 alignItems: 'center', gap: 12, textAlign: 'center',
               }}>
-                {renderEscudo(localEscudo, localNombre)}
+                {renderEscudo(localEscudo, localNombre, 64)}
                 <div style={{
                   color: 'white', fontWeight: 800, fontSize: 13,
                   lineHeight: 1.25, maxWidth: 100,
@@ -283,7 +283,7 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
                 flex: 1, display: 'flex', flexDirection: 'column',
                 alignItems: 'center', gap: 12, textAlign: 'center',
               }}>
-                {renderEscudo(visitanteEscudo, visitanteNombre)}
+                {renderEscudo(visitanteEscudo, visitanteNombre, 64)}
                 <div style={{
                   color: 'white', fontWeight: 800, fontSize: 13,
                   lineHeight: 1.25, maxWidth: 100,
@@ -295,7 +295,7 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
           </div>
 
           {/* Separador entre equipos y fecha */}
-          <div style={{ margin: '16px 24px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ margin: '14px 24px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.07)' }} />
             <div style={{ display: 'flex', gap: 4 }}>
               {[0,1,2].map(i => (
@@ -311,31 +311,27 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
               <div style={{
                 background: 'rgba(255,255,255,0.07)',
                 border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: 16, padding: '14px 20px',
-                display: 'flex', alignItems: 'center', gap: 14,
+                borderRadius: 14, padding: '12px 16px',
+                display: 'flex', alignItems: 'center', gap: 10,
               }}>
-                {/* Icono calendario */}
                 <div style={{
-                  width: 36, height: 36, borderRadius: 10,
+                  width: 32, height: 32, borderRadius: 9,
                   background: 'rgba(99,102,241,0.3)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   flexShrink: 0,
                 }}>
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(165,180,252,0.9)" width="18" height="18">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(165,180,252,0.9)" width="14" height="14">
                     <path fillRule="evenodd" d="M6.75 2.25A.75.75 0 0 1 7.5 3v1.5h9V3A.75.75 0 0 1 18 3v1.5h.75a3 3 0 0 1 3 3v11.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V7.5a3 3 0 0 1 3-3H6V3a.75.75 0 0 1 .75-.75Zm13.5 9a1.5 1.5 0 0 0-1.5-1.5H5.25a1.5 1.5 0 0 0-1.5 1.5v7.5a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5v-7.5Z" clipRule="evenodd" />
                   </svg>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <div style={{
-                    color: 'rgba(255,255,255,0.4)', fontSize: 10,
-                    fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
-                  }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
                     {fechaParsed.dayName}
                   </div>
-                  <div style={{ color: 'white', fontSize: 15, fontWeight: 800, lineHeight: 1 }}>
+                  <div style={{ color: 'white', fontSize: 14, fontWeight: 800, lineHeight: 1 }}>
                     {fechaParsed.datePart}
                     {fechaParsed.timePart && (
-                      <span style={{ color: 'rgba(255,255,255,0.55)', fontWeight: 600, marginLeft: 8, fontSize: 13 }}>
+                      <span style={{ color: 'rgba(255,255,255,0.55)', fontWeight: 600, marginLeft: 8, fontSize: 12 }}>
                         {fechaParsed.timePart}
                       </span>
                     )}
@@ -347,7 +343,7 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
 
           {/* ── ESCENARIO ── */}
           {partido.escenario && (
-            <div style={{ padding: '0 24px 10px', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ padding: '8px 24px 0', display: 'flex', alignItems: 'center', gap: 6 }}>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(255,255,255,0.3)" width="12" height="12">
                 <path fillRule="evenodd" d="m11.54 22.351.07.04.028.016a.76.76 0 0 0 .723 0l.028-.015.071-.041a16.975 16.975 0 0 0 1.144-.742 19.58 19.58 0 0 0 2.683-2.282c1.944-2.079 3.405-4.442 3.405-7.827a8.25 8.25 0 0 0-16.5 0c0 3.385 1.46 5.748 3.405 7.827a19.58 19.58 0 0 0 2.683 2.282 16.975 16.975 0 0 0 1.144.742ZM12 13.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" clipRule="evenodd" />
               </svg>
@@ -358,7 +354,7 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
           )}
 
           {/* Detalle inferior — línea con rombo centrado */}
-          <div style={{ padding: '8px 24px 28px', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ padding: '10px 24px 22px', display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ flex: 1, height: 1, background: 'linear-gradient(to right, transparent, rgba(99,102,241,0.3))' }} />
             <div style={{
               width: 6, height: 6, borderRadius: 1, flexShrink: 0,
