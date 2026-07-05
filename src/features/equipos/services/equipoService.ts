@@ -88,9 +88,11 @@ export class EquipoService {
           fetchWithAuth<any[]>(`/jugador-equipo?equipo=${id}`, { useAuth: false })
         ]);
         
-        equipo.participaciontemporadas = Array.isArray(participaciones) ? participaciones : [];
+        const participacionesSeguras = Array.isArray(participaciones) ? participaciones : [];
+        equipo.participaciontemporadas = participacionesSeguras;
         equipo.equipopartido = Array.isArray(partidos) ? partidos : [];
         equipo.jugadoresEquipos = Array.isArray(jugadores) ? jugadores : [];
+        equipo.competenciasGanadas = this.contarCompetenciasGanadas(equipo, participacionesSeguras);
       } catch (error) {
         console.error('Error fetching extra team stats:', error);
         // Inicializamos como vacíos si fallun los estadísticos
@@ -101,6 +103,17 @@ export class EquipoService {
     }
     
     return equipo;
+  }
+
+  private static contarCompetenciasGanadas(equipo: Equipo, participaciones: any[]): number {
+    const equipoId = String(equipo._id ?? equipo.id ?? '');
+    if (!equipoId) return 0;
+
+    return participaciones.filter(p => {
+      const ganador = p?.temporada?.ganador;
+      const ganadorId = typeof ganador === 'string' ? ganador : ganador?._id;
+      return ganadorId && String(ganadorId) === equipoId;
+    }).length;
   }
 
   static async create(data: Omit<Equipo, 'id'>): Promise<Equipo> {
