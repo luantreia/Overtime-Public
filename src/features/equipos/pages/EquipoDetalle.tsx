@@ -74,6 +74,21 @@ const EquipoDetalle: React.FC = () => {
     enabled: competenciaIds.length > 0,
   });
 
+  const competenciasAgrupadas = useMemo(() => {
+    const groups = new Map<string, { cid: string | undefined; comp: any; temporadas: any[] }>();
+    (equipo?.participaciontemporadas || []).forEach((p: any) => {
+      const cid = typeof p?.temporada?.competencia === 'string'
+        ? p.temporada.competencia
+        : (p?.temporada?.competencia?._id || p?.temporada?.competencia?.id);
+      const key = cid || 'sin-competencia';
+      if (!groups.has(key)) {
+        groups.set(key, { cid, comp: cid ? competenciasMap[cid] : null, temporadas: [] });
+      }
+      groups.get(key)!.temporadas.push(p);
+    });
+    return Array.from(groups.values());
+  }, [equipo, competenciasMap]);
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -257,45 +272,50 @@ const EquipoDetalle: React.FC = () => {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {equipo.participaciontemporadas!.map((p: any) => {
-                      const cid = typeof p?.temporada?.competencia === 'string'
-                        ? p.temporada.competencia
-                        : (p?.temporada?.competencia?._id || p?.temporada?.competencia?.id);
-                      const comp = cid ? competenciasMap[cid] : null;
+                    {competenciasAgrupadas.map(({ cid, comp, temporadas }) => {
                       const organizacion = comp?.organizacion;
-                      const gano = p?.temporada?.ganador && String(p.temporada.ganador) === String(equipoId);
 
                       return (
-                        <div key={p._id} className="flex items-center justify-between gap-4 p-4 bg-white border border-slate-200 rounded-xl hover:border-brand-200 transition-colors">
-                          <div className="min-w-0">
-                            <div className="font-semibold text-slate-900 flex items-center gap-2">
-                              {comp ? (
-                                <Link to={`/competencias/${cid}`} className="hover:text-brand-600 hover:underline truncate">
-                                  {comp.nombre}
-                                </Link>
-                              ) : (
-                                <span className="truncate">Competencia</span>
-                              )}
-                              {gano && <span title="Campeón de esta temporada">🏆</span>}
-                            </div>
-                            <div className="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5">
-                              <span>{p.temporada?.nombre}</span>
-                              {organizacion?.nombre && (
-                                <>
-                                  <span>·</span>
-                                  <Link
-                                    to={`/organizaciones/${organizacion._id || organizacion.id}`}
-                                    className="hover:text-brand-600 hover:underline"
-                                  >
-                                    {organizacion.nombre}
+                        <div key={cid || 'sin-competencia'} className="p-4 bg-white border border-slate-200 rounded-xl hover:border-brand-200 transition-colors">
+                          <div className="flex items-center justify-between gap-4">
+                            <div className="min-w-0">
+                              <div className="font-semibold text-slate-900 truncate">
+                                {comp ? (
+                                  <Link to={`/competencias/${cid}`} className="hover:text-brand-600 hover:underline">
+                                    {comp.nombre}
                                   </Link>
-                                </>
+                                ) : (
+                                  <span>Competencia</span>
+                                )}
+                              </div>
+                              {organizacion?.nombre && (
+                                <Link
+                                  to={`/organizaciones/${organizacion._id || organizacion.id}`}
+                                  className="text-xs text-slate-500 hover:text-brand-600 hover:underline"
+                                >
+                                  {organizacion.nombre}
+                                </Link>
                               )}
                             </div>
+                            <span className="flex-shrink-0 text-xs text-slate-400">
+                              {temporadas.length} temporada{temporadas.length !== 1 ? 's' : ''}
+                            </span>
                           </div>
-                          <span className="flex-shrink-0 text-xs capitalize px-2 py-1 rounded-full bg-slate-100 text-slate-600">
-                            {p.estado || 'activo'}
-                          </span>
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {temporadas.map((p: any) => {
+                              const gano = p?.temporada?.ganador && String(p.temporada.ganador) === String(equipoId);
+                              return (
+                                <span
+                                  key={p._id}
+                                  className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700"
+                                >
+                                  {p.temporada?.nombre}
+                                  {gano && <span title="Campeón de esta temporada">🏆</span>}
+                                  <span className="text-slate-400 capitalize">· {p.estado || 'activo'}</span>
+                                </span>
+                              );
+                            })}
+                          </div>
                         </div>
                       );
                     })}
