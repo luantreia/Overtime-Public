@@ -15,7 +15,7 @@ export interface Partido {
   };
   fecha?: string;
   hora?: string;
-  estado?: 'proximamente' | 'en_curso' | 'finalizado';
+  estado?: 'programado' | 'en_juego' | 'finalizado' | 'cancelado' | 'proximamente' | 'en_curso';
   resultado?: string;
   competenciaId?: string;
   faseId?: string;
