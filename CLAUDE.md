@@ -38,7 +38,7 @@ GlobalErrorBoundary → BrowserRouter → AuthProvider → ToastProvider → Sol
 
 `App.tsx` adds `PersistQueryClientProvider → FeatureFlagsProvider` around the route tree.
 
-`index.tsx` also manages **cache versioning**: on startup it reads `APP_VERSION` from localStorage, clears all persisted TanStack Query caches and unregisters any service workers if the version changed (prevents blank-screen issues after deploys).
+`index.tsx` also manages **cache versioning**: on startup it compares a `BUILD_VERSION` (from `REACT_APP_VERSION` or `npm_package_version`) against `APP_VERSION` in localStorage. On mismatch it purges the browser Cache Storage API and force-reloads once (guarded by a `sessionStorage` flag); it also unconditionally unregisters any service workers on every load. `GlobalErrorBoundary` separately catches `ChunkLoadError`s (stale JS chunk references after a deploy) and force-reloads once. Together these prevent blank-screen issues after deploys.
 
 ### Data Fetching
 
@@ -59,7 +59,7 @@ Token keys: `overtime_token` (access), `overtime_refresh_token` (refresh) — ma
 
 `App.tsx` lazy-loads all routes via `React.lazy()`. Protected routes use `ProtectedRoute` (`src/app/routes/ProtectedRoute.tsx`) which checks `useAuth().isAuthenticated` and redirects to `/login` on failure.
 
-**Public routes:** `/`, `/jugadores`, `/jugadores/:id`, `/equipos`, `/equipos/:id`, `/competencias`, `/competencias/:id`, `/partidos`, `/partidos/:id`, `/ranking`, `/lod`, `/lod/competencias`, `/login`, `/register`, `/plaza`
+**Public routes:** `/`, `/jugadores`, `/jugadores/:id`, `/equipos`, `/equipos/:id`, `/competencias`, `/competencias/:id`, `/organizaciones/:id`, `/partidos`, `/partidos/:id`, `/ranking`, `/lod`, `/lod/competencias`, `/login`, `/register`, `/plaza`
 
 **Protected routes:** `/plaza/crear`, `/plaza/lobby/:id`, `/plaza/lobby/:id/report`, `/solicitudes`, `/perfil`, `/notificaciones`
 
@@ -94,7 +94,7 @@ src/shared/
   utils/constants/          # PAGINATION (20 items/page), VALIDATION_RULES, API_CONFIG, ROUTES, PARTIDO_ESTADOS, etc.
 ```
 
-**Duplication note:** `src/utils/` and `src/types/` at the root overlap with `src/shared/utils/` and `src/shared/types/`. Always prefer the `src/shared/` versions — they are the primary source.
+**Duplication note:** `src/utils/` and `src/types/` at the root overlap with `src/shared/utils/` and `src/shared/types/`. Always prefer the `src/shared/` versions — they are the primary source. There is also a `src/shared/features/` directory (currently just `notificaciones/`) distinct from the top-level `src/features/` — a second, shared-scoped feature slice, not a duplicate to consolidate.
 
 ### Key Contexts
 

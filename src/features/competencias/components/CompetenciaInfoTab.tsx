@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { type Competencia } from '../services/competenciaService';
 import { type JugadorCompetencia } from '../services/jugadorCompetenciaService';
 import { type LeaderboardItem } from '../services/rankedService';
@@ -100,7 +101,16 @@ export const CompetenciaInfoTab: React.FC<CompetenciaInfoTabProps> = ({
           </div>
           <div>
             <dt className="text-xs font-medium text-slate-500">Organización</dt>
-            <dd className="mt-0.5 text-sm text-slate-900">{(competencia as any).organizacion?.nombre || '—'}</dd>
+            <dd className="mt-0.5 text-sm text-slate-900">
+              {(competencia as any).organizacion?.nombre ? (
+                <Link
+                  to={`/organizaciones/${(competencia as any).organizacion._id || (competencia as any).organizacion.id}`}
+                  className="text-brand-600 hover:underline"
+                >
+                  {(competencia as any).organizacion.nombre}
+                </Link>
+              ) : '—'}
+            </dd>
           </div>
         </dl>
       </div>
@@ -175,12 +185,13 @@ export const CompetenciaInfoTab: React.FC<CompetenciaInfoTabProps> = ({
               <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">Hall of Fame</h3>
               <div className="flex flex-col gap-2">
                 {championsByTeam.map(({ equipo, titulos }, idx) => (
-                  <div
+                  <Link
+                    to={`/equipos/${equipo._id}`}
                     key={equipo._id}
-                    className={`flex items-center gap-3 rounded-xl border px-4 py-3 ${
+                    className={`flex items-center gap-3 rounded-xl border px-4 py-3 transition-colors ${
                       idx === 0
-                        ? 'border-amber-200 bg-amber-50 shadow-sm'
-                        : 'border-slate-200 bg-white'
+                        ? 'border-amber-200 bg-amber-50 shadow-sm hover:bg-amber-100'
+                        : 'border-slate-200 bg-white hover:border-brand-200'
                     }`}
                   >
                     {/* Rank badge */}
@@ -208,7 +219,7 @@ export const CompetenciaInfoTab: React.FC<CompetenciaInfoTabProps> = ({
                       <span className="text-lg font-black text-amber-500">{titulos.length}</span>
                       <span className="text-xs text-slate-400 font-medium">{titulos.length === 1 ? 'título' : 'títulos'}</span>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -222,7 +233,11 @@ export const CompetenciaInfoTab: React.FC<CompetenciaInfoTabProps> = ({
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                 {teams.map(team => (
-                  <div key={team._id} className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                  <Link
+                    to={`/equipos/${team._id}`}
+                    key={team._id}
+                    className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 hover:border-brand-200 hover:bg-brand-50 transition-colors"
+                  >
                     {team.escudo ? (
                       <img src={team.escudo} alt={team.nombre} className="h-7 w-7 rounded-full object-cover flex-shrink-0" />
                     ) : (
@@ -231,7 +246,7 @@ export const CompetenciaInfoTab: React.FC<CompetenciaInfoTabProps> = ({
                       </div>
                     )}
                     <span className="text-xs font-medium text-slate-800 truncate">{team.nombre}</span>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>

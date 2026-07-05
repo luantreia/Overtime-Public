@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { PlazaService } from '../services/plazaService';
 import { PlazaMatchControl } from '../components/PlazaMatchControl';
 import { Lobby } from '../types';
@@ -323,45 +323,53 @@ const PlazaLobby: React.FC = () => {
 
     return (
       <div className="px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-medium border-2 ${
-            isLobbyHost ? 'border-brand-500 bg-brand-50' : 
-            isRivalCaptain ? 'border-indigo-500 bg-indigo-50' :
-            player ? 'border-slate-100 bg-brand-100 text-brand-700' : 
-            'border-dashed border-slate-200 bg-slate-50 text-slate-400'
-          }`}>
-            {player?.player?.foto ? (
-              <img 
-                src={player.player.foto} 
-                alt={typeof player.player !== 'string' ? player.player.nombre : ''} 
-                className="h-full w-full rounded-full object-cover" 
-              />
-            ) : (index + 1)}
-          </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2">
-              <span className={`text-sm ${(player && typeof player.player !== 'string') ? 'font-medium text-slate-900' : 'text-slate-400 italic'}`}>
-                {(player && typeof player.player !== 'string') ? (player.player.nombre || player.player.alias) : 'Slot vacío'}
-              </span>
-              {isLobbyHost && (
-                <span className="px-1.5 py-0.5 bg-brand-600 text-[8px] text-white font-black rounded uppercase tracking-tighter">HOST</span>
-              )}
-              {isRivalCaptain && (
-                <span className="px-1.5 py-0.5 bg-indigo-600 text-[8px] text-white font-black rounded uppercase tracking-tighter">CAPITÁN</span>
-              )}
+        {player && typeof player.player !== 'string' ? (
+          <Link to={`/jugadores/${player.player._id}`} className="flex items-center gap-3 group">
+            <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-medium border-2 ${
+              isLobbyHost ? 'border-brand-500 bg-brand-50' :
+              isRivalCaptain ? 'border-indigo-500 bg-indigo-50' :
+              'border-slate-100 bg-brand-100 text-brand-700'
+            }`}>
+              {player.player.foto ? (
+                <img
+                  src={player.player.foto}
+                  alt={player.player.nombre}
+                  className="h-full w-full rounded-full object-cover"
+                />
+              ) : (index + 1)}
             </div>
-            {(player && typeof player.player !== 'string' && player.player.elo !== undefined) && (
-            <div className="flex gap-2">
-              <span className="text-[10px] text-slate-400 font-bold">ELO: {player.player.elo}</span>
-              {player.player.karma !== undefined && (
-                <span className="text-[10px] text-orange-400 font-bold flex items-center gap-0.5">
-                  <StarIcon className="h-2 w-2" /> {player.player.karma}
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-slate-900 group-hover:text-brand-600 group-hover:underline">
+                  {player.player.nombre || player.player.alias}
                 </span>
-              )}
+                {isLobbyHost && (
+                  <span className="px-1.5 py-0.5 bg-brand-600 text-[8px] text-white font-black rounded uppercase tracking-tighter">HOST</span>
+                )}
+                {isRivalCaptain && (
+                  <span className="px-1.5 py-0.5 bg-indigo-600 text-[8px] text-white font-black rounded uppercase tracking-tighter">CAPITÁN</span>
+                )}
+              </div>
+              {player.player.elo !== undefined && (
+              <div className="flex gap-2">
+                <span className="text-[10px] text-slate-400 font-bold">ELO: {player.player.elo}</span>
+                {player.player.karma !== undefined && (
+                  <span className="text-[10px] text-orange-400 font-bold flex items-center gap-0.5">
+                    <StarIcon className="h-2 w-2" /> {player.player.karma}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+          </Link>
+        ) : (
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-medium border-2 border-dashed border-slate-200 bg-slate-50 text-slate-400">
+              {index + 1}
             </div>
-          )}
-        </div>
-      </div>
+            <span className="text-sm text-slate-400 italic">Slot vacío</span>
+          </div>
+        )}
       <div className="flex items-center gap-1">
         {isHost && player && player.userUid !== userUid && (lobby.status === 'open' || lobby.status === 'full') && (
           <button 
@@ -768,17 +776,17 @@ const PlazaLobby: React.FC = () => {
               ...lobby.officials.filter(o => o.userUid !== userUid).map(o => ({ ...o, isOfficialRole: true }))
             ].map(p => (
               <div key={p.userUid} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100 gap-3">
-                <div className="flex items-center gap-3">
+                <Link to={`/jugadores/${p.player._id}`} className="flex items-center gap-3 group">
                   <div className="h-10 w-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold overflow-hidden border border-slate-200">
                     {p.player.foto ? <img src={p.player.foto} alt="foto" className="h-full w-full object-cover" /> : (p.player.alias?.[0] || p.player.nombre?.[0])}
                   </div>
                   <div>
-                    <div className="text-sm font-bold text-slate-800">{p.player.alias || p.player.nombre}</div>
+                    <div className="text-sm font-bold text-slate-800 group-hover:text-brand-600 group-hover:underline">{p.player.alias || p.player.nombre}</div>
                     <div className="text-[10px] text-slate-400 uppercase tracking-tighter">
                       {p.isOfficialRole ? 'Oficial' : `Equipo ${(p as any).team}`}
                     </div>
                   </div>
-                </div>
+                </Link>
                 
                 <div className="flex flex-wrap gap-2">
                   {(p.isOfficialRole ? [
@@ -834,20 +842,35 @@ const PlazaLobby: React.FC = () => {
               const name = typeof o.player === 'object' ? (o.player.alias || o.player.nombre) : 'Oficial';
               const karma = typeof o.player === 'object' ? o.player.karma : 0;
               const elo = typeof o.player === 'object' ? o.player.elo : 1500;
-              
+              const officialId = typeof o.player === 'object' ? o.player._id : undefined;
+
               return (
                 <div key={i} className="px-4 py-3 flex justify-between items-center">
-                  <div className="flex flex-col">
-                    <span className="text-sm font-bold text-slate-900">
-                      {o.type.toUpperCase()}: {o.userUid === userUid ? 'Tú' : name}
-                    </span>
-                    <div className="flex gap-2 mt-1">
-                      <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded font-medium text-slate-600">{elo} ELO</span>
-                      <span className="text-[10px] bg-orange-50 px-1.5 py-0.5 rounded font-bold text-orange-600 flex items-center gap-0.5">
-                        <StarIcon className="h-2 w-2" /> {karma} Karma
+                  {officialId ? (
+                    <Link to={`/jugadores/${officialId}`} className="flex flex-col group">
+                      <span className="text-sm font-bold text-slate-900 group-hover:text-brand-600 group-hover:underline">
+                        {o.type.toUpperCase()}: {o.userUid === userUid ? 'Tú' : name}
                       </span>
+                      <div className="flex gap-2 mt-1">
+                        <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded font-medium text-slate-600">{elo} ELO</span>
+                        <span className="text-[10px] bg-orange-50 px-1.5 py-0.5 rounded font-bold text-orange-600 flex items-center gap-0.5">
+                          <StarIcon className="h-2 w-2" /> {karma} Karma
+                        </span>
+                      </div>
+                    </Link>
+                  ) : (
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold text-slate-900">
+                        {o.type.toUpperCase()}: {o.userUid === userUid ? 'Tú' : name}
+                      </span>
+                      <div className="flex gap-2 mt-1">
+                        <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded font-medium text-slate-600">{elo} ELO</span>
+                        <span className="text-[10px] bg-orange-50 px-1.5 py-0.5 rounded font-bold text-orange-600 flex items-center gap-0.5">
+                          <StarIcon className="h-2 w-2" /> {karma} Karma
+                        </span>
+                      </div>
                     </div>
-                  </div>
+                  )}
                   <div className="flex items-center gap-3">
                     {isHost && o.userUid !== userUid && lobby.status === 'open' && (
                       <button 

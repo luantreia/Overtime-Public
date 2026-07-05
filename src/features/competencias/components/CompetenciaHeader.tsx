@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { type Competencia } from '../services/competenciaService';
 
 interface CompetenciaHeaderProps {
@@ -16,6 +17,14 @@ export const CompetenciaHeader: React.FC<CompetenciaHeaderProps> = ({ competenci
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">{competencia.nombre}</h1>
+          {(competencia as any).organizacion?.nombre && (
+            <Link
+              to={`/organizaciones/${(competencia as any).organizacion._id || (competencia as any).organizacion.id}`}
+              className="mt-1 inline-block text-sm font-medium text-brand-600 hover:underline"
+            >
+              {(competencia as any).organizacion.nombre}
+            </Link>
+          )}
           <p className="mt-1 text-slate-600">{competencia.descripcion || 'Sin descripción'}</p>
           <div className="mt-2 flex gap-2">
             <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">

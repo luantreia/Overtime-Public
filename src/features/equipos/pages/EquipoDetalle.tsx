@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { EquipoService, type Equipo } from '../services/equipoService';
+import { CompetenciaService } from '../../competencias/services/competenciaService';
 import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 import { useAuth } from '../../../app/providers/AuthContext';
 import { useToast } from '../../../shared/components/Toast/ToastProvider';
@@ -49,6 +50,29 @@ const EquipoDetalle: React.FC = () => {
 
     return { jugadoresActivos: activos, jugadoresHistorial: historial };
   }, [equipo]);
+
+  const competenciaIds = useMemo(() => {
+    const ids = (equipo?.participaciontemporadas || [])
+      .map((p: any) => p?.temporada?.competencia)
+      .filter(Boolean)
+      .map((c: any) => (typeof c === 'string' ? c : c?._id || c?.id));
+    return Array.from(new Set(ids));
+  }, [equipo]);
+
+  const { data: competenciasMap = {} } = useQuery({
+    queryKey: ['equipo-competencias-info', competenciaIds.join(',')],
+    queryFn: async () => {
+      const results = await Promise.all(
+        competenciaIds.map((cid: string) => CompetenciaService.getById(cid).catch(() => null))
+      );
+      const map: Record<string, any> = {};
+      results.forEach((comp, i) => {
+        if (comp) map[competenciaIds[i]] = comp;
+      });
+      return map;
+    },
+    enabled: competenciaIds.length > 0,
+  });
 
   if (loading) {
     return (
@@ -225,23 +249,58 @@ const EquipoDetalle: React.FC = () => {
               <section>
                 <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
                   <span className="h-8 w-1 bg-brand-600 rounded-full"></span>
-                  Información de la Organización
+                  Competencias
                 </h2>
-                <div className="bg-white rounded-xl p-6 border border-slate-200">
-                  {equipo.organizacion ? (
-                    <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-lg bg-brand-50 flex items-center justify-center text-brand-600 font-bold">
-                        {equipo.organizacion.nombre.charAt(0)}
-                      </div>
-                      <div>
-                        <div className="font-semibold text-slate-900">{equipo.organizacion.nombre}</div>
-                        <div className="text-sm text-slate-500">Organización oficial</div>
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="text-slate-500 italic">Equipo independiente / Sin organización asignada.</p>
-                  )}
-                </div>
+                {(equipo.participaciontemporadas?.length || 0) === 0 ? (
+                  <div className="bg-white rounded-xl p-6 border border-slate-200">
+                    <p className="text-slate-500 italic">Este equipo aún no participa en ninguna competencia registrada.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {equipo.participaciontemporadas!.map((p: any) => {
+                      const cid = typeof p?.temporada?.competencia === 'string'
+                        ? p.temporada.competencia
+                        : (p?.temporada?.competencia?._id || p?.temporada?.competencia?.id);
+                      const comp = cid ? competenciasMap[cid] : null;
+                      const organizacion = comp?.organizacion;
+                      const gano = p?.temporada?.ganador && String(p.temporada.ganador) === String(equipoId);
+
+                      return (
+                        <div key={p._id} className="flex items-center justify-between gap-4 p-4 bg-white border border-slate-200 rounded-xl hover:border-brand-200 transition-colors">
+                          <div className="min-w-0">
+                            <div className="font-semibold text-slate-900 flex items-center gap-2">
+                              {comp ? (
+                                <Link to={`/competencias/${cid}`} className="hover:text-brand-600 hover:underline truncate">
+                                  {comp.nombre}
+                                </Link>
+                              ) : (
+                                <span className="truncate">Competencia</span>
+                              )}
+                              {gano && <span title="Campeón de esta temporada">🏆</span>}
+                            </div>
+                            <div className="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5">
+                              <span>{p.temporada?.nombre}</span>
+                              {organizacion?.nombre && (
+                                <>
+                                  <span>·</span>
+                                  <Link
+                                    to={`/organizaciones/${organizacion._id || organizacion.id}`}
+                                    className="hover:text-brand-600 hover:underline"
+                                  >
+                                    {organizacion.nombre}
+                                  </Link>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                          <span className="flex-shrink-0 text-xs capitalize px-2 py-1 rounded-full bg-slate-100 text-slate-600">
+                            {p.estado || 'activo'}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </section>
 
               <section>
@@ -278,7 +337,11 @@ const EquipoDetalle: React.FC = () => {
                   jugadoresActivos.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {jugadoresActivos.map((je: any) => (
-                        <div key={je.id || je._id} className="flex items-center gap-4 p-4 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-indigo-200 transition-colors">
+                        <Link
+                          key={je.id || je._id}
+                          to={`/jugadores/${je.jugador?._id || je.jugador?.id}`}
+                          className="flex items-center gap-4 p-4 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-indigo-200 transition-colors"
+                        >
                           <div className="h-12 w-12 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden border border-slate-100">
                             {je.jugador?.foto ? (
                               <img src={je.jugador.foto} alt={je.jugador.nombre} className="h-full w-full object-cover" />
@@ -295,7 +358,7 @@ const EquipoDetalle: React.FC = () => {
                               <span className="capitalize">{je.rol || 'Jugador'}</span>
                             </div>
                           </div>
-                        </div>
+                        </Link>
                       ))}
                     </div>
                   ) : (
@@ -313,7 +376,11 @@ const EquipoDetalle: React.FC = () => {
                   jugadoresHistorial.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {jugadoresHistorial.map((je: any) => (
-                        <div key={je.id || je._id} className="flex items-center gap-4 p-4 bg-white border border-slate-200 rounded-xl shadow-sm opacity-75">
+                        <Link
+                          key={je.id || je._id}
+                          to={`/jugadores/${je.jugador?._id || je.jugador?.id}`}
+                          className="flex items-center gap-4 p-4 bg-white border border-slate-200 rounded-xl shadow-sm opacity-75 hover:opacity-100 transition-opacity"
+                        >
                           <div className="h-12 w-12 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden grayscale">
                             {je.jugador?.foto ? (
                               <img src={je.jugador.foto} alt={je.jugador.nombre} className="h-full w-full object-cover" />
@@ -327,7 +394,7 @@ const EquipoDetalle: React.FC = () => {
                               {je.hasta ? `Hasta: ${new Date(je.hasta).toLocaleDateString()}` : 'Contrato finalizado'}
                             </div>
                           </div>
-                        </div>
+                        </Link>
                       ))}
                     </div>
                   ) : (

@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 import { toPng } from 'html-to-image';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -164,6 +164,27 @@ const JugadorDetalle: React.FC = () => {
     },
     enabled: !!id && !!jugador,
   });
+
+  const { data: equiposData = [] } = useQuery({
+    queryKey: ['jugador-equipos', id],
+    queryFn: () => JugadorService.getEquipos(id!),
+    enabled: !!id,
+  });
+
+  const { equiposActivos, equiposHistorial } = useMemo(() => {
+    const hoy = new Date();
+    const activos = equiposData.filter((je: any) => {
+      if (je.estado !== 'aceptado') return false;
+      if (!je.hasta) return true;
+      return new Date(je.hasta) >= hoy;
+    });
+    const historial = equiposData.filter((je: any) => {
+      if (je.estado === 'baja') return true;
+      if (je.estado === 'aceptado' && je.hasta && new Date(je.hasta) < hoy) return true;
+      return false;
+    });
+    return { equiposActivos: activos, equiposHistorial: historial };
+  }, [equiposData]);
 
   const [seasonOverrides, setSeasonOverrides] = useState<Record<number, Partial<{ rankedData: any; normalData: any }>>>({});
 
@@ -499,6 +520,50 @@ const JugadorDetalle: React.FC = () => {
                 </div>
               </section>
             </div>
+
+            {(equiposActivos.length > 0 || equiposHistorial.length > 0) && (
+              <section className="mt-8">
+                <h2 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-4 pb-2 border-b border-slate-100">Equipos</h2>
+                <div className="flex flex-wrap gap-2">
+                  {equiposActivos.map((je: any) => (
+                    <Link
+                      key={je._id}
+                      to={`/equipos/${je.equipo?._id || je.equipo?.id}`}
+                      className="flex items-center gap-2 pl-2 pr-3 py-1.5 bg-white border border-slate-200 rounded-full hover:border-brand-300 hover:bg-brand-50 transition-colors"
+                    >
+                      <div className="h-6 w-6 rounded-full bg-slate-100 overflow-hidden flex items-center justify-center text-[10px] font-bold text-slate-400 flex-shrink-0">
+                        {je.equipo?.escudo ? (
+                          <img src={je.equipo.escudo} alt={je.equipo.nombre} className="h-full w-full object-cover" />
+                        ) : (
+                          je.equipo?.nombre?.charAt(0)
+                        )}
+                      </div>
+                      <span className="text-xs font-semibold text-slate-700">{je.equipo?.nombre}</span>
+                      {je.rol === 'entrenador' && (
+                        <span className="text-[9px] uppercase text-slate-400 font-bold">DT</span>
+                      )}
+                    </Link>
+                  ))}
+                  {equiposHistorial.map((je: any) => (
+                    <Link
+                      key={je._id}
+                      to={`/equipos/${je.equipo?._id || je.equipo?.id}`}
+                      title="Contrato finalizado"
+                      className="flex items-center gap-2 pl-2 pr-3 py-1.5 bg-slate-50 border border-slate-100 rounded-full opacity-60 hover:opacity-100 transition-opacity"
+                    >
+                      <div className="h-6 w-6 rounded-full bg-slate-100 overflow-hidden flex items-center justify-center text-[10px] font-bold text-slate-400 flex-shrink-0 grayscale">
+                        {je.equipo?.escudo ? (
+                          <img src={je.equipo.escudo} alt={je.equipo.nombre} className="h-full w-full object-cover" />
+                        ) : (
+                          je.equipo?.nombre?.charAt(0)
+                        )}
+                      </div>
+                      <span className="text-xs font-semibold text-slate-500">{je.equipo?.nombre}</span>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
 
             {/* Navigation Tabs - Responsive Scroll */}
             <div className="overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 mt-8 mb-8">

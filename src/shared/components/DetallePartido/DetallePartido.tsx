@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { PartidoService } from '../../../features/partidos/services/partidoService';
 import { formatDate, formatDateTime } from '../../../shared/utils/formatDate';
@@ -199,45 +199,45 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
 
         {/* Marcador Principal */}
         <div className="flex items-center justify-center gap-4 sm:gap-12">
-          <div className="text-center flex flex-col items-center flex-1">
+          <Link to={`/equipos/${partido.equipoLocal?._id || partido.equipoLocal?.id}`} className="text-center flex flex-col items-center flex-1 group">
             {/* Logo Local */}
-            <div className="mb-2 h-16 w-16 sm:h-24 sm:w-24 flex items-center justify-center bg-slate-50 rounded-xl p-1.5 sm:p-2 border border-slate-100 shadow-sm relative overflow-hidden">
+            <div className="mb-2 h-16 w-16 sm:h-24 sm:w-24 flex items-center justify-center bg-slate-50 rounded-xl p-1.5 sm:p-2 border border-slate-100 shadow-sm relative overflow-hidden group-hover:border-brand-200 transition-colors">
               <div className="absolute inset-0 flex items-center justify-center text-slate-300 font-bold text-xl sm:text-3xl z-0">
                 {partido.equipoLocal?.nombre?.charAt(0) || 'L'}
               </div>
               {partido.equipoLocal?.escudo && (
-                <img 
-                  src={partido.equipoLocal.escudo} 
-                  alt={partido.equipoLocal.nombre} 
-                  className="relative z-10 max-h-full max-w-full object-contain" 
+                <img
+                  src={partido.equipoLocal.escudo}
+                  alt={partido.equipoLocal.nombre}
+                  className="relative z-10 max-h-full max-w-full object-contain"
                   onError={(e) => { (e.target as HTMLImageElement).classList.add('hidden'); }}
                 />
               )}
             </div>
             <div className="text-2xl sm:text-4xl font-bold text-slate-900">{partido.marcadorLocal ?? 0}</div>
-            <div className="text-sm sm:text-lg font-semibold text-slate-700 line-clamp-1">{partido.equipoLocal?.nombre || 'Local'}</div>
-          </div>
+            <div className="text-sm sm:text-lg font-semibold text-slate-700 line-clamp-1 group-hover:text-brand-600 group-hover:underline">{partido.equipoLocal?.nombre || 'Local'}</div>
+          </Link>
 
           <div className="text-lg sm:text-3xl font-bold text-slate-300 mt-0 sm:mt-10 self-center">VS</div>
 
-          <div className="text-center flex flex-col items-center flex-1">
+          <Link to={`/equipos/${partido.equipoVisitante?._id || partido.equipoVisitante?.id}`} className="text-center flex flex-col items-center flex-1 group">
             {/* Logo Visitante */}
-            <div className="mb-2 h-16 w-16 sm:h-24 sm:w-24 flex items-center justify-center bg-slate-50 rounded-xl p-1.5 sm:p-2 border border-slate-100 shadow-sm relative overflow-hidden">
+            <div className="mb-2 h-16 w-16 sm:h-24 sm:w-24 flex items-center justify-center bg-slate-50 rounded-xl p-1.5 sm:p-2 border border-slate-100 shadow-sm relative overflow-hidden group-hover:border-brand-200 transition-colors">
               <div className="absolute inset-0 flex items-center justify-center text-slate-300 font-bold text-xl sm:text-3xl z-0">
                 {partido.equipoVisitante?.nombre?.charAt(0) || 'V'}
               </div>
               {partido.equipoVisitante?.escudo && (
-                <img 
-                  src={partido.equipoVisitante.escudo} 
-                  alt={partido.equipoVisitante.nombre} 
-                  className="relative z-10 max-h-full max-w-full object-contain" 
+                <img
+                  src={partido.equipoVisitante.escudo}
+                  alt={partido.equipoVisitante.nombre}
+                  className="relative z-10 max-h-full max-w-full object-contain"
                   onError={(e) => { (e.target as HTMLImageElement).classList.add('hidden'); }}
                 />
               )}
             </div>
             <div className="text-2xl sm:text-4xl font-bold text-slate-900">{partido.marcadorVisitante ?? 0}</div>
-            <div className="text-sm sm:text-lg font-semibold text-slate-700 line-clamp-1">{partido.equipoVisitante?.nombre || 'Visitante'}</div>
-          </div>
+            <div className="text-sm sm:text-lg font-semibold text-slate-700 line-clamp-1 group-hover:text-brand-600 group-hover:underline">{partido.equipoVisitante?.nombre || 'Visitante'}</div>
+          </Link>
         </div>
       </div>
 
@@ -302,17 +302,17 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
             {/* Equipo Local */}
             {localJugadores.length > 0 && (
               <div>
-                <div className="flex items-center gap-2 mb-2">
+                <Link to={`/equipos/${partido.equipoLocal?._id || partido.equipoLocal?.id}`} className="flex items-center gap-2 mb-2 group w-fit">
                   {partido.equipoLocal?.escudo && (
-                    <img 
-                      src={partido.equipoLocal.escudo} 
-                      alt="" 
-                      className="h-6 w-6 object-contain" 
+                    <img
+                      src={partido.equipoLocal.escudo}
+                      alt=""
+                      className="h-6 w-6 object-contain"
                       onError={(e) => { (e.target as HTMLImageElement).classList.add('hidden'); }}
                     />
                   )}
-                  <h3 className="text-base sm:text-lg font-medium text-slate-900 truncate">{partido.equipoLocal?.nombre || 'Local'}</h3>
-                </div>
+                  <h3 className="text-base sm:text-lg font-medium text-slate-900 truncate group-hover:text-brand-600 group-hover:underline">{partido.equipoLocal?.nombre || 'Local'}</h3>
+                </Link>
                 <div className="space-y-1.5 sm:space-y-2">
                   {localJugadores.map((jugador: JugadorPartido) => (
                     <div 
@@ -364,17 +364,17 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
             {/* Equipo Visitante */}
             {visitanteJugadores.length > 0 && (
               <div className="mt-4 sm:mt-0">
-                <div className="flex items-center gap-2 mb-2">
+                <Link to={`/equipos/${partido.equipoVisitante?._id || partido.equipoVisitante?.id}`} className="flex items-center gap-2 mb-2 group w-fit">
                   {partido.equipoVisitante?.escudo && (
-                    <img 
-                      src={partido.equipoVisitante.escudo} 
-                      alt="" 
-                      className="h-6 w-6 object-contain" 
+                    <img
+                      src={partido.equipoVisitante.escudo}
+                      alt=""
+                      className="h-6 w-6 object-contain"
                       onError={(e) => { (e.target as HTMLImageElement).classList.add('hidden'); }}
                     />
                   )}
-                  <h3 className="text-base sm:text-lg font-medium text-slate-900 truncate">{partido.equipoVisitante?.nombre || 'Visitante'}</h3>
-                </div>
+                  <h3 className="text-base sm:text-lg font-medium text-slate-900 truncate group-hover:text-brand-600 group-hover:underline">{partido.equipoVisitante?.nombre || 'Visitante'}</h3>
+                </Link>
                 <div className="space-y-1.5 sm:space-y-2">
                   {visitanteJugadores.map((jugador: JugadorPartido) => (
                     <div 
@@ -432,7 +432,15 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
         <dl className="grid grid-cols-2 gap-x-2 gap-y-4 sm:gap-x-4 sm:gap-y-6 sm:grid-cols-2">
           <div>
             <dt className="text-[10px] sm:text-sm font-medium text-slate-500 uppercase">Competencia</dt>
-            <dd className="mt-0.5 text-xs sm:text-sm text-slate-900 font-medium truncate">{partido.competencia?.nombre || 'N/A'}</dd>
+            <dd className="mt-0.5 text-xs sm:text-sm font-medium truncate">
+              {partido.competenciaId ? (
+                <Link to={`/competencias/${partido.competenciaId}`} className="text-brand-600 hover:underline">
+                  {partido.competencia?.nombre || 'Ver competencia'}
+                </Link>
+              ) : (
+                <span className="text-slate-900">{partido.competencia?.nombre || 'N/A'}</span>
+              )}
+            </dd>
           </div>
           <div>
             <dt className="text-[10px] sm:text-sm font-medium text-slate-500 uppercase">Fase</dt>
