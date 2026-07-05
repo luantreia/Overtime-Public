@@ -51,6 +51,23 @@ const EquipoDetalle: React.FC = () => {
     return { jugadoresActivos: activos, jugadoresHistorial: historial };
   }, [equipo]);
 
+  const groupByJugador = (list: any[]) => {
+    const map = new Map<string, { jugador: any; contratos: any[] }>();
+    list.forEach((je: any) => {
+      const jid = je.jugador?._id || je.jugador?.id;
+      if (!jid) return;
+      if (!map.has(jid)) map.set(jid, { jugador: je.jugador, contratos: [] });
+      map.get(jid)!.contratos.push(je);
+    });
+    return Array.from(map.values()).map(g => ({
+      ...g,
+      contratos: g.contratos.sort((a, b) => new Date(b.desde || 0).getTime() - new Date(a.desde || 0).getTime()),
+    }));
+  };
+
+  const jugadoresActivosAgrupados = useMemo(() => groupByJugador(jugadoresActivos), [jugadoresActivos]);
+  const jugadoresHistorialAgrupados = useMemo(() => groupByJugador(jugadoresHistorial), [jugadoresHistorial]);
+
   const competenciaIds = useMemo(() => {
     const ids = (equipo?.participaciontemporadas || [])
       .map((p: any) => p?.temporada?.competencia)
@@ -354,29 +371,42 @@ const EquipoDetalle: React.FC = () => {
                 </div>
 
                 {activeTab === 'actual' ? (
-                  jugadoresActivos.length > 0 ? (
+                  jugadoresActivosAgrupados.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {jugadoresActivos.map((je: any) => (
+                      {jugadoresActivosAgrupados.map(({ jugador, contratos }) => (
                         <Link
-                          key={je.id || je._id}
-                          to={`/jugadores/${je.jugador?._id || je.jugador?.id}`}
+                          key={jugador?._id || jugador?.id}
+                          to={`/jugadores/${jugador?._id || jugador?.id}`}
                           className="flex items-center gap-4 p-4 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-indigo-200 transition-colors"
                         >
-                          <div className="h-12 w-12 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden border border-slate-100">
-                            {je.jugador?.foto ? (
-                              <img src={je.jugador.foto} alt={je.jugador.nombre} className="h-full w-full object-cover" />
+                          <div className="h-12 w-12 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden border border-slate-100 flex-shrink-0">
+                            {jugador?.foto ? (
+                              <img src={jugador.foto} alt={jugador.nombre} className="h-full w-full object-cover" />
                             ) : (
-                              <span className="text-xl font-bold text-slate-300">{je.jugador?.nombre?.charAt(0) || '?'}</span>
+                              <span className="text-xl font-bold text-slate-300">{jugador?.nombre?.charAt(0) || '?'}</span>
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="font-bold text-slate-900 truncate">{je.jugador?.nombre}</div>
-                            <div className="text-xs text-slate-500 flex items-center gap-2">
-                              {je.numeroCamiseta && (
-                                <span className="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700">#{je.numeroCamiseta}</span>
-                              )}
-                              <span className="capitalize">{je.rol || 'Jugador'}</span>
-                            </div>
+                            <div className="font-bold text-slate-900 truncate">{jugador?.nombre}</div>
+                            {contratos.length === 1 ? (
+                              <div className="text-xs text-slate-500 flex items-center gap-2">
+                                {contratos[0].numeroCamiseta && (
+                                  <span className="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700">#{contratos[0].numeroCamiseta}</span>
+                                )}
+                                <span className="capitalize">{contratos[0].rol || 'Jugador'}</span>
+                              </div>
+                            ) : (
+                              <div className="mt-1 space-y-0.5">
+                                <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">{contratos.length} contratos</span>
+                                {contratos.map((c: any) => (
+                                  <div key={c._id} className="text-[11px] text-slate-400 flex items-center gap-1.5">
+                                    <span className="capitalize">{c.rol || 'jugador'}</span>
+                                    <span>·</span>
+                                    <span>{c.desde ? new Date(c.desde).toLocaleDateString() : '—'} – {c.hasta ? new Date(c.hasta).toLocaleDateString() : 'presente'}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </Link>
                       ))}
@@ -393,26 +423,37 @@ const EquipoDetalle: React.FC = () => {
                     </div>
                   )
                 ) : (
-                  jugadoresHistorial.length > 0 ? (
+                  jugadoresHistorialAgrupados.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {jugadoresHistorial.map((je: any) => (
+                      {jugadoresHistorialAgrupados.map(({ jugador, contratos }) => (
                         <Link
-                          key={je.id || je._id}
-                          to={`/jugadores/${je.jugador?._id || je.jugador?.id}`}
+                          key={jugador?._id || jugador?.id}
+                          to={`/jugadores/${jugador?._id || jugador?.id}`}
                           className="flex items-center gap-4 p-4 bg-white border border-slate-200 rounded-xl shadow-sm opacity-75 hover:opacity-100 transition-opacity"
                         >
-                          <div className="h-12 w-12 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden grayscale">
-                            {je.jugador?.foto ? (
-                              <img src={je.jugador.foto} alt={je.jugador.nombre} className="h-full w-full object-cover" />
+                          <div className="h-12 w-12 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden grayscale flex-shrink-0">
+                            {jugador?.foto ? (
+                              <img src={jugador.foto} alt={jugador.nombre} className="h-full w-full object-cover" />
                             ) : (
-                              <span className="text-xl font-bold text-slate-300">{je.jugador?.nombre?.charAt(0) || '?'}</span>
+                              <span className="text-xl font-bold text-slate-300">{jugador?.nombre?.charAt(0) || '?'}</span>
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="font-bold text-slate-900 truncate">{je.jugador?.nombre}</div>
-                            <div className="text-xs text-slate-500">
-                              {je.hasta ? `Hasta: ${new Date(je.hasta).toLocaleDateString()}` : 'Contrato finalizado'}
-                            </div>
+                            <div className="font-bold text-slate-900 truncate">{jugador?.nombre}</div>
+                            {contratos.length === 1 ? (
+                              <div className="text-xs text-slate-500">
+                                {contratos[0].hasta ? `Hasta: ${new Date(contratos[0].hasta).toLocaleDateString()}` : 'Contrato finalizado'}
+                              </div>
+                            ) : (
+                              <div className="mt-1 space-y-0.5">
+                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{contratos.length} contratos anteriores</span>
+                                {contratos.map((c: any) => (
+                                  <div key={c._id} className="text-[11px] text-slate-400">
+                                    {c.desde ? new Date(c.desde).toLocaleDateString() : '—'} – {c.hasta ? new Date(c.hasta).toLocaleDateString() : 'Contrato finalizado'}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </Link>
                       ))}
