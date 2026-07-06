@@ -50,7 +50,7 @@ export const Bracket: React.FC<BracketProps> = ({ matches }) => {
                   </div>
                   
                   {/* Local Team */}
-                  <div className={`flex justify-between items-center p-2 rounded ${match.marcadorLocal > match.marcadorVisitante ? 'bg-green-50 font-bold' : ''}`}>
+                  <div className={`flex justify-between items-center p-2 rounded ${(match.marcadorLocal ?? 0) > (match.marcadorVisitante ?? 0) ? 'bg-green-50 font-bold' : ''}`}>
                     <span className="truncate mr-2 text-sm">{match.equipoLocal?.nombre || 'Local'}</span>
                     <span className="bg-slate-100 px-2 py-0.5 rounded text-sm font-mono">{match.marcadorLocal ?? '-'}</span>
                   </div>
@@ -59,7 +59,7 @@ export const Bracket: React.FC<BracketProps> = ({ matches }) => {
                   <div className="h-px bg-slate-100 my-1"></div>
 
                   {/* Visitor Team */}
-                  <div className={`flex justify-between items-center p-2 rounded ${match.marcadorVisitante > match.marcadorLocal ? 'bg-green-50 font-bold' : ''}`}>
+                  <div className={`flex justify-between items-center p-2 rounded ${(match.marcadorVisitante ?? 0) > (match.marcadorLocal ?? 0) ? 'bg-green-50 font-bold' : ''}`}>
                     <span className="truncate mr-2 text-sm">{match.equipoVisitante?.nombre || 'Visitante'}</span>
                     <span className="bg-slate-100 px-2 py-0.5 rounded text-sm font-mono">{match.marcadorVisitante ?? '-'}</span>
                   </div>
