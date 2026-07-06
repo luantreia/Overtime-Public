@@ -31,6 +31,9 @@ export interface Partido {
     };
   };
   imagen?: string;
+  marcadorLocal?: number;
+  marcadorVisitante?: number;
+  sets?: any[];
   [key: string]: any;
 }
 
