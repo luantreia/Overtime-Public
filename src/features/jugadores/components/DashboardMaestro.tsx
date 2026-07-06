@@ -100,54 +100,33 @@ export const DashboardMaestro: React.FC<DashboardMaestroProps> = ({ jugadorId, j
             </div>
 
             <div className="p-4 relative">
-              <div className="flex flex-col sm:flex-row items-center gap-6">
-                {/* Foto / Avatar con borde de Rango */}
-                <div className={`h-32 w-32 rounded-full p-1 border-4 ${rank?.border || 'border-slate-200'} shadow-lg relative`}>
-                  <div className="h-full w-full rounded-full overflow-hidden bg-slate-100">
-                    {jugador.foto ? (
-                      <img src={jugador.foto} alt={jugador.nombre} className="h-full w-full object-cover" />
-                    ) : (
-                      <div className="h-full w-full flex items-center justify-center text-3xl font-black text-slate-300">
-                        {jugador.nombre[0]}
-                      </div>
-                    )}
-                  </div>
-                  {/* Badge de ELO flotante */}
-                  <div className={`absolute -bottom-2 -right-2 px-3 py-1 rounded-full text-xs font-black text-white shadow-lg ${rank?.badge || 'bg-brand-600'}`}>
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <span className={`h-12 w-12 rounded-2xl flex items-center justify-center text-sm font-black text-white shadow-lg shrink-0 ${rank?.badge || 'bg-brand-600'}`}>
                     {radarData?.elo || 1500}
+                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Rango Actual</span>
+                    <span className={`text-lg font-black leading-tight ${rank?.color || 'text-slate-900'}`}>{rank?.name || 'Iniciante'}</span>
                   </div>
                 </div>
+                {jugador.perfilReclamado && (
+                  <ShieldCheckIcon className="h-5 w-5 text-blue-500 shrink-0" title="Perfil Verificado" />
+                )}
+              </div>
 
-                <div className="flex-1 text-center sm:text-left">
-                  <div className="flex items-center justify-center sm:justify-start gap-2 mb-1">
-                    <h2 className="text-2xl font-black text-slate-900 leading-tight">
-                      {jugador.alias || jugador.nombre}
-                    </h2>
-                    {jugador.perfilReclamado && (
-                      <ShieldCheckIcon className="h-5 w-5 text-blue-500" title="Perfil Verificado" />
-                    )}
-                  </div>
-                  <p className="text-sm font-medium text-slate-400 mb-4">{jugador.alias ? jugador.nombre : 'Jugador Profesional'}</p>
-                  
-                  <div className="flex flex-wrap justify-center sm:justify-start gap-4">
-                    <div className="flex flex-col">
-                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Rango Actual</span>
-                      <span className={`text-lg font-black ${rank?.color || 'text-slate-900'}`}>{rank?.name || 'Iniciante'}</span>
-                    </div>
-                    <div className="w-px h-10 bg-slate-100 hidden sm:block" />
-                    <div className="flex flex-col">
-                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Karma Social</span>
-                      <span className="text-lg font-black text-orange-500 flex items-center gap-1">
-                        <StarIconSolid className="h-5 w-5" />
-                        {radarData?.karma || 0}
-                      </span>
-                    </div>
-                    <div className="w-px h-10 bg-slate-100 hidden sm:block" />
-                    <div className="flex flex-col">
-                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Win Rate</span>
-                      <span className="text-lg font-black text-emerald-600">{radarData?.winrate || 0}%</span>
-                    </div>
-                  </div>
+              <div className="mt-6 flex flex-wrap gap-6">
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Karma Social</span>
+                  <span className="text-lg font-black text-orange-500 flex items-center gap-1">
+                    <StarIconSolid className="h-5 w-5" />
+                    {radarData?.karma || 0}
+                  </span>
+                </div>
+                <div className="w-px h-10 bg-slate-100 hidden sm:block" />
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Win Rate</span>
+                  <span className="text-lg font-black text-emerald-600">{radarData?.winrate || 0}%</span>
                 </div>
               </div>
 

@@ -213,8 +213,11 @@ const JugadorDetalle: React.FC = () => {
   usePageTitle(jugador?.nombre);
   const [actionLoading, setActionLoading] = useState(false);
   const [showAllComps, setShowAllComps] = useState(false);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'history' | 'leagues'>('dashboard');
+  const [expandedComps, setExpandedComps] = useState<Record<number, boolean>>({});
+  const toggleExpandedComp = (idx: number) => setExpandedComps(prev => ({ ...prev, [idx]: !prev[idx] }));
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'history' | 'leagues'>('history');
 
+  const [showMoreInfo, setShowMoreInfo] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({ nombre: '', alias: '', foto: '', genero: '', nacionalidad: '', fechaNacimiento: '' });
   const [editLoading, setEditLoading] = useState(false);
@@ -292,6 +295,7 @@ const JugadorDetalle: React.FC = () => {
 
   const handleStartEdit = () => {
     if (!jugador) return;
+    setShowMoreInfo(true);
     setEditForm({
       nombre: jugador.nombre || '',
       alias: jugador.alias || '',
@@ -466,80 +470,8 @@ const JugadorDetalle: React.FC = () => {
               )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8">
-              <section className="sm:col-span-2">
-                <h2 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-4 pb-2 border-b border-slate-100">Información</h2>
-                {isEditing ? (
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Nombre</label>
-                        <input className="mt-1 w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" value={editForm.nombre} onChange={e => setEditForm(p => ({ ...p, nombre: e.target.value }))} />
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Alias</label>
-                        <input className="mt-1 w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" placeholder="@alias" value={editForm.alias} onChange={e => setEditForm(p => ({ ...p, alias: e.target.value }))} />
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Género</label>
-                        <select className="mt-1 w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" value={editForm.genero} onChange={e => setEditForm(p => ({ ...p, genero: e.target.value }))}>
-                          <option value="">Sin especificar</option>
-                          <option value="masculino">Masculino</option>
-                          <option value="femenino">Femenino</option>
-                          <option value="otro">Otro</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Nacionalidad</label>
-                        <input className="mt-1 w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" value={editForm.nacionalidad} onChange={e => setEditForm(p => ({ ...p, nacionalidad: e.target.value }))} />
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Fecha de nacimiento</label>
-                        <input type="date" className="mt-1 w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" value={editForm.fechaNacimiento} onChange={e => setEditForm(p => ({ ...p, fechaNacimiento: e.target.value }))} />
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">URL de foto</label>
-                        <input className="mt-1 w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" placeholder="https://..." value={editForm.foto} onChange={e => setEditForm(p => ({ ...p, foto: e.target.value }))} />
-                      </div>
-                    </div>
-                    <div className="flex gap-2 pt-1">
-                      <button onClick={handleSaveEdit} disabled={editLoading} className="px-4 py-2 bg-brand-600 text-white text-xs font-bold rounded-lg hover:bg-brand-700 disabled:opacity-50 transition-all">
-                        {editLoading ? 'Guardando...' : 'Guardar'}
-                      </button>
-                      <button onClick={() => setIsEditing(false)} className="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-800 rounded-lg hover:bg-slate-100 transition-all">
-                        Cancelar
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <dt className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Género</dt>
-                    <dd className="mt-0.5 text-sm text-slate-900 font-semibold capitalize">{jugador.genero || 'N/A'}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Nacionalidad</dt>
-                    <dd className="mt-0.5 text-sm text-slate-900 font-semibold">{jugador.nacionalidad || 'N/A'}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Edad</dt>
-                    <dd className="mt-0.5 text-sm text-slate-900 font-semibold">{jugador.edad ? `${jugador.edad} años` : 'N/A'}</dd>
-                  </div>
-                </div>
-                )}
-              </section>
-
-              <section>
-                <h2 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-4 pb-2 border-b border-slate-100">Actividad</h2>
-                <div className="flex sm:flex-col items-center sm:items-start gap-2 sm:gap-1 pt-2 sm:pt-0">
-                  <p className="text-3xl font-black text-brand-600 leading-none">{competenciasData.length}</p>
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Competencias</p>
-                </div>
-              </section>
-            </div>
-
             {(equiposActivosAgrupados.length > 0 || equiposHistorialAgrupados.length > 0) && (
-              <section className="mt-8">
+              <section className="mb-8">
                 <h2 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-4 pb-2 border-b border-slate-100">Equipos</h2>
                 <div className="space-y-2">
                   {equiposActivosAgrupados.map(({ equipo, contratos }) => (
@@ -622,18 +554,96 @@ const JugadorDetalle: React.FC = () => {
               </section>
             )}
 
+            <button
+              onClick={() => setShowMoreInfo(v => !v)}
+              className="w-full flex items-center justify-between gap-2 text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-4 pb-2 border-b border-slate-100 hover:text-slate-600 transition-colors"
+            >
+              <span>Más información</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"
+                className={`h-3.5 w-3.5 transition-transform ${showMoreInfo ? 'rotate-180' : ''}`}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {showMoreInfo && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8 mb-8">
+              <section className="sm:col-span-2">
+                {isEditing ? (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Nombre</label>
+                        <input className="mt-1 w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" value={editForm.nombre} onChange={e => setEditForm(p => ({ ...p, nombre: e.target.value }))} />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Alias</label>
+                        <input className="mt-1 w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" placeholder="@alias" value={editForm.alias} onChange={e => setEditForm(p => ({ ...p, alias: e.target.value }))} />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Género</label>
+                        <select className="mt-1 w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" value={editForm.genero} onChange={e => setEditForm(p => ({ ...p, genero: e.target.value }))}>
+                          <option value="">Sin especificar</option>
+                          <option value="masculino">Masculino</option>
+                          <option value="femenino">Femenino</option>
+                          <option value="otro">Otro</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Nacionalidad</label>
+                        <input className="mt-1 w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" value={editForm.nacionalidad} onChange={e => setEditForm(p => ({ ...p, nacionalidad: e.target.value }))} />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Fecha de nacimiento</label>
+                        <input type="date" className="mt-1 w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" value={editForm.fechaNacimiento} onChange={e => setEditForm(p => ({ ...p, fechaNacimiento: e.target.value }))} />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">URL de foto</label>
+                        <input className="mt-1 w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" placeholder="https://..." value={editForm.foto} onChange={e => setEditForm(p => ({ ...p, foto: e.target.value }))} />
+                      </div>
+                    </div>
+                    <div className="flex gap-2 pt-1">
+                      <button onClick={handleSaveEdit} disabled={editLoading} className="px-4 py-2 bg-brand-600 text-white text-xs font-bold rounded-lg hover:bg-brand-700 disabled:opacity-50 transition-all">
+                        {editLoading ? 'Guardando...' : 'Guardar'}
+                      </button>
+                      <button onClick={() => setIsEditing(false)} className="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-800 rounded-lg hover:bg-slate-100 transition-all">
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <dt className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Género</dt>
+                    <dd className="mt-0.5 text-sm text-slate-900 font-semibold capitalize">{jugador.genero || 'N/A'}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Nacionalidad</dt>
+                    <dd className="mt-0.5 text-sm text-slate-900 font-semibold">{jugador.nacionalidad || 'N/A'}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Edad</dt>
+                    <dd className="mt-0.5 text-sm text-slate-900 font-semibold">{jugador.edad ? `${jugador.edad} años` : 'N/A'}</dd>
+                  </div>
+                </div>
+                )}
+              </section>
+
+              <section>
+                <h2 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-4 pb-2 border-b border-slate-100">Actividad</h2>
+                <div className="flex sm:flex-col items-center sm:items-start gap-2 sm:gap-1 pt-2 sm:pt-0">
+                  <p className="text-3xl font-black text-brand-600 leading-none">{competenciasData.length}</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Competencias</p>
+                </div>
+              </section>
+            </div>
+            )}
+
             {/* Navigation Tabs - Responsive Scroll */}
             <div className="overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 mt-8 mb-8">
               <div className="flex items-center gap-1 p-1 bg-slate-100/50 rounded-2xl w-max min-w-full sm:w-fit border border-slate-100">
-                 <button 
-                  onClick={() => setActiveTab('dashboard')}
-                  className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${
-                    activeTab === 'dashboard' ? 'bg-white text-brand-700 shadow-sm shadow-brand-100 ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700'
-                  }`}
-                 >
-                   Dashboard
-                 </button>
-                 <button 
+                 <button
                   onClick={() => setActiveTab('history')}
                   className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${
                     activeTab === 'history' ? 'bg-white text-brand-700 shadow-sm shadow-brand-100 ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700'
@@ -641,7 +651,15 @@ const JugadorDetalle: React.FC = () => {
                  >
                    Historial
                  </button>
-                 <button 
+                 <button
+                  onClick={() => setActiveTab('dashboard')}
+                  className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+                    activeTab === 'dashboard' ? 'bg-white text-brand-700 shadow-sm shadow-brand-100 ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700'
+                  }`}
+                 >
+                   Dashboard
+                 </button>
+                 <button
                   onClick={() => setActiveTab('leagues')}
                   className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${
                     activeTab === 'leagues' ? 'bg-white text-brand-700 shadow-sm shadow-brand-100 ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700'
@@ -731,124 +749,146 @@ const JugadorDetalle: React.FC = () => {
                       <div className="px-5 sm:px-6 pt-4 pb-5 border-t border-slate-100">
                         {data.isRanked && data.rankedData ? (
                           <div className="flex flex-col gap-4">
-                            <div className="flex items-center justify-between px-1">
-                               <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em]">
-                                 Ranking de Jugador
-                               </h4>
-                               
-                               {data.allSeasons && data.allSeasons.length > 0 && (
-                                 <select 
-                                   className="text-[10px] bg-slate-100 border-none rounded px-2 py-1 font-bold text-slate-600 focus:ring-1 focus:ring-brand-500 outline-none cursor-pointer"
-                                   value={data.rankedData.selectedSeasonId || "global"}
-                                   onChange={(e) => handleSeasonChange(idx, e.target.value)}
-                                 >
-                                   <option value="global">Histórico Global</option>
-                                   {data.allSeasons.map((s: any) => (
-                                     <option key={s._id} value={s._id}>
-                                       {s.nombre}
-                                     </option>
-                                   ))}
-                                 </select>
-                               )}
-                            </div>
-
-                            <div className="flex items-center gap-6 py-1">
-                              <div>
-                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Rank</p>
-                                <p className="text-2xl font-black text-indigo-700 leading-none">#{data.rankedData.rank}</p>
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-6 py-1">
+                                <div>
+                                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Rank</p>
+                                  <p className="text-xl font-black text-indigo-700 leading-none">#{data.rankedData.rank}</p>
+                                </div>
+                                <div className="h-8 w-px bg-slate-200"></div>
+                                <div>
+                                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">ELO</p>
+                                  <p className="text-xl font-black text-indigo-700 leading-none">
+                                    {Number(data.rankedData.context.find((it: any) => it.isCurrent)?.rating || 0).toFixed(3)}
+                                  </p>
+                                </div>
                               </div>
-                              <div className="h-8 w-px bg-slate-200"></div>
-                              <div>
-                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">ELO</p>
-                                <p className="text-2xl font-black text-indigo-700 leading-none">
-                                  {Number(data.rankedData.context.find((it: any) => it.isCurrent)?.rating || 0).toFixed(3)}
-                                </p>
-                              </div>
-                            </div>
-
-                            <div className="flex gap-2 no-export">
                               <button
-                                onClick={() => handleOpenModal(data)}
-                                className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold uppercase tracking-wider rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2"
+                                onClick={(e) => { e.stopPropagation(); toggleExpandedComp(idx); }}
+                                className="no-export shrink-0 flex items-center gap-1 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-500 hover:text-brand-600 border border-slate-200 hover:border-brand-200 rounded-lg transition-colors"
                               >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z" />
-                                </svg>
-                                Ver Historial Detallado
-                              </button>
-                              
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleExportImage(idx, data.competencia.nombre); }}
-                                className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-colors shadow-sm flex items-center justify-center"
-                                title="Descargar Ranking como PNG"
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                {expandedComps[idx] ? 'Ocultar' : 'Ver detalle'}
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className={`h-3 w-3 transition-transform ${expandedComps[idx] ? 'rotate-180' : ''}`}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                                 </svg>
                               </button>
                             </div>
 
-                            <div className="rounded-lg overflow-hidden border border-slate-100">
-                              <table className="w-full text-[11px]">
-                                <tbody className="divide-y divide-slate-50">
-                                  {data.rankedData.context.map((item: any, i: number) => (
-                                    <tr
-                                      key={i}
-                                      className={`${item.isCurrent ? 'bg-indigo-50/50' : ''} cursor-pointer hover:bg-slate-50 transition-colors`}
-                                      onClick={() => navigate(`/jugadores/${item.playerId?._id || item.playerId}`)}
-                                    >
-                                      <td className="px-3 py-3 text-slate-400 font-mono w-8 text-center">{item.rank}</td>
-                                      <td className="px-2 py-3 flex items-center gap-2">
-                                        <div className="h-5 w-5 rounded-full bg-slate-100 flex-shrink-0">
-                                           {item.playerId?.foto && <img src={item.playerId.foto} className="h-full w-full rounded-full object-cover" alt="" />}
-                                        </div>
-                                        <span className={`truncate max-w-[40%] ${item.isCurrent ? 'font-bold text-indigo-700' : 'text-slate-700'}`}>
-                                          {item.playerId?.nombre || 'Desconocido'}
-                                        </span>
-                                      </td>
-                                      <td className="px-3 py-3 text-right font-bold text-slate-900 w-16">{item.rating ? Number(item.rating).toFixed(3) : '---'}</td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
+                            {expandedComps[idx] && (
+                              <>
+                                {data.allSeasons && data.allSeasons.length > 0 && (
+                                  <select
+                                    className="no-export self-start text-[10px] bg-slate-100 border-none rounded px-2 py-1 font-bold text-slate-600 focus:ring-1 focus:ring-brand-500 outline-none cursor-pointer"
+                                    value={data.rankedData.selectedSeasonId || "global"}
+                                    onChange={(e) => handleSeasonChange(idx, e.target.value)}
+                                  >
+                                    <option value="global">Histórico Global</option>
+                                    {data.allSeasons.map((s: any) => (
+                                      <option key={s._id} value={s._id}>
+                                        {s.nombre}
+                                      </option>
+                                    ))}
+                                  </select>
+                                )}
+
+                                <div className="flex gap-2 no-export">
+                                  <button
+                                    onClick={() => handleOpenModal(data)}
+                                    className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold uppercase tracking-wider rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2"
+                                  >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z" />
+                                    </svg>
+                                    Ver Historial Detallado
+                                  </button>
+
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); handleExportImage(idx, data.competencia.nombre); }}
+                                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-colors shadow-sm flex items-center justify-center"
+                                    title="Descargar Ranking como PNG"
+                                  >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                    </svg>
+                                  </button>
+                                </div>
+
+                                <div className="rounded-lg overflow-hidden border border-slate-100">
+                                  <table className="w-full text-[11px]">
+                                    <tbody className="divide-y divide-slate-50">
+                                      {data.rankedData.context.map((item: any, i: number) => (
+                                        <tr
+                                          key={i}
+                                          className={`${item.isCurrent ? 'bg-indigo-50/50' : ''} cursor-pointer hover:bg-slate-50 transition-colors`}
+                                          onClick={() => navigate(`/jugadores/${item.playerId?._id || item.playerId}`)}
+                                        >
+                                          <td className="px-3 py-3 text-slate-400 font-mono w-8 text-center">{item.rank}</td>
+                                          <td className="px-2 py-3 flex items-center gap-2">
+                                            <div className="h-5 w-5 rounded-full bg-slate-100 flex-shrink-0">
+                                               {item.playerId?.foto && <img src={item.playerId.foto} className="h-full w-full rounded-full object-cover" alt="" />}
+                                            </div>
+                                            <span className={`truncate max-w-[40%] ${item.isCurrent ? 'font-bold text-indigo-700' : 'text-slate-700'}`}>
+                                              {item.playerId?.nombre || 'Desconocido'}
+                                            </span>
+                                          </td>
+                                          <td className="px-3 py-3 text-right font-bold text-slate-900 w-16">{item.rating ? Number(item.rating).toFixed(3) : '---'}</td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </>
+                            )}
                           </div>
                         ) : data.normalData ? (
                           <div className="space-y-3">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1">
-                               <div className="flex items-center gap-2">
-                                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                                 <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em]">
+                            <div className="flex items-center justify-between gap-2">
+                               <div className="flex items-center gap-2 min-w-0">
+                                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></div>
+                                 <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] truncate">
                                    {data.normalData.temporada.nombre} • {data.normalData.fase.nombre}
                                  </h4>
                                </div>
-                               
-                               {data.allSeasons && data.allSeasons.length > 1 && (
-                                 <select 
-                                   className="text-[10px] bg-slate-100 border-none rounded px-2 py-1 font-bold text-slate-600 focus:ring-1 focus:ring-brand-500 outline-none cursor-pointer"
-                                   value={data.normalData.temporada._id}
-                                   onChange={(e) => handleSeasonChange(idx, e.target.value)}
-                                 >
-                                   {data.allSeasons.map((s: any) => (
-                                     <option key={s._id} value={s._id}>
-                                       {s.nombre}
-                                     </option>
-                                   ))}
-                                 </select>
-                               )}
+                               <button
+                                 onClick={(e) => { e.stopPropagation(); toggleExpandedComp(idx); }}
+                                 className="no-export shrink-0 flex items-center gap-1 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-500 hover:text-brand-600 border border-slate-200 hover:border-brand-200 rounded-lg transition-colors"
+                               >
+                                 {expandedComps[idx] ? 'Ocultar' : 'Ver detalle'}
+                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className={`h-3 w-3 transition-transform ${expandedComps[idx] ? 'rotate-180' : ''}`}>
+                                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                 </svg>
+                               </button>
                             </div>
-                            
-                            <div className="w-full">
-                              {data.normalData.fase.tipo === 'playoff' ? (
-                                <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
-                                  <div className="scale-90 origin-left">
-                                    <Bracket matches={data.normalData.matches} />
-                                  </div>
+
+                            {expandedComps[idx] && (
+                              <>
+                                {data.allSeasons && data.allSeasons.length > 1 && (
+                                  <select
+                                    className="no-export text-[10px] bg-slate-100 border-none rounded px-2 py-1 font-bold text-slate-600 focus:ring-1 focus:ring-brand-500 outline-none cursor-pointer"
+                                    value={data.normalData.temporada._id}
+                                    onChange={(e) => handleSeasonChange(idx, e.target.value)}
+                                  >
+                                    {data.allSeasons.map((s: any) => (
+                                      <option key={s._id} value={s._id}>
+                                        {s.nombre}
+                                      </option>
+                                    ))}
+                                  </select>
+                                )}
+
+                                <div className="w-full">
+                                  {data.normalData.fase.tipo === 'playoff' ? (
+                                    <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+                                      <div className="scale-90 origin-left">
+                                        <Bracket matches={data.normalData.matches} />
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <TablaPosiciones faseId={data.normalData.fase._id} />
+                                  )}
                                 </div>
-                              ) : (
-                                <TablaPosiciones faseId={data.normalData.fase._id} />
-                              )}
-                            </div>
+                              </>
+                            )}
                           </div>
                         ) : (
                           <div className="text-center py-4">
