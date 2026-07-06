@@ -1,5 +1,7 @@
 import type { Vector2, GameStatus } from '../../../shared/types';
 
+export type { Vector2, GameStatus };
+
 export type TeamSide = 'player' | 'ai';
 
 export type PlayerAnimState = 'idle' | 'run' | 'throw' | 'catch' | 'eliminated';
