@@ -261,6 +261,41 @@ const EquipoDetalle: React.FC = () => {
                   </span>
                 )}
               </div>
+              {(equipo.sitioWeb || (equipo.redesSociales && Object.values(equipo.redesSociales).some(Boolean))) && (
+                <div className="flex flex-wrap items-center gap-3 mt-3">
+                  {equipo.sitioWeb && (
+                    <a
+                      href={equipo.sitioWeb.startsWith('http') ? equipo.sitioWeb : `https://${equipo.sitioWeb}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-brand-600 hover:underline"
+                    >
+                      Sitio web
+                    </a>
+                  )}
+                  {([
+                    ['instagram', 'Instagram'],
+                    ['facebook', 'Facebook'],
+                    ['twitter', 'X / Twitter'],
+                    ['tiktok', 'TikTok'],
+                    ['youtube', 'YouTube'],
+                  ] as const).map(([key, label]) => {
+                    const url = equipo.redesSociales?.[key];
+                    if (!url) return null;
+                    return (
+                      <a
+                        key={key}
+                        href={url.startsWith('http') ? url : `https://${url}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-brand-600 hover:underline"
+                      >
+                        {label}
+                      </a>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

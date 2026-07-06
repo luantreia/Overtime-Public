@@ -1,11 +1,21 @@
 import { fetchWithAuth } from '../../../utils/apiClient';
 
+export interface RedesSociales {
+  instagram?: string;
+  facebook?: string;
+  twitter?: string;
+  tiktok?: string;
+  youtube?: string;
+}
+
 export interface Equipo {
   _id?: string;
   id?: string;
   nombre: string;
   ciudad?: string;
   pais?: string;
+  sitioWeb?: string;
+  redesSociales?: RedesSociales;
   organizacionId?: string;
   organizacion?: {
     id: string;

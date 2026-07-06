@@ -139,6 +139,41 @@ const OrganizacionDetalle: React.FC = () => {
             {organizacion.descripcion && (
               <p className="mt-1 text-slate-600">{organizacion.descripcion}</p>
             )}
+            {(organizacion.sitioWeb || (organizacion.redesSociales && Object.values(organizacion.redesSociales).some(Boolean))) && (
+              <div className="flex flex-wrap items-center gap-3 mt-2">
+                {organizacion.sitioWeb && (
+                  <a
+                    href={organizacion.sitioWeb.startsWith('http') ? organizacion.sitioWeb : `https://${organizacion.sitioWeb}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-brand-600 hover:underline"
+                  >
+                    Sitio web
+                  </a>
+                )}
+                {([
+                  ['instagram', 'Instagram'],
+                  ['facebook', 'Facebook'],
+                  ['twitter', 'X / Twitter'],
+                  ['tiktok', 'TikTok'],
+                  ['youtube', 'YouTube'],
+                ] as const).map(([key, label]) => {
+                  const url = organizacion.redesSociales?.[key];
+                  if (!url) return null;
+                  return (
+                    <a
+                      key={key}
+                      href={url.startsWith('http') ? url : `https://${url}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-brand-600 hover:underline"
+                    >
+                      {label}
+                    </a>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
 
