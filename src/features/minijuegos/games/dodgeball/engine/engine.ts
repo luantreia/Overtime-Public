@@ -9,7 +9,7 @@ import type {
   TeamSide,
   Vector2,
 } from './types';
-import { circlesOverlap, clampPositionToBounds, normalize } from './collisions';
+import { circlesOverlap, clampPositionToBounds, normalize } from '../../../shared/collisions';
 import { computeAiIntent, findNearestOpponent } from './ai';
 import {
   BALL_RADIUS,
@@ -31,7 +31,7 @@ import {
   TEAM_SIZE,
   THROW_COOLDOWN,
 } from './constants';
-import type { GameAudio } from './audio';
+import type { GameAudio } from '../../../shared/audio';
 
 const MAX_DT = 0.05;
 

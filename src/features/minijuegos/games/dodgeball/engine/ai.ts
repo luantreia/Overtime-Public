@@ -1,5 +1,5 @@
 import type { BallEntity, PlayerEntity } from './types';
-import { distance, normalize } from './collisions';
+import { distance, normalize } from '../../../shared/collisions';
 import { CATCH_WINDOW_RADIUS, CENTER_LINE_Y } from './constants';
 
 export interface AiIntent {

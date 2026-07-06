@@ -8,6 +8,7 @@ import ProtectedRoute from './app/routes/ProtectedRoute';
 import { FeatureFlagsProvider } from './shared/config/featureFlags';
 import ErrorBoundary from './shared/components/ui/Error/ErrorBoundary';
 import FeedbackWidget from './shared/components/FeedbackWidget';
+import { minijuegosRoutes } from './features/minijuegos/routes';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -50,8 +51,6 @@ const LoginPage = lazy(() => import('./features/auth/pages/LoginPage'));
 const RegisterPage = lazy(() => import('./features/auth/pages/RegisterPage'));
 const NotificacionesPage = lazy(() => import('./features/notificaciones/pages/NotificacionesPage'));
 const NotFoundPage = lazy(() => import('./features/error/pages/NotFoundPage'));
-const Minijuegos = lazy(() => import('./features/minijuegos/pages/Minijuegos'));
-const DodgeballGame = lazy(() => import('./features/minijuegos/pages/DodgeballGame'));
 
 const App: React.FC = () => (
   <PersistQueryClientProvider 
@@ -78,8 +77,9 @@ const App: React.FC = () => (
             <Route path="/partidos" element={<Partidos />} />
             <Route path="/partidos/:id" element={<PartidoDetalle />} />
             
-            <Route path="/minijuegos" element={<Minijuegos />} />
-            <Route path="/minijuegos/dodgeball" element={<DodgeballGame />} />
+            {minijuegosRoutes.map(({ path, element }) => (
+              <Route key={path} path={path} element={element} />
+            ))}
 
             <Route path="/ranking" element={<RankingGlobal />} />
             <Route path="/lod" element={<LoDLanding />} />

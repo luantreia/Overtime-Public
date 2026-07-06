@@ -1,10 +1,10 @@
 import React, { useEffect, useRef } from 'react';
-import { DodgeballEngine } from '../game/engine';
-import { GameAudio } from '../game/audio';
-import { InputManager } from '../game/input';
-import { renderGame } from '../game/renderer';
-import { COURT_WIDTH, COURT_HEIGHT } from '../game/constants';
-import type { HudState } from '../game/types';
+import { DodgeballEngine } from '../engine/engine';
+import { GameAudio } from '../../../shared/audio';
+import { KeyboardInputManager } from '../../../shared/input/KeyboardInputManager';
+import { renderGame } from '../engine/renderer';
+import { COURT_WIDTH, COURT_HEIGHT } from '../engine/constants';
+import type { HudState, InputSnapshot } from '../engine/types';
 
 export interface GameControls {
   start: () => void;
@@ -15,7 +15,21 @@ interface GameCanvasProps {
   controlsRef: React.MutableRefObject<GameControls | null>;
 }
 
-const GameCanvas: React.FC<GameCanvasProps> = ({ onHudChange, controlsRef }) => {
+const readInputSnapshot = (keyboard: KeyboardInputManager): InputSnapshot => {
+  let moveX = 0;
+  let moveY = 0;
+  if (keyboard.isDown('ArrowLeft') || keyboard.isDown('KeyA')) moveX -= 1;
+  if (keyboard.isDown('ArrowRight') || keyboard.isDown('KeyD')) moveX += 1;
+  if (keyboard.isDown('ArrowUp') || keyboard.isDown('KeyW')) moveY -= 1;
+  if (keyboard.isDown('ArrowDown') || keyboard.isDown('KeyS')) moveY += 1;
+
+  const throwPressed = keyboard.consumeJustPressed('Space');
+  const catchHeld = keyboard.isDown('ShiftLeft') || keyboard.isDown('ShiftRight');
+
+  return { moveX, moveY, throwPressed, catchHeld };
+};
+
+const DodgeballCanvas: React.FC<GameCanvasProps> = ({ onHudChange, controlsRef }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const lastHudKeyRef = useRef<string>('');
 
@@ -31,7 +45,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onHudChange, controlsRef }) => 
     ctx.scale(dpr, dpr);
 
     const audio = new GameAudio();
-    const input = new InputManager(window);
+    const keyboard = new KeyboardInputManager(window);
     const engine = new DodgeballEngine(audio);
 
     controlsRef.current = {
@@ -48,7 +62,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onHudChange, controlsRef }) => 
       const dt = Math.min((time - lastTime) / 1000, 0.05);
       lastTime = time;
 
-      engine.setUserInput(input.getSnapshot());
+      engine.setUserInput(readInputSnapshot(keyboard));
       engine.update(dt);
 
       const snapshot = engine.getSnapshot();
@@ -75,7 +89,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onHudChange, controlsRef }) => 
 
     return () => {
       cancelAnimationFrame(raf);
-      input.destroy();
+      keyboard.destroy();
       controlsRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -90,4 +104,4 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onHudChange, controlsRef }) => 
   );
 };
 
-export default GameCanvas;
+export default DodgeballCanvas;

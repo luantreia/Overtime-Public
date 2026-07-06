@@ -1,6 +1,6 @@
 import React from 'react';
-import { POWERUP_GLYPHS } from '../game/constants';
-import type { HudState } from '../game/types';
+import { POWERUP_GLYPHS } from '../engine/constants';
+import type { HudState } from '../engine/types';
 
 const POWERUP_LABELS: Record<string, string> = {
   speed: 'Velocidad',
@@ -13,7 +13,7 @@ interface GameHudProps {
   hud: HudState;
 }
 
-const GameHud: React.FC<GameHudProps> = ({ hud }) => {
+const DodgeballHud: React.FC<GameHudProps> = ({ hud }) => {
   const minutes = Math.floor(hud.timeRemaining / 60);
   const seconds = hud.timeRemaining % 60;
 
@@ -36,4 +36,4 @@ const GameHud: React.FC<GameHudProps> = ({ hud }) => {
   );
 };
 
-export default GameHud;
+export default DodgeballHud;

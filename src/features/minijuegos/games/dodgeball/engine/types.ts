@@ -1,7 +1,4 @@
-export interface Vector2 {
-  x: number;
-  y: number;
-}
+import type { Vector2, GameStatus } from '../../../shared/types';
 
 export type TeamSide = 'player' | 'ai';
 
@@ -50,8 +47,6 @@ export interface PowerUpEntity {
   position: Vector2;
   radius: number;
 }
-
-export type GameStatus = 'ready' | 'playing' | 'gameover';
 
 export interface GameSnapshot {
   players: PlayerEntity[];
