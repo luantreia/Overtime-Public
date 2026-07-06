@@ -1,5 +1,6 @@
 import React from 'react';
 import { Partido } from '../../../features/partidos/services/partidoService';
+import { formatDate } from '../../utils/formatDate';
 
 interface BracketProps {
   matches: Partido[];
@@ -45,7 +46,7 @@ export const Bracket: React.FC<BracketProps> = ({ matches }) => {
               {matchesByStage[stage].map((match) => (
                 <div key={match.id} className="relative bg-white border border-slate-200 rounded-lg shadow-sm p-3 hover:shadow-md transition-shadow">
                   <div className="text-xs text-slate-400 mb-2 text-center">
-                    {match.fecha ? new Date(match.fecha).toLocaleDateString() : 'Fecha por definir'}
+                    {match.fecha ? formatDate(match.fecha) : 'Fecha por definir'}
                   </div>
                   
                   {/* Local Team */}

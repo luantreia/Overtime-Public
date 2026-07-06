@@ -7,6 +7,7 @@ import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 import { useAuth } from '../../../app/providers/AuthContext';
 import { useToast } from '../../../shared/components/Toast/ToastProvider';
 import { crearSolicitudEdicion } from '../../solicitudes/services/solicitudesEdicionService';
+import { formatDate } from '../../../shared/utils/formatDate';
 
 const EquipoDetalle: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -402,7 +403,7 @@ const EquipoDetalle: React.FC = () => {
                                   <div key={c._id} className="text-[11px] text-slate-400 flex items-center gap-1.5">
                                     <span className="capitalize">{c.rol || 'jugador'}</span>
                                     <span>·</span>
-                                    <span>{c.desde ? new Date(c.desde).toLocaleDateString() : '—'} – {c.hasta ? new Date(c.hasta).toLocaleDateString() : 'presente'}</span>
+                                    <span>{c.desde ? formatDate(c.desde) : '—'} – {c.hasta ? formatDate(c.hasta) : 'presente'}</span>
                                   </div>
                                 ))}
                               </div>
@@ -442,14 +443,14 @@ const EquipoDetalle: React.FC = () => {
                             <div className="font-bold text-slate-900 truncate">{jugador?.nombre}</div>
                             {contratos.length === 1 ? (
                               <div className="text-xs text-slate-500">
-                                {contratos[0].hasta ? `Hasta: ${new Date(contratos[0].hasta).toLocaleDateString()}` : 'Contrato finalizado'}
+                                {contratos[0].hasta ? `Hasta: ${formatDate(contratos[0].hasta)}` : 'Contrato finalizado'}
                               </div>
                             ) : (
                               <div className="mt-1 space-y-0.5">
                                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{contratos.length} contratos anteriores</span>
                                 {contratos.map((c: any) => (
                                   <div key={c._id} className="text-[11px] text-slate-400">
-                                    {c.desde ? new Date(c.desde).toLocaleDateString() : '—'} – {c.hasta ? new Date(c.hasta).toLocaleDateString() : 'Contrato finalizado'}
+                                    {c.desde ? formatDate(c.desde) : '—'} – {c.hasta ? formatDate(c.hasta) : 'Contrato finalizado'}
                                   </div>
                                 ))}
                               </div>

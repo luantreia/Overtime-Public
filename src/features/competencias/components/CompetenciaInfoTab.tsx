@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { type Competencia } from '../services/competenciaService';
 import { type JugadorCompetencia } from '../services/jugadorCompetenciaService';
 import { type LeaderboardItem } from '../services/rankedService';
+import { formatDate } from '../../../shared/utils/formatDate';
 
 interface TemporadaConGanador {
   _id: string;
@@ -90,13 +91,13 @@ export const CompetenciaInfoTab: React.FC<CompetenciaInfoTabProps> = ({
           <div>
             <dt className="text-xs font-medium text-slate-500">Inicio</dt>
             <dd className="mt-0.5 text-sm text-slate-900">
-              {competencia.fechaInicio ? new Date(competencia.fechaInicio).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+              {competencia.fechaInicio ? formatDate(competencia.fechaInicio) : '—'}
             </dd>
           </div>
           <div>
             <dt className="text-xs font-medium text-slate-500">Fin</dt>
             <dd className="mt-0.5 text-sm text-slate-900">
-              {competencia.fechaFin ? new Date(competencia.fechaFin).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+              {competencia.fechaFin ? formatDate(competencia.fechaFin) : '—'}
             </dd>
           </div>
           <div>

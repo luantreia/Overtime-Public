@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { RankedService } from '../services/rankedService';
+import { formatDate } from '../../../shared/utils/formatDate';
 
 interface PlayerRankedHistoryModalProps {
   isOpen: boolean;
@@ -383,7 +384,7 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
                                </div>
                                <div>
                                   <p className="text-xs font-bold text-slate-900 group-hover:text-brand-600 transition-colors">
-                                     {new Date(h.partidoId?.fecha || h.createdAt).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
+                                     {formatDate(h.partidoId?.fecha || h.createdAt)}
                                   </p>
                                   <p className="text-[10px] text-slate-400 flex items-center gap-1">
                                      <span className={`w-2 h-2 rounded-full ${h.teamColor === 'rojo' ? 'bg-red-500' : 'bg-blue-500'}`}></span>

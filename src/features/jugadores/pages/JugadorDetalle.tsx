@@ -17,6 +17,7 @@ import { DashboardMaestro } from '../components/DashboardMaestro';
 import { UnifiedHistory } from '../components/UnifiedHistory';
 import { useAuth } from '../../../app/providers/AuthContext';
 import { useToast } from '../../../shared/components/Toast/ToastProvider';
+import { formatDate } from '../../../shared/utils/formatDate';
 
 const JugadorDetalle: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -493,7 +494,7 @@ const JugadorDetalle: React.FC = () => {
                           {contratos.length === 1 ? (
                             <div className="text-xs text-slate-500 capitalize flex items-center gap-1">
                               <span>{contratos[0].rol === 'entrenador' ? 'DT' : 'Jugador'}</span>
-                              {contratos[0].desde && <span>· desde {new Date(contratos[0].desde).toLocaleDateString()}</span>}
+                              {contratos[0].desde && <span>· desde {formatDate(contratos[0].desde)}</span>}
                             </div>
                           ) : (
                             <div className="text-xs text-slate-500">{contratos.length} contratos</div>
@@ -506,7 +507,7 @@ const JugadorDetalle: React.FC = () => {
                             <div key={c._id} className="text-[11px] text-slate-400 flex items-center gap-1.5">
                               <span className="capitalize font-medium text-slate-500">{c.rol === 'entrenador' ? 'DT' : 'Jugador'}</span>
                               <span>·</span>
-                              <span>{c.desde ? new Date(c.desde).toLocaleDateString() : '—'} – {c.hasta ? new Date(c.hasta).toLocaleDateString() : 'presente'}</span>
+                              <span>{c.desde ? formatDate(c.desde) : '—'} – {c.hasta ? formatDate(c.hasta) : 'presente'}</span>
                             </div>
                           ))}
                         </div>
@@ -532,7 +533,7 @@ const JugadorDetalle: React.FC = () => {
                           <div className="text-sm font-semibold text-slate-700 truncate">{equipo?.nombre}</div>
                           {contratos.length === 1 ? (
                             <div className="text-xs text-slate-500">
-                              {contratos[0].hasta ? `Hasta: ${new Date(contratos[0].hasta).toLocaleDateString()}` : 'Contrato finalizado'}
+                              {contratos[0].hasta ? `Hasta: ${formatDate(contratos[0].hasta)}` : 'Contrato finalizado'}
                             </div>
                           ) : (
                             <div className="text-xs text-slate-500">{contratos.length} contratos anteriores</div>
@@ -543,7 +544,7 @@ const JugadorDetalle: React.FC = () => {
                         <div className="mt-2 pl-11 space-y-0.5">
                           {contratos.map((c: any) => (
                             <div key={c._id} className="text-[11px] text-slate-400">
-                              {c.desde ? new Date(c.desde).toLocaleDateString() : '—'} – {c.hasta ? new Date(c.hasta).toLocaleDateString() : 'Contrato finalizado'}
+                              {c.desde ? formatDate(c.desde) : '—'} – {c.hasta ? formatDate(c.hasta) : 'Contrato finalizado'}
                             </div>
                           ))}
                         </div>

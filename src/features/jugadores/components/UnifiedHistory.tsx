@@ -11,6 +11,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { JugadorService } from '../services/jugadorService';
 import { LoadingSpinner } from '../../../shared/components/LoadingSpinner';
+import { formatDate } from '../../../shared/utils/formatDate';
 
 interface UnifiedHistoryProps {
   jugadorId: string;
@@ -41,14 +42,6 @@ export const UnifiedHistory: React.FC<UnifiedHistoryProps> = ({ jugadorId }) => 
   useEffect(() => {
     fetchHistory();
   }, [fetchHistory]);
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    });
-  };
 
   return (
     <div className="space-y-4">

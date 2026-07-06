@@ -17,10 +17,14 @@ export const formatDate = (isoDate: string | Date | undefined | null, locale: st
   const date = parseDate(isoDate);
   if (!date) return SAFE_FALLBACK;
 
+  // Fechas sin hora (cumpleaños, "desde/hasta" de contratos, fechaInicio/fechaFin, etc.)
+  // se guardan y parsean como medianoche UTC. Forzamos timeZone UTC al formatear para
+  // mostrar el día calendario original, sin correrlo por la zona horaria del navegador.
   return new Intl.DateTimeFormat(locale, {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
+    timeZone: 'UTC',
   }).format(date);
 };
 
