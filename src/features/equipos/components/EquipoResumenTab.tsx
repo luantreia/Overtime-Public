@@ -1,9 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { CompetenciaService } from '../../competencias/services/competenciaService';
 import { EmptyState } from '../../../shared/components/EmptyState/EmptyState';
 import { PartidoService } from '../../partidos/services/partidoService';
+import { EquipoHistoriaModal } from './EquipoHistoriaModal';
 import type { Equipo } from '../services/equipoService';
 
 interface EquipoResumenTabProps {
@@ -23,6 +24,8 @@ const resultadoPartido = (partido: any, equipoId: string): 'G' | 'P' | 'E' | nul
 };
 
 export const EquipoResumenTab: React.FC<EquipoResumenTabProps> = ({ equipo, equipoId }) => {
+  const [historiaAbierta, setHistoriaAbierta] = useState(false);
+
   const competenciaIds = useMemo(() => {
     const ids = (equipo?.participaciontemporadas || [])
       .map((p: any) => p?.temporada?.competencia)
@@ -112,10 +115,21 @@ export const EquipoResumenTab: React.FC<EquipoResumenTabProps> = ({ equipo, equi
       </div>
 
       <section>
-        <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
-          <span className="h-8 w-1 bg-brand-600 rounded-full"></span>
-          Palmarés y trayectoria
-        </h2>
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+            <span className="h-8 w-1 bg-brand-600 rounded-full"></span>
+            Palmarés y trayectoria
+          </h2>
+          {(equipo.participaciontemporadas?.length || 0) > 0 && (
+            <button
+              type="button"
+              onClick={() => setHistoriaAbierta(true)}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:border-brand-200 hover:text-brand-600"
+            >
+              🕒 Ver línea de tiempo
+            </button>
+          )}
+        </div>
         {(equipo.participaciontemporadas?.length || 0) === 0 ? (
           <EmptyState message="Este equipo aún no participa en ninguna competencia registrada." />
         ) : (
@@ -170,6 +184,16 @@ export const EquipoResumenTab: React.FC<EquipoResumenTabProps> = ({ equipo, equi
           </div>
         )}
       </section>
+
+      {historiaAbierta && (
+        <EquipoHistoriaModal
+          equipo={equipo}
+          equipoId={equipoId}
+          competenciasMap={competenciasMap}
+          isOpen={historiaAbierta}
+          onClose={() => setHistoriaAbierta(false)}
+        />
+      )}
     </div>
   );
 };

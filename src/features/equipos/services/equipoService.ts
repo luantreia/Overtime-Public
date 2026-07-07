@@ -27,6 +27,7 @@ export interface Equipo {
   imagen?: string;
   escudo?: string;
   activo?: boolean;
+  fechaFormacion?: string;
   fechaDisolucion?: string;
   competenciasJugadas?: number;
   competenciasGanadas?: number;
