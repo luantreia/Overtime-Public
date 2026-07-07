@@ -101,7 +101,7 @@ export const EquipoHistoriaModal: React.FC<EquipoHistoriaModalProps> = ({ equipo
     const list: { year: number; left: number }[] = [];
     for (let y = first; y <= last; y++) {
       const jan1 = Date.UTC(y, 0, 1);
-      if (jan1 >= min && jan1 <= max) list.push({ year: y, left: posicion(jan1) });
+      if (jan1 >= min && jan1 <= max) list.push({ year: y, left: ((jan1 - min) / rango) * 100 });
     }
     return list;
   }, [min, max, rango]);
