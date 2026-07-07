@@ -16,7 +16,7 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const from = (location.state as { from?: Location })?.from?.pathname ?? '/dashboard';
+  const from = (location.state as { from?: Location })?.from?.pathname ?? '/';
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
