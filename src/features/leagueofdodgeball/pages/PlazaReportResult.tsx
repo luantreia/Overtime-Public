@@ -4,15 +4,19 @@ import { PlazaService } from '../services/plazaService';
 import { Lobby } from '../types';
 import { LoadingSpinner } from '../../../shared/components/LoadingSpinner';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
+import { useToast } from '../../../shared/components/Toast/ToastProvider';
+import ConfirmModal from '../../../shared/components/ConfirmModal/ConfirmModal';
 
 const PlazaReportResult: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { addToast } = useToast();
   const [lobby, setLobby] = useState<Lobby | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [sets, setSets] = useState([{ teamAScore: 0, teamBScore: 0 }]);
   const [winner, setWinner] = useState<'teamA' | 'teamB' | 'draw'>('draw');
+  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -39,20 +43,29 @@ const PlazaReportResult: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!id || submitting) return;
+    setShowPreview(true);
+  };
+
+  const handleConfirmSubmit = async () => {
+    if (!id || submitting) return;
+    setShowPreview(false);
     try {
       setSubmitting(true);
       await PlazaService.submitResult(id, { winner, sets });
-      alert("¡Resultado enviado con éxito! Esperando confirmación del rival.");
+      addToast({ type: 'success', title: 'Resultado enviado', message: '¡Resultado enviado con éxito! Esperando confirmación del rival.' });
       navigate(`/plaza/lobby/${id}`);
     } catch (err: any) {
-      alert(err.message);
+      addToast({ type: 'error', title: 'Error', message: err.message });
     } finally {
       setSubmitting(false);
     }
   };
+
+  const totalA = sets.reduce((acc, s) => acc + (s.teamAScore > s.teamBScore ? 1 : 0), 0);
+  const totalB = sets.reduce((acc, s) => acc + (s.teamBScore > s.teamAScore ? 1 : 0), 0);
 
   if (loading) return <LoadingSpinner />;
   if (!lobby) return <ErrorMessage message="No se encontró el lobby" />;
@@ -154,6 +167,36 @@ const PlazaReportResult: React.FC = () => {
           </div>
         </form>
       </div>
+
+      <ConfirmModal
+        isOpen={showPreview}
+        title="Confirmar resultado"
+        confirmLabel={submitting ? 'Enviando...' : 'Confirmar y enviar'}
+        variant="primary"
+        onConfirm={handleConfirmSubmit}
+        onCancel={() => setShowPreview(false)}
+        message={
+          <div className="space-y-3">
+            <p className="text-sm text-slate-700">Revisá el resultado antes de enviarlo. Una vez enviado, se notificará al rival para confirmar.</p>
+            <div className="rounded-xl bg-slate-50 border border-slate-100 p-3">
+              <p className="text-xs font-bold uppercase text-slate-500 mb-2">Ganador: {winner === 'teamA' ? 'Equipo A' : winner === 'teamB' ? 'Equipo B' : 'Empate'}</p>
+              <div className="space-y-1">
+                {sets.map((s, idx) => (
+                  <div key={idx} className="flex items-center justify-between text-sm">
+                    <span className="text-slate-400">Set {idx + 1}</span>
+                    <span className="font-bold text-slate-800">
+                      <span className="text-red-600">{s.teamAScore}</span> - <span className="text-blue-600">{s.teamBScore}</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-2 pt-2 border-t border-slate-200 text-xs text-slate-500">
+                Sets ganados: <span className="font-bold text-red-600">{totalA}</span> - <span className="font-bold text-blue-600">{totalB}</span>
+              </p>
+            </div>
+          </div>
+        }
+      />
     </div>
   );
 };

@@ -12,10 +12,22 @@ import {
 } from '@heroicons/react/24/outline';
 import { StarIcon } from '@heroicons/react/24/solid';
 import { getAuthTokens } from '../../../utils/apiClient';
+import { useToast } from '../../../shared/components/Toast/ToastProvider';
+import ConfirmModal from '../../../shared/components/ConfirmModal/ConfirmModal';
+
+type ConfirmAction =
+  | { type: 'leave' }
+  | { type: 'reportInactivity'; role: 'host' | 'rivalCaptain' | 'official' }
+  | { type: 'kickOfficial'; officialUid: string }
+  | { type: 'kickPlayer'; playerUid: string }
+  | { type: 'delete' }
+  | { type: 'cancelRequest' }
+  | null;
 
 const PlazaLobby: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { addToast } = useToast();
   const [lobby, setLobby] = useState<Lobby | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,6 +35,7 @@ const PlazaLobby: React.FC = () => {
   const [userUid, setUserUid] = useState<string | null>(null);
   const [hasProfile, setHasProfile] = useState<boolean>(true);
   const [ratingData, setRatingData] = useState<Record<string, string>>({});
+  const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
 
   const fetchLobby = useCallback(async () => {
     if (!id) return;
@@ -66,7 +79,7 @@ const PlazaLobby: React.FC = () => {
       await PlazaService.joinLobby(id); // Backend will auto-assign if team not provided or full
       await fetchLobby();
     } catch (err: any) {
-      alert(err.message);
+      addToast({ type: 'error', title: 'Error', message: err.message });
     } finally {
       setActionLoading(false);
     }
@@ -79,20 +92,23 @@ const PlazaLobby: React.FC = () => {
       await PlazaService.joinOfficial(id);
       await fetchLobby();
     } catch (err: any) {
-      alert(err.message);
+      addToast({ type: 'error', title: 'Error', message: err.message });
     } finally {
       setActionLoading(false);
     }
   };
 
-  const handleLeave = async () => {
-    if (!id || !window.confirm("¿Seguro que quieres salir del lobby?")) return;
+  const handleLeave = () => setConfirmAction({ type: 'leave' });
+
+  const handleConfirmLeave = async () => {
+    setConfirmAction(null);
+    if (!id) return;
     try {
       setActionLoading(true);
       await PlazaService.leaveLobby(id);
       await fetchLobby();
     } catch (err: any) {
-      alert(err.message);
+      addToast({ type: 'error', title: 'Error', message: err.message });
     } finally {
       setActionLoading(false);
     }
@@ -100,23 +116,26 @@ const PlazaLobby: React.FC = () => {
 
   const handleCheckIn = async () => {
     if (!id) return;
-    if (!navigator.geolocation) return alert("Tu dispositivo no soporta geolocalización");
-    
+    if (!navigator.geolocation) {
+      addToast({ type: 'error', title: 'Error', message: 'Tu dispositivo no soporta geolocalización' });
+      return;
+    }
+
     setActionLoading(true);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         try {
           await PlazaService.checkIn(id, pos.coords.latitude, pos.coords.longitude);
-          alert("¡Check-in realizado con éxito!");
+          addToast({ type: 'success', title: 'Check-in realizado', message: '¡Check-in realizado con éxito!' });
           await fetchLobby();
         } catch (err: any) {
-          alert(err.message);
+          addToast({ type: 'error', title: 'Error', message: err.message });
         } finally {
           setActionLoading(false);
         }
       },
       (err) => {
-        alert("Error de ubicación: " + err.message);
+        addToast({ type: 'error', title: 'Error de ubicación', message: err.message });
         setActionLoading(false);
       },
       { enableHighAccuracy: true }
@@ -129,19 +148,19 @@ const PlazaLobby: React.FC = () => {
       playerId,
       type
     }));
-    
+
     if (ratings.length === 0) {
-      alert("Por favor califica al menos a un jugador.");
+      addToast({ type: 'error', title: 'Error', message: 'Por favor califica al menos a un jugador.' });
       return;
     }
 
     setActionLoading(true);
     try {
       await PlazaService.submitRatings(id, ratings);
-      alert("¡Gracias por tu feedback! Tu karma ayuda a mantener una comunidad sana.");
+      addToast({ type: 'success', title: 'Gracias', message: '¡Gracias por tu feedback! Tu karma ayuda a mantener una comunidad sana.' });
       await fetchLobby();
     } catch (err: any) {
-      alert(err.message);
+      addToast({ type: 'error', title: 'Error', message: err.message });
     } finally {
       setActionLoading(false);
     }
@@ -157,11 +176,11 @@ const PlazaLobby: React.FC = () => {
         teamBScore: s.scoreB,
         time: s.time
       }));
-      
+
       await PlazaService.submitResult(id, { sets: mappedSets });
       await fetchLobby();
     } catch (err: any) {
-      alert(err.message);
+      addToast({ type: 'error', title: 'Error', message: err.message });
     } finally {
       setActionLoading(false);
     }
@@ -174,7 +193,7 @@ const PlazaLobby: React.FC = () => {
       await PlazaService.balanceTeams(id);
       await fetchLobby();
     } catch (err: any) {
-      alert(err.message);
+      addToast({ type: 'error', title: 'Error', message: err.message });
     } finally {
       setActionLoading(false);
     }
@@ -187,7 +206,7 @@ const PlazaLobby: React.FC = () => {
       await PlazaService.startMatch(id);
       await fetchLobby();
     } catch (err: any) {
-      alert(err.message);
+      addToast({ type: 'error', title: 'Error', message: err.message });
     } finally {
       setActionLoading(false);
     }
@@ -198,90 +217,152 @@ const PlazaLobby: React.FC = () => {
     setActionLoading(true);
     try {
       await PlazaService.confirmResult(id);
-      alert("¡Resultado confirmado con éxito! Los puntos han sido procesados.");
+      addToast({ type: 'success', title: 'Resultado confirmado', message: '¡Resultado confirmado con éxito! Los puntos han sido procesados.' });
       await fetchLobby();
     } catch (err: any) {
-      alert(err.message);
+      addToast({ type: 'error', title: 'Error', message: err.message });
     } finally {
       setActionLoading(false);
     }
   };
 
-  const handleReportInactivity = async (role: 'host' | 'rivalCaptain' | 'official') => {
-    if (!id || !window.confirm(`¿Reportar que el ${role === 'host' ? 'Host' : role === 'official' ? 'Oficial' : 'Capitán Rival'} está inactivo? Si más del 50% vota, el rol será reasignado.`)) return;
+  const handleReportInactivity = (role: 'host' | 'rivalCaptain' | 'official') => setConfirmAction({ type: 'reportInactivity', role });
+
+  const handleConfirmReportInactivity = async (role: 'host' | 'rivalCaptain' | 'official') => {
+    setConfirmAction(null);
+    if (!id) return;
     try {
       setActionLoading(true);
       const res = await PlazaService.reportAuthorityInactivity(id, role);
-      alert(res.message);
+      addToast({ type: 'info', title: 'Reporte enviado', message: res.message });
       await fetchLobby();
     } catch (err: any) {
-      alert(err.message);
+      addToast({ type: 'error', title: 'Error', message: err.message });
     } finally {
       setActionLoading(false);
     }
   };
 
-  const handleKickOfficial = async (officialUid: string) => {
-    if (!id || !window.confirm("¿Expulsar a este oficial del lobby?")) return;
+  const handleKickOfficial = (officialUid: string) => setConfirmAction({ type: 'kickOfficial', officialUid });
+
+  const handleConfirmKickOfficial = async (officialUid: string) => {
+    setConfirmAction(null);
+    if (!id) return;
     try {
       setActionLoading(true);
       await PlazaService.kickOfficial(id, officialUid);
       await fetchLobby();
     } catch (err: any) {
-      alert(err.message);
+      addToast({ type: 'error', title: 'Error', message: err.message });
     } finally {
       setActionLoading(false);
     }
   };
 
-  const handleKickPlayer = async (playerUid: string) => {
-    if (!id || !window.confirm("¿Expulsar a este jugador del lobby?")) return;
+  const handleKickPlayer = (playerUid: string) => setConfirmAction({ type: 'kickPlayer', playerUid });
+
+  const handleConfirmKickPlayer = async (playerUid: string) => {
+    setConfirmAction(null);
+    if (!id) return;
     try {
       setActionLoading(true);
       await PlazaService.kickPlayer(id, playerUid);
       await fetchLobby();
     } catch (err: any) {
-      alert(err.message);
+      addToast({ type: 'error', title: 'Error', message: err.message });
     } finally {
       setActionLoading(false);
     }
   };
 
-  const handleDelete = async () => {
-    if (!id || !window.confirm("¿Estás seguro de que quieres eliminar este lobby? Se cancelará el partido.")) return;
+  const handleDelete = () => setConfirmAction({ type: 'delete' });
+
+  const handleConfirmDelete = async () => {
+    setConfirmAction(null);
+    if (!id) return;
     try {
       setActionLoading(true);
       await PlazaService.deleteLobby(id);
       navigate('/plaza');
     } catch (err: any) {
-      alert(err.message);
+      addToast({ type: 'error', title: 'Error', message: err.message });
     } finally {
       setActionLoading(false);
     }
   };
 
-  const handleCancelRequest = async () => {
-    const isHost = userUid === lobby?.host;
-    const msg = isHost 
-      ? '¿Solicitar la cancelación del partido? Esto requiere confirmación del Capitán Rival.' 
-      : '¿Confirmar la cancelación del partido solicitada por el Host?';
-      
-    if (!id || !window.confirm(msg)) return;
-    
+  const handleCancelRequest = () => setConfirmAction({ type: 'cancelRequest' });
+
+  const handleConfirmCancelRequest = async () => {
+    setConfirmAction(null);
+    if (!id) return;
     setActionLoading(true);
     try {
       const response = await PlazaService.requestCancel(id);
       if (response.cancelled) {
-        alert('Partido cancelado con éxito.');
+        addToast({ type: 'success', title: 'Partido cancelado', message: 'Partido cancelado con éxito.' });
         navigate('/plaza');
       } else {
         await fetchLobby();
       }
     } catch (err: any) {
-      alert(err.message);
+      addToast({ type: 'error', title: 'Error', message: err.message });
     } finally {
       setActionLoading(false);
     }
+  };
+
+  const executeConfirmedAction = () => {
+    if (!confirmAction) return;
+    switch (confirmAction.type) {
+      case 'leave': return handleConfirmLeave();
+      case 'reportInactivity': return handleConfirmReportInactivity(confirmAction.role);
+      case 'kickOfficial': return handleConfirmKickOfficial(confirmAction.officialUid);
+      case 'kickPlayer': return handleConfirmKickPlayer(confirmAction.playerUid);
+      case 'delete': return handleConfirmDelete();
+      case 'cancelRequest': return handleConfirmCancelRequest();
+    }
+  };
+
+  const CONFIRM_ACTION_COPY: Record<NonNullable<ConfirmAction>['type'], { title: string; message: string; confirmLabel: string; variant?: 'danger' | 'primary' | 'default' }> = {
+    leave: {
+      title: 'Salir del lobby',
+      message: '¿Seguro que quieres salir del lobby?',
+      confirmLabel: 'Salir',
+    },
+    reportInactivity: {
+      title: 'Reportar inactividad',
+      message: confirmAction?.type === 'reportInactivity'
+        ? `¿Reportar que el ${confirmAction.role === 'host' ? 'Host' : confirmAction.role === 'official' ? 'Oficial' : 'Capitán Rival'} está inactivo? Si más del 50% vota, el rol será reasignado.`
+        : '',
+      confirmLabel: 'Reportar',
+    },
+    kickOfficial: {
+      title: 'Expulsar oficial',
+      message: '¿Expulsar a este oficial del lobby?',
+      confirmLabel: 'Expulsar',
+      variant: 'danger',
+    },
+    kickPlayer: {
+      title: 'Expulsar jugador',
+      message: '¿Expulsar a este jugador del lobby?',
+      confirmLabel: 'Expulsar',
+      variant: 'danger',
+    },
+    delete: {
+      title: 'Eliminar lobby',
+      message: '¿Estás seguro de que quieres eliminar este lobby? Se cancelará el partido.',
+      confirmLabel: 'Eliminar',
+      variant: 'danger',
+    },
+    cancelRequest: {
+      title: 'Cancelar partido',
+      message: userUid === lobby?.host
+        ? '¿Solicitar la cancelación del partido? Esto requiere confirmación del Capitán Rival.'
+        : '¿Confirmar la cancelación del partido solicitada por el Host?',
+      confirmLabel: 'Confirmar',
+      variant: 'danger',
+    },
   };
 
   if (loading) return <LoadingSpinner />;
@@ -924,6 +1005,16 @@ const PlazaLobby: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={!!confirmAction}
+        title={confirmAction ? CONFIRM_ACTION_COPY[confirmAction.type].title : undefined}
+        message={confirmAction ? CONFIRM_ACTION_COPY[confirmAction.type].message : undefined}
+        confirmLabel={confirmAction ? CONFIRM_ACTION_COPY[confirmAction.type].confirmLabel : undefined}
+        variant={confirmAction ? CONFIRM_ACTION_COPY[confirmAction.type].variant : undefined}
+        onConfirm={executeConfirmedAction}
+        onCancel={() => setConfirmAction(null)}
+      />
     </div>
   );
 };

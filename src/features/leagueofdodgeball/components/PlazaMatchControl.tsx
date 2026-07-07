@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  PlayIcon, PauseIcon, StopIcon, PlusIcon, 
-  TrashIcon, BoltIcon, ClockIcon 
+import {
+  PlayIcon, PauseIcon, StopIcon, PlusIcon,
+  TrashIcon, BoltIcon, ClockIcon
 } from '@heroicons/react/24/outline';
+import ConfirmModal from '../../../shared/components/ConfirmModal/ConfirmModal';
 
 interface SetRecord {
   scoreA: number;
@@ -30,6 +31,7 @@ export const PlazaMatchControl: React.FC<PlazaMatchControlProps> = ({
   const [lastStartTime, setLastStartTime] = useState<number | null>(null);
   const [isPaused, setIsPaused] = useState(true);
   const [elapsed, setElapsed] = useState(0);
+  const [confirmFinish, setConfirmFinish] = useState(false);
 
   // Persistence Key
   const persistenceKey = `plaza_live_${lobbyId}`;
@@ -110,11 +112,12 @@ export const PlazaMatchControl: React.FC<PlazaMatchControlProps> = ({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleFinish = () => {
-    if (window.confirm("¿Deseas finalizar el partido y enviar los resultados para validación?")) {
-      onFinish(sets);
-      localStorage.removeItem(persistenceKey);
-    }
+  const handleFinish = () => setConfirmFinish(true);
+
+  const handleConfirmFinish = () => {
+    setConfirmFinish(false);
+    onFinish(sets);
+    localStorage.removeItem(persistenceKey);
   };
 
   return (
@@ -211,6 +214,16 @@ export const PlazaMatchControl: React.FC<PlazaMatchControlProps> = ({
         <StopIcon className="h-6 w-6" />
         {actionLoading ? 'PROCESANDO...' : 'FINALIZAR Y ENVIAR'}
       </button>
+
+      <ConfirmModal
+        isOpen={confirmFinish}
+        title="Finalizar partido"
+        message="¿Deseas finalizar el partido y enviar los resultados para validación?"
+        confirmLabel="Finalizar"
+        variant="primary"
+        onConfirm={handleConfirmFinish}
+        onCancel={() => setConfirmFinish(false)}
+      />
     </div>
   );
 };

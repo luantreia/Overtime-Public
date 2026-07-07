@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PlazaService } from '../services/plazaService';
 import { LoadingSpinner } from '../../../shared/components/LoadingSpinner';
+import { useToast } from '../../../shared/components/Toast/ToastProvider';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -26,6 +27,7 @@ const LocationPicker = ({ lat, lng, onChange }: { lat: number, lng: number, onCh
 
 const PlazaCrear: React.FC = () => {
   const navigate = useNavigate();
+  const { addToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [checkingProfile, setCheckingProfile] = useState(true);
   const [hasProfile, setHasProfile] = useState(false);
@@ -111,7 +113,7 @@ const PlazaCrear: React.FC = () => {
       });
       navigate(`/plaza/lobby/${lobby._id}`);
     } catch (err: any) {
-      alert(err.message);
+      addToast({ type: 'error', title: 'Error', message: err.message });
     } finally {
       setLoading(false);
     }

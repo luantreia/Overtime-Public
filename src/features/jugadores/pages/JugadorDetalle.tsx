@@ -1,5 +1,5 @@
-import React, { useMemo, useState, useRef } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import React, { useCallback, useMemo, useState, useRef } from 'react';
+import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 import { toPng } from 'html-to-image';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -25,6 +25,7 @@ const JugadorDetalle: React.FC = () => {
   const { user } = useAuth();
   const { addToast } = useToast();
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
 
 
   const { data: jugador, isLoading: loading, error } = useQuery({
@@ -216,7 +217,15 @@ const JugadorDetalle: React.FC = () => {
   const [showAllComps, setShowAllComps] = useState(false);
   const [expandedComps, setExpandedComps] = useState<Record<number, boolean>>({});
   const toggleExpandedComp = (idx: number) => setExpandedComps(prev => ({ ...prev, [idx]: !prev[idx] }));
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'history' | 'leagues'>('history');
+  const activeTab = (searchParams.get('tab') as 'dashboard' | 'history' | 'leagues') || 'history';
+  const setActiveTab = useCallback((tab: 'dashboard' | 'history' | 'leagues') => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (tab === 'history') next.delete('tab');
+      else next.set('tab', tab);
+      return next;
+    }, { replace: true });
+  }, [setSearchParams]);
 
   const [showMoreInfo, setShowMoreInfo] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
