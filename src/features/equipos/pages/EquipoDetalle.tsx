@@ -1,26 +1,22 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { EquipoService, type Equipo } from '../services/equipoService';
-import { PartidoService } from '../../partidos/services/partidoService';
 import { usePageTitle } from '../../../shared/hooks/usePageTitle';
-import { useEquipoCategoriasActivas } from '../hooks/useEquipoCategoriasActivas';
 import {
   EquipoHeader,
   EquipoResumenTab,
   EquipoCalendarioTab,
   EquipoPlantelTab,
-  EquipoPalmaresTab,
   EquipoEstadisticasTab,
 } from '../components';
 
-type TabKey = 'resumen' | 'calendario' | 'plantel' | 'palmares' | 'estadisticas';
+type TabKey = 'resumen' | 'calendario' | 'plantel' | 'estadisticas';
 
 const TABS: { key: TabKey; label: string; icon: string }[] = [
   { key: 'resumen', label: 'Resumen', icon: '📊' },
   { key: 'calendario', label: 'Calendario', icon: '📅' },
   { key: 'plantel', label: 'Plantel', icon: '👥' },
-  { key: 'palmares', label: 'Palmarés', icon: '🏆' },
   { key: 'estadisticas', label: 'Estadísticas', icon: '📈' },
 ];
 
@@ -56,26 +52,6 @@ const EquipoDetalle: React.FC = () => {
 
   const equipoId = equipo?._id || equipo?.id || id || '';
 
-  const { data: categorias = [], isLoading: loadingCategorias } = useEquipoCategoriasActivas(
-    equipoId,
-    equipo?.participaciontemporadas
-  );
-
-  const { data: proximosPartidos = [] } = useQuery({
-    queryKey: ['equipo-proximo-partido', equipoId],
-    queryFn: () => PartidoService.getAll({ equipo: equipoId, estado: 'programado' }),
-    enabled: !!equipoId,
-  });
-
-  const proximoPartido = useMemo(() => {
-    if (proximosPartidos.length === 0) return null;
-    return [...proximosPartidos].sort((a, b) => {
-      const fa = a.fecha && a.hora ? `${a.fecha}T${a.hora}` : a.fecha || '';
-      const fb = b.fecha && b.hora ? `${b.fecha}T${b.hora}` : b.fecha || '';
-      return new Date(fa).getTime() - new Date(fb).getTime();
-    })[0];
-  }, [proximosPartidos]);
-
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -103,12 +79,7 @@ const EquipoDetalle: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 py-8">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-        <EquipoHeader
-          equipo={equipo}
-          proximoPartido={proximoPartido}
-          categorias={categorias}
-          onBack={() => navigate('/equipos')}
-        />
+        <EquipoHeader equipo={equipo} onBack={() => navigate('/equipos')} />
 
         <div className="relative mt-6 mb-6 border-b border-slate-200">
           <nav className="-mb-px flex gap-4 sm:gap-8 overflow-x-auto whitespace-nowrap [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]" aria-label="Tabs">
@@ -131,12 +102,9 @@ const EquipoDetalle: React.FC = () => {
         </div>
 
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-4 sm:p-6 min-h-[400px]">
-          {activeTab === 'resumen' && (
-            <EquipoResumenTab equipo={equipo} equipoId={equipoId} categorias={categorias} loadingCategorias={loadingCategorias} />
-          )}
+          {activeTab === 'resumen' && <EquipoResumenTab equipo={equipo} equipoId={equipoId} />}
           {activeTab === 'calendario' && <EquipoCalendarioTab equipoId={equipoId} />}
           {activeTab === 'plantel' && <EquipoPlantelTab equipo={equipo} />}
-          {activeTab === 'palmares' && <EquipoPalmaresTab equipo={equipo} equipoId={equipoId} />}
           {activeTab === 'estadisticas' && <EquipoEstadisticasTab equipoId={equipoId} />}
         </div>
       </div>
