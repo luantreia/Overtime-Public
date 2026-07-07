@@ -26,4 +26,11 @@ export const MINIJUEGOS_REGISTRY: MinijuegoMeta[] = [
     emoji: '🔥',
     path: '/minijuegos/no-te-quemes',
   },
+  {
+    slug: 'cabezones',
+    name: 'Cabezones Quemados',
+    description: '1 vs 1 de costado con físicas de verdad: saltá, tirá con efecto estilo honda y atajá.',
+    emoji: '🙃',
+    path: '/minijuegos/cabezones',
+  },
 ];
