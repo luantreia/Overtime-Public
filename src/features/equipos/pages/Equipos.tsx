@@ -18,6 +18,7 @@ const Equipos: React.FC = () => {
   const { data: paged, isLoading: loading, error: equiposQueryError, refetch } = useQuery<Equipo[]>({
     queryKey: ['equipos'],
     queryFn: () => EquipoService.getAll(),
+    staleTime: 1000 * 60 * 5, // 5 minutos: directorio público que cambia seguido, no ameritan las 24hs por defecto
   });
   const error = equiposQueryError instanceof Error ? equiposQueryError.message : equiposQueryError ? String(equiposQueryError) : null;
 
@@ -77,6 +78,8 @@ const Equipos: React.FC = () => {
 
   const total = filteredItems.length;
   const totalPages = useMemo(() => (limit > 0 ? Math.max(1, Math.ceil(total / limit)) : 1), [total, limit]);
+  const totalSinFiltrar = paged?.length ?? 0;
+  const hayFiltrosActivos = Boolean(searchTerm || countryFilter);
 
   if (loading) {
     return (
@@ -153,6 +156,12 @@ const Equipos: React.FC = () => {
             </button>
           </div>
         </div>
+
+        <p className="mb-4 text-sm text-slate-500">
+          {hayFiltrosActivos
+            ? `Mostrando ${total} equipo${total !== 1 ? 's' : ''} que coincide${total !== 1 ? 'n' : ''} (de ${totalSinFiltrar} en total)`
+            : `Mostrando ${totalSinFiltrar} equipo${totalSinFiltrar !== 1 ? 's' : ''} en total`}
+        </p>
 
         {!equipos || equipos.length === 0 ? (
           <div className="text-center py-12">
