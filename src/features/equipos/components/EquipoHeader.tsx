@@ -63,7 +63,7 @@ export const EquipoHeader: React.FC<EquipoHeaderProps> = ({ equipo, proximoParti
         ← Volver a equipos
       </button>
 
-      <div className="h-32 bg-gradient-to-r from-slate-800 to-slate-900 flex items-end justify-end p-6 -mt-6">
+      <div className="h-24 sm:h-32 bg-gradient-to-r from-slate-800 to-slate-900 flex items-end justify-end p-4 sm:p-6 -mt-6">
         {!equipo.fechaDisolucion && (
           <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-lg">
             Activo
@@ -71,10 +71,10 @@ export const EquipoHeader: React.FC<EquipoHeaderProps> = ({ equipo, proximoParti
         )}
       </div>
 
-      <div className="px-8 pb-8">
-        <div className="relative flex justify-between items-end -mt-16 mb-6">
-          <div className="p-2 bg-white rounded-3xl shadow-md border border-slate-100">
-            <div className="h-32 w-32 rounded-2xl bg-slate-50 flex items-center justify-center text-4xl font-bold text-slate-300 overflow-hidden border border-slate-100">
+      <div className="px-4 sm:px-8 pb-6 sm:pb-8">
+        <div className="relative flex flex-col sm:flex-row sm:justify-between sm:items-end gap-3 -mt-10 sm:-mt-16 mb-6">
+          <div className="p-2 bg-white rounded-3xl shadow-md border border-slate-100 w-fit">
+            <div className="h-20 w-20 sm:h-32 sm:w-32 rounded-2xl bg-slate-50 flex items-center justify-center text-3xl sm:text-4xl font-bold text-slate-300 overflow-hidden border border-slate-100">
               {escudo ? (
                 <img src={escudo} alt={equipo.nombre} className="h-full w-full object-cover" />
               ) : (
@@ -84,7 +84,7 @@ export const EquipoHeader: React.FC<EquipoHeaderProps> = ({ equipo, proximoParti
           </div>
 
           {!esAdmin && (equipo.administradores?.length ?? 0) < MAX_ADMINS && (
-            <div className="flex flex-col items-end gap-2">
+            <div className="flex flex-col items-start sm:items-end gap-2">
               {solicitudEnviada ? (
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-100 rounded-lg">
                   <span className="flex h-1.5 w-1.5 rounded-full bg-green-500"></span>
@@ -129,11 +129,11 @@ export const EquipoHeader: React.FC<EquipoHeaderProps> = ({ equipo, proximoParti
           )}
         </div>
 
-        <div className="mb-6">
-          <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900">{equipo.nombre}</h1>
-          <div className="flex items-center gap-2 mt-2">
-            <span className="text-lg text-slate-500 flex items-center gap-1">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-slate-400">
+        <div className="pb-4 sm:pb-5">
+          <h1 className="text-xl sm:text-4xl font-extrabold text-slate-900 break-words">{equipo.nombre}</h1>
+          <div className="flex flex-wrap items-center gap-2 mt-2">
+            <span className="text-sm sm:text-lg text-slate-500 flex items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400 flex-shrink-0">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
               </svg>
@@ -145,45 +145,48 @@ export const EquipoHeader: React.FC<EquipoHeaderProps> = ({ equipo, proximoParti
               </span>
             )}
           </div>
+        </div>
 
-          {(equipo.sitioWeb || (equipo.redesSociales && Object.values(equipo.redesSociales).some(Boolean))) && (
-            <div className="flex flex-wrap items-center gap-3 mt-3">
-              {equipo.sitioWeb && (
+        {(equipo.sitioWeb || (equipo.redesSociales && Object.values(equipo.redesSociales).some(Boolean))) && (
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 py-4 border-t border-slate-100">
+            {equipo.sitioWeb && (
+              <a
+                href={equipo.sitioWeb.startsWith('http') ? equipo.sitioWeb : `https://${equipo.sitioWeb}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-brand-600 hover:underline"
+              >
+                Sitio web
+              </a>
+            )}
+            {([
+              ['instagram', 'Instagram'],
+              ['facebook', 'Facebook'],
+              ['twitter', 'X / Twitter'],
+              ['tiktok', 'TikTok'],
+              ['youtube', 'YouTube'],
+            ] as const).map(([key, label]) => {
+              const url = equipo.redesSociales?.[key];
+              if (!url) return null;
+              return (
                 <a
-                  href={equipo.sitioWeb.startsWith('http') ? equipo.sitioWeb : `https://${equipo.sitioWeb}`}
+                  key={key}
+                  href={url.startsWith('http') ? url : `https://${url}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm text-brand-600 hover:underline"
                 >
-                  Sitio web
+                  {label}
                 </a>
-              )}
-              {([
-                ['instagram', 'Instagram'],
-                ['facebook', 'Facebook'],
-                ['twitter', 'X / Twitter'],
-                ['tiktok', 'TikTok'],
-                ['youtube', 'YouTube'],
-              ] as const).map(([key, label]) => {
-                const url = equipo.redesSociales?.[key];
-                if (!url) return null;
-                return (
-                  <a
-                    key={key}
-                    href={url.startsWith('http') ? url : `https://${url}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-brand-600 hover:underline"
-                  >
-                    {label}
-                  </a>
-                );
-              })}
-            </div>
-          )}
+              );
+            })}
+          </div>
+        )}
 
-          {categorias.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 mt-4">
+        {categorias.length > 0 && (
+          <div className="py-4 border-t border-slate-100">
+            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Categorías activas</h2>
+            <div className="flex flex-wrap items-center gap-2">
               {categorias.map((cat) => (
                 <Link
                   key={cat.faseId}
@@ -196,12 +199,12 @@ export const EquipoHeader: React.FC<EquipoHeaderProps> = ({ equipo, proximoParti
                 </Link>
               ))}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {proximoPartido && (
-          <div>
-            <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Próximo partido</h2>
+          <div className="pt-4 border-t border-slate-100">
+            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Próximo partido</h2>
             <PartidoCard
               partido={proximoPartido}
               variante="proximo"
