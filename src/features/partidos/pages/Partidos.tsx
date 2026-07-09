@@ -37,11 +37,11 @@ const Partidos: React.FC = () => {
   const navigate = useNavigate();
   const [vista, setVista] = useState<Vista>('lista');
   // Filtros
+  const [organizacionId, setOrganizacionId] = useState('');
   const [competenciaId, setCompetenciaId] = useState('');
   const [temporadaId, setTemporadaId] = useState('');
   const [faseId, setFaseId] = useState('');
   const [equipoId, setEquipoId] = useState('');
-  const [fecha, setFecha] = useState('');
   const [estados, setEstados] = useState<string[]>([]);
   const [tipoFiltro, setTipoFiltro] = useState<TipoFiltro>('todos');
 
@@ -77,22 +77,31 @@ const Partidos: React.FC = () => {
     FaseService.getByTemporada(temporadaId).then(setFases).catch(console.error);
   }, [temporadaId]);
 
+  // Competencias que pertenecen a la organización elegida (la organización no es un campo directo
+  // del partido, así que se traduce a "cualquiera de estas competencias" para el backend)
+  const organizacionCompetenciaIds = useMemo(() => {
+    if (!organizacionId) return [];
+    return competencias
+      .filter((c) => (c.organizacion?._id || c.organizacion?.id) === organizacionId)
+      .map((c) => c.id || c._id)
+      .filter((id): id is string => Boolean(id));
+  }, [competencias, organizacionId]);
+
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const fetchPartidosPaginated = useCallback(() => {
     return PartidoService.getPaginated({ page, limit, filters: {
-      competencia: competenciaId || undefined,
+      competencia: competenciaId || (organizacionCompetenciaIds.length ? organizacionCompetenciaIds : undefined),
       temporada: temporadaId || undefined,
       fase: faseId || undefined,
       equipo: equipoId || undefined,
-      fecha: fecha || undefined,
       estado: estados.length ? estados : undefined,
       tipo: tipoFiltro === 'todos' ? undefined : tipoFiltro,
     }});
-  }, [page, limit, competenciaId, temporadaId, faseId, equipoId, fecha, estados, tipoFiltro]);
+  }, [page, limit, competenciaId, organizacionCompetenciaIds, temporadaId, faseId, equipoId, estados, tipoFiltro]);
 
   const { data: paged, isLoading: loading, error: partidosQueryError, refetch } = useQuery<{ items: Partido[]; page: number; limit: number; total: number } | Partido[]>({
-    queryKey: ['partidos-list', page, limit, competenciaId, temporadaId, faseId, equipoId, fecha, estados, tipoFiltro],
+    queryKey: ['partidos-list', page, limit, competenciaId, organizacionId, temporadaId, faseId, equipoId, estados, tipoFiltro],
     queryFn: fetchPartidosPaginated,
   });
   const error = partidosQueryError instanceof Error ? partidosQueryError.message : partidosQueryError ? String(partidosQueryError) : null;
@@ -116,9 +125,9 @@ const Partidos: React.FC = () => {
   const totalPages = useMemo(() => (limit > 0 ? Math.max(1, Math.ceil(total / limit)) : 1), [total, limit]);
 
   const { data: partidosCalendario = [], isLoading: loadingCalendario } = useQuery({
-    queryKey: ['partidos-calendario', competenciaId, temporadaId, faseId, equipoId, estados, tipoFiltro],
+    queryKey: ['partidos-calendario', competenciaId, organizacionId, temporadaId, faseId, equipoId, estados, tipoFiltro],
     queryFn: () => PartidoService.getAll({
-      competencia: competenciaId || undefined,
+      competencia: competenciaId || (organizacionCompetenciaIds.length ? organizacionCompetenciaIds : undefined),
       temporada: temporadaId || undefined,
       fase: faseId || undefined,
       equipo: equipoId || undefined,
@@ -144,15 +153,27 @@ const Partidos: React.FC = () => {
     () => equipos.map((e) => ({ id: e.id || e._id || '', label: e.nombre })),
     [equipos]
   );
-  const competenciaItems = useMemo(
-    () => competencias.map((c) => ({ id: c.id || c._id || '', label: c.nombre })),
-    [competencias]
-  );
+  const organizacionItems = useMemo(() => {
+    const map = new Map<string, string>();
+    competencias.forEach((c) => {
+      const id = c.organizacion?._id || c.organizacion?.id;
+      if (id && c.organizacion?.nombre) map.set(id, c.organizacion.nombre);
+    });
+    return Array.from(map.entries())
+      .map(([id, label]) => ({ id, label }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [competencias]);
+  const competenciaItems = useMemo(() => {
+    const items = organizacionId
+      ? competencias.filter((c) => (c.organizacion?._id || c.organizacion?.id) === organizacionId)
+      : competencias;
+    return items.map((c) => ({ id: c.id || c._id || '', label: c.nombre }));
+  }, [competencias, organizacionId]);
 
   const limpiarFiltros = () => {
+    setOrganizacionId('');
     setCompetenciaId('');
     setEquipoId('');
-    setFecha('');
     setEstados([]);
     setTipoFiltro('todos');
     setPage(1);
@@ -163,6 +184,10 @@ const Partidos: React.FC = () => {
     if (equipoId) {
       const nombre = equipos.find((e) => (e.id || e._id) === equipoId)?.nombre;
       items.push({ key: 'equipo', label: `Equipo: ${nombre || equipoId}`, onRemove: () => setEquipoId('') });
+    }
+    if (organizacionId) {
+      const nombre = organizacionItems.find((o) => o.id === organizacionId)?.label;
+      items.push({ key: 'organizacion', label: `Organización: ${nombre || organizacionId}`, onRemove: () => setOrganizacionId('') });
     }
     if (competenciaId) {
       const nombre = competencias.find((c) => (c.id || c._id) === competenciaId)?.nombre;
@@ -183,11 +208,8 @@ const Partidos: React.FC = () => {
     if (tipoFiltro !== 'todos') {
       items.push({ key: 'tipo', label: TIPO_LABELS[tipoFiltro], onRemove: () => setTipoFiltro('todos') });
     }
-    if (fecha) {
-      items.push({ key: 'fecha', label: fecha, onRemove: () => setFecha('') });
-    }
     return items;
-  }, [equipoId, competenciaId, temporadaId, faseId, estados, tipoFiltro, fecha, equipos, competencias, temporadas, fases]);
+  }, [equipoId, organizacionId, competenciaId, temporadaId, faseId, estados, tipoFiltro, equipos, organizacionItems, competencias, temporadas, fases]);
 
   return (
     <div className="min-h-screen bg-slate-50 py-8">
@@ -269,6 +291,17 @@ const Partidos: React.FC = () => {
               </div>
 
               <FilterCombobox
+                items={organizacionItems}
+                value={organizacionId}
+                onChange={(id) => {
+                  setOrganizacionId(id);
+                  setCompetenciaId('');
+                }}
+                label="Organización"
+                placeholder="Buscar organización..."
+              />
+
+              <FilterCombobox
                 items={competenciaItems}
                 value={competenciaId}
                 onChange={setCompetenciaId}
@@ -305,18 +338,6 @@ const Partidos: React.FC = () => {
                       <option key={f._id || Math.random()} value={f._id}>{f.nombre}</option>
                     ))}
                   </select>
-                </div>
-              )}
-
-              {vista === 'lista' && (
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Fecha exacta</label>
-                  <input
-                    type="date"
-                    value={fecha}
-                    onChange={(e) => setFecha(e.target.value)}
-                    className="w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 border"
-                  />
                 </div>
               )}
 
