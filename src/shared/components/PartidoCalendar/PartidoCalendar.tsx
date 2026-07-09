@@ -250,26 +250,29 @@ export const PartidoCalendar: React.FC<PartidoCalendarProps> = ({
       )}
 
       {escala === 'anual' && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {MONTHS.map((mes, i) => {
-            const mesAnchor = new Date(Date.UTC(cursor.getUTCFullYear(), i, 1));
-            return (
-              <div key={mes} className="border border-slate-100 rounded-xl p-3">
-                <button
-                  onClick={() => {
-                    setCursor(mesAnchor);
-                    setEscala('mensual');
-                  }}
-                  className="mb-2 text-xs font-bold text-slate-700 hover:text-brand-600"
-                >
-                  {mes}
-                </button>
-                <div className="grid grid-cols-7 gap-0.5">
-                  {getMonthGridDays(mesAnchor).map((date) => renderDayCell(date, { compact: true, fueraDeMes: date.getUTCMonth() !== i, maxChips: 0 }))}
+        <div>
+          <h3 className="mb-3 text-sm font-semibold text-slate-600">{cursor.getUTCFullYear()}</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {MONTHS.map((mes, i) => {
+              const mesAnchor = new Date(Date.UTC(cursor.getUTCFullYear(), i, 1));
+              return (
+                <div key={mes} className="border border-slate-100 rounded-xl p-3">
+                  <button
+                    onClick={() => {
+                      setCursor(mesAnchor);
+                      setEscala('mensual');
+                    }}
+                    className="mb-2 text-xs font-bold text-slate-700 hover:text-brand-600"
+                  >
+                    {mes}
+                  </button>
+                  <div className="grid grid-cols-7 gap-0.5">
+                    {getMonthGridDays(mesAnchor).map((date) => renderDayCell(date, { compact: true, fueraDeMes: date.getUTCMonth() !== i, maxChips: 0 }))}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       )}
 
