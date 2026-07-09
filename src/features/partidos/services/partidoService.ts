@@ -44,7 +44,10 @@ export class PartidoService {
     const queryParams = new URLSearchParams();
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
+        if (value === undefined || value === null) return;
+        if (Array.isArray(value)) {
+          value.forEach((v) => queryParams.append(key, String(v)));
+        } else {
           queryParams.append(key, String(value));
         }
       });
@@ -76,7 +79,10 @@ export class PartidoService {
     const filters = options?.filters;
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
+        if (value === undefined || value === null) return;
+        if (Array.isArray(value)) {
+          value.forEach((v) => queryParams.append(key, String(v)));
+        } else {
           queryParams.append(key, String(value));
         }
       });

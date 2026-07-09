@@ -1,8 +1,12 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react';
+import { FunnelIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { EstadisticasPartidoModal } from '../../../shared/components/EstadisticasPartidoModal';
 import PartidoCard from '../../../shared/components/PartidoCard';
 import { PartidoCalendar } from '../../../shared/components/PartidoCalendar';
+import { FilterCombobox } from '../../../shared/components/FilterCombobox';
+import { MultiCheckDropdown } from '../../../shared/components/MultiCheckDropdown';
 import { useQuery } from '@tanstack/react-query';
 import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 import { PartidoService, Partido } from '../services/partidoService';
@@ -13,6 +17,20 @@ import { EquipoService, Equipo } from '../../equipos/services/equipoService';
 import { TablaPosiciones } from '../../../shared/components/TablaPosiciones/TablaPosiciones';
 
 type Vista = 'lista' | 'calendario';
+type TipoFiltro = 'todos' | 'amistoso' | 'competencia';
+
+const ESTADO_OPTIONS = [
+  { value: 'programado', label: 'Programado' },
+  { value: 'en_juego', label: 'En Juego' },
+  { value: 'finalizado', label: 'Finalizado' },
+  { value: 'cancelado', label: 'Cancelado' },
+];
+
+const TIPO_LABELS: Record<TipoFiltro, string> = {
+  todos: 'Todos',
+  amistoso: 'Amistosos',
+  competencia: 'Competencia',
+};
 
 const Partidos: React.FC = () => {
   usePageTitle('Partidos');
@@ -24,8 +42,8 @@ const Partidos: React.FC = () => {
   const [faseId, setFaseId] = useState('');
   const [equipoId, setEquipoId] = useState('');
   const [fecha, setFecha] = useState('');
-  const [estado, setEstado] = useState('');
-  const [esAmistoso, setEsAmistoso] = useState(false);
+  const [estados, setEstados] = useState<string[]>([]);
+  const [tipoFiltro, setTipoFiltro] = useState<TipoFiltro>('todos');
 
   // Listas para selects
   const [competencias, setCompetencias] = useState<Competencia[]>([]);
@@ -68,13 +86,13 @@ const Partidos: React.FC = () => {
       fase: faseId || undefined,
       equipo: equipoId || undefined,
       fecha: fecha || undefined,
-      estado: estado || undefined,
-      tipo: esAmistoso ? 'amistoso' : undefined,
+      estado: estados.length ? estados : undefined,
+      tipo: tipoFiltro === 'todos' ? undefined : tipoFiltro,
     }});
-  }, [page, limit, competenciaId, temporadaId, faseId, equipoId, fecha, estado, esAmistoso]);
+  }, [page, limit, competenciaId, temporadaId, faseId, equipoId, fecha, estados, tipoFiltro]);
 
   const { data: paged, isLoading: loading, error: partidosQueryError, refetch } = useQuery<{ items: Partido[]; page: number; limit: number; total: number } | Partido[]>({
-    queryKey: ['partidos-list', page, limit, competenciaId, temporadaId, faseId, equipoId, fecha, estado, esAmistoso],
+    queryKey: ['partidos-list', page, limit, competenciaId, temporadaId, faseId, equipoId, fecha, estados, tipoFiltro],
     queryFn: fetchPartidosPaginated,
   });
   const error = partidosQueryError instanceof Error ? partidosQueryError.message : partidosQueryError ? String(partidosQueryError) : null;
@@ -98,14 +116,14 @@ const Partidos: React.FC = () => {
   const totalPages = useMemo(() => (limit > 0 ? Math.max(1, Math.ceil(total / limit)) : 1), [total, limit]);
 
   const { data: partidosCalendario = [], isLoading: loadingCalendario } = useQuery({
-    queryKey: ['partidos-calendario', competenciaId, temporadaId, faseId, equipoId, estado, esAmistoso],
+    queryKey: ['partidos-calendario', competenciaId, temporadaId, faseId, equipoId, estados, tipoFiltro],
     queryFn: () => PartidoService.getAll({
       competencia: competenciaId || undefined,
       temporada: temporadaId || undefined,
       fase: faseId || undefined,
       equipo: equipoId || undefined,
-      estado: estado || undefined,
-      tipo: esAmistoso ? 'amistoso' : undefined,
+      estado: estados.length ? estados : undefined,
+      tipo: tipoFiltro === 'todos' ? undefined : tipoFiltro,
     }),
     enabled: vista === 'calendario',
   });
@@ -121,6 +139,55 @@ const Partidos: React.FC = () => {
     setShowStatsModal(false);
     setSelectedPartido(null);
   };
+
+  const equipoItems = useMemo(
+    () => equipos.map((e) => ({ id: e.id || e._id || '', label: e.nombre })),
+    [equipos]
+  );
+  const competenciaItems = useMemo(
+    () => competencias.map((c) => ({ id: c.id || c._id || '', label: c.nombre })),
+    [competencias]
+  );
+
+  const limpiarFiltros = () => {
+    setCompetenciaId('');
+    setEquipoId('');
+    setFecha('');
+    setEstados([]);
+    setTipoFiltro('todos');
+    setPage(1);
+  };
+
+  const chips = useMemo(() => {
+    const items: { key: string; label: string; onRemove: () => void }[] = [];
+    if (equipoId) {
+      const nombre = equipos.find((e) => (e.id || e._id) === equipoId)?.nombre;
+      items.push({ key: 'equipo', label: `Equipo: ${nombre || equipoId}`, onRemove: () => setEquipoId('') });
+    }
+    if (competenciaId) {
+      const nombre = competencias.find((c) => (c.id || c._id) === competenciaId)?.nombre;
+      items.push({ key: 'competencia', label: `Competencia: ${nombre || competenciaId}`, onRemove: () => setCompetenciaId('') });
+    }
+    if (temporadaId) {
+      const nombre = temporadas.find((t) => t._id === temporadaId)?.nombre;
+      items.push({ key: 'temporada', label: `Temporada: ${nombre || temporadaId}`, onRemove: () => setTemporadaId('') });
+    }
+    if (faseId) {
+      const nombre = fases.find((f) => f._id === faseId)?.nombre;
+      items.push({ key: 'fase', label: `Fase: ${nombre || faseId}`, onRemove: () => setFaseId('') });
+    }
+    estados.forEach((val) => {
+      const label = ESTADO_OPTIONS.find((o) => o.value === val)?.label || val;
+      items.push({ key: `estado-${val}`, label, onRemove: () => setEstados((prev) => prev.filter((v) => v !== val)) });
+    });
+    if (tipoFiltro !== 'todos') {
+      items.push({ key: 'tipo', label: TIPO_LABELS[tipoFiltro], onRemove: () => setTipoFiltro('todos') });
+    }
+    if (fecha) {
+      items.push({ key: 'fecha', label: fecha, onRemove: () => setFecha('') });
+    }
+    return items;
+  }, [equipoId, competenciaId, temporadaId, faseId, estados, tipoFiltro, fecha, equipos, competencias, temporadas, fases]);
 
   return (
     <div className="min-h-screen bg-slate-50 py-8">
@@ -151,84 +218,135 @@ const Partidos: React.FC = () => {
         </div>
 
         {/* Filtros */}
-        <div className="mb-8 rounded-xl bg-white p-4 shadow-sm border border-slate-200">
-          <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
-            <select
-              value={competenciaId}
-              onChange={(e) => setCompetenciaId(e.target.value)}
-              className="rounded-lg border-slate-300 text-sm"
+        <div className="mb-8">
+          <Popover className="relative inline-block">
+            <PopoverButton className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50">
+              <FunnelIcon className="h-4 w-4 text-slate-500" />
+              Filtros
+              {chips.length > 0 && (
+                <span className="rounded-full bg-brand-600 px-1.5 py-0.5 text-xs font-semibold text-white">{chips.length}</span>
+              )}
+            </PopoverButton>
+            <PopoverPanel
+              anchor="bottom start"
+              transition
+              className="z-20 mt-2 w-80 sm:w-96 space-y-4 rounded-xl bg-white p-4 shadow-lg border border-slate-200"
             >
-              <option value="">Todas las competencias</option>
-              {competencias.map((c) => (
-                <option key={c.id || c._id || Math.random()} value={c.id || c._id}>{c.nombre}</option>
-              ))}
-            </select>
-
-            <select
-              value={temporadaId}
-              onChange={(e) => setTemporadaId(e.target.value)}
-              disabled={!competenciaId}
-              className="rounded-lg border-slate-300 text-sm disabled:bg-slate-100"
-            >
-              <option value="">Todas las temporadas</option>
-              {temporadas.map((t) => (
-                <option key={t._id || Math.random()} value={t._id}>{t.nombre}</option>
-              ))}
-            </select>
-
-            <select
-              value={faseId}
-              onChange={(e) => setFaseId(e.target.value)}
-              disabled={!temporadaId}
-              className="rounded-lg border-slate-300 text-sm disabled:bg-slate-100"
-            >
-              <option value="">Todas las fases</option>
-              {fases.map((f) => (
-                <option key={f._id || Math.random()} value={f._id}>{f.nombre}</option>
-              ))}
-            </select>
-
-            <select
-              value={equipoId}
-              onChange={(e) => setEquipoId(e.target.value)}
-              className="rounded-lg border-slate-300 text-sm"
-            >
-              <option value="">Todos los equipos</option>
-              {equipos.map((e) => (
-                <option key={e.id || Math.random()} value={e.id}>{e.nombre}</option>
-              ))}
-            </select>
-
-            {vista === 'lista' && (
-              <input
-                type="date"
-                value={fecha}
-                onChange={(e) => setFecha(e.target.value)}
-                className="rounded-lg border-slate-300 text-sm"
+              <FilterCombobox
+                items={equipoItems}
+                value={equipoId}
+                onChange={setEquipoId}
+                label="Equipo"
+                placeholder="Buscar equipo..."
               />
-            )}
 
-            <select
-              value={estado}
-              onChange={(e) => setEstado(e.target.value)}
-              className="rounded-lg border-slate-300 text-sm"
-            >
-              <option value="">Todos los estados</option>
-              <option value="programado">Programado</option>
-              <option value="en_juego">En Juego</option>
-              <option value="finalizado">Finalizado</option>
-            </select>
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <MultiCheckDropdown
+                    options={ESTADO_OPTIONS}
+                    selected={estados}
+                    onChange={setEstados}
+                    label="Estado"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Tipo</label>
+                  <div className="flex bg-slate-100 p-1 rounded-lg">
+                    {(['todos', 'amistoso', 'competencia'] as TipoFiltro[]).map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => setTipoFiltro(t)}
+                        className={`px-2.5 py-1.5 text-xs font-medium rounded-md transition-all ${
+                          tipoFiltro === t ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                        }`}
+                      >
+                        {TIPO_LABELS[t]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
 
-            <label className="flex items-center gap-2 text-sm text-slate-700">
-              <input
-                type="checkbox"
-                checked={esAmistoso}
-                onChange={(e) => setEsAmistoso(e.target.checked)}
-                className="rounded border-slate-300"
+              <FilterCombobox
+                items={competenciaItems}
+                value={competenciaId}
+                onChange={setCompetenciaId}
+                label="Competencia"
+                placeholder="Buscar competencia..."
               />
-              Solo Amistosos
-            </label>
-          </div>
+
+              {competenciaId && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Temporada</label>
+                  <select
+                    value={temporadaId}
+                    onChange={(e) => setTemporadaId(e.target.value)}
+                    className="w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 border"
+                  >
+                    <option value="">Todas las temporadas</option>
+                    {temporadas.map((t) => (
+                      <option key={t._id || Math.random()} value={t._id}>{t.nombre}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {temporadaId && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Fase</label>
+                  <select
+                    value={faseId}
+                    onChange={(e) => setFaseId(e.target.value)}
+                    className="w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 border"
+                  >
+                    <option value="">Todas las fases</option>
+                    {fases.map((f) => (
+                      <option key={f._id || Math.random()} value={f._id}>{f.nombre}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {vista === 'lista' && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Fecha exacta</label>
+                  <input
+                    type="date"
+                    value={fecha}
+                    onChange={(e) => setFecha(e.target.value)}
+                    className="w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 border"
+                  />
+                </div>
+              )}
+
+              {chips.length > 0 && (
+                <button
+                  type="button"
+                  onClick={limpiarFiltros}
+                  className="w-full rounded-lg border border-slate-300 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 transition-colors"
+                >
+                  Limpiar filtros
+                </button>
+              )}
+            </PopoverPanel>
+          </Popover>
+
+          {chips.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {chips.map((chip) => (
+                <span
+                  key={chip.key}
+                  className="inline-flex items-center gap-1 rounded-full bg-brand-50 border border-brand-200 px-3 py-0.5 text-xs font-medium text-brand-700"
+                >
+                  {chip.label}
+                  <button onClick={chip.onRemove} className="ml-1 text-brand-400 hover:text-brand-700">
+                    <XMarkIcon className="h-3 w-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Tabla de Posiciones (si hay fase seleccionada) */}
