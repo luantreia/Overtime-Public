@@ -4,8 +4,10 @@ import { type Fase } from '../services/faseService';
 import { type Partido } from '../../partidos/services/partidoService';
 import { type JugadorCompetencia } from '../services/jugadorCompetenciaService';
 import PartidoCard from '../../../shared/components/PartidoCard/PartidoCard';
+import { PartidoCalendar } from '../../../shared/components/PartidoCalendar';
 
 type EstadoFiltro = '' | 'proximamente' | 'en_curso' | 'finalizado';
+type Vista = 'lista' | 'calendario';
 
 interface CompetenciaPartidosTabProps {
   temporadas: Temporada[];
@@ -47,6 +49,7 @@ export const CompetenciaPartidosTab: React.FC<CompetenciaPartidosTabProps> = ({
 }) => {
   const [selectedEquipo, setSelectedEquipo] = useState('');
   const [selectedEstado, setSelectedEstado] = useState<EstadoFiltro>('');
+  const [vista, setVista] = useState<Vista>('lista');
 
   // Build unique team list from loaded partidos (not ranked only)
   const equiposDisponibles = useMemo(() => {
@@ -98,6 +101,27 @@ export const CompetenciaPartidosTab: React.FC<CompetenciaPartidosTabProps> = ({
 
   return (
     <div className="p-6">
+      <div className="flex justify-end mb-4">
+        <div className="flex bg-slate-100 p-1 rounded-lg">
+          <button
+            onClick={() => setVista('lista')}
+            className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
+              vista === 'lista' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            Lista
+          </button>
+          <button
+            onClick={() => setVista('calendario')}
+            className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
+              vista === 'calendario' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            Calendario
+          </button>
+        </div>
+      </div>
+
       {/* Selectors row */}
       <div className="flex flex-wrap gap-4 mb-4">
         <div className="w-full sm:w-auto sm:min-w-[180px]">
@@ -243,6 +267,11 @@ export const CompetenciaPartidosTab: React.FC<CompetenciaPartidosTabProps> = ({
             </button>
           )}
         </div>
+      ) : vista === 'calendario' ? (
+        <PartidoCalendar
+          partidos={filteredPartidos}
+          onPartidoClick={(p) => onPartidoClick(p.id)}
+        />
       ) : (
         <>
           <p className="text-xs text-slate-400 mb-3">{filteredPartidos.length} partido{filteredPartidos.length !== 1 ? 's' : ''}</p>
