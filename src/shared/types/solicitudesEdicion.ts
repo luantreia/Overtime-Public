@@ -31,7 +31,9 @@ export interface SolicitudEdicion {
   entidad?: string | null;
   datosPropuestos: Record<string, any>;
   estado: SolicitudEdicionEstado;
-  creadoPor: string;
+  creadoPor: string | { _id: string; nombre?: string; email?: string };
+  aceptadoPor?: string[];
+  requiereDobleConfirmacion?: boolean;
   createdAt: string;
   updatedAt: string;
   motivoRechazo?: string;

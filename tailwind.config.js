@@ -19,6 +19,9 @@ module.exports = {
           900: '#1f2c6d',
         },
       },
+      boxShadow: {
+        card: '0 10px 25px -15px rgba(15, 23, 42, 0.35)',
+      },
     },
     screens: {
       xs: '440px',
