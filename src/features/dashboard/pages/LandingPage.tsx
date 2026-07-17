@@ -13,6 +13,7 @@ import CompetenciaCard from '../../../shared/components/CompetenciaCard/Competen
 import Spinner from '../../../shared/components/ui/Spinner/Spinner';
 import EmptyState from '../../../shared/components/EmptyState/EmptyState';
 import InstalarAppModal from '../../../shared/components/InstalarAppModal/InstalarAppModal';
+import EstadioTemplo from '../../../shared/components/EstadioTemplo/EstadioTemplo';
 import type { Partido } from '../../../types';
 
 const esStandalone = (): boolean =>
@@ -114,6 +115,17 @@ const LandingPage: React.FC = () => {
       </section>
 
       {instalarAppAbierto && <InstalarAppModal onClose={() => setInstalarAppAbierto(false)} />}
+
+      {/* The Temple — estadio 3D */}
+      <section className="bg-slate-900 px-4 py-10">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-6 text-center">
+            <h2 className="text-2xl font-black text-white">The Temple</h2>
+            <p className="text-sm text-slate-400">Así se ve la cancha antes de que empiece el partido</p>
+          </div>
+          <EstadioTemplo />
+        </div>
+      </section>
 
       <div className="mx-auto max-w-6xl space-y-14 px-4 py-14">
 
