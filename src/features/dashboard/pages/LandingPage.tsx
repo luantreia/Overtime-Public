@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../../app/providers/AuthContext';
@@ -12,12 +12,18 @@ import PartidoCard from '../../../shared/components/PartidoCard/PartidoCard';
 import CompetenciaCard from '../../../shared/components/CompetenciaCard/CompetenciaCard';
 import Spinner from '../../../shared/components/ui/Spinner/Spinner';
 import EmptyState from '../../../shared/components/EmptyState/EmptyState';
+import InstalarAppModal from '../../../shared/components/InstalarAppModal/InstalarAppModal';
 import type { Partido } from '../../../types';
+
+const esStandalone = (): boolean =>
+  window.matchMedia?.('(display-mode: standalone)')?.matches || (window.navigator as any).standalone === true;
 
 const LandingPage: React.FC = () => {
   usePageTitle();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const [instalarAppAbierto, setInstalarAppAbierto] = useState(false);
+  const [yaInstalada] = useState(esStandalone);
 
   const { data, isLoading } = useQuery({
     queryKey: ['landing-data-v2'],
@@ -94,8 +100,20 @@ const LandingPage: React.FC = () => {
               </Link>
             </div>
           )}
+
+          {!yaInstalada && (
+            <button
+              type="button"
+              onClick={() => setInstalarAppAbierto(true)}
+              className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-300 underline decoration-white/30 underline-offset-4 transition hover:text-white"
+            >
+              <span aria-hidden="true">📲</span> Descargar la app
+            </button>
+          )}
         </div>
       </section>
+
+      {instalarAppAbierto && <InstalarAppModal onClose={() => setInstalarAppAbierto(false)} />}
 
       <div className="mx-auto max-w-6xl space-y-14 px-4 py-14">
 
