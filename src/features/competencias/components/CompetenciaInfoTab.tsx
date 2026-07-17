@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { type Competencia } from '../services/competenciaService';
 import { type JugadorCompetencia } from '../services/jugadorCompetenciaService';
 import { type LeaderboardItem } from '../services/rankedService';
 import { formatDate } from '../../../shared/utils/formatDate';
+import { EquipoCompetenciaModal } from './EquipoCompetenciaModal';
 
 interface TemporadaConGanador {
   _id: string;
@@ -43,7 +44,17 @@ export const CompetenciaInfoTab: React.FC<CompetenciaInfoTabProps> = ({
   top3Leaderboard,
   loadingTop3,
 }) => {
+  const [selectedTeam, setSelectedTeam] = useState<{ _id: string; nombre: string; escudo?: string } | null>(null);
+
   const embeddedTemporadas: TemporadaConGanador[] = (competencia as any).temporadas ?? [];
+
+  const getTemporadasDeEquipo = (equipoId: string) =>
+    embeddedTemporadas
+      .filter((t) => (t.participaciones ?? []).some((p) => {
+        const eq = p.equipo as any;
+        return eq && typeof eq === 'object' && eq._id === equipoId;
+      }))
+      .map((t) => ({ _id: t._id, nombre: t.nombre }));
 
   // Teams: unique across all seasons, from participaciones
   const teamsMap = new Map<string, { _id: string; nombre: string; escudo?: string }>();
@@ -234,10 +245,11 @@ export const CompetenciaInfoTab: React.FC<CompetenciaInfoTabProps> = ({
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                 {teams.map(team => (
-                  <Link
-                    to={`/equipos/${team._id}`}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTeam(team)}
                     key={team._id}
-                    className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 hover:border-brand-200 hover:bg-brand-50 transition-colors"
+                    className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 hover:border-brand-200 hover:bg-brand-50 transition-colors text-left"
                   >
                     {team.escudo ? (
                       <img src={team.escudo} alt={team.nombre} className="h-7 w-7 rounded-full object-cover flex-shrink-0" />
@@ -247,12 +259,22 @@ export const CompetenciaInfoTab: React.FC<CompetenciaInfoTabProps> = ({
                       </div>
                     )}
                     <span className="text-xs font-medium text-slate-800 truncate">{team.nombre}</span>
-                  </Link>
+                  </button>
                 ))}
               </div>
             </div>
           )}
         </>
+      )}
+
+      {selectedTeam && (
+        <EquipoCompetenciaModal
+          isOpen={!!selectedTeam}
+          onClose={() => setSelectedTeam(null)}
+          equipo={selectedTeam}
+          competenciaId={competencia.id}
+          temporadas={getTemporadasDeEquipo(selectedTeam._id)}
+        />
       )}
     </div>
   );
