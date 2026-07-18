@@ -46,7 +46,7 @@ const Cancha: React.FC = () => (
 );
 
 // 6 pelotas estáticas sobre la línea central, en las distancias reglamentarias
-const RADIO_PELOTA = 0.28;
+const RADIO_PELOTA = 0.09; // diámetro real 18cm
 // Distancias medidas desde un extremo de la línea central (0 a 9m); se centran restando la mitad del ancho
 const DISTANCIAS_PELOTAS = [1, 2.8, 3, 6, 6.2, 8];
 
