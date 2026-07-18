@@ -5,6 +5,7 @@ const MinijuegosHub = lazy(() => import('./pages/Minijuegos'));
 const DodgeballGame = lazy(() => import('./games/dodgeball/pages/DodgeballGame'));
 const NoTeQuemesGame = lazy(() => import('./games/no-te-quemes/pages/NoTeQuemesGame'));
 const CabezonesGame = lazy(() => import('./games/cabezones/pages/CabezonesGame'));
+const PunteriaGame = lazy(() => import('./games/punteria/pages/PunteriaGame'));
 
 export interface MinijuegoRoute {
   path: string;
@@ -22,4 +23,5 @@ export const minijuegosRoutes: MinijuegoRoute[] = [
   { path: '/minijuegos/dodgeball', element: <DodgeballGame /> },
   { path: '/minijuegos/no-te-quemes', element: <NoTeQuemesGame /> },
   { path: '/minijuegos/cabezones', element: <CabezonesGame /> },
+  { path: '/minijuegos/punteria', element: <PunteriaGame /> },
 ];

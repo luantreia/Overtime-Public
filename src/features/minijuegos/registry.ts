@@ -33,4 +33,11 @@ export const MINIJUEGOS_REGISTRY: MinijuegoMeta[] = [
     emoji: '🙃',
     path: '/minijuegos/cabezones',
   },
+  {
+    slug: 'punteria',
+    name: 'Puntería 3D',
+    description: 'Cancha en 3D con física real: tirá con efecto a los aros antes de que se acabe el tiempo.',
+    emoji: '🎯',
+    path: '/minijuegos/punteria',
+  },
 ];
