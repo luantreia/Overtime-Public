@@ -1,11 +1,20 @@
 import React, { useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
+import * as THREE from 'three';
 
 const COURT_WIDTH = 9; // ancho (x)
 const COURT_LENGTH = 18; // largo total (z)
 const HALF = COURT_LENGTH / 2; // 9 -> cada mitad es un cuadrado 9x9
 const HABILITACION_DIST = 3; // línea de habilitación, a 3m de la central
 const LINE_THICKNESS = 0.08;
+
+// Geometría de las tribunas (usada para armar el anillo completo alrededor de la cancha)
+const ANCHO_FILA = 0.9;
+const FILAS = 5;
+const GAP = 1.75; // separación entre el borde de la cancha y la primera fila (+1m sobre el original)
+const EXTENSION_TRIBUNA = FILAS * ANCHO_FILA;
+const ALCANCE_LATERAL = COURT_WIDTH / 2 + GAP + EXTENSION_TRIBUNA; // hasta dónde llegan las tribunas laterales (eje x)
+const ALCANCE_FRONTAL = HALF + GAP + EXTENSION_TRIBUNA; // hasta dónde llegan las tribunas de fondo/frente (eje z)
 
 // Línea blanca de cancha (una caja fina)
 const Linea: React.FC<{ x?: number; z?: number; ancho: number; profundidad: number }> = ({
@@ -61,91 +70,168 @@ const Pelotas: React.FC = () => (
   </group>
 );
 
-// Tribunas: filas escalonadas a cada lado de la cancha, con acento de luz sutil
-const Tribuna: React.FC<{ lado: 1 | -1 }> = ({ lado }) => {
-  const filas = 5;
+// Textura procedural de gradas (franjas que marcan cada fila de asientos). Se genera una sola vez y se reutiliza.
+let texturaGradasCache: THREE.Texture | null = null;
+const obtenerTexturaGradas = (): THREE.Texture => {
+  if (texturaGradasCache) return texturaGradasCache;
+  const canvas = document.createElement('canvas');
+  canvas.width = 32;
+  canvas.height = 32;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, 32, 32);
+    ctx.fillStyle = 'rgba(0,0,0,0.45)';
+    const subFilas = 4;
+    const alto = 32 / subFilas;
+    for (let i = 0; i < subFilas; i++) {
+      ctx.fillRect(0, i * alto + alto - 5, 32, 5);
+    }
+  }
+  const textura = new THREE.CanvasTexture(canvas);
+  textura.wrapS = THREE.RepeatWrapping;
+  textura.wrapT = THREE.RepeatWrapping;
+  textura.repeat.set(10, 2);
+  texturaGradasCache = textura;
+  return textura;
+};
+
+type OrientacionTribuna = 'lateral' | 'frontal';
+
+// Tribunas: filas escalonadas, reutilizable para los 4 lados de la cancha (anillo completo)
+const Tribuna: React.FC<{ lado: 1 | -1; orientacion: OrientacionTribuna }> = ({ lado, orientacion }) => {
+  const esLateral = orientacion === 'lateral';
+  const baseOffset = (esLateral ? COURT_WIDTH : COURT_LENGTH) / 2 + GAP;
+  const longitudFila = esLateral ? ALCANCE_FRONTAL * 2 : ALCANCE_LATERAL * 2;
+  const texturaGradas = useMemo(() => obtenerTexturaGradas(), []);
+
   const bloques = useMemo(() => {
-    const arr: { x: number; y: number; z: number; h: number }[] = [];
-    for (let i = 0; i < filas; i++) {
+    const arr: { offset: number; y: number; h: number }[] = [];
+    for (let i = 0; i < FILAS; i++) {
       arr.push({
-        x: lado * (COURT_WIDTH / 2 + 1.2 + i * 0.9),
+        offset: baseOffset + i * ANCHO_FILA,
         y: 0.35 + i * 0.7,
-        z: 0,
         h: 0.7 + i * 0.05,
       });
     }
     return arr;
-  }, [lado]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [baseOffset]);
 
-  const colorAcento = lado === 1 ? '#4b5a8f' : '#8a5a45';
+  const colorAcento = orientacion === 'lateral' ? (lado === 1 ? '#4b5a8f' : '#8a5a45') : '#5a7a6f';
   const ultimaFila = bloques[bloques.length - 1];
+
+  const posicion = (offset: number, y: number): [number, number, number] =>
+    esLateral ? [lado * offset, y, 0] : [0, y, lado * offset];
+  const tamanoBloque = (h: number): [number, number, number] =>
+    esLateral ? [ANCHO_FILA, h, longitudFila] : [longitudFila, h, ANCHO_FILA];
 
   return (
     <group>
       {bloques.map((b, i) => (
-        <mesh key={i} position={[b.x, b.y, b.z]} castShadow receiveShadow>
-          <boxGeometry args={[0.9, b.h, COURT_LENGTH + 2]} />
-          <meshStandardMaterial color={i % 2 === 0 ? '#1e293b' : '#334155'} roughness={0.85} metalness={0.1} />
+        <mesh key={i} position={posicion(b.offset, b.y)} castShadow receiveShadow>
+          <boxGeometry args={tamanoBloque(b.h)} />
+          <meshStandardMaterial
+            color={i % 2 === 0 ? '#1e293b' : '#334155'}
+            map={texturaGradas}
+            roughness={0.85}
+            metalness={0.1}
+          />
         </mesh>
       ))}
       {/* Franja de luz decorativa, sutil, al pie de la tribuna */}
-      <mesh position={[lado * (COURT_WIDTH / 2 + 0.7), 0.06, 0]}>
-        <boxGeometry args={[0.18, 0.1, COURT_LENGTH + 2]} />
+      <mesh position={posicion(baseOffset - GAP + 0.7, 0.06)}>
+        <boxGeometry args={esLateral ? [0.18, 0.1, longitudFila] : [longitudFila, 0.1, 0.18]} />
         <meshStandardMaterial color={colorAcento} emissive={colorAcento} emissiveIntensity={0.9} toneMapped={false} />
       </mesh>
       {/* Franja de luz decorativa en la fila más alta */}
-      <mesh position={[ultimaFila.x, ultimaFila.y + ultimaFila.h / 2 + 0.06, 0]}>
-        <boxGeometry args={[0.95, 0.1, COURT_LENGTH + 2]} />
+      <mesh position={posicion(ultimaFila.offset, ultimaFila.y + ultimaFila.h / 2 + 0.06)}>
+        <boxGeometry args={esLateral ? [0.95, 0.1, longitudFila] : [longitudFila, 0.1, 0.95]} />
         <meshStandardMaterial color={colorAcento} emissive={colorAcento} emissiveIntensity={0.9} toneMapped={false} />
       </mesh>
       {/* Luz de acento tenue */}
-      {[-6, 0, 6].map((z, i) => (
-        <pointLight
-          key={i}
-          position={[lado * (COURT_WIDTH / 2 + 2.5), 3.2, z]}
-          color={colorAcento}
-          intensity={6}
-          distance={7}
-        />
-      ))}
+      {[-longitudFila / 3, 0, longitudFila / 3].map((desplazamiento, i) => {
+        const pos: [number, number, number] = esLateral
+          ? [lado * (baseOffset + 1.3), 3.2, desplazamiento]
+          : [desplazamiento, 3.2, lado * (baseOffset + 1.3)];
+        return <pointLight key={i} position={pos} color={colorAcento} intensity={6} distance={7} />;
+      })}
     </group>
   );
 };
 
-// Reflectores de estadio en las 4 esquinas
-const LucesEstadio: React.FC = () => {
-  const posiciones: [number, number, number][] = [
-    [COURT_WIDTH / 2 + 5, 9, COURT_LENGTH / 2 + 2],
-    [-(COURT_WIDTH / 2 + 5), 9, COURT_LENGTH / 2 + 2],
-    [COURT_WIDTH / 2 + 5, 9, -(COURT_LENGTH / 2 + 2)],
-    [-(COURT_WIDTH / 2 + 5), 9, -(COURT_LENGTH / 2 + 2)],
-  ];
+// Reflectores de estadio en las 4 esquinas, ahora fuera del anillo de tribunas
+const POSICIONES_LUCES: [number, number, number][] = [
+  [ALCANCE_LATERAL + 2, 11, ALCANCE_FRONTAL + 2],
+  [-(ALCANCE_LATERAL + 2), 11, ALCANCE_FRONTAL + 2],
+  [ALCANCE_LATERAL + 2, 11, -(ALCANCE_FRONTAL + 2)],
+  [-(ALCANCE_LATERAL + 2), 11, -(ALCANCE_FRONTAL + 2)],
+];
+
+const LucesEstadio: React.FC = () => (
+  <>
+    {POSICIONES_LUCES.map((pos, i) => (
+      <spotLight
+        key={i}
+        position={pos}
+        angle={0.55}
+        penumbra={0.7}
+        intensity={140}
+        distance={40}
+        color="#f5f7ff"
+        castShadow={i === 0}
+        target-position={[0, 0, 0]}
+      />
+    ))}
+  </>
+);
+
+// Haz de luz volumétrico (cono semi-transparente) desde cada reflector hacia el centro de la cancha
+const HazDeLuz: React.FC<{ origen: [number, number, number]; destino?: [number, number, number]; color?: string }> = ({
+  origen,
+  destino = [0, 0, 0],
+  color = '#dbe4ff',
+}) => {
+  const { posicion, cuaternion, altura, radio } = useMemo(() => {
+    const o = new THREE.Vector3(...origen);
+    const d = new THREE.Vector3(...destino);
+    const direccion = new THREE.Vector3().subVectors(d, o);
+    const altura = direccion.length();
+    const posicion = new THREE.Vector3().addVectors(o, d).multiplyScalar(0.5);
+    const arriba = new THREE.Vector3(0, 1, 0);
+    const cuaternion = new THREE.Quaternion().setFromUnitVectors(arriba, direccion.clone().normalize().negate());
+    return { posicion, cuaternion, altura, radio: altura * 0.28 };
+  }, [origen, destino]);
 
   return (
-    <>
-      {posiciones.map((pos, i) => (
-        <spotLight
-          key={i}
-          position={pos}
-          angle={0.65}
-          penumbra={0.7}
-          intensity={110}
-          distance={32}
-          color="#f5f7ff"
-          castShadow={i === 0}
-          target-position={[0, 0, 0]}
-        />
-      ))}
-    </>
+    <mesh position={posicion} quaternion={cuaternion}>
+      <coneGeometry args={[radio, altura, 20, 1, true]} />
+      <meshBasicMaterial
+        color={color}
+        transparent
+        opacity={0.055}
+        blending={THREE.AdditiveBlending}
+        depthWrite={false}
+        side={THREE.DoubleSide}
+      />
+    </mesh>
   );
 };
+
+const HacesDeLuz: React.FC = () => (
+  <>
+    {POSICIONES_LUCES.map((pos, i) => (
+      <HazDeLuz key={i} origen={pos} />
+    ))}
+  </>
+);
 
 // Cámara con órbita lenta y automática alrededor del estadio
 const CamaraOrbital: React.FC = () => {
   useFrame(({ clock, camera }) => {
     const t = clock.getElapsedTime() * 0.06;
-    const radio = 17;
-    camera.position.set(Math.sin(t) * radio, 8, Math.cos(t) * radio);
+    const radio = 20;
+    camera.position.set(Math.sin(t) * radio, 9, Math.cos(t) * radio);
     camera.lookAt(0, 0.5, 0);
   });
   return null;
@@ -157,17 +243,20 @@ const EstadioTemploScene: React.FC = () => {
       shadows
       dpr={[1, 1.5]}
       gl={{ antialias: true, powerPreference: 'low-power' }}
-      camera={{ fov: 45, position: [0, 8, 17] }}
+      camera={{ fov: 45, position: [0, 9, 20] }}
     >
       <color attach="background" args={['#0f172a']} />
-      <fog attach="fog" args={['#0f172a', 22, 48]} />
+      <fog attach="fog" args={['#0f172a', 24, 52]} />
       <ambientLight intensity={0.55} />
       <hemisphereLight args={['#6b82ff', '#0b1020', 0.65]} />
       <LucesEstadio />
+      <HacesDeLuz />
       <Cancha />
       <Pelotas />
-      <Tribuna lado={1} />
-      <Tribuna lado={-1} />
+      <Tribuna lado={1} orientacion="lateral" />
+      <Tribuna lado={-1} orientacion="lateral" />
+      <Tribuna lado={1} orientacion="frontal" />
+      <Tribuna lado={-1} orientacion="frontal" />
       <CamaraOrbital />
     </Canvas>
   );
