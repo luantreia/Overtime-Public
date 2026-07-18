@@ -21,6 +21,11 @@ export const MAX_TARGETS = 2;
 // Pelota (radio real es 0.09m/18cm, la agrandamos un poco para que sea jugable a esta escala de cámara)
 export const BALL_RADIUS = 0.13;
 export const BALL_READY_POSITION: [number, number, number] = [0, 1.1, -HALF + 2.5];
+// Masa realista (~0.5kg, como una pelota de dodgeball) -> density derivada del volumen de la esfera.
+// Sin esto Rapier usa densidad 1 por defecto, que con este radio da una pelota de ~9g: cualquier impulso
+// (como el de la fuerza de Magnus) le cambia la velocidad de forma exagerada.
+export const BALL_MASS = 0.5;
+export const BALL_DENSITY = BALL_MASS / ((4 / 3) * Math.PI * BALL_RADIUS ** 3);
 
 // Cámara: fija, elevada y retrasada (vista "por encima del hombro") para que la pelota en reposo
 // y su arco de vuelo entren cómodos en cuadro — pegarla al ras de la pelota la deja fuera de la vista.
