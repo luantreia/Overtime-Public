@@ -36,7 +36,7 @@ export const POINTS_PER_HIT = 1;
 export const MAX_DRAG_DISTANCE = 220; // px
 export const THROW_POWER_SCALE = 0.055; // (px de arrastre) * escala -> m/s
 export const MIN_THROW_SPEED = 4;
-export const MAX_ARC = 0.55; // cuánto del arrastre vertical se convierte en ángulo de elevación
+export const MAX_ARC = 0.45; // cuánto del arrastre vertical se convierte en ángulo de elevación
 
 // Efecto (spin): curvatura del gesto de arrastre -> velocidad angular inicial
 export const MAX_SPIN = 8; // rad/s
