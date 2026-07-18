@@ -12,10 +12,12 @@ const LINE_THICKNESS = 0.08;
 const ANCHO_FILA = 1.0;
 const FILAS = 4;
 const GROOVE = 0.06; // separación entre escalones, para que se note el corte de cada fila
-const GAP = 1.75; // separación entre el borde de la cancha y la primera fila (+1m sobre el original)
+// Separación cancha -> primera fila: como en un estadio de tenis/vóley, más espacio detrás de las líneas de fondo que a los costados
+const GAP_LATERAL = 3;
+const GAP_FRONTAL = 5;
 const EXTENSION_TRIBUNA = FILAS * ANCHO_FILA;
-const ALCANCE_LATERAL = COURT_WIDTH / 2 + GAP + EXTENSION_TRIBUNA; // hasta dónde llegan las tribunas laterales (eje x)
-const ALCANCE_FRONTAL = HALF + GAP + EXTENSION_TRIBUNA; // hasta dónde llegan las tribunas de fondo/frente (eje z)
+const ALCANCE_LATERAL = COURT_WIDTH / 2 + GAP_LATERAL + EXTENSION_TRIBUNA; // hasta dónde llegan las tribunas laterales (eje x)
+const ALCANCE_FRONTAL = HALF + GAP_FRONTAL + EXTENSION_TRIBUNA; // hasta dónde llegan las tribunas de fondo/frente (eje z)
 
 // Línea blanca de cancha (una caja fina)
 const Linea: React.FC<{ x?: number; z?: number; ancho: number; profundidad: number }> = ({
@@ -102,7 +104,8 @@ type OrientacionTribuna = 'lateral' | 'frontal';
 // Tribunas: filas escalonadas, reutilizable para los 4 lados de la cancha (anillo completo)
 const Tribuna: React.FC<{ lado: 1 | -1; orientacion: OrientacionTribuna }> = ({ lado, orientacion }) => {
   const esLateral = orientacion === 'lateral';
-  const baseOffset = (esLateral ? COURT_WIDTH : COURT_LENGTH) / 2 + GAP;
+  const gap = esLateral ? GAP_LATERAL : GAP_FRONTAL;
+  const baseOffset = (esLateral ? COURT_WIDTH : COURT_LENGTH) / 2 + gap;
   const longitudFila = esLateral ? ALCANCE_FRONTAL * 2 : ALCANCE_LATERAL * 2;
   const texturaGradas = useMemo(() => obtenerTexturaGradas(), []);
 
@@ -143,7 +146,7 @@ const Tribuna: React.FC<{ lado: 1 | -1; orientacion: OrientacionTribuna }> = ({ 
         </mesh>
       ))}
       {/* Franja de luz decorativa, sutil, al pie de la tribuna */}
-      <mesh position={posicion(baseOffset - GAP + 0.7, 0.06)}>
+      <mesh position={posicion(baseOffset - gap + 0.7, 0.06)}>
         <boxGeometry args={esLateral ? [0.18, 0.1, longitudFila] : [longitudFila, 0.1, 0.18]} />
         <meshStandardMaterial color={colorAcento} emissive={colorAcento} emissiveIntensity={0.9} toneMapped={false} />
       </mesh>
