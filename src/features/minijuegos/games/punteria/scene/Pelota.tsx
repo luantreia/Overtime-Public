@@ -3,11 +3,14 @@ import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { RigidBody, type RapierRigidBody } from '@react-three/rapier';
 import {
+  BALL_DENSITY,
   BALL_RADIUS,
   BALL_READY_POSITION,
   HALF,
   MAGNUS_COEFFICIENT,
   MAX_FLIGHT_TIME,
+  MAX_MAGNUS_FORCE,
+  SPIN_ANGULAR_DAMPING,
 } from '../engine/constants';
 
 export interface ThrowRequest {

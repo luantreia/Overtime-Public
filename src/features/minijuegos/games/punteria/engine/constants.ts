@@ -46,9 +46,15 @@ export const MAX_ARC = 0.45; // cuánto del arrastre vertical se convierte en á
 // Efecto (spin): curvatura del gesto de arrastre -> velocidad angular inicial
 export const MAX_SPIN = 8; // rad/s
 export const SPIN_FROM_DEVIATION_SCALE = 0.15;
+// Rozamiento rotacional: el spin decae con el tiempo (como el rozamiento real del aire sobre una pelota
+// girando), así el efecto se nota al principio del vuelo y se va apagando, en vez de curvar indefinidamente.
+export const SPIN_ANGULAR_DAMPING = 0.9;
 
-// Fuerza de Magnus aplicada en vuelo: F = MAGNUS_COEFFICIENT * (angularVelocity x linearVelocity)
+// Fuerza de Magnus aplicada en vuelo: F = MAGNUS_COEFFICIENT * (angularVelocity x linearVelocity).
+// Debe ser una desviación sutil de la trayectoria, no una fuerza que la redirige -> tope de seguridad
+// para que nunca supere una fracción del peso de la pelota, sin importar cuánto spin/velocidad tenga.
 export const MAGNUS_COEFFICIENT = 0.008;
+export const MAX_MAGNUS_FORCE = BALL_MASS * 9.81 * 0.35;
 
 // Si la pelota no impacta nada en este tiempo, se resetea
 export const MAX_FLIGHT_TIME = 2.5;
