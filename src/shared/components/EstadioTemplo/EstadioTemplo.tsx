@@ -16,18 +16,16 @@ const usePrefiereMovimientoReducido = (): boolean => {
   return reducido;
 };
 
+// Mismo degradé que usaba el hero antes, para que la transición al cargar el chunk 3D sea invisible
 const FallbackEstatico: React.FC = () => (
-  <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-slate-900 via-slate-800 to-brand-900 text-center">
-    <span className="text-5xl" aria-hidden="true">🏟️</span>
-    <p className="text-sm font-semibold text-slate-300">The Temple</p>
-  </div>
+  <div className="h-full w-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
 );
 
 const EstadioTemplo: React.FC = () => {
   const movimientoReducido = usePrefiereMovimientoReducido();
 
   return (
-    <div className="h-[420px] w-full overflow-hidden rounded-2xl sm:h-[520px]">
+    <div className="h-full w-full overflow-hidden">
       {movimientoReducido ? (
         <FallbackEstatico />
       ) : (

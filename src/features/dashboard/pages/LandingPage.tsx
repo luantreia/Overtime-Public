@@ -57,9 +57,15 @@ const LandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Hero — no depende de ningún fetch, renderiza siempre de inmediato */}
-      <section className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-4 py-16 text-white">
-        <div className="mx-auto max-w-4xl text-center">
+      {/* Hero — no depende de ningún fetch, renderiza siempre de inmediato. Fondo: estadio 3D "The Temple" */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-4 py-16 text-white">
+        <div className="absolute inset-0">
+          <EstadioTemplo />
+        </div>
+        {/* Overlay oscuro para que el texto sea legible sobre la escena 3D */}
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/70 via-slate-900/60 to-slate-900/90" />
+
+        <div className="relative z-10 mx-auto max-w-4xl text-center">
           <img src="/logo.png" alt="Overtime Logo" width={96} height={96} className="mx-auto mb-6 h-24 w-auto drop-shadow-lg" />
           <h1 className="mb-3 text-4xl font-black tracking-tight sm:text-5xl">Overtime Dodgeball</h1>
           <p className="mb-8 text-xl text-slate-300">Ecosistema competitivo y comunitario de dodgeball</p>
@@ -115,17 +121,6 @@ const LandingPage: React.FC = () => {
       </section>
 
       {instalarAppAbierto && <InstalarAppModal onClose={() => setInstalarAppAbierto(false)} />}
-
-      {/* The Temple — estadio 3D */}
-      <section className="bg-slate-900 px-4 py-10">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-6 text-center">
-            <h2 className="text-2xl font-black text-white">The Temple</h2>
-            <p className="text-sm text-slate-400">Así se ve la cancha antes de que empiece el partido</p>
-          </div>
-          <EstadioTemplo />
-        </div>
-      </section>
 
       <div className="mx-auto max-w-6xl space-y-14 px-4 py-14">
 
