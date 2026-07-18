@@ -240,8 +240,8 @@ const HacesDeLuz: React.FC = () => (
 const CamaraOrbital: React.FC = () => {
   useFrame(({ clock, camera }) => {
     const t = clock.getElapsedTime() * 0.06;
-    const radio = 17;
-    camera.position.set(Math.sin(t) * radio, 7, Math.cos(t) * radio);
+    const radio = 22;
+    camera.position.set(Math.sin(t) * radio, 8.5, Math.cos(t) * radio);
     camera.lookAt(0, 0.5, 0);
   });
   return null;
@@ -253,10 +253,10 @@ const EstadioTemploScene: React.FC = () => {
       shadows
       dpr={[1, 1.5]}
       gl={{ antialias: true, powerPreference: 'low-power' }}
-      camera={{ fov: 50, position: [0, 7, 17] }}
+      camera={{ fov: 46, position: [0, 8.5, 22] }}
     >
       <color attach="background" args={['#0f172a']} />
-      <fog attach="fog" args={['#0f172a', 24, 52]} />
+      <fog attach="fog" args={['#0f172a', 26, 58]} />
       <ambientLight intensity={0.55} />
       <hemisphereLight args={['#6b82ff', '#0b1020', 0.65]} />
       <LucesEstadio />
