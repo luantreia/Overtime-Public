@@ -29,13 +29,16 @@ const LandingPage: React.FC = () => {
   const { data, isLoading } = useQuery({
     queryKey: ['landing-data-v2'],
     queryFn: async () => {
-      const [insights, proximos, competencias, lobbies] = await Promise.all([
+      const [insights, proximos, finalizados, competencias, lobbies] = await Promise.all([
         api.insights().catch(() => null),
         PartidoService.getProximos().catch(() => [] as Partido[]),
+        // insights.destacados.partidosRecientes depende de /public/insights, que hoy 404 en producción —
+        // se arma "recientes" directo desde /partidos?estado=finalizado, que sí funciona (mismo patrón que getProximos).
+        PartidoService.getFinalizados().catch(() => [] as Partido[]),
         CompetenciaService.getAll().catch(() => [] as Competencia[]),
         PlazaService.getLobbies().catch(() => [] as Lobby[]),
       ]);
-      return { insights, proximos, competencias, lobbies };
+      return { insights, proximos, finalizados, competencias, lobbies };
     },
     staleTime: 1000 * 60 * 10,
   });
@@ -43,7 +46,10 @@ const LandingPage: React.FC = () => {
   const insights = data?.insights;
   const totals = insights?.totals;
   const proximos = ((data?.proximos ?? []) as Partido[]).slice(0, 3);
-  const recientes = ((insights?.destacados?.partidosRecientes ?? []) as Partido[]).slice(0, 3);
+  const recientes = ((data?.finalizados ?? []) as Partido[])
+    .slice()
+    .sort((a, b) => new Date(b.fecha || 0).getTime() - new Date(a.fecha || 0).getTime())
+    .slice(0, 3);
   const competenciasActivas = (data?.competencias ?? [] as Competencia[])
     .filter((c: Competencia) => {
       const e = String(c.estado || '').toLowerCase();
