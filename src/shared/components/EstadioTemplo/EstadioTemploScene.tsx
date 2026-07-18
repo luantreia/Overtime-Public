@@ -60,7 +60,7 @@ const Cancha: React.FC = () => (
 // 6 pelotas estáticas sobre la línea central, en las distancias reglamentarias
 const RADIO_PELOTA = 0.09; // diámetro real 18cm
 // Distancias medidas desde un extremo de la línea central (0 a 9m); se centran restando la mitad del ancho
-const DISTANCIAS_PELOTAS = [1, 2.8, 3, 6, 6.2, 8];
+const DISTANCIAS_PELOTAS = [1, 2.7, 3, 6, 6.3, 8];
 
 const Pelotas: React.FC = () => (
   <group>
@@ -145,8 +145,8 @@ const Tribuna: React.FC<{ lado: 1 | -1; orientacion: OrientacionTribuna }> = ({ 
           />
         </mesh>
       ))}
-      {/* Franja de luz decorativa, sutil, al pie de la tribuna */}
-      <mesh position={posicion(baseOffset - gap + 0.7, 0.06)}>
+      {/* Franja de luz decorativa, sutil, al pie de la tribuna (pegada a la base del primer escalón) */}
+      <mesh position={posicion(baseOffset - ANCHO_FILA / 2, 0.06)}>
         <boxGeometry args={esLateral ? [0.18, 0.1, longitudFila] : [longitudFila, 0.1, 0.18]} />
         <meshStandardMaterial color={colorAcento} emissive={colorAcento} emissiveIntensity={0.9} toneMapped={false} />
       </mesh>
