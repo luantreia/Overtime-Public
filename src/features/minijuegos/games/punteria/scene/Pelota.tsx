@@ -73,13 +73,17 @@ const Pelota: React.FC<PelotaProps> = ({ activo, throwRequestRef, hitSignalRef }
     }
 
     if (estadoRef.current === 'flying') {
-      // Fuerza de Magnus: F = k * (angularVelocity x linearVelocity) -> curva la trayectoria ("efecto")
+      // Fuerza de Magnus: F = k * (angularVelocity x linearVelocity) -> curva la trayectoria ("efecto").
+      // Clampeada a un tope físico: es una desviación sutil, no una fuerza que redirige el tiro.
       const angVel = rb.angvel();
       const linVel = rb.linvel();
-      const magnus = new THREE.Vector3(angVel.x, angVel.y, angVel.z)
+      const magnusForce = new THREE.Vector3(angVel.x, angVel.y, angVel.z)
         .cross(new THREE.Vector3(linVel.x, linVel.y, linVel.z))
-        .multiplyScalar(MAGNUS_COEFFICIENT * delta);
-      rb.applyImpulse(magnus, true);
+        .multiplyScalar(MAGNUS_COEFFICIENT);
+      if (magnusForce.length() > MAX_MAGNUS_FORCE) {
+        magnusForce.setLength(MAX_MAGNUS_FORCE);
+      }
+      rb.applyImpulse(magnusForce.multiplyScalar(delta), true);
 
       const pos = rb.translation();
       const tiempoDeVuelo = relojRef.current - flightStartRef.current;
@@ -107,6 +111,8 @@ const Pelota: React.FC<PelotaProps> = ({ activo, throwRequestRef, hitSignalRef }
     <RigidBody
       ref={rbRef}
       colliders="ball"
+      density={BALL_DENSITY}
+      angularDamping={SPIN_ANGULAR_DAMPING}
       restitution={0.55}
       friction={0.5}
       ccd
