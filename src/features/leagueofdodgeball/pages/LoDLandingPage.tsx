@@ -191,6 +191,21 @@ export default function LoDLandingPage() {
             ))}
           </div>
 
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+              <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-1.5">¿Quién puede participar?</p>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                Cualquiera. No hace falta pertenecer a un club ni tener experiencia previa — te registrás gratis y ya podés sumarte a un lobby de La Plaza o buscar la Competencia LoD de tu zona.
+              </p>
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+              <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-1.5">¿Dónde?</p>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                La Plaza es geolocalizada: vos elegís el lugar real al crear o sumarte a un partido. Las Competencias LoD las organizan clubes y ligas ya registrados — buscás la de tu zona en el listado.
+              </p>
+            </div>
+          </div>
+
           <div className="text-center">
             {howTab === 'plaza' ? (
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">

@@ -130,34 +130,69 @@ const LandingPage: React.FC = () => {
           </div>
         )}
 
-        {!isLoading && proximos.length > 0 && (
+        {!isLoading && (recientes.length > 0 || proximos.length > 0) && (
           <section>
-            <SectionHeader title="Próximos Partidos" href="/partidos" />
-            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {proximos.map((p) => (
-                <PartidoCard
-                  key={p._id || p.id}
-                  partido={p}
-                  variante="proximo"
-                  onClick={() => navigate(`/partidos/${p._id || p.id}`)}
-                />
-              ))}
+            <div className="mb-10 text-center">
+              <h2 className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">
+                Reviví la historia. Jugá tu próximo partido.
+              </h2>
+              <p className="mt-3 text-slate-500">Los resultados que ya se jugaron, y los partidos que todavía podés hacer tuyos.</p>
             </div>
-          </section>
-        )}
 
-        {!isLoading && recientes.length > 0 && (
-          <section>
-            <SectionHeader title="Resultados Recientes" href="/partidos" />
-            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {recientes.map((p: any) => (
-                <PartidoCard
-                  key={p._id || p.id}
-                  partido={p}
-                  variante="resultado"
-                  onClick={() => navigate(`/partidos/${p._id || p.id}`)}
-                />
-              ))}
+            <div className="grid gap-10 lg:grid-cols-2">
+              {recientes.length > 0 && (
+                <div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Reviví la historia</p>
+                      <h3 className="text-xl font-black text-slate-900">Resultados Recientes</h3>
+                    </div>
+                    <Link to="/partidos" className="text-sm font-semibold text-brand-600 hover:text-brand-700">
+                      Ver todos →
+                    </Link>
+                  </div>
+                  <div className="mt-5 space-y-4">
+                    {recientes.map((p: any) => (
+                      <PartidoCard
+                        key={p._id || p.id}
+                        partido={p}
+                        variante="resultado"
+                        onClick={() => navigate(`/partidos/${p._id || p.id}`)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {proximos.length > 0 && (
+                <div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-widest text-brand-600">Jugá tu próximo partido</p>
+                      <h3 className="text-xl font-black text-slate-900">Próximos Partidos</h3>
+                    </div>
+                    <Link to="/partidos" className="text-sm font-semibold text-brand-600 hover:text-brand-700">
+                      Ver todos →
+                    </Link>
+                  </div>
+                  <div className="mt-5 space-y-4">
+                    {proximos.map((p) => (
+                      <PartidoCard
+                        key={p._id || p.id}
+                        partido={p}
+                        variante="proximo"
+                        onClick={() => navigate(`/partidos/${p._id || p.id}`)}
+                      />
+                    ))}
+                  </div>
+                  <Link
+                    to="/plaza"
+                    className="mt-5 flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-brand-200 px-4 py-4 text-sm font-bold text-brand-700 transition hover:border-brand-300 hover:bg-brand-50"
+                  >
+                    🌐 ¿No hay nada cerca? Armá tu propio partido en La Plaza
+                  </Link>
+                </div>
+              )}
             </div>
           </section>
         )}

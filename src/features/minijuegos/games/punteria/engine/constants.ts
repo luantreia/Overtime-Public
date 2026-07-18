@@ -24,7 +24,7 @@ export const BALL_READY_POSITION: [number, number, number] = [0, 1.1, -HALF + 2.
 // Masa realista (~0.5kg, como una pelota de dodgeball) -> density derivada del volumen de la esfera.
 // Sin esto Rapier usa densidad 1 por defecto, que con este radio da una pelota de ~9g: cualquier impulso
 // (como el de la fuerza de Magnus) le cambia la velocidad de forma exagerada.
-export const BALL_MASS = 0.5;
+export const BALL_MASS = 0.15;
 export const BALL_DENSITY = BALL_MASS / ((4 / 3) * Math.PI * BALL_RADIUS ** 3);
 
 // Cámara: fija, elevada y retrasada (vista "por encima del hombro") para que la pelota en reposo
@@ -34,7 +34,7 @@ export const CAMERA_LOOK_AT: [number, number, number] = [0, 1, HALF * 0.3];
 
 // Timer / score
 export const INITIAL_TIME = 30;
-export const TIME_BONUS_PER_HIT = 2;
+export const TIME_BONUS_PER_HIT = 5;
 export const POINTS_PER_HIT = 1;
 
 // Tiro: mapeo del arrastre en pantalla (px) a velocidad inicial (m/s)
