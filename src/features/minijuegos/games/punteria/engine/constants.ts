@@ -24,7 +24,7 @@ export const BALL_READY_POSITION: [number, number, number] = [0, 1.1, -HALF + 2.
 
 // Cámara: fija, elevada y retrasada (vista "por encima del hombro") para que la pelota en reposo
 // y su arco de vuelo entren cómodos en cuadro — pegarla al ras de la pelota la deja fuera de la vista.
-export const CAMERA_POSITION: [number, number, number] = [0, 3.4, -HALF - 4.5];
+export const CAMERA_POSITION: [number, number, number] = [0, 1.8, -HALF - 2.5];
 export const CAMERA_LOOK_AT: [number, number, number] = [0, 1, HALF * 0.3];
 
 // Timer / score
@@ -39,11 +39,11 @@ export const MIN_THROW_SPEED = 4;
 export const MAX_ARC = 0.55; // cuánto del arrastre vertical se convierte en ángulo de elevación
 
 // Efecto (spin): curvatura del gesto de arrastre -> velocidad angular inicial
-export const MAX_SPIN = 18; // rad/s
-export const SPIN_FROM_DEVIATION_SCALE = 0.35;
+export const MAX_SPIN = 8; // rad/s
+export const SPIN_FROM_DEVIATION_SCALE = 0.15;
 
 // Fuerza de Magnus aplicada en vuelo: F = MAGNUS_COEFFICIENT * (angularVelocity x linearVelocity)
-export const MAGNUS_COEFFICIENT = 0.012;
+export const MAGNUS_COEFFICIENT = 0.008;
 
 // Si la pelota no impacta nada en este tiempo, se resetea
-export const MAX_FLIGHT_TIME = 3.5;
+export const MAX_FLIGHT_TIME = 2.5;
