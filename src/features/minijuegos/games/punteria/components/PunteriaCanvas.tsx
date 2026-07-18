@@ -29,6 +29,10 @@ interface Punto {
   y: number;
 }
 
+// El ancla del "honda" es un punto fijo en pantalla (donde visualmente está la pelota lista),
+// no el lugar donde tocás primero — así el gesto siempre significa lo mismo.
+const ANCLA_FRACCION = { x: 0.5, y: 0.8 };
+
 /** Misma idea que en Cabezones: el arrastre se estira hacia atrás como una honda, y su curvatura define el efecto. */
 const computeSpin = (anchor: Punto, release: Punto, path: Punto[]): number => {
   const lineDx = release.x - anchor.x;
@@ -84,6 +88,12 @@ const PunteriaCanvas: React.FC<PunteriaCanvasProps> = ({ onHudChange, controlsRe
   const anchorRef = useRef<Punto>({ x: 0, y: 0 });
   const pathRef = useRef<Punto[]>([]);
 
+  // Feedback visual del arrastre: se mueve por DOM directo (no React state) para no re-renderizar en cada pointermove
+  const overlayRef = useRef<SVGSVGElement>(null);
+  const lineRef = useRef<SVGLineElement>(null);
+  const anchorDotRef = useRef<SVGCircleElement>(null);
+  const pointerDotRef = useRef<SVGCircleElement>(null);
+
   const emitHud = () => {
     const hud: PunteriaHudState = {
       status: statusRef.current,
@@ -135,22 +145,42 @@ const PunteriaCanvas: React.FC<PunteriaCanvasProps> = ({ onHudChange, controlsRe
     const el = containerRef.current;
     if (!el) return undefined;
 
+    const actualizarLinea = (actual: Punto) => {
+      const anchor = anchorRef.current;
+      lineRef.current?.setAttribute('x1', String(actual.x));
+      lineRef.current?.setAttribute('y1', String(actual.y));
+      lineRef.current?.setAttribute('x2', String(anchor.x));
+      lineRef.current?.setAttribute('y2', String(anchor.y));
+      anchorDotRef.current?.setAttribute('cx', String(anchor.x));
+      anchorDotRef.current?.setAttribute('cy', String(anchor.y));
+      pointerDotRef.current?.setAttribute('cx', String(actual.x));
+      pointerDotRef.current?.setAttribute('cy', String(actual.y));
+    };
+
     const handlePointerDown = (e: PointerEvent) => {
       if (statusRef.current !== 'playing') return;
+      const rect = el.getBoundingClientRect();
       draggingRef.current = true;
-      anchorRef.current = { x: e.clientX, y: e.clientY };
+      anchorRef.current = { x: rect.width * ANCLA_FRACCION.x, y: rect.height * ANCLA_FRACCION.y };
       pathRef.current = [];
+      if (overlayRef.current) overlayRef.current.style.opacity = '1';
+      actualizarLinea({ x: e.clientX - rect.left, y: e.clientY - rect.top });
     };
 
     const handlePointerMove = (e: PointerEvent) => {
       if (!draggingRef.current) return;
-      pathRef.current.push({ x: e.clientX, y: e.clientY });
+      const rect = el.getBoundingClientRect();
+      const punto = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+      pathRef.current.push(punto);
+      actualizarLinea(punto);
     };
 
     const handlePointerUp = (e: PointerEvent) => {
       if (!draggingRef.current) return;
       draggingRef.current = false;
-      const release = { x: e.clientX, y: e.clientY };
+      if (overlayRef.current) overlayRef.current.style.opacity = '0';
+      const rect = el.getBoundingClientRect();
+      const release = { x: e.clientX - rect.left, y: e.clientY - rect.top };
       const throwReq = computeThrow(anchorRef.current, release);
       const spin = computeSpin(anchorRef.current, release, pathRef.current);
       throwReq.angularVelocity = [0, spin, 0];
@@ -171,7 +201,7 @@ const PunteriaCanvas: React.FC<PunteriaCanvasProps> = ({ onHudChange, controlsRe
   return (
     <div
       ref={containerRef}
-      className="mx-auto aspect-[4/3] w-full max-w-2xl overflow-hidden rounded-xl border border-slate-700 bg-slate-900 shadow-inner"
+      className="relative mx-auto aspect-[4/3] w-full max-w-2xl overflow-hidden rounded-xl border border-slate-700 bg-slate-900 shadow-inner"
       style={{ touchAction: 'none' }}
     >
       <Suspense fallback={<FallbackCarga />}>
@@ -182,6 +212,23 @@ const PunteriaCanvas: React.FC<PunteriaCanvasProps> = ({ onHudChange, controlsRe
           onScore={handleScore}
         />
       </Suspense>
+
+      {/* Indicador de arrastre: línea "honda" desde el punto actual hasta el ancla fija */}
+      <svg
+        ref={overlayRef}
+        className="pointer-events-none absolute inset-0 h-full w-full transition-opacity duration-100"
+        style={{ opacity: 0 }}
+      >
+        <line ref={lineRef} stroke="#ffb020" strokeWidth={3} strokeDasharray="7 7" strokeLinecap="round" />
+        <circle ref={anchorDotRef} r={9} fill="#ff6b35" stroke="#0f172a" strokeWidth={2} />
+        <circle ref={pointerDotRef} r={7} fill="#f5f7ff" fillOpacity={0.85} />
+      </svg>
+
+      {activo && (
+        <div className="pointer-events-none absolute inset-x-0 bottom-3 text-center text-xs font-semibold text-white/70">
+          Arrastrá desde la pelota hacia atrás y soltá para tirar
+        </div>
+      )}
     </div>
   );
 };

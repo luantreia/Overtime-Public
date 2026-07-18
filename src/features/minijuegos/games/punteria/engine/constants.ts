@@ -20,11 +20,12 @@ export const MAX_TARGETS = 2;
 
 // Pelota (radio real es 0.09m/18cm, la agrandamos un poco para que sea jugable a esta escala de cámara)
 export const BALL_RADIUS = 0.13;
-export const BALL_READY_POSITION: [number, number, number] = [0, 1.1, -HALF + 1.2];
+export const BALL_READY_POSITION: [number, number, number] = [0, 1.1, -HALF + 2.5];
 
-// Cámara: fija, detrás de la línea de fondo cercana, mirando hacia la mitad lejana
-export const CAMERA_POSITION: [number, number, number] = [0, 1.6, -HALF - 0.5];
-export const CAMERA_LOOK_AT: [number, number, number] = [0, 1, HALF * 0.35];
+// Cámara: fija, elevada y retrasada (vista "por encima del hombro") para que la pelota en reposo
+// y su arco de vuelo entren cómodos en cuadro — pegarla al ras de la pelota la deja fuera de la vista.
+export const CAMERA_POSITION: [number, number, number] = [0, 3.4, -HALF - 4.5];
+export const CAMERA_LOOK_AT: [number, number, number] = [0, 1, HALF * 0.3];
 
 // Timer / score
 export const INITIAL_TIME = 30;
