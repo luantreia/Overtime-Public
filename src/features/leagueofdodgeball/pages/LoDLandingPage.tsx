@@ -191,7 +191,7 @@ export default function LoDLandingPage() {
             ))}
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-4">
+          <div className="grid sm:grid-cols-3 gap-4">
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
               <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-1.5">¿Quién puede participar?</p>
               <p className="text-sm text-slate-600 leading-relaxed">
@@ -202,6 +202,13 @@ export default function LoDLandingPage() {
               <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-1.5">¿Dónde?</p>
               <p className="text-sm text-slate-600 leading-relaxed">
                 La Plaza es geolocalizada: vos elegís el lugar real al crear o sumarte a un partido. Las Competencias LoD las organizan clubes y ligas ya registrados — buscás la de tu zona en el listado.
+              </p>
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+              <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-1.5">¿No sabés jugar todavía?</p>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                Te explicamos el objetivo, cómo se elimina a un jugador y cómo se gana un set, en criollo y sin reglamento de por medio.{' '}
+                <Link to="/como-se-juega" className="font-semibold text-brand-600 hover:underline">Ver cómo se juega →</Link>
               </p>
             </div>
           </div>

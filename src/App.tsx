@@ -51,6 +51,8 @@ const LoginPage = lazy(() => import('./features/auth/pages/LoginPage'));
 const RegisterPage = lazy(() => import('./features/auth/pages/RegisterPage'));
 const NotificacionesPage = lazy(() => import('./features/notificaciones/pages/NotificacionesPage'));
 const NotFoundPage = lazy(() => import('./features/error/pages/NotFoundPage'));
+const ComoSeJuegaPage = lazy(() => import('./features/reglas/pages/ComoSeJuegaPage'));
+const ReglamentoPage = lazy(() => import('./features/reglas/pages/ReglamentoPage'));
 
 const App: React.FC = () => (
   <PersistQueryClientProvider 
@@ -76,6 +78,8 @@ const App: React.FC = () => (
             <Route path="/organizaciones/:id" element={<OrganizacionDetalle />} />
             <Route path="/partidos" element={<Partidos />} />
             <Route path="/partidos/:id" element={<PartidoDetalle />} />
+            <Route path="/como-se-juega" element={<ComoSeJuegaPage />} />
+            <Route path="/reglamento" element={<ReglamentoPage />} />
             
             {minijuegosRoutes.map(({ path, element }) => (
               <Route key={path} path={path} element={element} />
