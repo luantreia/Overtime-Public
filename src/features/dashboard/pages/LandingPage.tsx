@@ -64,7 +64,7 @@ const LandingPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Hero — no depende de ningún fetch, renderiza siempre de inmediato. Fondo: estadio 3D "The Temple" */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-4 py-16 text-white">
+      <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-4 py-10 sm:py-16 text-white">
         <div className="absolute inset-0">
           <EstadioTemplo />
         </div>
@@ -72,11 +72,11 @@ const LandingPage: React.FC = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-slate-900/70 via-slate-900/60 to-slate-900/90" />
 
         <div className="relative z-10 mx-auto max-w-4xl text-center">
-          <img src="/logo.png" alt="Overtime Logo" width={96} height={96} className="mx-auto mb-6 h-24 w-auto drop-shadow-lg" />
-          <h1 className="mb-3 text-4xl font-black tracking-tight sm:text-5xl">Overtime Dodgeball</h1>
-          <p className="mb-8 text-xl text-slate-300">Ecosistema competitivo y comunitario de dodgeball</p>
+          <img src="/logo.png" alt="Overtime Logo" width={96} height={96} className="mx-auto mb-4 sm:mb-6 h-16 w-auto sm:h-24 drop-shadow-lg" />
+          <h1 className="mb-3 text-3xl font-black tracking-tight sm:text-5xl">Overtime Dodgeball</h1>
+          <p className="mb-6 sm:mb-8 text-base sm:text-xl text-slate-300">Ecosistema competitivo y comunitario de dodgeball</p>
 
-          <div className="mb-10 flex min-h-[4.5rem] flex-wrap items-center justify-center gap-4 sm:gap-8">
+          <div className="mb-8 sm:mb-10 flex min-h-[4.5rem] flex-wrap items-center justify-center gap-x-6 gap-y-3 sm:gap-8">
             {isLoading ? (
               <Spinner size="sm" variant="white" showMessage={false} />
             ) : (
@@ -87,8 +87,8 @@ const LandingPage: React.FC = () => {
                 { value: totals.organizaciones, label: 'Organizaciones' },
               ] as { value: number; label: string }[]).map(({ value, label }) => (
                 <div key={label} className="text-center">
-                  <p className="text-3xl font-black text-white">{value.toLocaleString('es-AR')}</p>
-                  <p className="text-xs uppercase tracking-widest text-slate-300">{label}</p>
+                  <p className="text-2xl sm:text-3xl font-black text-white">{value.toLocaleString('es-AR')}</p>
+                  <p className="text-[10px] sm:text-xs uppercase tracking-widest text-slate-300">{label}</p>
                 </div>
               ))
             )}
@@ -128,7 +128,7 @@ const LandingPage: React.FC = () => {
 
       {instalarAppAbierto && <InstalarAppModal onClose={() => setInstalarAppAbierto(false)} />}
 
-      <div className="mx-auto max-w-6xl space-y-14 px-4 py-14">
+      <div className="mx-auto max-w-6xl space-y-10 sm:space-y-14 px-4 py-10 sm:py-14">
 
         {isLoading && (
           <div className="flex justify-center py-8">
@@ -138,11 +138,11 @@ const LandingPage: React.FC = () => {
 
         {!isLoading && (recientes.length > 0 || proximos.length > 0) && (
           <section>
-            <div className="mb-10 text-center">
-              <h2 className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">
+            <div className="mb-6 sm:mb-10 text-center">
+              <h2 className="text-2xl font-black tracking-tight text-slate-900 sm:text-4xl">
                 Reviví la historia. Jugá tu próximo partido.
               </h2>
-              <p className="mt-3 text-slate-500">Los resultados que ya se jugaron, y los partidos que todavía podés hacer tuyos.</p>
+              <p className="mt-3 text-sm sm:text-base text-slate-500">Los resultados que ya se jugaron, y los partidos que todavía podés hacer tuyos.</p>
             </div>
 
             <div className="grid gap-10 lg:grid-cols-2">
@@ -279,10 +279,10 @@ const LandingPage: React.FC = () => {
       </div>
 
       {!isAuthenticated && (
-        <section className="bg-brand-600 px-4 py-16 text-white">
+        <section className="bg-brand-600 px-4 py-10 sm:py-16 text-white">
           <div className="mx-auto max-w-4xl text-center">
-            <h2 className="mb-4 text-3xl font-bold">¿Ya viste la actividad?</h2>
-            <p className="mb-8 text-xl text-brand-100">
+            <h2 className="mb-4 text-2xl sm:text-3xl font-bold">¿Ya viste la actividad?</h2>
+            <p className="mb-6 sm:mb-8 text-base sm:text-xl text-brand-100">
               Creá tu cuenta para sumarte a una liga competitiva, o metete a la Plaza si buscás jugar ya mismo
             </p>
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">

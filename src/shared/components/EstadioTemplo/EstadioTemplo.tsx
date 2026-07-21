@@ -2,19 +2,25 @@ import React, { Suspense, useEffect, useState } from 'react';
 
 const EstadioTemploScene = React.lazy(() => import('./EstadioTemploScene'));
 
-const usePrefiereMovimientoReducido = (): boolean => {
-  const [reducido, setReducido] = useState(false);
+const useMatchMedia = (query: string): boolean => {
+  const [matches, setMatches] = useState(false);
 
   useEffect(() => {
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setReducido(mq.matches);
-    const onChange = () => setReducido(mq.matches);
+    const mq = window.matchMedia(query);
+    setMatches(mq.matches);
+    const onChange = () => setMatches(mq.matches);
     mq.addEventListener('change', onChange);
     return () => mq.removeEventListener('change', onChange);
-  }, []);
+  }, [query]);
 
-  return reducido;
+  return matches;
 };
+
+const usePrefiereMovimientoReducido = (): boolean => useMatchMedia('(prefers-reduced-motion: reduce)');
+
+// La escena 3D es la pieza más pesada de la landing en el momento de carga (WebGL + chunk lazy).
+// En mobile priorizamos velocidad de carga por sobre el impacto visual del fondo animado.
+const useEsMobile = (): boolean => useMatchMedia('(max-width: 767px)');
 
 // Mismo degradé que usaba el hero antes, para que la transición al cargar el chunk 3D sea invisible
 const FallbackEstatico: React.FC = () => (
@@ -23,10 +29,11 @@ const FallbackEstatico: React.FC = () => (
 
 const EstadioTemplo: React.FC = () => {
   const movimientoReducido = usePrefiereMovimientoReducido();
+  const esMobile = useEsMobile();
 
   return (
     <div className="h-full w-full overflow-hidden">
-      {movimientoReducido ? (
+      {movimientoReducido || esMobile ? (
         <FallbackEstatico />
       ) : (
         <Suspense fallback={<FallbackEstatico />}>

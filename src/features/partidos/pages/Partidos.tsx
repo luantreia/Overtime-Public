@@ -17,7 +17,6 @@ import { EquipoService, Equipo } from '../../equipos/services/equipoService';
 import { TablaPosiciones } from '../../../shared/components/TablaPosiciones/TablaPosiciones';
 
 type Vista = 'lista' | 'calendario';
-type TipoFiltro = 'todos' | 'amistoso' | 'competencia';
 
 const ESTADO_OPTIONS = [
   { value: 'programado', label: 'Programado' },
@@ -25,12 +24,6 @@ const ESTADO_OPTIONS = [
   { value: 'finalizado', label: 'Finalizado' },
   { value: 'cancelado', label: 'Cancelado' },
 ];
-
-const TIPO_LABELS: Record<TipoFiltro, string> = {
-  todos: 'Todos',
-  amistoso: 'Amistosos',
-  competencia: 'Competencia',
-};
 
 const Partidos: React.FC = () => {
   usePageTitle('Partidos');
@@ -43,7 +36,6 @@ const Partidos: React.FC = () => {
   const [faseId, setFaseId] = useState('');
   const [equipoId, setEquipoId] = useState('');
   const [estados, setEstados] = useState<string[]>([]);
-  const [tipoFiltro, setTipoFiltro] = useState<TipoFiltro>('todos');
   const [showFilters, setShowFilters] = useState(false);
 
   // Listas para selects
@@ -97,12 +89,11 @@ const Partidos: React.FC = () => {
       fase: faseId || undefined,
       equipo: equipoId || undefined,
       estado: estados.length ? estados : undefined,
-      tipo: tipoFiltro === 'todos' ? undefined : tipoFiltro,
     }});
-  }, [page, limit, competenciaId, organizacionCompetenciaIds, temporadaId, faseId, equipoId, estados, tipoFiltro]);
+  }, [page, limit, competenciaId, organizacionCompetenciaIds, temporadaId, faseId, equipoId, estados]);
 
   const { data: paged, isLoading: loading, error: partidosQueryError, refetch } = useQuery<{ items: Partido[]; page: number; limit: number; total: number } | Partido[]>({
-    queryKey: ['partidos-list', page, limit, competenciaId, organizacionId, temporadaId, faseId, equipoId, estados, tipoFiltro],
+    queryKey: ['partidos-list', page, limit, competenciaId, organizacionId, temporadaId, faseId, equipoId, estados],
     queryFn: fetchPartidosPaginated,
   });
   const error = partidosQueryError instanceof Error ? partidosQueryError.message : partidosQueryError ? String(partidosQueryError) : null;
@@ -126,14 +117,13 @@ const Partidos: React.FC = () => {
   const totalPages = useMemo(() => (limit > 0 ? Math.max(1, Math.ceil(total / limit)) : 1), [total, limit]);
 
   const { data: partidosCalendario = [], isLoading: loadingCalendario } = useQuery({
-    queryKey: ['partidos-calendario', competenciaId, organizacionId, temporadaId, faseId, equipoId, estados, tipoFiltro],
+    queryKey: ['partidos-calendario', competenciaId, organizacionId, temporadaId, faseId, equipoId, estados],
     queryFn: () => PartidoService.getAll({
       competencia: competenciaId || (organizacionCompetenciaIds.length ? organizacionCompetenciaIds : undefined),
       temporada: temporadaId || undefined,
       fase: faseId || undefined,
       equipo: equipoId || undefined,
       estado: estados.length ? estados : undefined,
-      tipo: tipoFiltro === 'todos' ? undefined : tipoFiltro,
     }),
     enabled: vista === 'calendario',
   });
@@ -176,7 +166,6 @@ const Partidos: React.FC = () => {
     setCompetenciaId('');
     setEquipoId('');
     setEstados([]);
-    setTipoFiltro('todos');
     setPage(1);
   };
 
@@ -206,11 +195,8 @@ const Partidos: React.FC = () => {
       const label = ESTADO_OPTIONS.find((o) => o.value === val)?.label || val;
       items.push({ key: `estado-${val}`, label, onRemove: () => setEstados((prev) => prev.filter((v) => v !== val)) });
     });
-    if (tipoFiltro !== 'todos') {
-      items.push({ key: 'tipo', label: TIPO_LABELS[tipoFiltro], onRemove: () => setTipoFiltro('todos') });
-    }
     return items;
-  }, [equipoId, organizacionId, competenciaId, temporadaId, faseId, estados, tipoFiltro, equipos, organizacionItems, competencias, temporadas, fases]);
+  }, [equipoId, organizacionId, competenciaId, temporadaId, faseId, estados, equipos, organizacionItems, competencias, temporadas, fases]);
 
   return (
     <div className="min-h-screen bg-slate-50 pt-3 pb-8 sm:pt-5">
@@ -249,14 +235,6 @@ const Partidos: React.FC = () => {
                 options={ESTADO_OPTIONS}
                 selected={estados}
                 onChange={setEstados}
-              />
-
-              <CheckboxFilterGroup
-                label="Tipo"
-                mode="single"
-                options={(['todos', 'amistoso', 'competencia'] as TipoFiltro[]).map((t) => ({ value: t, label: TIPO_LABELS[t] }))}
-                selected={[tipoFiltro]}
-                onChange={(vals) => setTipoFiltro((vals[0] as TipoFiltro) || 'todos')}
               />
 
               <FilterCombobox
