@@ -5,15 +5,15 @@ import { EquipoService, type Equipo } from '../services/equipoService';
 import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 import {
   EquipoHeader,
+  EquipoPlantelTab,
   EquipoCalendarioTab,
-  EquipoCategoriasTab,
   EquipoCompetenciasTab,
 } from '../components';
 
-type TabKey = 'categorias' | 'calendario' | 'competencias';
+type TabKey = 'plantel' | 'calendario' | 'competencias';
 
 const TABS: { key: TabKey; label: string }[] = [
-  { key: 'categorias', label: 'Categorías' },
+  { key: 'plantel', label: 'Plantel' },
   { key: 'calendario', label: 'Calendario' },
   { key: 'competencias', label: 'Competencias' },
 ];
@@ -23,7 +23,7 @@ const EquipoDetalle: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const activeTab = (searchParams.get('tab') as TabKey) || 'categorias';
+  const activeTab = (searchParams.get('tab') as TabKey) || 'plantel';
 
   const updateParams = useCallback((params: Record<string, string | null>) => {
     setSearchParams((prev) => {
@@ -95,7 +95,7 @@ const EquipoDetalle: React.FC = () => {
               ))}
             </div>
 
-            {activeTab === 'categorias' && <EquipoCategoriasTab equipoId={equipoId} />}
+            {activeTab === 'plantel' && <EquipoPlantelTab equipo={equipo} />}
             {activeTab === 'calendario' && <EquipoCalendarioTab equipoId={equipoId} />}
             {activeTab === 'competencias' && <EquipoCompetenciasTab equipo={equipo} equipoId={equipoId} />}
           </div>

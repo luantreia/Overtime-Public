@@ -1,7 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { formatDate } from '../../../shared/utils/formatDate';
-import type { Equipo } from '../services/equipoService';
+import { EquipoService, type Equipo } from '../services/equipoService';
 
 interface EquipoPlantelTabProps {
   equipo: Equipo;
@@ -23,7 +24,14 @@ const groupByJugador = (list: any[]) => {
 
 export const EquipoPlantelTab: React.FC<EquipoPlantelTabProps> = ({ equipo }) => {
   const [activeTab, setActiveTab] = useState<'actual' | 'historial'>('actual');
-  const equipoId = equipo._id || equipo.id;
+  const [filtroCategoria, setFiltroCategoria] = useState('todos');
+  const equipoId = equipo._id || equipo.id || '';
+
+  const { data: categorias = [] } = useQuery({
+    queryKey: ['equipo-categorias', equipoId],
+    queryFn: () => EquipoService.getCategorias(equipoId),
+    enabled: !!equipoId,
+  });
 
   const { jugadoresActivos, jugadoresHistorial } = useMemo(() => {
     if (!equipo?.jugadoresEquipos) return { jugadoresActivos: [], jugadoresHistorial: [] };
@@ -47,6 +55,23 @@ export const EquipoPlantelTab: React.FC<EquipoPlantelTabProps> = ({ equipo }) =>
 
   const jugadoresActivosAgrupados = useMemo(() => groupByJugador(jugadoresActivos), [jugadoresActivos]);
   const jugadoresHistorialAgrupados = useMemo(() => groupByJugador(jugadoresHistorial), [jugadoresHistorial]);
+
+  const grupoSeleccionado = useMemo(
+    () => categorias.find((g) => `${g.modalidad}|${g.categoria}` === filtroCategoria) || null,
+    [categorias, filtroCategoria]
+  );
+
+  const jugadoresActivosFiltrados = useMemo(() => {
+    if (filtroCategoria === 'todos') return jugadoresActivosAgrupados;
+    const idsPermitidos = new Set((grupoSeleccionado?.jugadoresActuales || []).map((j) => j.id));
+    return jugadoresActivosAgrupados.filter(({ jugador }) => idsPermitidos.has(jugador?._id || jugador?.id));
+  }, [jugadoresActivosAgrupados, filtroCategoria, grupoSeleccionado]);
+
+  const jugadoresHistorialFiltrados = useMemo(() => {
+    if (filtroCategoria === 'todos') return jugadoresHistorialAgrupados;
+    const idsPermitidos = new Set((grupoSeleccionado?.jugadoresHistorial || []).map((j) => j.id));
+    return jugadoresHistorialAgrupados.filter(({ jugador }) => idsPermitidos.has(jugador?._id || jugador?.id));
+  }, [jugadoresHistorialAgrupados, filtroCategoria, grupoSeleccionado]);
 
   const temporadasGanadas = useMemo(() => {
     return (equipo.participaciontemporadas || [])
@@ -73,35 +98,51 @@ export const EquipoPlantelTab: React.FC<EquipoPlantelTabProps> = ({ equipo }) =>
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
           <span className="h-8 w-1 bg-brand-600 rounded-full"></span>
           Plantel
         </h2>
-        <div className="flex bg-slate-100 p-1 rounded-lg">
-          <button
-            onClick={() => setActiveTab('actual')}
-            className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
-              activeTab === 'actual' ? 'bg-white text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-            }`}
-          >
-            Actual
-          </button>
-          <button
-            onClick={() => setActiveTab('historial')}
-            className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
-              activeTab === 'historial' ? 'bg-white text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-            }`}
-          >
-            Historial
-          </button>
+        <div className="flex flex-wrap items-center gap-2">
+          {categorias.length > 0 && (
+            <select
+              value={filtroCategoria}
+              onChange={(e) => setFiltroCategoria(e.target.value)}
+              className="rounded-lg border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 text-sm py-1.5 pl-2 pr-7 border"
+            >
+              <option value="todos">Todas las categorías</option>
+              {categorias.map((g) => (
+                <option key={`${g.modalidad}|${g.categoria}`} value={`${g.modalidad}|${g.categoria}`}>
+                  {g.modalidad} · {g.categoria}
+                </option>
+              ))}
+            </select>
+          )}
+          <div className="flex bg-slate-100 p-1 rounded-lg">
+            <button
+              onClick={() => setActiveTab('actual')}
+              className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
+                activeTab === 'actual' ? 'bg-white text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              Actual
+            </button>
+            <button
+              onClick={() => setActiveTab('historial')}
+              className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
+                activeTab === 'historial' ? 'bg-white text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              Historial
+            </button>
+          </div>
         </div>
       </div>
 
       {activeTab === 'actual' ? (
-        jugadoresActivosAgrupados.length > 0 ? (
+        jugadoresActivosFiltrados.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {jugadoresActivosAgrupados.map(({ jugador, contratos }) => (
+            {jugadoresActivosFiltrados.map(({ jugador, contratos }) => (
               <Link
                 key={jugador?._id || jugador?.id}
                 to={`/jugadores/${jugador?._id || jugador?.id}`}
@@ -153,9 +194,9 @@ export const EquipoPlantelTab: React.FC<EquipoPlantelTabProps> = ({ equipo }) =>
             <p className="text-sm text-slate-500 mt-2">No se encontraron jugadores con contrato vigente en este equipo.</p>
           </div>
         )
-      ) : jugadoresHistorialAgrupados.length > 0 ? (
+      ) : jugadoresHistorialFiltrados.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {jugadoresHistorialAgrupados.map(({ jugador, contratos }) => (
+          {jugadoresHistorialFiltrados.map(({ jugador, contratos }) => (
             <Link
               key={jugador?._id || jugador?.id}
               to={`/jugadores/${jugador?._id || jugador?.id}`}

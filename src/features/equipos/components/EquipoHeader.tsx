@@ -2,10 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../app/providers/AuthContext';
 import { useToast } from '../../../shared/components/Toast/ToastProvider';
-import ModalBase from '../../../shared/components/ModalBase/ModalBase';
 import { crearSolicitudEdicion } from '../../solicitudes/services/solicitudesEdicionService';
 import type { Equipo, RedesSociales } from '../services/equipoService';
-import { EquipoPlantelTab } from './EquipoPlantelTab';
 
 interface EquipoHeaderProps {
   equipo: Equipo;
@@ -52,7 +50,6 @@ export const EquipoHeader: React.FC<EquipoHeaderProps> = ({ equipo }) => {
   const { addToast } = useToast();
   const [actionLoading, setActionLoading] = useState(false);
   const [solicitudEnviada, setSolicitudEnviada] = useState(false);
-  const [plantelAbierto, setPlantelAbierto] = useState(false);
 
   const escudo = equipo.escudo || equipo.imagen;
   const equipoId = equipo._id || equipo.id;
@@ -137,13 +134,6 @@ export const EquipoHeader: React.FC<EquipoHeaderProps> = ({ equipo }) => {
                 </svg>
                 <span><strong className="text-slate-700">{equipo.miembros}</strong> en el plantel</span>
               </span>
-              <button
-                type="button"
-                onClick={() => setPlantelAbierto(true)}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:border-brand-200 hover:text-brand-600"
-              >
-                Ver plantel
-              </button>
             </div>
           )}
         </div>
@@ -222,14 +212,6 @@ export const EquipoHeader: React.FC<EquipoHeaderProps> = ({ equipo }) => {
           </details>
         )}
       </div>
-
-      {plantelAbierto && (
-        <ModalBase onClose={() => setPlantelAbierto(false)} title="Plantel" size="xl">
-          <div className="p-4">
-            <EquipoPlantelTab equipo={equipo} />
-          </div>
-        </ModalBase>
-      )}
     </>
   );
 };
