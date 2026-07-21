@@ -5,16 +5,14 @@ import { EquipoService, type Equipo } from '../services/equipoService';
 import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 import {
   EquipoHeader,
-  EquipoResumenTab,
   EquipoCalendarioTab,
   EquipoCategoriasTab,
   EquipoCompetenciasTab,
 } from '../components';
 
-type TabKey = 'resumen' | 'categorias' | 'calendario' | 'competencias';
+type TabKey = 'categorias' | 'calendario' | 'competencias';
 
 const TABS: { key: TabKey; label: string }[] = [
-  { key: 'resumen', label: 'Resumen' },
   { key: 'categorias', label: 'Categorías' },
   { key: 'calendario', label: 'Calendario' },
   { key: 'competencias', label: 'Competencias' },
@@ -25,7 +23,7 @@ const EquipoDetalle: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const activeTab = (searchParams.get('tab') as TabKey) || 'resumen';
+  const activeTab = (searchParams.get('tab') as TabKey) || 'categorias';
 
   const updateParams = useCallback((params: Record<string, string | null>) => {
     setSearchParams((prev) => {
@@ -83,7 +81,7 @@ const EquipoDetalle: React.FC = () => {
           <EquipoHeader equipo={equipo} />
 
           <div className="px-4 sm:px-8 pb-6 sm:pb-8">
-            <div className="grid grid-cols-4 gap-1 p-1 bg-slate-100/50 rounded-2xl w-full border border-slate-100 mb-6">
+            <div className="grid grid-cols-3 gap-1 p-1 bg-slate-100/50 rounded-2xl w-full border border-slate-100 mb-6">
               {TABS.map((tab) => (
                 <button
                   key={tab.key}
@@ -97,7 +95,6 @@ const EquipoDetalle: React.FC = () => {
               ))}
             </div>
 
-            {activeTab === 'resumen' && <EquipoResumenTab equipo={equipo} equipoId={equipoId} />}
             {activeTab === 'categorias' && <EquipoCategoriasTab equipoId={equipoId} />}
             {activeTab === 'calendario' && <EquipoCalendarioTab equipoId={equipoId} />}
             {activeTab === 'competencias' && <EquipoCompetenciasTab equipo={equipo} equipoId={equipoId} />}
