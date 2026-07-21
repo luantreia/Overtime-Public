@@ -11,3 +11,5 @@ export { default as EquipoCard, type EquipoCardProps } from './EquipoCard';
 export { default as CompetenciaCard, type CompetenciaCardProps } from './CompetenciaCard';
 export { default as OrganizacionCard, type OrganizacionCardProps } from './OrganizacionCard';
 export { default as PartidoCard, type PartidoCardProps } from './PartidoCard';
+export { default as SegmentedToggle, type SegmentedToggleProps, type SegmentedToggleOption } from './SegmentedToggle/SegmentedToggle';
+export { default as FilterBar, type FilterBarProps, type FilterChip } from './FilterBar/FilterBar';

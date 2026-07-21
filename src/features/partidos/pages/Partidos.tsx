@@ -1,12 +1,12 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react';
-import { FunnelIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { EstadisticasPartidoModal } from '../../../shared/components/EstadisticasPartidoModal';
 import PartidoCard from '../../../shared/components/PartidoCard';
 import { PartidoCalendar } from '../../../shared/components/PartidoCalendar';
 import { FilterCombobox } from '../../../shared/components/FilterCombobox';
 import { MultiCheckDropdown } from '../../../shared/components/MultiCheckDropdown';
+import SegmentedToggle from '../../../shared/components/SegmentedToggle/SegmentedToggle';
+import FilterBar from '../../../shared/components/FilterBar/FilterBar';
 import { useQuery } from '@tanstack/react-query';
 import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 import { PartidoService, Partido } from '../services/partidoService';
@@ -44,6 +44,7 @@ const Partidos: React.FC = () => {
   const [equipoId, setEquipoId] = useState('');
   const [estados, setEstados] = useState<string[]>([]);
   const [tipoFiltro, setTipoFiltro] = useState<TipoFiltro>('todos');
+  const [showFilters, setShowFilters] = useState(false);
 
   // Listas para selects
   const [competencias, setCompetencias] = useState<Competencia[]>([]);
@@ -212,44 +213,27 @@ const Partidos: React.FC = () => {
   }, [equipoId, organizacionId, competenciaId, temporadaId, faseId, estados, tipoFiltro, equipos, organizacionItems, competencias, temporadas, fases]);
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8">
+    <div className="min-h-screen bg-slate-50 pt-3 pb-8 sm:pt-5">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-4 flex items-center justify-end gap-3">
-          <div className="flex bg-slate-100 p-1 rounded-lg">
-            <button
-              onClick={() => setVista('lista')}
-              className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
-                vista === 'lista' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              Lista
-            </button>
-            <button
-              onClick={() => setVista('calendario')}
-              className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
-                vista === 'calendario' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              Calendario
-            </button>
-          </div>
+          <SegmentedToggle
+            options={[
+              { value: 'lista', label: 'Lista' },
+              { value: 'calendario', label: 'Calendario' },
+            ]}
+            value={vista}
+            onChange={setVista}
+          />
         </div>
 
         {/* Filtros */}
-        <div className="mb-4">
-          <Popover className="relative inline-block">
-            <PopoverButton className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50">
-              <FunnelIcon className="h-4 w-4 text-slate-500" />
-              Filtros
-              {chips.length > 0 && (
-                <span className="rounded-full bg-brand-600 px-1.5 py-0.5 text-xs font-semibold text-white">{chips.length}</span>
-              )}
-            </PopoverButton>
-            <PopoverPanel
-              anchor="bottom start"
-              transition
-              className="z-20 mt-2 w-80 sm:w-96 space-y-4 rounded-xl bg-white p-4 shadow-lg border border-slate-200"
-            >
+        <FilterBar
+          showFilters={showFilters}
+          onToggleFilters={() => setShowFilters(v => !v)}
+          activeFiltersCount={chips.length}
+          chips={chips}
+        >
+          <div className="space-y-4">
               <FilterCombobox
                 items={equipoItems}
                 value={equipoId}
@@ -269,20 +253,11 @@ const Partidos: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Tipo</label>
-                  <div className="flex bg-slate-100 p-1 rounded-lg">
-                    {(['todos', 'amistoso', 'competencia'] as TipoFiltro[]).map((t) => (
-                      <button
-                        key={t}
-                        type="button"
-                        onClick={() => setTipoFiltro(t)}
-                        className={`px-2.5 py-1.5 text-xs font-medium rounded-md transition-all ${
-                          tipoFiltro === t ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-                        }`}
-                      >
-                        {TIPO_LABELS[t]}
-                      </button>
-                    ))}
-                  </div>
+                  <SegmentedToggle
+                    options={(['todos', 'amistoso', 'competencia'] as TipoFiltro[]).map((t) => ({ value: t, label: TIPO_LABELS[t] }))}
+                    value={tipoFiltro}
+                    onChange={setTipoFiltro}
+                  />
                 </div>
               </div>
 
@@ -346,25 +321,8 @@ const Partidos: React.FC = () => {
                   Limpiar filtros
                 </button>
               )}
-            </PopoverPanel>
-          </Popover>
-
-          {chips.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {chips.map((chip) => (
-                <span
-                  key={chip.key}
-                  className="inline-flex items-center gap-1 rounded-full bg-brand-50 border border-brand-200 px-3 py-0.5 text-xs font-medium text-brand-700"
-                >
-                  {chip.label}
-                  <button onClick={chip.onRemove} className="ml-1 text-brand-400 hover:text-brand-700">
-                    <XMarkIcon className="h-3 w-3" />
-                  </button>
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
+          </div>
+        </FilterBar>
 
         {/* Tabla de Posiciones (si hay fase seleccionada) */}
         {faseId && (
