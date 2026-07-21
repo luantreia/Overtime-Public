@@ -53,10 +53,10 @@ const PartidoCard = ({ partido, variante = 'proximo', actions, onClick }: Partid
 
   const renderEscudo = (equipo: any, fallback: string) => {
     if (equipo?.escudo) {
-      return <img src={equipo.escudo} alt={equipo.nombre} className="h-12 w-12 object-contain" />;
+      return <img src={equipo.escudo} alt={equipo.nombre} className="h-9 w-9 sm:h-12 sm:w-12 object-contain" />;
     }
     return (
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-lg font-bold text-slate-400">
+      <div className="flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-slate-100 text-base sm:text-lg font-bold text-slate-400">
         {equipo?.nombre?.charAt(0) || fallback}
       </div>
     );
@@ -73,40 +73,40 @@ const PartidoCard = ({ partido, variante = 'proximo', actions, onClick }: Partid
       onKeyDown={handleKeyDown}
     >
       {/* Header: Competencia + Fecha + Estado */}
-      <div className="flex items-center justify-between bg-slate-50/50 px-4 py-2 border-b border-slate-100">
-        <div className="flex flex-col">
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+      <div className="flex items-center justify-between gap-2 bg-slate-50/50 px-3 sm:px-4 py-2 border-b border-slate-100">
+        <div className="flex flex-col min-w-0">
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-500 truncate">
             {partido.competencia?.nombre ?? 'Amistoso'}
           </span>
-          <span className="text-xs text-slate-400 font-medium">
+          <span className="text-[11px] sm:text-xs text-slate-400 font-medium truncate">
             {fechaTexto}
           </span>
         </div>
-        <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${badge.className}`}>
+        <span className={`flex-shrink-0 inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${badge.className}`}>
           {badge.label}
         </span>
       </div>
 
       {/* Body: Enfrentamiento */}
-      <div className="flex items-center justify-between p-4 flex-1">
+      <div className="flex items-center justify-between p-2.5 sm:p-4 flex-1 gap-1 sm:gap-2">
         {/* Local */}
-        <div className="flex flex-col items-center gap-2 w-1/3 text-center">
+        <div className="flex flex-col items-center gap-1.5 sm:gap-2 w-1/3 text-center min-w-0">
           {renderEscudo(partido.equipoLocal, 'L')}
-          <span className="text-sm font-semibold text-slate-900 line-clamp-2 leading-tight">
+          <span className="text-xs sm:text-sm font-semibold text-slate-900 line-clamp-2 leading-tight break-words">
             {partido.equipoLocal?.nombre || 'Local'}
           </span>
         </div>
 
         {/* VS / Marcador */}
-        <div className="flex flex-col items-center justify-center w-1/3">
+        <div className="flex flex-col items-center justify-center w-1/3 flex-shrink-0">
           {mostrarMarcador ? (
-            <div className="flex items-center gap-3 text-2xl font-bold text-slate-900">
+            <div className="flex items-center gap-1.5 sm:gap-3 text-lg sm:text-2xl font-bold text-slate-900">
               <span>{partido.marcadorLocal ?? 0}</span>
               <span className="text-slate-300">-</span>
               <span>{partido.marcadorVisitante ?? 0}</span>
             </div>
           ) : (
-            <span className="text-xl font-bold text-slate-300">VS</span>
+            <span className="text-base sm:text-xl font-bold text-slate-300">VS</span>
           )}
           {partido.escenario && (
             <span className="mt-1 text-[10px] text-slate-400 text-center line-clamp-1">
@@ -116,9 +116,9 @@ const PartidoCard = ({ partido, variante = 'proximo', actions, onClick }: Partid
         </div>
 
         {/* Visitante */}
-        <div className="flex flex-col items-center gap-2 w-1/3 text-center">
+        <div className="flex flex-col items-center gap-1.5 sm:gap-2 w-1/3 text-center min-w-0">
           {renderEscudo(partido.equipoVisitante, 'V')}
-          <span className="text-sm font-semibold text-slate-900 line-clamp-2 leading-tight">
+          <span className="text-xs sm:text-sm font-semibold text-slate-900 line-clamp-2 leading-tight break-words">
             {partido.equipoVisitante?.nombre || partido.rival || 'Visitante'}
           </span>
         </div>
