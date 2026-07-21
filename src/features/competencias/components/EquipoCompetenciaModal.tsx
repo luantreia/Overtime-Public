@@ -114,8 +114,8 @@ export const EquipoCompetenciaModal: React.FC<EquipoCompetenciaModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <ModalBase isOpen={isOpen} onClose={onClose} size="xl" title={equipo.nombre} footer={footer}>
-      <div className="p-6">
+    <ModalBase isOpen={isOpen} onClose={onClose} size="xl" title={equipo.nombre} footer={footer} className="w-full">
+      <div className="p-4 sm:p-6">
         <div className="mb-4">
           <label htmlFor="equipo-modal-temporada" className="block text-xs font-medium text-slate-500 mb-1">
             Temporada
@@ -124,7 +124,7 @@ export const EquipoCompetenciaModal: React.FC<EquipoCompetenciaModalProps> = ({
             id="equipo-modal-temporada"
             value={selectedTemporadaId}
             onChange={(e) => setSelectedTemporadaId(e.target.value)}
-            className="block w-full max-w-xs rounded-md border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 text-sm p-2 border"
+            className="block w-full sm:max-w-xs rounded-md border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 text-sm p-2 border"
             disabled={temporadas.length === 0}
           >
             {temporadas.length === 0 ? (
@@ -137,8 +137,8 @@ export const EquipoCompetenciaModal: React.FC<EquipoCompetenciaModalProps> = ({
           </select>
         </div>
 
-        <div className="mb-6 border-b border-slate-200">
-          <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+        <div className="mb-6 border-b border-slate-200 -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto">
+          <nav className="-mb-px flex space-x-4 sm:space-x-8" aria-label="Tabs">
             {TABS.map(({ id, label }) => (
               <button
                 key={id}
@@ -147,7 +147,7 @@ export const EquipoCompetenciaModal: React.FC<EquipoCompetenciaModalProps> = ({
                   activeTab === id
                     ? 'border-brand-500 text-brand-600'
                     : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
-                } whitespace-nowrap border-b-2 py-3 px-1 text-sm font-medium`}
+                } whitespace-nowrap border-b-2 py-3 px-1 text-sm font-medium flex-shrink-0`}
               >
                 {label}
               </button>
