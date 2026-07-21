@@ -13,9 +13,11 @@ export interface FilterComboboxProps {
   onChange: (id: string) => void;
   label: string;
   placeholder?: string;
+  /** Variante compacta: sin label, con ícono de lupa a la izquierda, misma altura/estilo que el input de FilterBar. Para usar como búsqueda principal en la fila superior. */
+  compact?: boolean;
 }
 
-export const FilterCombobox: React.FC<FilterComboboxProps> = ({ items, value, onChange, label, placeholder }) => {
+export const FilterCombobox: React.FC<FilterComboboxProps> = ({ items, value, onChange, label, placeholder, compact = false }) => {
   const [query, setQuery] = useState('');
   const selected = items.find((item) => item.id === value) || null;
 
@@ -25,20 +27,32 @@ export const FilterCombobox: React.FC<FilterComboboxProps> = ({ items, value, on
 
   return (
     <div>
-      <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
+      {!compact && <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>}
       <Combobox<FilterComboboxItem | null>
         value={selected}
         onChange={(item) => onChange(item?.id ?? '')}
         onClose={() => setQuery('')}
       >
         <div className="relative">
+          {compact && (
+            <svg xmlns="http://www.w3.org/2000/svg" className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 10.5a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z" />
+            </svg>
+          )}
           <ComboboxInput
-            className="w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 border"
+            aria-label={label}
+            className={
+              compact
+                ? 'w-full rounded-lg border-slate-300 bg-white shadow-sm focus:border-brand-500 focus:ring-brand-500 text-sm py-2 pl-9 pr-3 border'
+                : 'w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 border'
+            }
             displayValue={(item: FilterComboboxItem | null) => item?.label ?? ''}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={placeholder}
           />
-          <ChevronUpDownIcon className="pointer-events-none absolute right-2 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+          {!compact && (
+            <ChevronUpDownIcon className="pointer-events-none absolute right-2 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+          )}
         </div>
         <ComboboxOptions
           anchor="bottom start"

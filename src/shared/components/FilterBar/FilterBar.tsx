@@ -10,6 +10,12 @@ export interface FilterBarProps {
   searchValue?: string;
   onSearchChange?: (value: string) => void;
   searchPlaceholder?: string;
+  /** Slot de búsqueda custom (ej. un combobox que resuelve a un ID) en vez del input de texto plano. */
+  searchSlot?: React.ReactNode;
+  /** Switch de vista (ej. lista/calendario) integrado en la misma fila, antes del botón de filtros. */
+  viewToggle?: React.ReactNode;
+  /** Oculta el botón de embudo por completo (para vistas sin filtros propios). */
+  hideFilterButton?: boolean;
   showFilters: boolean;
   onToggleFilters: () => void;
   activeFiltersCount: number;
@@ -19,8 +25,9 @@ export interface FilterBarProps {
 
 /**
  * Barra de búsqueda + filtros colapsables estándar de la app pública.
- * - Input de búsqueda opcional (si no se pasan searchValue/onSearchChange, no se renderiza).
- * - Botón cuadrado de embudo con badge de filtros activos.
+ * - Búsqueda opcional: input de texto plano (searchValue/onSearchChange) o un slot custom (searchSlot).
+ * - Switch de vista opcional (viewToggle) integrado en la misma fila.
+ * - Botón cuadrado de embudo con badge de filtros activos (ocultable con hideFilterButton).
  * - Panel colapsable (children) con el contenido de filtros específico de cada página.
  * - Chips de filtros activos removibles debajo del panel.
  */
@@ -28,18 +35,24 @@ const FilterBar: React.FC<FilterBarProps> = ({
   searchValue,
   onSearchChange,
   searchPlaceholder,
+  searchSlot,
+  viewToggle,
+  hideFilterButton = false,
   showFilters,
   onToggleFilters,
   activeFiltersCount,
   chips = [],
   children,
 }) => {
-  const hasSearch = searchValue !== undefined && onSearchChange !== undefined;
+  const hasPlainSearch = searchValue !== undefined && onSearchChange !== undefined;
+  const hasSearch = Boolean(searchSlot) || hasPlainSearch;
 
   return (
     <div className="mb-4">
       <div className="flex items-center gap-2">
-        {hasSearch && (
+        {searchSlot ? (
+          <div className="relative flex-1">{searchSlot}</div>
+        ) : hasPlainSearch && (
           <div className="relative flex-1">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -64,29 +77,32 @@ const FilterBar: React.FC<FilterBarProps> = ({
             />
           </div>
         )}
-        <button
-          onClick={onToggleFilters}
-          className={`relative flex-shrink-0 flex items-center justify-center h-[38px] w-[38px] rounded-lg border transition-colors ${
-            showFilters
-              ? 'bg-brand-600 border-brand-600 text-white'
-              : 'bg-white border-slate-300 text-slate-500 hover:text-slate-700'
-          } ${hasSearch ? '' : 'ml-auto'}`}
-          aria-label="Filtros"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-            />
-          </svg>
-          {activeFiltersCount > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
-              {activeFiltersCount}
-            </span>
-          )}
-        </button>
+        {viewToggle}
+        {!hideFilterButton && (
+          <button
+            onClick={onToggleFilters}
+            className={`relative flex-shrink-0 flex items-center justify-center h-[38px] w-[38px] rounded-lg border transition-colors ${
+              showFilters
+                ? 'bg-brand-600 border-brand-600 text-white'
+                : 'bg-white border-slate-300 text-slate-500 hover:text-slate-700'
+            } ${hasSearch || viewToggle ? '' : 'ml-auto'}`}
+            aria-label="Filtros"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+              />
+            </svg>
+            {activeFiltersCount > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                {activeFiltersCount}
+              </span>
+            )}
+          </button>
+        )}
       </div>
 
       {showFilters && children && (
