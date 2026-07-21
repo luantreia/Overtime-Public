@@ -31,6 +31,7 @@ interface EquipoCompetenciaModalProps {
   equipo: EquipoResumen;
   competenciaId: string;
   temporadas: TemporadaResumen[];
+  initialTemporadaId?: string;
 }
 
 const getInitials = (name: string) =>
@@ -48,10 +49,11 @@ export const EquipoCompetenciaModal: React.FC<EquipoCompetenciaModalProps> = ({
   equipo,
   competenciaId,
   temporadas,
+  initialTemporadaId,
 }) => {
   const navigate = useNavigate();
   const [selectedTemporadaId, setSelectedTemporadaId] = useState(
-    temporadas[temporadas.length - 1]?._id || ''
+    initialTemporadaId || temporadas[temporadas.length - 1]?._id || ''
   );
   const [activeTab, setActiveTab] = useState<Tab>('plantel');
 

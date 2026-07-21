@@ -5,6 +5,7 @@ import { CompetenciaService } from '../../competencias/services/competenciaServi
 import { EmptyState } from '../../../shared/components/EmptyState/EmptyState';
 import { PartidoService } from '../../partidos/services/partidoService';
 import { EquipoHistoriaModal } from './EquipoHistoriaModal';
+import { EquipoCompetenciaModal } from '../../competencias/components/EquipoCompetenciaModal';
 import type { Equipo } from '../services/equipoService';
 
 interface EquipoResumenTabProps {
@@ -25,6 +26,11 @@ const resultadoPartido = (partido: any, equipoId: string): 'G' | 'P' | 'E' | nul
 
 export const EquipoResumenTab: React.FC<EquipoResumenTabProps> = ({ equipo, equipoId }) => {
   const [historiaAbierta, setHistoriaAbierta] = useState(false);
+  const [temporadaModal, setTemporadaModal] = useState<{
+    cid: string;
+    temporadas: { _id: string; nombre: string }[];
+    temporadaId: string;
+  } | null>(null);
 
   const competenciaIds = useMemo(() => {
     const ids = (equipo?.participaciontemporadas || [])
@@ -167,14 +173,23 @@ export const EquipoResumenTab: React.FC<EquipoResumenTabProps> = ({ equipo, equi
                     {temporadas.map((p: any) => {
                       const gano = p?.temporada?.ganador && String(p.temporada.ganador) === String(equipoId);
                       return (
-                        <span
+                        <button
+                          type="button"
                           key={p._id}
-                          className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700"
+                          disabled={!cid || !p?.temporada?._id}
+                          onClick={() => cid && p?.temporada?._id && setTemporadaModal({
+                            cid,
+                            temporadas: temporadas
+                              .filter((t: any) => t?.temporada?._id)
+                              .map((t: any) => ({ _id: t.temporada._id, nombre: t.temporada.nombre })),
+                            temporadaId: p.temporada._id,
+                          })}
+                          className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700 hover:bg-brand-50 hover:text-brand-700 transition-colors disabled:cursor-default disabled:hover:bg-slate-100 disabled:hover:text-slate-700"
                         >
                           {p.temporada?.nombre}
                           {gano && <span title="Campeón de esta temporada">🏆</span>}
                           <span className="text-slate-400 capitalize">· {p.estado || 'activo'}</span>
-                        </span>
+                        </button>
                       );
                     })}
                   </div>
@@ -192,6 +207,17 @@ export const EquipoResumenTab: React.FC<EquipoResumenTabProps> = ({ equipo, equi
           competenciasMap={competenciasMap}
           isOpen={historiaAbierta}
           onClose={() => setHistoriaAbierta(false)}
+        />
+      )}
+
+      {temporadaModal && (
+        <EquipoCompetenciaModal
+          isOpen={!!temporadaModal}
+          onClose={() => setTemporadaModal(null)}
+          equipo={{ _id: equipoId, nombre: equipo.nombre, escudo: equipo.escudo }}
+          competenciaId={temporadaModal.cid}
+          temporadas={temporadaModal.temporadas}
+          initialTemporadaId={temporadaModal.temporadaId}
         />
       )}
     </div>
