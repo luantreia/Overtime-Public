@@ -7,7 +7,6 @@ import type { Equipo, RedesSociales } from '../services/equipoService';
 
 interface EquipoHeaderProps {
   equipo: Equipo;
-  onBack: () => void;
 }
 
 const MAX_ADMINS = 3;
@@ -45,7 +44,7 @@ const SOCIAL_ICONS: Record<keyof RedesSociales, { label: string; path: React.Rea
   },
 };
 
-export const EquipoHeader: React.FC<EquipoHeaderProps> = ({ equipo, onBack }) => {
+export const EquipoHeader: React.FC<EquipoHeaderProps> = ({ equipo }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { addToast } = useToast();
@@ -83,14 +82,7 @@ export const EquipoHeader: React.FC<EquipoHeaderProps> = ({ equipo, onBack }) =>
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-      <button
-        onClick={onBack}
-        className="mt-4 ml-6 text-sm text-slate-500 hover:text-slate-700 flex items-center gap-1"
-      >
-        ← Volver a equipos
-      </button>
-
-      <div className="h-16 sm:h-28 bg-gradient-to-r from-slate-800 to-slate-900 -mt-6" />
+      <div className="h-16 sm:h-28 bg-gradient-to-r from-slate-800 to-slate-900" />
 
       <div className="px-4 sm:px-8 pb-6 sm:pb-8">
         <div className="flex items-end gap-4 -mt-8 sm:-mt-14 mb-4">
