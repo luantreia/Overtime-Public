@@ -75,14 +75,14 @@ export const EquipoPlantelTab: React.FC<EquipoPlantelTabProps> = ({ equipo }) =>
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-          <span className="h-8 w-1 bg-indigo-600 rounded-full"></span>
+          <span className="h-8 w-1 bg-brand-600 rounded-full"></span>
           Plantel
         </h2>
         <div className="flex bg-slate-100 p-1 rounded-lg">
           <button
             onClick={() => setActiveTab('actual')}
             className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
-              activeTab === 'actual' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              activeTab === 'actual' ? 'bg-white text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
             }`}
           >
             Actual
@@ -90,7 +90,7 @@ export const EquipoPlantelTab: React.FC<EquipoPlantelTabProps> = ({ equipo }) =>
           <button
             onClick={() => setActiveTab('historial')}
             className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
-              activeTab === 'historial' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              activeTab === 'historial' ? 'bg-white text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
             }`}
           >
             Historial

@@ -7,17 +7,17 @@ import {
   EquipoHeader,
   EquipoResumenTab,
   EquipoCalendarioTab,
-  EquipoPlantelTab,
-  EquipoEstadisticasTab,
+  EquipoCategoriasTab,
+  EquipoCompetenciasTab,
 } from '../components';
 
-type TabKey = 'resumen' | 'calendario' | 'plantel' | 'estadisticas';
+type TabKey = 'resumen' | 'categorias' | 'calendario' | 'competencias';
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: 'resumen', label: 'Resumen' },
+  { key: 'categorias', label: 'Categorías' },
   { key: 'calendario', label: 'Calendario' },
-  { key: 'plantel', label: 'Plantel' },
-  { key: 'estadisticas', label: 'Estadísticas' },
+  { key: 'competencias', label: 'Competencias' },
 ];
 
 const EquipoDetalle: React.FC = () => {
@@ -98,9 +98,9 @@ const EquipoDetalle: React.FC = () => {
             </div>
 
             {activeTab === 'resumen' && <EquipoResumenTab equipo={equipo} equipoId={equipoId} />}
+            {activeTab === 'categorias' && <EquipoCategoriasTab equipoId={equipoId} />}
             {activeTab === 'calendario' && <EquipoCalendarioTab equipoId={equipoId} />}
-            {activeTab === 'plantel' && <EquipoPlantelTab equipo={equipo} />}
-            {activeTab === 'estadisticas' && <EquipoEstadisticasTab equipoId={equipoId} />}
+            {activeTab === 'competencias' && <EquipoCompetenciasTab equipo={equipo} equipoId={equipoId} />}
           </div>
         </div>
       </div>

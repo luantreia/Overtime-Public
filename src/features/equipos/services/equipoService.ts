@@ -38,6 +38,20 @@ export interface Equipo {
   [key: string]: any;
 }
 
+export interface EquipoCategoriaJugador {
+  id: string;
+  nombre: string;
+  alias?: string;
+  foto?: string;
+}
+
+export interface EquipoCategoriaGrupo {
+  modalidad: string;
+  categoria: string;
+  jugadoresActuales: EquipoCategoriaJugador[];
+  jugadoresHistorial: EquipoCategoriaJugador[];
+}
+
 export class EquipoService {
   private static readonly API_ENDPOINT = '/equipos';
 
@@ -114,6 +128,10 @@ export class EquipoService {
     }
     
     return equipo;
+  }
+
+  static async getCategorias(id: string): Promise<EquipoCategoriaGrupo[]> {
+    return fetchWithAuth<EquipoCategoriaGrupo[]>(`${this.API_ENDPOINT}/${id}/categorias`, { useAuth: false });
   }
 
   private static contarCompetenciasGanadas(equipo: Equipo, participaciones: any[]): number {

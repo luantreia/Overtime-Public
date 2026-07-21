@@ -1,11 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { CompetenciaService } from '../../competencias/services/competenciaService';
+import PartidoCard from '../../../shared/components/PartidoCard';
+import ModalBase from '../../../shared/components/ModalBase/ModalBase';
 import { EmptyState } from '../../../shared/components/EmptyState/EmptyState';
-import { PartidoService } from '../../partidos/services/partidoService';
-import { EquipoHistoriaModal } from './EquipoHistoriaModal';
-import { EquipoCompetenciaModal } from '../../competencias/components/EquipoCompetenciaModal';
+import { PartidoService, type Partido } from '../../partidos/services/partidoService';
 import type { Equipo } from '../services/equipoService';
 
 interface EquipoResumenTabProps {
@@ -13,9 +12,11 @@ interface EquipoResumenTabProps {
   equipoId: string;
 }
 
-const resultadoPartido = (partido: any, equipoId: string): 'G' | 'P' | 'E' | null => {
-  const esLocal = String(partido.equipoLocal?.id || partido.equipoLocal?._id) === String(equipoId);
-  const esVisitante = String(partido.equipoVisitante?.id || partido.equipoVisitante?._id) === String(equipoId);
+type HubCard = 'racha' | 'goleada' | 'progreso' | 'h2h';
+
+const resultadoPartido = (partido: Partido, equipoId: string): 'G' | 'P' | 'E' | null => {
+  const esLocal = String(partido.equipoLocal?.id || (partido.equipoLocal as any)?._id) === String(equipoId);
+  const esVisitante = String(partido.equipoVisitante?.id || (partido.equipoVisitante as any)?._id) === String(equipoId);
   if (!esLocal && !esVisitante) return null;
   const marcadorLocal = partido.marcadorLocal ?? 0;
   const marcadorVisitante = partido.marcadorVisitante ?? 0;
@@ -24,13 +25,23 @@ const resultadoPartido = (partido: any, equipoId: string): 'G' | 'P' | 'E' | nul
   return (esLocal && ganoLocal) || (esVisitante && !ganoLocal) ? 'G' : 'P';
 };
 
+const fechaValue = (p: Partido): number => {
+  const date = p.fecha ? new Date(p.fecha) : null;
+  return date && !Number.isNaN(date.getTime()) ? date.getTime() : 0;
+};
+
+const rivalDe = (p: Partido, equipoId: string): { id: string; nombre: string } | null => {
+  const esLocal = String(p.equipoLocal?.id || (p.equipoLocal as any)?._id) === String(equipoId);
+  const rival = esLocal ? p.equipoVisitante : p.equipoLocal;
+  const rivalId = rival?.id || (rival as any)?._id;
+  if (!rivalId) return null;
+  return { id: String(rivalId), nombre: rival?.nombre || 'Rival' };
+};
+
 export const EquipoResumenTab: React.FC<EquipoResumenTabProps> = ({ equipo, equipoId }) => {
-  const [historiaAbierta, setHistoriaAbierta] = useState(false);
-  const [temporadaModal, setTemporadaModal] = useState<{
-    cid: string;
-    temporadas: { _id: string; nombre: string }[];
-    temporadaId: string;
-  } | null>(null);
+  const navigate = useNavigate();
+  const [cardAbierta, setCardAbierta] = useState<HubCard | null>(null);
+  const [rivalSeleccionado, setRivalSeleccionado] = useState<string | null>(null);
 
   const competenciaIds = useMemo(() => {
     const ids = (equipo?.participaciontemporadas || [])
@@ -40,37 +51,7 @@ export const EquipoResumenTab: React.FC<EquipoResumenTabProps> = ({ equipo, equi
     return Array.from(new Set(ids));
   }, [equipo]);
 
-  const { data: competenciasMap = {} } = useQuery({
-    queryKey: ['equipo-competencias-info', competenciaIds.join(',')],
-    queryFn: async () => {
-      const results = await Promise.all(
-        competenciaIds.map((cid: string) => CompetenciaService.getById(cid).catch(() => null))
-      );
-      const map: Record<string, any> = {};
-      results.forEach((comp, i) => {
-        if (comp) map[competenciaIds[i]] = comp;
-      });
-      return map;
-    },
-    enabled: competenciaIds.length > 0,
-  });
-
-  const competenciasAgrupadas = useMemo(() => {
-    const groups = new Map<string, { cid: string | undefined; comp: any; temporadas: any[] }>();
-    (equipo?.participaciontemporadas || []).forEach((p: any) => {
-      const cid = typeof p?.temporada?.competencia === 'string'
-        ? p.temporada.competencia
-        : (p?.temporada?.competencia?._id || p?.temporada?.competencia?.id);
-      const key = cid || 'sin-competencia';
-      if (!groups.has(key)) {
-        groups.set(key, { cid, comp: cid ? competenciasMap[cid] : null, temporadas: [] });
-      }
-      groups.get(key)!.temporadas.push(p);
-    });
-    return Array.from(groups.values());
-  }, [equipo, competenciasMap]);
-
-  const { data: partidosFinalizados = [] } = useQuery({
+  const { data: partidos = [], isLoading } = useQuery({
     queryKey: ['equipo-estadisticas', equipoId],
     queryFn: () => PartidoService.getAll({ equipo: equipoId, estado: 'finalizado' }),
     enabled: !!equipoId,
@@ -78,14 +59,123 @@ export const EquipoResumenTab: React.FC<EquipoResumenTabProps> = ({ equipo, equi
 
   const { ganados, empatados, perdidos } = useMemo(() => {
     let g = 0, e = 0, p = 0;
-    partidosFinalizados.forEach((partido: any) => {
+    partidos.forEach((partido: Partido) => {
       const r = resultadoPartido(partido, equipoId);
       if (r === 'G') g++;
       else if (r === 'E') e++;
       else if (r === 'P') p++;
     });
     return { ganados: g, empatados: e, perdidos: p };
-  }, [partidosFinalizados, equipoId]);
+  }, [partidos, equipoId]);
+
+  const ordenadosAsc = useMemo(() => [...partidos].sort((a, b) => fechaValue(a) - fechaValue(b)), [partidos]);
+  const ordenadosDesc = useMemo(() => [...ordenadosAsc].reverse(), [ordenadosAsc]);
+
+  const { rachaActual, mayorRacha } = useMemo(() => {
+    let actualTipo: 'G' | 'P' | 'E' | null = null;
+    let actualLen = 0;
+    let mejorG = 0;
+    let corridaG = 0;
+
+    ordenadosAsc.forEach((p) => {
+      const r = resultadoPartido(p, equipoId);
+      if (!r) return;
+      if (r === actualTipo) actualLen++;
+      else {
+        actualTipo = r;
+        actualLen = 1;
+      }
+      if (r === 'G') {
+        corridaG++;
+        mejorG = Math.max(mejorG, corridaG);
+      } else {
+        corridaG = 0;
+      }
+    });
+
+    return { rachaActual: actualTipo ? { tipo: actualTipo, largo: actualLen } : null, mayorRacha: mejorG };
+  }, [ordenadosAsc, equipoId]);
+
+  const resultadoDestacado = useMemo((): { partido: Partido; diferencia: number } | null => {
+    const victorias = ordenadosDesc
+      .filter((p) => resultadoPartido(p, equipoId) === 'G')
+      .map((partido) => ({ partido, diferencia: Math.abs((partido.marcadorLocal ?? 0) - (partido.marcadorVisitante ?? 0)) }));
+    if (victorias.length === 0) return null;
+    return victorias.reduce((mejor, actual) => (actual.diferencia > mejor.diferencia ? actual : mejor));
+  }, [ordenadosDesc, equipoId]);
+
+  const progresoPorTemporada = useMemo(() => {
+    const map = new Map<string, { nombre: string; g: number; e: number; p: number }>();
+    ordenadosDesc.forEach((partido) => {
+      const temporada = (partido as any).fase?.temporada;
+      const key = temporada?._id || 'sin-temporada';
+      const nombre = temporada?.nombre || 'Sin temporada';
+      if (!map.has(key)) map.set(key, { nombre, g: 0, e: 0, p: 0 });
+      const r = resultadoPartido(partido, equipoId);
+      const entry = map.get(key)!;
+      if (r === 'G') entry.g++;
+      else if (r === 'E') entry.e++;
+      else if (r === 'P') entry.p++;
+    });
+    return Array.from(map.values());
+  }, [ordenadosDesc, equipoId]);
+
+  const rivales = useMemo(() => {
+    const map = new Map<string, { nombre: string; partidos: Partido[] }>();
+    partidos.forEach((p) => {
+      const rival = rivalDe(p, equipoId);
+      if (!rival) return;
+      if (!map.has(rival.id)) map.set(rival.id, { nombre: rival.nombre, partidos: [] });
+      map.get(rival.id)!.partidos.push(p);
+    });
+    return Array.from(map.entries())
+      .map(([id, v]) => ({ id, ...v }))
+      .sort((a, b) => a.nombre.localeCompare(b.nombre));
+  }, [partidos, equipoId]);
+
+  const h2hSeleccionado = rivales.find((r) => r.id === rivalSeleccionado) || null;
+  const h2hResumen = useMemo(() => {
+    if (!h2hSeleccionado) return null;
+    let g = 0, e = 0, p = 0;
+    h2hSeleccionado.partidos.forEach((partido) => {
+      const r = resultadoPartido(partido, equipoId);
+      if (r === 'G') g++;
+      else if (r === 'E') e++;
+      else if (r === 'P') p++;
+    });
+    return { g, e, p };
+  }, [h2hSeleccionado, equipoId]);
+
+  const cards: { key: HubCard; icon: string; titulo: string; teaser: string; disponible: boolean }[] = [
+    {
+      key: 'racha',
+      icon: '🔥',
+      titulo: 'Racha',
+      teaser: rachaActual ? `Actual: ${rachaActual.largo}${rachaActual.tipo} · Mejor racha ganadora: ${mayorRacha}` : 'Sin datos',
+      disponible: true,
+    },
+    {
+      key: 'goleada',
+      icon: '⚽',
+      titulo: 'Resultado más goleado',
+      teaser: resultadoDestacado ? `Diferencia de ${resultadoDestacado.diferencia}` : 'Sin victorias registradas',
+      disponible: !!resultadoDestacado,
+    },
+    {
+      key: 'progreso',
+      icon: '📈',
+      titulo: 'Progreso por temporada',
+      teaser: `${progresoPorTemporada.length} temporada${progresoPorTemporada.length !== 1 ? 's' : ''} con partidos`,
+      disponible: true,
+    },
+    {
+      key: 'h2h',
+      icon: '🤝',
+      titulo: 'Historial vs. un rival',
+      teaser: `${rivales.length} rival${rivales.length !== 1 ? 'es' : ''} enfrentado${rivales.length !== 1 ? 's' : ''}`,
+      disponible: rivales.length > 0,
+    },
+  ];
 
   return (
     <div className="space-y-8">
@@ -103,7 +193,7 @@ export const EquipoResumenTab: React.FC<EquipoResumenTabProps> = ({ equipo, equi
           <div className="text-xs sm:text-sm text-slate-500">Títulos</div>
         </div>
         <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 text-center">
-          <div className="text-2xl font-bold text-slate-900">{partidosFinalizados.length}</div>
+          <div className="text-2xl font-bold text-slate-900">{partidos.length}</div>
           <div className="text-xs sm:text-sm text-slate-500">Partidos Jugados</div>
         </div>
         <div className="bg-emerald-50 rounded-2xl p-5 border border-emerald-100 text-center">
@@ -121,104 +211,134 @@ export const EquipoResumenTab: React.FC<EquipoResumenTabProps> = ({ equipo, equi
       </div>
 
       <section>
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-            <span className="h-8 w-1 bg-brand-600 rounded-full"></span>
-            Palmarés y trayectoria
-          </h2>
-          {(equipo.participaciontemporadas?.length || 0) > 0 && (
-            <button
-              type="button"
-              onClick={() => setHistoriaAbierta(true)}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:border-brand-200 hover:text-brand-600"
-            >
-              🕒 Ver línea de tiempo
-            </button>
-          )}
-        </div>
-        {(equipo.participaciontemporadas?.length || 0) === 0 ? (
-          <EmptyState message="Este equipo aún no participa en ninguna competencia registrada." />
+        {isLoading ? (
+          <p className="text-sm text-slate-500">Cargando estadísticas…</p>
+        ) : ordenadosAsc.length === 0 ? (
+          <EmptyState message="Este equipo todavía no tiene partidos finalizados con estadísticas cargadas." />
         ) : (
-          <div className="space-y-3">
-            {competenciasAgrupadas.map(({ cid, comp, temporadas }) => {
-              const organizacion = comp?.organizacion;
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {cards.map((card) => (
+              <button
+                key={card.key}
+                disabled={!card.disponible}
+                onClick={() => setCardAbierta(card.key)}
+                className="text-left p-5 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-brand-200 hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-sm disabled:hover:border-slate-200"
+              >
+                <div className="text-2xl mb-2">{card.icon}</div>
+                <div className="font-bold text-slate-900">{card.titulo}</div>
+                <div className="text-sm text-slate-500 mt-1">{card.teaser}</div>
+              </button>
+            ))}
 
-              return (
-                <div key={cid || 'sin-competencia'} className="p-4 bg-white border border-slate-200 rounded-xl hover:border-brand-200 transition-colors">
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="min-w-0">
-                      <div className="font-semibold text-slate-900 truncate">
-                        {comp ? (
-                          <Link to={`/competencias/${cid}`} className="hover:text-brand-600 hover:underline">
-                            {comp.nombre}
-                          </Link>
-                        ) : (
-                          <span>Competencia</span>
-                        )}
-                      </div>
-                      {organizacion?.nombre && (
-                        <Link
-                          to={`/organizaciones/${organizacion._id || organizacion.id}`}
-                          className="text-xs text-slate-500 hover:text-brand-600 hover:underline"
-                        >
-                          {organizacion.nombre}
-                        </Link>
-                      )}
-                    </div>
-                    <span className="flex-shrink-0 text-xs text-slate-400">
-                      {temporadas.length} temporada{temporadas.length !== 1 ? 's' : ''}
-                    </span>
-                  </div>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {temporadas.map((p: any) => {
-                      const gano = p?.temporada?.ganador && String(p.temporada.ganador) === String(equipoId);
-                      return (
-                        <button
-                          type="button"
-                          key={p._id}
-                          disabled={!cid || !p?.temporada?._id}
-                          onClick={() => cid && p?.temporada?._id && setTemporadaModal({
-                            cid,
-                            temporadas: temporadas
-                              .filter((t: any) => t?.temporada?._id)
-                              .map((t: any) => ({ _id: t.temporada._id, nombre: t.temporada.nombre })),
-                            temporadaId: p.temporada._id,
-                          })}
-                          className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700 hover:bg-brand-50 hover:text-brand-700 transition-colors disabled:cursor-default disabled:hover:bg-slate-100 disabled:hover:text-slate-700"
-                        >
-                          {p.temporada?.nombre}
-                          {gano && <span title="Campeón de esta temporada">🏆</span>}
-                          <span className="text-slate-400 capitalize">· {p.estado || 'activo'}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
+            <div
+              title="Requiere datos agregados que hoy no expone el backend"
+              className="text-left p-5 bg-slate-50 border border-dashed border-slate-200 rounded-xl opacity-60 cursor-not-allowed"
+            >
+              <div className="text-2xl mb-2">📊</div>
+              <div className="font-bold text-slate-500">Comparativas avanzadas</div>
+              <div className="text-sm text-slate-400 mt-1">Próximamente — rendimiento por set entre equipos</div>
+            </div>
           </div>
         )}
       </section>
 
-      {historiaAbierta && (
-        <EquipoHistoriaModal
-          equipo={equipo}
-          equipoId={equipoId}
-          competenciasMap={competenciasMap}
-          isOpen={historiaAbierta}
-          onClose={() => setHistoriaAbierta(false)}
-        />
+      {cardAbierta === 'racha' && (
+        <ModalBase onClose={() => setCardAbierta(null)} title="Racha" size="sm">
+          <div className="p-5 space-y-4 text-center">
+            <div>
+              <div className="text-3xl font-bold text-slate-900">
+                {rachaActual ? `${rachaActual.largo}${rachaActual.tipo}` : '—'}
+              </div>
+              <div className="text-sm text-slate-500">Racha actual</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-emerald-600">{mayorRacha}</div>
+              <div className="text-sm text-slate-500">Mayor racha ganadora histórica</div>
+            </div>
+          </div>
+        </ModalBase>
       )}
 
-      {temporadaModal && (
-        <EquipoCompetenciaModal
-          isOpen={!!temporadaModal}
-          onClose={() => setTemporadaModal(null)}
-          equipo={{ _id: equipoId, nombre: equipo.nombre, escudo: equipo.escudo }}
-          competenciaId={temporadaModal.cid}
-          temporadas={temporadaModal.temporadas}
-          initialTemporadaId={temporadaModal.temporadaId}
-        />
+      {cardAbierta === 'goleada' && resultadoDestacado && (
+        <ModalBase onClose={() => setCardAbierta(null)} title="Resultado más goleado" size="md">
+          <div className="p-4">
+            <PartidoCard
+              partido={resultadoDestacado.partido}
+              variante="resultado"
+              onClick={() => navigate(`/partidos/${resultadoDestacado.partido.id || resultadoDestacado.partido._id}`)}
+            />
+          </div>
+        </ModalBase>
+      )}
+
+      {cardAbierta === 'progreso' && (
+        <ModalBase onClose={() => setCardAbierta(null)} title="Progreso por temporada" size="md">
+          <div className="p-4 space-y-2">
+            {progresoPorTemporada.map((t) => {
+              const total = t.g + t.e + t.p;
+              return (
+                <div key={t.nombre} className="p-3 bg-slate-50 border border-slate-100 rounded-lg">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-semibold text-slate-900 text-sm">{t.nombre}</span>
+                    <span className="text-xs text-slate-500">{total} partido{total !== 1 ? 's' : ''}</span>
+                  </div>
+                  <div className="flex h-2 rounded-full overflow-hidden bg-slate-200">
+                    {t.g > 0 && <div className="bg-emerald-500" style={{ width: `${(t.g / total) * 100}%` }} />}
+                    {t.e > 0 && <div className="bg-slate-400" style={{ width: `${(t.e / total) * 100}%` }} />}
+                    {t.p > 0 && <div className="bg-red-500" style={{ width: `${(t.p / total) * 100}%` }} />}
+                  </div>
+                  <div className="mt-1 text-xs text-slate-500">{t.g}G {t.e}E {t.p}P</div>
+                </div>
+              );
+            })}
+          </div>
+        </ModalBase>
+      )}
+
+      {cardAbierta === 'h2h' && (
+        <ModalBase onClose={() => { setCardAbierta(null); setRivalSeleccionado(null); }} title="Historial vs. un rival" size="lg">
+          <div className="p-4 space-y-4">
+            <select
+              value={rivalSeleccionado || ''}
+              onChange={(e) => setRivalSeleccionado(e.target.value || null)}
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+            >
+              <option value="">Elegí un rival…</option>
+              {rivales.map((r) => (
+                <option key={r.id} value={r.id}>{r.nombre} ({r.partidos.length})</option>
+              ))}
+            </select>
+
+            {h2hSeleccionado && h2hResumen && (
+              <>
+                <div className="flex items-center justify-center gap-6 py-2">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-emerald-600">{h2hResumen.g}</div>
+                    <div className="text-xs text-slate-500">Ganados</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-slate-700">{h2hResumen.e}</div>
+                    <div className="text-xs text-slate-500">Empatados</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-red-600">{h2hResumen.p}</div>
+                    <div className="text-xs text-slate-500">Perdidos</div>
+                  </div>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {[...h2hSeleccionado.partidos].sort((a, b) => fechaValue(b) - fechaValue(a)).map((p) => (
+                    <PartidoCard
+                      key={p.id || p._id}
+                      partido={p}
+                      variante="resultado"
+                      onClick={() => navigate(`/partidos/${p.id || p._id}`)}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </ModalBase>
       )}
     </div>
   );
