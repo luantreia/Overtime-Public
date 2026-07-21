@@ -7,6 +7,7 @@ import { FilterCombobox } from '../../../shared/components/FilterCombobox';
 import { MultiCheckDropdown } from '../../../shared/components/MultiCheckDropdown';
 import SegmentedToggle from '../../../shared/components/SegmentedToggle/SegmentedToggle';
 import FilterBar from '../../../shared/components/FilterBar/FilterBar';
+import IconToggle from '../../../shared/components/IconToggle/IconToggle';
 import { useQuery } from '@tanstack/react-query';
 import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 import { PartidoService, Partido } from '../services/partidoService';
@@ -215,34 +216,35 @@ const Partidos: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 pt-3 pb-8 sm:pt-5">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-4 flex items-center justify-end gap-3">
-          <SegmentedToggle
-            options={[
-              { value: 'lista', label: 'Lista' },
-              { value: 'calendario', label: 'Calendario' },
-            ]}
-            value={vista}
-            onChange={setVista}
-          />
-        </div>
-
         {/* Filtros */}
         <FilterBar
+          searchSlot={
+            <FilterCombobox
+              compact
+              items={equipoItems}
+              value={equipoId}
+              onChange={setEquipoId}
+              label="Equipo"
+              placeholder="Buscar por equipo..."
+            />
+          }
+          viewToggle={
+            <IconToggle
+              options={[
+                { value: 'lista', icon: '📋', label: 'Lista' },
+                { value: 'calendario', icon: '📅', label: 'Calendario' },
+              ]}
+              value={vista}
+              onChange={(v) => setVista(v as Vista)}
+            />
+          }
           showFilters={showFilters}
           onToggleFilters={() => setShowFilters(v => !v)}
           activeFiltersCount={chips.length}
           chips={chips}
         >
           <div className="space-y-4">
-              <FilterCombobox
-                items={equipoItems}
-                value={equipoId}
-                onChange={setEquipoId}
-                label="Equipo"
-                placeholder="Buscar equipo..."
-              />
-
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <div className="flex-1">
                   <MultiCheckDropdown
                     options={ESTADO_OPTIONS}
@@ -251,7 +253,7 @@ const Partidos: React.FC = () => {
                     label="Estado"
                   />
                 </div>
-                <div>
+                <div className="w-full sm:w-auto">
                   <label className="block text-sm font-medium text-slate-700 mb-1">Tipo</label>
                   <SegmentedToggle
                     options={(['todos', 'amistoso', 'competencia'] as TipoFiltro[]).map((t) => ({ value: t, label: TIPO_LABELS[t] }))}

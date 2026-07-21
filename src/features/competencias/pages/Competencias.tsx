@@ -4,8 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 import { CompetenciaCard } from '../../../shared/components';
 import { OrganizacionCard } from '../../../shared/components';
-import { SegmentedToggle } from '../../../shared/components';
 import { FilterBar } from '../../../shared/components';
+import { IconToggle } from '../../../shared/components';
 import { CompetenciaService, type Competencia } from '../services/competenciaService';
 import { OrganizacionService } from '../services/organizacionService';
 import { mapEstadoVariante, type CompetenciaEstadoVariante } from '../../../shared/utils/competenciaEstado';
@@ -106,54 +106,64 @@ const Competencias: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 pt-3 pb-8 sm:pt-5">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Toggle de vista */}
-        <div className="mb-4">
-          <SegmentedToggle
-            options={[
-              { value: 'todas', label: 'Todas las competencias' },
-              { value: 'organizaciones', label: 'Por organización' },
-            ]}
-            value={vista}
-            onChange={setVista}
-          />
-        </div>
+        {(() => {
+          const viewToggle = (
+            <IconToggle
+              options={[
+                { value: 'todas', icon: '🏆', label: 'Todas las competencias' },
+                { value: 'organizaciones', icon: '🏢', label: 'Por organización' },
+              ]}
+              value={vista}
+              onChange={(v) => setVista(v as Vista)}
+            />
+          );
 
-        {vista === 'todas' && (
-          <FilterBar
-            searchValue={busqueda}
-            onSearchChange={setBusqueda}
-            searchPlaceholder="Buscar competencia..."
-            showFilters={showFilters}
-            onToggleFilters={() => setShowFilters(v => !v)}
-            activeFiltersCount={activeFiltersCount}
-            chips={competenciasChips}
-          >
-            <p className="mb-2 text-xs font-medium text-slate-500">Estado</p>
-            <div className="flex flex-wrap gap-2">
-              {ESTADO_FILTROS.map(({ value, label }) => (
+          return vista === 'todas' ? (
+            <FilterBar
+              searchValue={busqueda}
+              onSearchChange={setBusqueda}
+              searchPlaceholder="Buscar competencia..."
+              viewToggle={viewToggle}
+              showFilters={showFilters}
+              onToggleFilters={() => setShowFilters(v => !v)}
+              activeFiltersCount={activeFiltersCount}
+              chips={competenciasChips}
+            >
+              <p className="mb-2 text-xs font-medium text-slate-500">Estado</p>
+              <div className="flex flex-wrap gap-2">
+                {ESTADO_FILTROS.map(({ value, label }) => (
+                  <button
+                    key={label}
+                    onClick={() => setEstadoFiltro(value)}
+                    className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                      estadoFiltro === value
+                        ? 'bg-brand-600 text-white'
+                        : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {activeFiltersCount > 0 && (
                 <button
-                  key={label}
-                  onClick={() => setEstadoFiltro(value)}
-                  className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
-                    estadoFiltro === value
-                      ? 'bg-brand-600 text-white'
-                      : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
-                  }`}
+                  onClick={() => setEstadoFiltro('')}
+                  className="mt-3 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors"
                 >
-                  {label}
+                  Limpiar filtros
                 </button>
-              ))}
-            </div>
-            {activeFiltersCount > 0 && (
-              <button
-                onClick={() => setEstadoFiltro('')}
-                className="mt-3 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors"
-              >
-                Limpiar filtros
-              </button>
-            )}
-          </FilterBar>
-        )}
+              )}
+            </FilterBar>
+          ) : (
+            <FilterBar
+              viewToggle={viewToggle}
+              hideFilterButton
+              showFilters={false}
+              onToggleFilters={() => {}}
+              activeFiltersCount={0}
+            />
+          );
+        })()}
 
         {vista === 'todas' ? (
           competenciasFiltradas.length === 0 ? (
