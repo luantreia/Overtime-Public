@@ -51,7 +51,6 @@ export const EquipoHeader: React.FC<EquipoHeaderProps> = ({ equipo, onBack }) =>
   const { addToast } = useToast();
   const [actionLoading, setActionLoading] = useState(false);
   const [solicitudEnviada, setSolicitudEnviada] = useState(false);
-  const [showAdminRequest, setShowAdminRequest] = useState(false);
 
   const escudo = equipo.escudo || equipo.imagen;
   const equipoId = equipo._id || equipo.id;
@@ -91,18 +90,12 @@ export const EquipoHeader: React.FC<EquipoHeaderProps> = ({ equipo, onBack }) =>
         ← Volver a equipos
       </button>
 
-      <div className="h-24 sm:h-32 bg-gradient-to-r from-slate-800 to-slate-900 flex items-end justify-end p-4 sm:p-6 -mt-6">
-        {!equipo.fechaDisolucion && (
-          <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-lg">
-            Activo
-          </span>
-        )}
-      </div>
+      <div className="h-16 sm:h-28 bg-gradient-to-r from-slate-800 to-slate-900 -mt-6" />
 
       <div className="px-4 sm:px-8 pb-6 sm:pb-8">
-        <div className="relative flex flex-col sm:flex-row sm:justify-between sm:items-end gap-3 -mt-10 sm:-mt-16 mb-6">
-          <div className="p-2 bg-white rounded-3xl shadow-md border border-slate-100 w-fit">
-            <div className="h-20 w-20 sm:h-32 sm:w-32 rounded-2xl bg-slate-50 flex items-center justify-center text-3xl sm:text-4xl font-bold text-slate-300 overflow-hidden border border-slate-100">
+        <div className="flex items-end gap-4 -mt-8 sm:-mt-14 mb-4">
+          <div className="p-2 bg-white rounded-3xl shadow-md border border-slate-100 w-fit flex-shrink-0">
+            <div className="h-[72px] w-[72px] sm:h-32 sm:w-32 rounded-2xl bg-slate-50 flex items-center justify-center text-2xl sm:text-4xl font-bold text-slate-300 overflow-hidden border border-slate-100">
               {escudo ? (
                 <img src={escudo} alt={equipo.nombre} className="h-full w-full object-cover" />
               ) : (
@@ -110,55 +103,20 @@ export const EquipoHeader: React.FC<EquipoHeaderProps> = ({ equipo, onBack }) =>
               )}
             </div>
           </div>
-
-          {!esAdmin && (equipo.administradores?.length ?? 0) < MAX_ADMINS && (
-            <div className="flex flex-col items-start sm:items-end gap-2">
-              {solicitudEnviada ? (
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-100 rounded-lg">
-                  <span className="flex h-1.5 w-1.5 rounded-full bg-green-500"></span>
-                  <span className="text-xs font-semibold text-green-700">Solicitud enviada</span>
-                </div>
-              ) : (
-                <>
-                  <button
-                    onClick={() => setShowAdminRequest((v) => !v)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-400 hover:text-slate-600 hover:border-slate-300 transition-all text-xs"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Datos desactualizados
-                  </button>
-
-                  {showAdminRequest && (
-                    <div className="w-full sm:w-72 p-4 bg-white border border-slate-200 rounded-xl shadow-lg text-sm text-slate-600 space-y-3">
-                      <p>Si sos responsable de este equipo, podés solicitar administración para mantener el perfil actualizado.</p>
-                      {user ? (
-                        <button
-                          onClick={handleRequestAdmin}
-                          disabled={actionLoading}
-                          className="w-full py-2 bg-brand-600 text-white rounded-lg font-semibold text-xs hover:bg-brand-700 transition-all disabled:opacity-50"
-                        >
-                          {actionLoading ? 'Enviando...' : 'Solicitar administración'}
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => navigate(`/register?redirect=/equipos/${equipoId}`)}
-                          className="w-full py-2 bg-brand-600 text-white rounded-lg font-semibold text-xs hover:bg-brand-700 transition-all"
-                        >
-                          Registrate para solicitarlo
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          )}
         </div>
 
         <div className="pb-4 sm:pb-5">
-          <h1 className="text-xl sm:text-4xl font-extrabold text-slate-900 break-words">{equipo.nombre}</h1>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-xl sm:text-4xl font-extrabold text-slate-900 break-words">{equipo.nombre}</h1>
+            {!equipo.fechaDisolucion && (
+              <span className="inline-flex items-center gap-1 bg-green-100 text-green-800 text-[11px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                Activo
+              </span>
+            )}
+          </div>
           <div className="flex flex-wrap items-center gap-2 mt-2">
             {equipo.ciudad && (
               <span className="text-sm sm:text-lg text-slate-500 flex items-center gap-1">
@@ -175,10 +133,31 @@ export const EquipoHeader: React.FC<EquipoHeaderProps> = ({ equipo, onBack }) =>
               </span>
             )}
           </div>
+
+          {((equipo.miembros ?? 0) > 0 || (equipo.participaciontemporadas?.length ?? 0) > 0) && (
+            <div className="flex flex-wrap items-center gap-4 mt-3 text-xs sm:text-sm text-slate-500">
+              {(equipo.miembros ?? 0) > 0 && (
+                <span className="flex items-center gap-1.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                  </svg>
+                  <span><strong className="text-slate-700">{equipo.miembros}</strong> en el plantel</span>
+                </span>
+              )}
+              {(equipo.participaciontemporadas?.length ?? 0) > 0 && (
+                <span className="flex items-center gap-1.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                  </svg>
+                  <span><strong className="text-slate-700">{equipo.participaciontemporadas!.length}</strong> temporada{equipo.participaciontemporadas!.length !== 1 ? 's' : ''} jugada{equipo.participaciontemporadas!.length !== 1 ? 's' : ''}</span>
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {(equipo.sitioWeb || (equipo.redesSociales && Object.values(equipo.redesSociales).some(Boolean))) && (
-          <div className="flex flex-wrap items-center gap-2 py-4 border-t border-slate-100">
+          <div className="flex flex-wrap items-center gap-3 py-4 border-t border-slate-100">
             {equipo.sitioWeb && (
               <a
                 href={equipo.sitioWeb.startsWith('http') ? equipo.sitioWeb : `https://${equipo.sitioWeb}`}
@@ -201,7 +180,7 @@ export const EquipoHeader: React.FC<EquipoHeaderProps> = ({ equipo, onBack }) =>
                   rel="noopener noreferrer"
                   aria-label={label}
                   title={label}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-brand-50 hover:text-brand-600 transition-colors"
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-brand-50 hover:text-brand-600 transition-colors"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
                     {path}
@@ -210,6 +189,45 @@ export const EquipoHeader: React.FC<EquipoHeaderProps> = ({ equipo, onBack }) =>
               );
             })}
           </div>
+        )}
+
+        {!esAdmin && (equipo.administradores?.length ?? 0) < MAX_ADMINS && (
+          <details className="pt-4 border-t border-slate-100 group">
+            <summary className="text-xs text-slate-400 hover:text-slate-600 cursor-pointer list-none flex items-center gap-1.5">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              ¿Sos responsable de este equipo?
+            </summary>
+            <div className="mt-3 max-w-sm">
+              {solicitudEnviada ? (
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-100 rounded-lg w-fit">
+                  <span className="flex h-1.5 w-1.5 rounded-full bg-green-500"></span>
+                  <span className="text-xs font-semibold text-green-700">Solicitud enviada</span>
+                </div>
+              ) : (
+                <div className="p-4 bg-white border border-slate-200 rounded-xl text-sm text-slate-600 space-y-3">
+                  <p>Si sos responsable de este equipo, podés solicitar administración para mantener el perfil actualizado.</p>
+                  {user ? (
+                    <button
+                      onClick={handleRequestAdmin}
+                      disabled={actionLoading}
+                      className="w-full py-2 bg-brand-600 text-white rounded-lg font-semibold text-xs hover:bg-brand-700 transition-all disabled:opacity-50"
+                    >
+                      {actionLoading ? 'Enviando...' : 'Solicitar administración'}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => navigate(`/register?redirect=/equipos/${equipoId}`)}
+                      className="w-full py-2 bg-brand-600 text-white rounded-lg font-semibold text-xs hover:bg-brand-700 transition-all"
+                    >
+                      Registrate para solicitarlo
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </details>
         )}
       </div>
     </div>
