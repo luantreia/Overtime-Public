@@ -59,21 +59,14 @@ const Jugadores: React.FC = () => {
     if (genderFilter) items = items.filter(j => j.genero === genderFilter);
     if (nationalityFilter) items = items.filter(j => j.nacionalidad === nationalityFilter);
 
-    // 3. Aplicar Discovery Score (el orden dinámico que definimos antes)
-    const getDiscoveryScore = (j: Jugador, seed: number) => {
-      let score = 0;
-      if (j.foto) score += 10;
-      if (j.alias) score += 8;
-      if (j.userId || j.perfilReclamado) score += 15;
-      const activity = (j.partidosCount || 0) + (j.equiposCount || 0) * 2;
-      score += Math.min(activity, 30);
+    // 3. Orden: rotación diaria (mezcla estable durante 24hs, cambia al día siguiente)
+    const getDailyNoise = (j: Jugador, seed: number) => {
       const playerIdStr = (j._id || j.id || '0').toString();
       const idHash = playerIdStr.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-      const dailyNoise = (idHash + seed) % 15;
-      return score + dailyNoise;
+      return (idHash + seed) % 15;
     };
 
-    items.sort((a, b) => getDiscoveryScore(b, discoverySeed) - getDiscoveryScore(a, discoverySeed));
+    items.sort((a, b) => getDailyNoise(b, discoverySeed) - getDailyNoise(a, discoverySeed));
     
     return items;
   }, [paged, searchTerm, genderFilter, nationalityFilter, discoverySeed]);
