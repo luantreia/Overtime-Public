@@ -103,8 +103,8 @@ export const EquipoResumenTab: React.FC<EquipoResumenTabProps> = ({ equipo, equi
           <div className="text-xs sm:text-sm text-slate-500">Títulos</div>
         </div>
         <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 text-center">
-          <div className="text-2xl font-bold text-slate-900">{equipo.equipopartido?.length || 0}</div>
-          <div className="text-xs sm:text-sm text-slate-500">Partidos Registrados</div>
+          <div className="text-2xl font-bold text-slate-900">{partidosFinalizados.length}</div>
+          <div className="text-xs sm:text-sm text-slate-500">Partidos Jugados</div>
         </div>
         <div className="bg-emerald-50 rounded-2xl p-5 border border-emerald-100 text-center">
           <div className="text-2xl font-bold text-emerald-700">{ganados}</div>

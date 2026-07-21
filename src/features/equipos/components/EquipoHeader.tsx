@@ -126,24 +126,14 @@ export const EquipoHeader: React.FC<EquipoHeaderProps> = ({ equipo }) => {
             )}
           </div>
 
-          {((equipo.miembros ?? 0) > 0 || (equipo.participaciontemporadas?.length ?? 0) > 0) && (
+          {(equipo.miembros ?? 0) > 0 && (
             <div className="flex flex-wrap items-center gap-4 mt-3 text-xs sm:text-sm text-slate-500">
-              {(equipo.miembros ?? 0) > 0 && (
-                <span className="flex items-center gap-1.5">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-                  </svg>
-                  <span><strong className="text-slate-700">{equipo.miembros}</strong> en el plantel</span>
-                </span>
-              )}
-              {(equipo.participaciontemporadas?.length ?? 0) > 0 && (
-                <span className="flex items-center gap-1.5">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-                  </svg>
-                  <span><strong className="text-slate-700">{equipo.participaciontemporadas!.length}</strong> temporada{equipo.participaciontemporadas!.length !== 1 ? 's' : ''} jugada{equipo.participaciontemporadas!.length !== 1 ? 's' : ''}</span>
-                </span>
-              )}
+              <span className="flex items-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                </svg>
+                <span><strong className="text-slate-700">{equipo.miembros}</strong> en el plantel</span>
+              </span>
             </div>
           )}
         </div>
