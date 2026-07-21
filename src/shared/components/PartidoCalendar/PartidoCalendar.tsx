@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import PartidoCard from '../PartidoCard';
 import ModalBase from '../ModalBase/ModalBase';
 import { EstadisticasPartidoModal } from '../EstadisticasPartidoModal';
+import SegmentedToggle from '../SegmentedToggle/SegmentedToggle';
 import { type Partido } from '../../../features/partidos/services/partidoService';
 
 export type Escala = 'anual' | 'mensual' | 'semanal';
@@ -148,8 +149,8 @@ export const PartidoCalendar: React.FC<PartidoCalendarProps> = ({
         type="button"
         disabled={items.length === 0}
         onClick={() => setDiaSeleccionado(key)}
-        className={`flex flex-col items-stretch rounded-lg border p-1.5 text-left transition-colors ${
-          opts.compact ? 'min-h-[52px]' : 'min-h-[88px]'
+        className={`flex flex-col items-stretch rounded-lg border p-1 sm:p-1.5 text-left transition-colors ${
+          opts.compact ? 'min-h-[40px] sm:min-h-[52px]' : 'min-h-[52px] sm:min-h-[88px]'
         } ${
           opts.fueraDeMes ? 'border-transparent bg-slate-50/50 opacity-40' : 'border-slate-100 bg-white'
         } ${items.length > 0 ? 'hover:border-brand-300 hover:shadow-sm cursor-pointer' : 'cursor-default'} ${
@@ -168,19 +169,30 @@ export const PartidoCalendar: React.FC<PartidoCalendarProps> = ({
             </span>
           )
         ) : (
-          <div className="mt-1 space-y-0.5">
-            {visibles.map((p, i) => (
-              <span key={p.id || p._id || i} className="flex items-center gap-1 truncate text-[10px] font-medium text-slate-600">
-                <span className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${ESTADO_DOT[p.estado || 'programado']}`} />
-                <span className="truncate">{labelFn(p)}</span>
-              </span>
-            ))}
-            {tieneOverflow && (
-              <span className="block text-[10px] font-semibold text-brand-600">
-                +{items.length - opts.maxChips} más
+          <>
+            {/* Mobile: solo puntos de estado, el detalle completo se ve al tocar el día */}
+            {items.length > 0 && (
+              <span className="mt-1 flex flex-wrap gap-0.5 sm:hidden">
+                {items.slice(0, 6).map((p, i) => (
+                  <span key={p.id || p._id || i} className={`h-1.5 w-1.5 rounded-full ${ESTADO_DOT[p.estado || 'programado']}`} />
+                ))}
               </span>
             )}
-          </div>
+            {/* Desktop: nombres de los partidos, hay espacio para mostrarlos */}
+            <div className="mt-1 hidden space-y-0.5 sm:block">
+              {visibles.map((p, i) => (
+                <span key={p.id || p._id || i} className="flex items-center gap-1 truncate text-[10px] font-medium text-slate-600">
+                  <span className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${ESTADO_DOT[p.estado || 'programado']}`} />
+                  <span className="truncate">{labelFn(p)}</span>
+                </span>
+              ))}
+              {tieneOverflow && (
+                <span className="block text-[10px] font-semibold text-brand-600">
+                  +{items.length - opts.maxChips} más
+                </span>
+              )}
+            </div>
+          </>
         )}
       </button>
     );
@@ -188,21 +200,18 @@ export const PartidoCalendar: React.FC<PartidoCalendarProps> = ({
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <div className="flex bg-slate-100 p-1 rounded-lg">
-          {(['semanal', 'mensual', 'anual'] as Escala[]).map((e) => (
-            <button
-              key={e}
-              onClick={() => setEscala(e)}
-              className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md capitalize transition-all ${
-                escala === e ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              {e}
-            </button>
-          ))}
-        </div>
-        <div className="flex items-center gap-1">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+        <SegmentedToggle
+          className="w-full justify-between sm:w-auto sm:justify-start"
+          options={[
+            { value: 'semanal', label: 'Semanal' },
+            { value: 'mensual', label: 'Mensual' },
+            { value: 'anual', label: 'Anual' },
+          ]}
+          value={escala}
+          onChange={(v) => setEscala(v as Escala)}
+        />
+        <div className="flex items-center justify-center gap-1">
           <button onClick={() => navegar(-1)} className="h-8 w-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50">
             ‹
           </button>

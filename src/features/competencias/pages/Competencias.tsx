@@ -24,6 +24,7 @@ const Competencias: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [busqueda, setBusqueda] = useState('');
+  const [busquedaOrg, setBusquedaOrg] = useState('');
   const [estadoFiltro, setEstadoFiltro] = useState<CompetenciaEstadoVariante | ''>('');
   const [showFilters, setShowFilters] = useState(false);
   const activeFiltersCount = estadoFiltro ? 1 : 0;
@@ -66,6 +67,12 @@ const Competencias: React.FC = () => {
       return true;
     });
   }, [competencias, estadoFiltro, busqueda]);
+
+  const organizacionesFiltradas = useMemo(() => {
+    if (!busquedaOrg.trim()) return organizaciones;
+    const q = busquedaOrg.trim().toLowerCase();
+    return organizaciones.filter((o) => o.nombre.toLowerCase().includes(q));
+  }, [organizaciones, busquedaOrg]);
 
   const loading = vista === 'todas' ? loadingComps : loadingOrgs;
   const error = vista === 'todas' ? errorComps : errorOrgs;
@@ -156,6 +163,9 @@ const Competencias: React.FC = () => {
             </FilterBar>
           ) : (
             <FilterBar
+              searchValue={busquedaOrg}
+              onSearchChange={setBusquedaOrg}
+              searchPlaceholder="Buscar organización..."
               viewToggle={viewToggle}
               hideFilterButton
               showFilters={false}
@@ -193,13 +203,15 @@ const Competencias: React.FC = () => {
               ))}
             </div>
           )
-        ) : organizaciones.length === 0 ? (
+        ) : organizacionesFiltradas.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-slate-500">No hay organizaciones disponibles</p>
+            <p className="text-slate-500">
+              {busquedaOrg ? 'No hay organizaciones que coincidan con la búsqueda.' : 'No hay organizaciones disponibles'}
+            </p>
           </div>
         ) : (
           <div className="grid gap-3 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {organizaciones.map((organizacion) => (
+            {organizacionesFiltradas.map((organizacion) => (
               <OrganizacionCard
                 key={organizacion.id}
                 organizacion={organizacion}
