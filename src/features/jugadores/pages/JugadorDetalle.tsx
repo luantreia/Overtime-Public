@@ -410,19 +410,19 @@ const JugadorDetalle: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8">
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-        <button 
-          onClick={() => navigate('/jugadores')} 
-          className="mb-6 text-sm text-slate-500 hover:text-slate-700 flex items-center gap-1"
-        >
-          ← Volver a jugadores
-        </button>
+    <div className="min-h-screen bg-slate-50 sm:py-8">
+      <div className="mx-auto max-w-4xl sm:px-4 sm:px-6 lg:px-8">
+        <div className="bg-white sm:rounded-2xl shadow-none sm:shadow-sm border-0 sm:border sm:border-slate-200 overflow-hidden">
+          <button
+            onClick={() => navigate('/jugadores')}
+            className="mt-4 ml-4 sm:ml-6 text-sm text-slate-500 hover:text-slate-700 flex items-center gap-1"
+          >
+            ← Volver a jugadores
+          </button>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
           {/* Header/Cover color */}
-          <div className="h-24 sm:h-32 bg-gradient-to-r from-brand-600 to-indigo-600"></div>
-          
+          <div className="h-24 sm:h-32 bg-gradient-to-r from-brand-600 to-indigo-600 -mt-6"></div>
+
           <div className="px-4 sm:px-6 pb-6 sm:pb-8">
             <div className="relative flex flex-col sm:flex-row justify-between items-center sm:items-end -mt-12 mb-6 gap-4">
               <div className="p-1 bg-white rounded-2xl shadow-sm">
@@ -461,14 +461,6 @@ const JugadorDetalle: React.FC = () => {
                     <span className="flex h-2 w-2 rounded-full bg-green-500"></span>
                     <span className="text-xs font-bold text-green-700 uppercase tracking-wider">Perfil Verificado</span>
                   </div>
-                  {isOwner && !isEditing && (
-                    <button
-                      onClick={handleStartEdit}
-                      className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-brand-600 border border-slate-200 hover:border-brand-200 rounded-xl transition-all"
-                    >
-                      Editar
-                    </button>
-                  )}
                 </div>
               )}
             </div>
