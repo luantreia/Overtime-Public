@@ -1,22 +1,22 @@
-import React, { useCallback, useMemo, useState, useRef } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { usePageTitle } from '../../../shared/hooks/usePageTitle';
-import { toPng } from 'html-to-image';
 import { useQuery } from '@tanstack/react-query';
 import { JugadorService } from '../services/jugadorService';
 import { CompetenciaService } from '../../competencias/services/competenciaService';
 import { JugadorCompetenciaService } from '../../competencias/services/jugadorCompetenciaService';
-import { RankedService } from '../../competencias/services/rankedService';
-import { TemporadaService } from '../../competencias/services/temporadaService';
-import { FaseService } from '../../competencias/services/faseService';
-import { PartidoService } from '../../partidos/services/partidoService';
-import { TablaPosiciones } from '../../../shared/components/TablaPosiciones/TablaPosiciones';
-import { Bracket } from '../../../shared/components/Bracket/Bracket';
-import { PlayerRankedHistoryModal } from '../../competencias/components';
+import { PlayerRankedHistoryModal, JugadorCompetenciaModal } from '../../competencias/components';
 import { DashboardMaestro } from '../components/DashboardMaestro';
-import { UnifiedHistory } from '../components/UnifiedHistory';
+import { PartidosHistorial } from '../components/PartidosHistorial';
 import { useAuth } from '../../../app/providers/AuthContext';
 import { useToast } from '../../../shared/components/Toast/ToastProvider';
+
+type Tab = 'partidos' | 'torneos' | 'lod';
+
+interface TemporadaBadge {
+  _id: string;
+  nombre: string;
+}
 
 const JugadorDetalle: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -39,16 +39,26 @@ const JugadorDetalle: React.FC = () => {
     queryKey: ['jugador-competencias-detalle', id],
     queryFn: async () => {
       if (!id) return [];
-      
+
       // Intentar obtener de ambas fuentes para máxima cobertura
       const [jcArray, allComps] = await Promise.all([
         JugadorCompetenciaService.getByJugador(id),
         JugadorService.getCompetencias(id)
       ]);
-      
+
+      // Mapa auxiliar por ID de competencia con los datos ya enriquecidos
+      // (matchCount, playedSeasonIds) que devuelve el endpoint unificado.
+      const enrichedByCompId = new Map<string, any>();
+      if (Array.isArray(allComps)) {
+        allComps.forEach((comp: any) => {
+          const cid = (comp?._id || comp?.id)?.toString();
+          if (cid) enrichedByCompId.set(cid, comp);
+        });
+      }
+
       // Unificar por ID de competencia
       const uniqueCompsMap = new Map();
-      
+
       // Primero meter las de JugadorCompetencia (que tienen la relación manual)
       if (Array.isArray(jcArray)) {
         jcArray.forEach(rel => {
@@ -64,7 +74,7 @@ const JugadorDetalle: React.FC = () => {
           }
         });
       }
-      
+
       // Luego meter las del endpoint unificado si no están
       if (Array.isArray(allComps)) {
         allComps.forEach(comp => {
@@ -82,7 +92,7 @@ const JugadorDetalle: React.FC = () => {
 
       const compsPromises = Array.from(uniqueCompsMap.values()).map(async (item) => {
         const { competencia: comp, relacion: rel } = item;
-        
+
         // Si no tenemos el objeto completo, intentar cargarlo
         let fullComp = comp;
         if (!comp.nombre || comp.nombre === 'Cargando...') {
@@ -93,61 +103,19 @@ const JugadorDetalle: React.FC = () => {
           }
         }
 
+        const compId = (comp._id || comp.id)?.toString();
+        const enriched = compId ? enrichedByCompId.get(compId) : null;
         const isRanked = fullComp.rankedEnabled === true;
-        let rankedData = null;
-        let normalData = null;
-        let allSeasons: any[] = [];
-        const compId = comp._id || comp.id;
-
-        // Fetch all available seasons for both types
-        try {
-          allSeasons = await TemporadaService.getByCompetencia(compId);
-        } catch (e) {
-          console.error('Error fetching seasons', e);
-        }
-
-        if (isRanked) {
-          const res = await RankedService.getRankContext(id, {
-            modalidad: comp.modalidad || 'Foam',
-            categoria: comp.categoria || 'Libre',
-            competition: compId,
-            season: undefined // Global by default
-          });
-          if (res.ok) rankedData = { ...res, selectedSeasonId: 'global' };
-        } else {
-          let selectedSeason = null;
-          if (comp.preferredSeasonId) {
-            selectedSeason = allSeasons.find(s => s._id === comp.preferredSeasonId);
-          }
-
-          if (!selectedSeason && allSeasons.length > 0) {
-            selectedSeason = allSeasons[allSeasons.length - 1]; // Fallback to latest
-          }
-
-          if (selectedSeason) {
-            const fasesRes = await FaseService.getByTemporada(selectedSeason._id || (selectedSeason as any).id);
-            if (fasesRes.length > 0) {
-              const lastFase = fasesRes[fasesRes.length - 1];
-              let matches: any[] = [];
-              if (lastFase.tipo === 'playoff') {
-                matches = await PartidoService.getByFaseId(lastFase._id);
-              }
-              normalData = {
-                temporada: selectedSeason,
-                fase: lastFase,
-                matches
-              };
-            }
-          }
-        }
+        const playedSeasonIds: TemporadaBadge[] = enriched?.playedSeasonIds || [];
 
         return {
-          competencia: { ...fullComp, matchCount: comp.matchCount },
+          competencia: {
+            ...fullComp,
+            matchCount: enriched?.matchCount ?? comp.matchCount ?? 0,
+          },
           relacion: rel,
           isRanked,
-          rankedData,
-          normalData,
-          allSeasons
+          playedSeasonIds,
         };
       });
 
@@ -196,73 +164,42 @@ const JugadorDetalle: React.FC = () => {
 
   const equiposActivosAgrupados = useMemo(() => groupByEquipo(equiposActivos), [equiposActivos]);
 
-  const [seasonOverrides, setSeasonOverrides] = useState<Record<number, Partial<{ rankedData: any; normalData: any }>>>({});
-
-  const displayCompsData = useMemo(
-    () => competenciasData.map((d, i) => seasonOverrides[i] ? { ...d, ...seasonOverrides[i] } : d),
-    [competenciasData, seasonOverrides]
-  );
-
   usePageTitle(jugador?.nombre);
   const [actionLoading, setActionLoading] = useState(false);
   const [showAllComps, setShowAllComps] = useState(false);
-  const [expandedComps, setExpandedComps] = useState<Record<number, boolean>>({});
-  const toggleExpandedComp = (idx: number) => setExpandedComps(prev => ({ ...prev, [idx]: !prev[idx] }));
-  const activeTab = (searchParams.get('tab') as 'dashboard' | 'history' | 'leagues') || 'history';
-  const setActiveTab = useCallback((tab: 'dashboard' | 'history' | 'leagues') => {
+  const activeTab = (searchParams.get('tab') as Tab) || 'partidos';
+  const setActiveTab = useCallback((tab: Tab) => {
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
-      if (tab === 'history') next.delete('tab');
+      if (tab === 'partidos') next.delete('tab');
       else next.set('tab', tab);
       return next;
     }, { replace: true });
   }, [setSearchParams]);
 
-  // Modal State
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedCompForModal, setSelectedCompForModal] = useState<any>(null);
+  // Modal de historial ranked (temporada puntual)
+  const [rankedModalData, setRankedModalData] = useState<{
+    competencia: any;
+    seasonId: string;
+  } | null>(null);
 
-  const handleOpenModal = (compData: any) => {
-    setSelectedCompForModal(compData);
-    setIsModalOpen(true);
-  };
+  // Modal de competencia no-ranked (Posiciones/Bracket + Partidos)
+  const [compModalData, setCompModalData] = useState<{
+    competenciaId: string;
+    temporadas: TemporadaBadge[];
+    initialTemporadaId: string;
+  } | null>(null);
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-  };
-
-  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
-
-  const handleExportImage = async (idx: number, compName: string) => {
-    const node = cardRefs.current[idx];
-    if (node) {
-      try {
-        const dataUrl = await toPng(node, {
-          filter: (el: any) => {
-            // Ignorar elementos marcados explícitamente, botones y selects
-            if (
-              el.classList?.contains('no-export') || 
-              el.tagName === 'BUTTON' || 
-              el.tagName === 'SELECT'
-            ) return false;
-            return true;
-          },
-          backgroundColor: '#ffffff',
-          style: {
-            borderRadius: '16px'
-          },
-          cacheBust: true,
-        });
-        
-        const link = document.createElement('a');
-        const playerName = jugador?.nombre?.replace(/\s+/g, '-') || 'jugador';
-        const competitionName = compName.replace(/\s+/g, '-') || 'competencia';
-        link.download = `ranking-${playerName}-${competitionName}.png`;
-        link.href = dataUrl;
-        link.click();
-      } catch (err) {
-        console.error('Error generating image', err);
-      }
+  const handleBadgeClick = (data: any, season: TemporadaBadge) => {
+    const compId = data.competencia._id || data.competencia.id;
+    if (data.isRanked) {
+      setRankedModalData({ competencia: data.competencia, seasonId: season._id });
+    } else {
+      setCompModalData({
+        competenciaId: compId,
+        temporadas: data.playedSeasonIds,
+        initialTemporadaId: season._id,
+      });
     }
   };
 
@@ -287,45 +224,6 @@ const JugadorDetalle: React.FC = () => {
     }
   };
 
-  const handleSeasonChange = async (compIdx: number, seasonId: string) => {
-    const data = displayCompsData[compIdx];
-    if (!data) return;
-
-    try {
-      if (data.isRanked) {
-        const res = await RankedService.getRankContext(id!, {
-          modalidad: data.competencia.modalidad || 'Foam',
-          categoria: data.competencia.categoria || 'Libre',
-          competition: data.competencia._id || data.competencia.id,
-          season: seasonId === 'global' ? undefined : seasonId
-        });
-        if (res.ok) {
-          setSeasonOverrides(prev => ({
-            ...prev,
-            [compIdx]: { ...prev[compIdx], rankedData: { ...res, selectedSeasonId: seasonId } }
-          }));
-        }
-      } else {
-        const selectedSeason = data.allSeasons.find((s: any) => s._id === seasonId);
-        if (!selectedSeason) return;
-
-        const fasesRes = await FaseService.getByTemporada(selectedSeason._id);
-        let normalData: { temporada: any; fase: any; matches: any[] } | null = null;
-        if (fasesRes.length > 0) {
-          const lastFase = fasesRes[fasesRes.length - 1];
-          let matches: any[] = [];
-          if (lastFase.tipo === 'playoff') {
-            matches = await PartidoService.getByFaseId(lastFase._id);
-          }
-          normalData = { temporada: selectedSeason, fase: lastFase, matches };
-        }
-        setSeasonOverrides(prev => ({ ...prev, [compIdx]: { ...prev[compIdx], normalData } }));
-      }
-    } catch (err) {
-      console.error('Error changing season:', err);
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -344,8 +242,8 @@ const JugadorDetalle: React.FC = () => {
           <p className="mb-4 text-red-600">
             Error al cargar jugador: {error instanceof Error ? error.message : (error || 'No encontrado')}
           </p>
-          <button 
-            onClick={() => navigate('/jugadores')} 
+          <button
+            onClick={() => navigate('/jugadores')}
             className="text-brand-600 hover:underline"
           >
             Volver a la lista
@@ -435,50 +333,44 @@ const JugadorDetalle: React.FC = () => {
             {/* Navigation Tabs - Full width, sin scroll */}
             <div className="grid grid-cols-3 gap-1 p-1 bg-slate-100/50 rounded-2xl border border-slate-100 mt-8 mb-8">
                  <button
-                  onClick={() => setActiveTab('history')}
+                  onClick={() => setActiveTab('partidos')}
                   className={`px-2 py-2.5 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wide sm:tracking-widest transition-all text-center ${
-                    activeTab === 'history' ? 'bg-white text-brand-700 shadow-sm shadow-brand-100 ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700'
+                    activeTab === 'partidos' ? 'bg-white text-brand-700 shadow-sm shadow-brand-100 ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700'
                   }`}
                  >
-                   Historial
+                   Partidos
                  </button>
                  <button
-                  onClick={() => setActiveTab('dashboard')}
+                  onClick={() => setActiveTab('torneos')}
                   className={`px-2 py-2.5 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wide sm:tracking-widest transition-all text-center ${
-                    activeTab === 'dashboard' ? 'bg-white text-brand-700 shadow-sm shadow-brand-100 ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700'
+                    activeTab === 'torneos' ? 'bg-white text-brand-700 shadow-sm shadow-brand-100 ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700'
                   }`}
                  >
-                   Dashboard
+                   Torneos
                  </button>
                  <button
-                  onClick={() => setActiveTab('leagues')}
+                  onClick={() => setActiveTab('lod')}
                   className={`px-2 py-2.5 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wide sm:tracking-widest transition-all text-center ${
-                    activeTab === 'leagues' ? 'bg-white text-brand-700 shadow-sm shadow-brand-100 ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700'
+                    activeTab === 'lod' ? 'bg-white text-brand-700 shadow-sm shadow-brand-100 ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700'
                   }`}
                  >
-                   <span className="sm:hidden">Ligas</span>
-                   <span className="hidden sm:inline">Ligas / Torneos</span>
+                   LoD
                  </button>
             </div>
 
-            {/* TAB CONTENT: DASHBOARD */}
-            {activeTab === 'dashboard' && (
-              <DashboardMaestro jugadorId={id!} jugador={jugador} />
+            {/* TAB CONTENT: PARTIDOS */}
+            {activeTab === 'partidos' && (
+              <PartidosHistorial jugadorId={id!} />
             )}
 
-            {/* TAB CONTENT: HISTORY */}
-            {activeTab === 'history' && (
-              <UnifiedHistory jugadorId={id!} />
-            )}
-
-            {/* TAB CONTENT: COMPETENCIAS (Original View) */}
-            {activeTab === 'leagues' && (
+            {/* TAB CONTENT: TORNEOS */}
+            {activeTab === 'torneos' && (
               <div className="mt-4">
                 <div className="flex items-center gap-3 mb-6">
-                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 uppercase tracking-tight">Participación en Ligas</h2>
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 uppercase tracking-tight">Participación en Torneos</h2>
                   <div className="h-px flex-1 bg-slate-100"></div>
                 </div>
-              
+
               {loadingComps ? (
                 <div className="flex justify-center py-12">
                   <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600"></div>
@@ -488,28 +380,28 @@ const JugadorDetalle: React.FC = () => {
                   Este jugador no participa actualmente en ninguna competencia.
                 </p>
               ) : (
-                <div className="space-y-8">
-                  {displayCompsData.slice(0, showAllComps ? undefined : 3).map((data, idx) => (
-                    <div 
-                      key={idx} 
-                      ref={el => cardRefs.current[idx] = el}
-                      className="rounded-xl border border-slate-200 overflow-hidden hover:border-brand-300 transition-colors"
+                <div className="space-y-3">
+                  {competenciasData.slice(0, showAllComps ? undefined : 3).map((data, idx) => (
+                    <div
+                      key={idx}
+                      className="p-4 bg-white border border-slate-200 rounded-xl hover:border-brand-200 transition-colors"
                     >
-                      {/* Comp Card Header - More Compact */}
-                      <div
-                        className="p-5 sm:p-6 cursor-pointer flex items-center justify-between bg-slate-50/30"
-                        onClick={() => navigate(`/competencias/${data.competencia._id || data.competencia.id}`)}
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-brand-50 flex items-center justify-center text-brand-600 font-bold overflow-hidden border border-brand-100 flex-shrink-0">
+                      <div className="flex items-center justify-between gap-4">
+                        <div
+                          className="min-w-0 flex items-center gap-3 cursor-pointer"
+                          onClick={() => navigate(`/competencias/${data.competencia._id || data.competencia.id}`)}
+                        >
+                          <div className="h-10 w-10 rounded-lg bg-brand-50 flex items-center justify-center text-brand-600 font-bold overflow-hidden border border-brand-100 flex-shrink-0">
                             {data.competencia.imagen ? (
                               <img src={data.competencia.imagen} alt={data.competencia.nombre} className="h-full w-full object-cover" />
                             ) : (
                               data.competencia.nombre.charAt(0)
                             )}
                           </div>
-                          <div>
-                            <h3 className="text-base sm:text-lg font-bold text-slate-900 leading-tight">{data.competencia.nombre}</h3>
+                          <div className="min-w-0">
+                            <div className="font-semibold text-slate-900 truncate hover:text-brand-600">
+                              {data.competencia.nombre}
+                            </div>
                             <div className="flex flex-wrap items-center gap-2 mt-0.5">
                               <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
                                 data.isRanked ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700'
@@ -529,173 +421,35 @@ const JugadorDetalle: React.FC = () => {
                             </div>
                           </div>
                         </div>
-                        <div className="text-slate-400 no-export flex-shrink-0">
-                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="9 5l7 7-7 7" />
-                          </svg>
+                      </div>
+
+                      {data.playedSeasonIds && data.playedSeasonIds.length > 0 ? (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {data.playedSeasonIds.map((season: TemporadaBadge) => (
+                            <button
+                              type="button"
+                              key={season._id}
+                              onClick={() => handleBadgeClick(data, season)}
+                              className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700 hover:bg-brand-50 hover:text-brand-700 transition-colors"
+                            >
+                              {season.nombre}
+                            </button>
+                          ))}
                         </div>
-                      </div>
-
-                      {/* Content Area - More Compact */}
-                      <div className="px-5 sm:px-6 pt-4 pb-5 border-t border-slate-100">
-                        {data.isRanked && data.rankedData ? (
-                          <div className="flex flex-col gap-4">
-                            <div className="flex items-center justify-between gap-2">
-                              <div className="flex items-center gap-6 py-1">
-                                <div>
-                                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Rank</p>
-                                  <p className="text-xl font-black text-indigo-700 leading-none">#{data.rankedData.rank}</p>
-                                </div>
-                                <div className="h-8 w-px bg-slate-200"></div>
-                                <div>
-                                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">ELO</p>
-                                  <p className="text-xl font-black text-indigo-700 leading-none">
-                                    {Number(data.rankedData.context.find((it: any) => it.isCurrent)?.rating || 0).toFixed(3)}
-                                  </p>
-                                </div>
-                              </div>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); toggleExpandedComp(idx); }}
-                                className="no-export shrink-0 flex items-center gap-1 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-500 hover:text-brand-600 border border-slate-200 hover:border-brand-200 rounded-lg transition-colors"
-                              >
-                                {expandedComps[idx] ? 'Ocultar' : 'Ver detalle'}
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className={`h-3 w-3 transition-transform ${expandedComps[idx] ? 'rotate-180' : ''}`}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                </svg>
-                              </button>
-                            </div>
-
-                            {expandedComps[idx] && (
-                              <>
-                                {data.allSeasons && data.allSeasons.length > 0 && (
-                                  <select
-                                    className="no-export self-start text-[10px] bg-slate-100 border-none rounded px-2 py-1 font-bold text-slate-600 focus:ring-1 focus:ring-brand-500 outline-none cursor-pointer"
-                                    value={data.rankedData.selectedSeasonId || "global"}
-                                    onChange={(e) => handleSeasonChange(idx, e.target.value)}
-                                  >
-                                    <option value="global">Histórico Global</option>
-                                    {data.allSeasons.map((s: any) => (
-                                      <option key={s._id} value={s._id}>
-                                        {s.nombre}
-                                      </option>
-                                    ))}
-                                  </select>
-                                )}
-
-                                <div className="flex gap-2 no-export">
-                                  <button
-                                    onClick={() => handleOpenModal(data)}
-                                    className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold uppercase tracking-wider rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2"
-                                  >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z" />
-                                    </svg>
-                                    Ver Historial Detallado
-                                  </button>
-
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); handleExportImage(idx, data.competencia.nombre); }}
-                                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-colors shadow-sm flex items-center justify-center"
-                                    title="Descargar Ranking como PNG"
-                                  >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                    </svg>
-                                  </button>
-                                </div>
-
-                                <div className="rounded-lg overflow-hidden border border-slate-100">
-                                  <div className="overflow-x-auto">
-                                    <table className="w-full min-w-[260px] text-[11px]">
-                                      <tbody className="divide-y divide-slate-50">
-                                        {data.rankedData.context.map((item: any, i: number) => (
-                                          <tr
-                                            key={i}
-                                            className={`${item.isCurrent ? 'bg-indigo-50/50' : ''} cursor-pointer hover:bg-slate-50 transition-colors`}
-                                            onClick={() => navigate(`/jugadores/${item.playerId?._id || item.playerId}`)}
-                                          >
-                                            <td className="px-2 sm:px-3 py-3 text-slate-400 font-mono w-8 text-center">{item.rank}</td>
-                                            <td className="px-2 py-3 flex items-center gap-2 min-w-0">
-                                              <div className="h-5 w-5 rounded-full bg-slate-100 flex-shrink-0">
-                                                 {item.playerId?.foto && <img src={item.playerId.foto} className="h-full w-full rounded-full object-cover" alt="" />}
-                                              </div>
-                                              <span className={`truncate min-w-0 flex-1 ${item.isCurrent ? 'font-bold text-indigo-700' : 'text-slate-700'}`}>
-                                                {item.playerId?.nombre || 'Desconocido'}
-                                              </span>
-                                            </td>
-                                            <td className="px-2 sm:px-3 py-3 text-right font-bold text-slate-900 w-14 sm:w-16">{item.rating ? Number(item.rating).toFixed(3) : '---'}</td>
-                                          </tr>
-                                        ))}
-                                      </tbody>
-                                    </table>
-                                  </div>
-                                </div>
-                              </>
-                            )}
-                          </div>
-                        ) : data.normalData ? (
-                          <div className="space-y-3">
-                            <div className="flex items-center justify-between gap-2">
-                               <div className="flex items-center gap-2 min-w-0">
-                                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></div>
-                                 <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] truncate">
-                                   {data.normalData.temporada.nombre} • {data.normalData.fase.nombre}
-                                 </h4>
-                               </div>
-                               <button
-                                 onClick={(e) => { e.stopPropagation(); toggleExpandedComp(idx); }}
-                                 className="no-export shrink-0 flex items-center gap-1 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-500 hover:text-brand-600 border border-slate-200 hover:border-brand-200 rounded-lg transition-colors"
-                               >
-                                 {expandedComps[idx] ? 'Ocultar' : 'Ver detalle'}
-                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className={`h-3 w-3 transition-transform ${expandedComps[idx] ? 'rotate-180' : ''}`}>
-                                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                 </svg>
-                               </button>
-                            </div>
-
-                            {expandedComps[idx] && (
-                              <>
-                                {data.allSeasons && data.allSeasons.length > 1 && (
-                                  <select
-                                    className="no-export text-[10px] bg-slate-100 border-none rounded px-2 py-1 font-bold text-slate-600 focus:ring-1 focus:ring-brand-500 outline-none cursor-pointer"
-                                    value={data.normalData.temporada._id}
-                                    onChange={(e) => handleSeasonChange(idx, e.target.value)}
-                                  >
-                                    {data.allSeasons.map((s: any) => (
-                                      <option key={s._id} value={s._id}>
-                                        {s.nombre}
-                                      </option>
-                                    ))}
-                                  </select>
-                                )}
-
-                                <div className="w-full -mx-4 px-4 sm:mx-0 sm:px-0">
-                                  {data.normalData.fase.tipo === 'playoff' ? (
-                                    <Bracket matches={data.normalData.matches} />
-                                  ) : (
-                                    <TablaPosiciones faseId={data.normalData.fase._id} />
-                                  )}
-                                </div>
-                              </>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="text-center py-4">
-                            <p className="text-slate-400 text-[11px] italic font-medium">Buscando actividad reciente...</p>
-                          </div>
-                        )}
-                      </div>
+                      ) : (
+                        <p className="mt-3 text-[11px] text-slate-400 italic">Sin temporadas jugadas registradas.</p>
+                      )}
                     </div>
                   ))}
 
-                  {!showAllComps && displayCompsData.length > 3 && (
-                    <button 
+                  {!showAllComps && competenciasData.length > 3 && (
+                    <button
                       onClick={() => setShowAllComps(true)}
                       className="group w-full py-4 bg-white hover:bg-brand-50 text-slate-500 hover:text-brand-600 text-xs font-black uppercase tracking-widest rounded-xl transition-all border border-slate-200 hover:border-brand-200 shadow-sm flex items-center justify-center gap-2"
                     >
-                      Ver {displayCompsData.length - 3} competencias más
+                      Ver {competenciasData.length - 3} competencias más
                       <svg className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="19 9l-7 7-7-7" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
                       </svg>
                     </button>
                   )}
@@ -703,20 +457,36 @@ const JugadorDetalle: React.FC = () => {
               )}
               </div>
             )}
+
+            {/* TAB CONTENT: LOD */}
+            {activeTab === 'lod' && (
+              <DashboardMaestro jugadorId={id!} jugador={jugador} />
+            )}
           </div>
         </div>
       </div>
 
-      {selectedCompForModal && (
+      {rankedModalData && (
         <PlayerRankedHistoryModal
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
+          isOpen={!!rankedModalData}
+          onClose={() => setRankedModalData(null)}
           playerId={id!}
           playerName={jugador.nombre}
-          modalidad={selectedCompForModal.competencia.modalidad || 'Foam'}
-          categoria={selectedCompForModal.competencia.categoria || 'Libre'}
-          competenciaId={selectedCompForModal.competencia._id || selectedCompForModal.competencia.id}
-          seasonId={selectedCompForModal.rankedData?.selectedSeasonId === 'global' ? undefined : selectedCompForModal.rankedData?.selectedSeasonId}
+          modalidad={rankedModalData.competencia.modalidad || 'Foam'}
+          categoria={rankedModalData.competencia.categoria || 'Libre'}
+          competenciaId={rankedModalData.competencia._id || rankedModalData.competencia.id}
+          seasonId={rankedModalData.seasonId}
+        />
+      )}
+
+      {compModalData && (
+        <JugadorCompetenciaModal
+          isOpen={!!compModalData}
+          onClose={() => setCompModalData(null)}
+          jugador={{ _id: id!, nombre: jugador.nombre, foto: jugador.foto }}
+          competenciaId={compModalData.competenciaId}
+          temporadas={compModalData.temporadas}
+          initialTemporadaId={compModalData.initialTemporadaId}
         />
       )}
     </div>
