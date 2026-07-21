@@ -1,32 +1,15 @@
-import type { KeyboardEvent, ReactNode } from 'react';
+import type { KeyboardEvent } from 'react';
 import type { Jugador } from '../../../features/jugadores/services/jugadorService';
-import { formatDate } from '../../../utils/formatDate';
 
 export interface JugadorCardProps {
   jugador: Jugador;
-  variante?: 'activo' | 'inactivo';
-  actions?: ReactNode;
   onClick?: () => void;
 }
 
-const badgeStyles = {
-  activo: {
-    label: 'Activo',
-    className: 'bg-emerald-100 text-emerald-700',
-  },
-  inactivo: {
-    label: 'Inactivo',
-    className: 'bg-slate-100 text-slate-700',
-  },
-} as const;
-
-const JugadorCard = ({ jugador, variante = 'activo', actions, onClick }: JugadorCardProps) => {
+const JugadorCard = ({ jugador, onClick }: JugadorCardProps) => {
   if (!jugador) return null;
 
-  const badge = badgeStyles[variante];
   const fotoUrl = jugador.foto;
-  const edad = jugador.edad ? `${jugador.edad} años` : null;
-  const fechaNacimiento = jugador.fechaNacimiento ? formatDate(jugador.fechaNacimiento) : null;
 
   const initials = jugador.nombre
     .split(' ')
@@ -76,32 +59,10 @@ const JugadorCard = ({ jugador, variante = 'activo', actions, onClick }: Jugador
         </div>
       )}
 
-      {/* Footer semitransparente */}
+      {/* Footer semitransparente: solo nombre */}
       <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-4 text-white">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold">{jugador.nombre}</h3>
-            <div className="flex flex-col gap-0.5 opacity-90 text-sm">
-              {jugador.alias && <p>Alias: {jugador.alias}</p>}
-              {edad && <p>{edad}</p>}
-              {fechaNacimiento && <p className="text-xs opacity-75">Nac.: {fechaNacimiento}</p>}
-            </div>
-            <p className="text-xs uppercase tracking-wide opacity-75 mt-1">
-              {jugador.genero ? jugador.genero.charAt(0).toUpperCase() + jugador.genero.slice(1) : 'Sin género'}
-            </p>
-          </div>
-          <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${badge.className}`}>
-            {badge.label}
-          </span>
-        </div>
+        <h3 className="text-lg font-semibold truncate">{jugador.nombre}</h3>
       </div>
-
-      {/* Acciones opcionales (si se necesitan, pero ocultas por ahora) */}
-      {actions && (
-        <div className="absolute top-4 right-4 flex gap-2">
-          {actions}
-        </div>
-      )}
     </article>
   );
 };

@@ -20,8 +20,9 @@ const Jugadores: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [genderFilter, setGenderFilter] = useState('');
   const [nationalityFilter, setNationalityFilter] = useState('');
+  const [rankedOnly, setRankedOnly] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const activeFiltersCount = (genderFilter ? 1 : 0) + (nationalityFilter ? 1 : 0);
+  const activeFiltersCount = (genderFilter ? 1 : 0) + (nationalityFilter ? 1 : 0) + (rankedOnly ? 1 : 0);
 
   // Semilla diaria para rotación de perfiles (cambia cada 24h)
   const discoverySeed = useMemo(() => {
@@ -58,6 +59,7 @@ const Jugadores: React.FC = () => {
     // 2. Aplicar filtros
     if (genderFilter) items = items.filter(j => j.genero === genderFilter);
     if (nationalityFilter) items = items.filter(j => j.nacionalidad === nationalityFilter);
+    if (rankedOnly) items = items.filter(j => j.isRanked);
 
     // 3. Aplicar Discovery Score (el orden dinámico que definimos antes)
     const getDiscoveryScore = (j: Jugador, seed: number) => {
@@ -76,7 +78,7 @@ const Jugadores: React.FC = () => {
     items.sort((a, b) => getDiscoveryScore(b, discoverySeed) - getDiscoveryScore(a, discoverySeed));
     
     return items;
-  }, [paged, searchTerm, genderFilter, nationalityFilter, discoverySeed]);
+  }, [paged, searchTerm, genderFilter, nationalityFilter, rankedOnly, discoverySeed]);
 
   // Jugadores a mostrar actualmente (el "slide" del infinite scroll)
   const jugadoresVisible = useMemo(() => {
@@ -106,7 +108,7 @@ const Jugadores: React.FC = () => {
   // Resetear el scroll cuando cambian los filtros
   useEffect(() => {
     setDisplayLimit(24);
-  }, [searchTerm, genderFilter, nationalityFilter]);
+  }, [searchTerm, genderFilter, nationalityFilter, rankedOnly]);
 
   if (loading) {
     return (
