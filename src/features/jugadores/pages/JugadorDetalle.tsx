@@ -359,15 +359,8 @@ const JugadorDetalle: React.FC = () => {
     <div className="min-h-screen bg-slate-50 sm:py-8">
       <div className="mx-auto max-w-4xl sm:px-4 sm:px-6 lg:px-8">
         <div className="bg-white sm:rounded-2xl shadow-none sm:shadow-sm border-0 sm:border sm:border-slate-200 overflow-hidden">
-          <button
-            onClick={() => navigate('/jugadores')}
-            className="mt-4 ml-4 sm:ml-6 text-sm text-slate-500 hover:text-slate-700 flex items-center gap-1"
-          >
-            ← Volver a jugadores
-          </button>
-
           {/* Header/Cover color */}
-          <div className="h-24 sm:h-32 bg-gradient-to-r from-brand-600 to-indigo-600 -mt-6"></div>
+          <div className="h-24 sm:h-32 bg-gradient-to-r from-brand-600 to-indigo-600"></div>
 
           <div className="px-4 sm:px-6 pb-6 sm:pb-8">
             <div className="relative flex flex-col sm:flex-row justify-between items-center sm:items-end -mt-12 mb-6 gap-4">
