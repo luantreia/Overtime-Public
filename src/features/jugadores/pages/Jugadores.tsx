@@ -140,7 +140,7 @@ const Jugadores: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8">
+    <div className="min-h-screen bg-slate-50 pt-3 pb-8 sm:pt-5">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {user && (
           <div className="mb-4 bg-brand-50 border border-brand-200 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
@@ -188,7 +188,7 @@ const Jugadores: React.FC = () => {
           </div>
 
           {showFilters && (
-            <div className="mt-2 grid gap-3 grid-cols-2 sm:grid-cols-3 bg-white p-3 rounded-xl shadow-sm border border-slate-200">
+            <div className="mt-2 grid gap-3 grid-cols-2 sm:grid-cols-4 bg-white p-3 rounded-xl shadow-sm border border-slate-200">
               <div>
                 <label htmlFor="gender" className="block text-xs font-medium text-slate-500 mb-1">Género</label>
                 <select
@@ -217,12 +217,26 @@ const Jugadores: React.FC = () => {
                   ))}
                 </select>
               </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-500 mb-1">Ranked</label>
+                <button
+                  type="button"
+                  onClick={() => setRankedOnly(v => !v)}
+                  className={`w-full flex items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-sm font-medium transition-colors ${
+                    rankedOnly ? 'bg-brand-600 border-brand-600 text-white' : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  <span className={`h-1.5 w-1.5 rounded-full ${rankedOnly ? 'bg-white' : 'bg-emerald-500'}`} />
+                  Rankeados
+                </button>
+              </div>
               <div className="flex items-end col-span-2 sm:col-span-1">
                 <button
                   onClick={() => {
                     setSearchTerm('');
                     setGenderFilter('');
                     setNationalityFilter('');
+                    setRankedOnly(false);
                   }}
                   className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors"
                 >
@@ -246,15 +260,7 @@ const Jugadores: React.FC = () => {
                 <JugadorCard
                   key={jugadorId}
                   jugador={jugador}
-                  variante="activo"
-                  actions={
-                    <button
-                      onClick={() => navigate(`/jugadores/${jugadorId}`)}
-                      className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm text-white hover:bg-brand-700 w-full font-bold shadow-sm"
-                    >
-                      Ver perfil
-                    </button>
-                  }
+                  onClick={() => navigate(`/jugadores/${jugadorId}`)}
                 />
               );
               })}
