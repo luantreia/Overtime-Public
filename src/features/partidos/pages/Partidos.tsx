@@ -4,8 +4,7 @@ import { EstadisticasPartidoModal } from '../../../shared/components/Estadistica
 import PartidoCard from '../../../shared/components/PartidoCard';
 import { PartidoCalendar } from '../../../shared/components/PartidoCalendar';
 import { FilterCombobox } from '../../../shared/components/FilterCombobox';
-import { MultiCheckDropdown } from '../../../shared/components/MultiCheckDropdown';
-import SegmentedToggle from '../../../shared/components/SegmentedToggle/SegmentedToggle';
+import CheckboxFilterGroup from '../../../shared/components/CheckboxFilterGroup/CheckboxFilterGroup';
 import FilterBar from '../../../shared/components/FilterBar/FilterBar';
 import IconToggle from '../../../shared/components/IconToggle/IconToggle';
 import { useQuery } from '@tanstack/react-query';
@@ -244,24 +243,21 @@ const Partidos: React.FC = () => {
           chips={chips}
         >
           <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="flex-1">
-                  <MultiCheckDropdown
-                    options={ESTADO_OPTIONS}
-                    selected={estados}
-                    onChange={setEstados}
-                    label="Estado"
-                  />
-                </div>
-                <div className="w-full sm:w-auto">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Tipo</label>
-                  <SegmentedToggle
-                    options={(['todos', 'amistoso', 'competencia'] as TipoFiltro[]).map((t) => ({ value: t, label: TIPO_LABELS[t] }))}
-                    value={tipoFiltro}
-                    onChange={setTipoFiltro}
-                  />
-                </div>
-              </div>
+              <CheckboxFilterGroup
+                label="Estado"
+                mode="multiple"
+                options={ESTADO_OPTIONS}
+                selected={estados}
+                onChange={setEstados}
+              />
+
+              <CheckboxFilterGroup
+                label="Tipo"
+                mode="single"
+                options={(['todos', 'amistoso', 'competencia'] as TipoFiltro[]).map((t) => ({ value: t, label: TIPO_LABELS[t] }))}
+                selected={[tipoFiltro]}
+                onChange={(vals) => setTipoFiltro((vals[0] as TipoFiltro) || 'todos')}
+              />
 
               <FilterCombobox
                 items={organizacionItems}
