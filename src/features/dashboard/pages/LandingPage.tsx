@@ -109,7 +109,7 @@ const LandingPage: React.FC = () => {
                 Ir a mi perfil
               </Link>
               <Link to="/plaza" className="rounded-lg border border-white/20 bg-white/10 px-8 py-3 font-semibold text-white backdrop-blur transition hover:bg-white/20">
-                Plaza Dodgeball
+                Ir a La Plaza
               </Link>
             </div>
           )}
@@ -118,9 +118,12 @@ const LandingPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setInstalarAppAbierto(true)}
-              className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-300 underline decoration-white/30 underline-offset-4 transition hover:text-white"
+              className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-300 underline decoration-white/30 underline-offset-4 transition hover:text-white"
             >
-              <span aria-hidden="true">📲</span> Descargar la app
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
+              </svg>
+              Descargar la app
             </button>
           )}
         </div>
@@ -195,7 +198,11 @@ const LandingPage: React.FC = () => {
                     to="/plaza"
                     className="mt-5 flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-brand-200 px-4 py-4 text-sm font-bold text-brand-700 transition hover:border-brand-300 hover:bg-brand-50"
                   >
-                    🌐 ¿No hay nada cerca? Armá tu propio partido en La Plaza
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                    </svg>
+                    ¿No hay nada cerca? Armá tu propio partido en La Plaza
                   </Link>
                 </div>
               )}
@@ -258,17 +265,33 @@ const LandingPage: React.FC = () => {
         {/* Quick nav tiles */}
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {([
-            { to: '/jugadores', label: 'Jugadores', desc: 'Directorio completo', icon: '👤' },
-            { to: '/equipos', label: 'Equipos', desc: 'Todos los equipos', icon: '🛡️' },
-            { to: '/competencias', label: 'Competencias', desc: 'Ligas y torneos', icon: '🏆' },
-            { to: '/plaza', label: 'Plaza', desc: 'Dodgeball de calle', icon: '🌐' },
-          ] as { to: string; label: string; desc: string; icon: string }[]).map(({ to, label, desc, icon }) => (
+            {
+              to: '/jugadores', label: 'Jugadores', desc: 'Directorio completo',
+              icon: <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />,
+            },
+            {
+              to: '/equipos', label: 'Equipos', desc: 'Todos los equipos',
+              icon: <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />,
+            },
+            {
+              to: '/competencias', label: 'Competencias', desc: 'Ligas y torneos',
+              icon: <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0" />,
+            },
+            {
+              to: '/plaza', label: 'La Plaza', desc: 'Dodgeball de calle',
+              icon: <><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></>,
+            },
+          ]).map(({ to, label, desc, icon }) => (
             <Link
               key={to}
               to={to}
               className="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-brand-300 hover:shadow-md"
             >
-              <span className="text-3xl" aria-hidden="true">{icon}</span>
+              <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600 transition-colors group-hover:bg-brand-100">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
+                  {icon}
+                </svg>
+              </span>
               <div>
                 <p className="font-bold text-slate-900 transition-colors group-hover:text-brand-600">{label}</p>
                 <p className="text-sm text-slate-500">{desc}</p>
