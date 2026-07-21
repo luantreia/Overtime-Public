@@ -81,7 +81,7 @@ export const EquipoHeader: React.FC<EquipoHeaderProps> = ({ equipo }) => {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <>
       <div className="h-16 sm:h-28 bg-gradient-to-r from-slate-800 to-slate-900" />
 
       <div className="px-4 sm:px-8 pb-6 sm:pb-8">
@@ -222,6 +222,6 @@ export const EquipoHeader: React.FC<EquipoHeaderProps> = ({ equipo }) => {
           </details>
         )}
       </div>
-    </div>
+    </>
   );
 };
