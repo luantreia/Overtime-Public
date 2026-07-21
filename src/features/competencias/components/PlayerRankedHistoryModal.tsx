@@ -1,5 +1,6 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { toPng } from 'html-to-image';
 import { RankedService } from '../services/rankedService';
 import { formatDate } from '../../../shared/utils/formatDate';
 
@@ -40,6 +41,39 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
   const [playerStack, setPlayerStack] = useState<{ id: string; name: string }[]>([]);
   const [selectedFilterId, setSelectedFilterId] = useState<string | null>(null);
   const [filterType, setFilterType] = useState<'synergy' | 'rivalry' | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const exportRef = useRef<HTMLDivElement | null>(null);
+
+  const handleExportImage = async () => {
+    const node = exportRef.current;
+    if (!node) return;
+    try {
+      setExporting(true);
+      const dataUrl = await toPng(node, {
+        filter: (el: any) => {
+          if (
+            el.classList?.contains('no-export') ||
+            el.tagName === 'BUTTON' ||
+            el.tagName === 'SELECT'
+          ) return false;
+          return true;
+        },
+        backgroundColor: '#ffffff',
+        style: { borderRadius: '16px' },
+        cacheBust: true,
+      });
+
+      const link = document.createElement('a');
+      const playerName = activePlayer.name?.replace(/\s+/g, '-') || 'jugador';
+      link.download = `ranking-${playerName}-${modalidad}-${categoria}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error('Error generating image', err);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -136,11 +170,11 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 p-2 sm:p-4 backdrop-blur-sm">
-      <div className="w-full max-w-lg rounded-2xl bg-white p-4 sm:p-6 shadow-2xl max-h-[90vh] flex flex-col border border-slate-200">
+      <div ref={exportRef} className="w-full max-w-lg rounded-2xl bg-white p-4 sm:p-6 shadow-2xl max-h-[90vh] flex flex-col border border-slate-200">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
              {playerStack.length > 0 && (
-               <button 
+               <button
                 onClick={goBack}
                 className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"
                >
@@ -157,14 +191,26 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
                 <p className="text-xs text-slate-500 uppercase font-semibold tracking-wider">{modalidad} • {categoria}</p>
              </div>
           </div>
-          <button 
-            onClick={onClose} 
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+          <div className="no-export flex items-center gap-1">
+            <button
+              onClick={handleExportImage}
+              disabled={exporting}
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-50"
+              title="Descargar Ranking como PNG"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+            </button>
+            <button
+              onClick={onClose}
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {loading ? (

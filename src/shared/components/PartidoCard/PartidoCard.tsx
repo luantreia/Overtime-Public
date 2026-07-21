@@ -7,6 +7,8 @@ export interface PartidoCardProps {
   variante?: 'proximo' | 'resultado';
   actions?: ReactNode;
   onClick?: () => void;
+  /** Delta de ELO de este partido para el jugador en cuestión (contexto ranked). Aditivo: si no se pasa, no se renderiza nada. */
+  eloDelta?: number;
 }
 
 const badgeStyles = {
@@ -32,7 +34,7 @@ const badgeStyles = {
   }
 } as const;
 
-const PartidoCard = ({ partido, variante = 'proximo', actions, onClick }: PartidoCardProps) => {
+const PartidoCard = ({ partido, variante = 'proximo', actions, onClick, eloDelta }: PartidoCardProps) => {
   const fechaTexto = partido.fecha && partido.hora
     ? formatDateTime(`${partido.fecha}T${partido.hora}`)
     : partido.fecha
@@ -111,6 +113,19 @@ const PartidoCard = ({ partido, variante = 'proximo', actions, onClick }: Partid
           {partido.escenario && (
             <span className="mt-1 text-[10px] text-slate-400 text-center line-clamp-1">
               {partido.escenario}
+            </span>
+          )}
+          {typeof eloDelta === 'number' && (
+            <span
+              className={`mt-1 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-tight ${
+                eloDelta > 0
+                  ? 'bg-emerald-100 text-emerald-700'
+                  : eloDelta < 0
+                  ? 'bg-red-100 text-red-700'
+                  : 'bg-slate-100 text-slate-500'
+              }`}
+            >
+              {eloDelta > 0 ? `+${eloDelta}` : eloDelta}
             </span>
           )}
         </div>

@@ -5,6 +5,7 @@ export * from './CompetenciaPartidosTab';
 export * from './CompetenciaResultadosTab';
 export * from './CompetenciaLeaderboardTab';
 export * from './EquipoCompetenciaModal';
+export * from './JugadorCompetenciaModal';
 export * from './CompareVSModal';
 export * from './ShareRankModal';
 export * from './RankedEvolutionChartModal';
