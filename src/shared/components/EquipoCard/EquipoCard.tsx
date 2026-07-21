@@ -1,13 +1,12 @@
-import type { KeyboardEvent, ReactNode } from 'react';
+import type { KeyboardEvent } from 'react';
 import type { Equipo } from '../../../features/equipos/services/equipoService';
 
 export interface EquipoCardProps {
   equipo: Equipo;
-  actions?: ReactNode;
   onClick?: () => void;
 }
 
-const EquipoCard = ({ equipo, actions, onClick }: EquipoCardProps) => {
+const EquipoCard = ({ equipo, onClick }: EquipoCardProps) => {
   const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
     if (!onClick) return;
     if (event.key === 'Enter' || event.key === ' ') {
@@ -51,24 +50,8 @@ const EquipoCard = ({ equipo, actions, onClick }: EquipoCardProps) => {
 
       <div className="absolute inset-0 bg-black/10" />
 
-      {actions && (
-        <div className="absolute top-4 right-4 flex gap-2">
-          {actions}
-        </div>
-      )}
-
-      <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-4 text-white">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold">{equipo.nombre}</h3>
-            {equipo.ciudad && (
-              <p className="text-sm opacity-90">{equipo.ciudad}</p>
-            )}
-            {equipo.organizacion?.nombre && (
-              <p className="text-xs uppercase tracking-wide opacity-75">{equipo.organizacion.nombre}</p>
-            )}
-          </div>
-        </div>
+      <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-3 text-white">
+        <h3 className="text-sm font-medium truncate">{equipo.nombre}</h3>
       </div>
     </article>
   );
