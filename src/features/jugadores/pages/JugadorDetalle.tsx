@@ -456,7 +456,7 @@ const JugadorDetalle: React.FC = () => {
               )}
 
               {jugador.userId && (
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center justify-center gap-2">
                   <div className="flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-100 rounded-xl">
                     <span className="flex h-2 w-2 rounded-full bg-green-500"></span>
                     <span className="text-xs font-bold text-green-700 uppercase tracking-wider">Perfil Verificado</span>
@@ -720,7 +720,7 @@ const JugadorDetalle: React.FC = () => {
                         onClick={() => navigate(`/competencias/${data.competencia._id || data.competencia.id}`)}
                       >
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="h-12 w-12 rounded-lg bg-brand-50 flex items-center justify-center text-brand-600 font-bold overflow-hidden border border-brand-100 flex-shrink-0">
+                          <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-brand-50 flex items-center justify-center text-brand-600 font-bold overflow-hidden border border-brand-100 flex-shrink-0">
                             {data.competencia.imagen ? (
                               <img src={data.competencia.imagen} alt={data.competencia.nombre} className="h-full w-full object-cover" />
                             ) : (
@@ -824,28 +824,30 @@ const JugadorDetalle: React.FC = () => {
                                 </div>
 
                                 <div className="rounded-lg overflow-hidden border border-slate-100">
-                                  <table className="w-full text-[11px]">
-                                    <tbody className="divide-y divide-slate-50">
-                                      {data.rankedData.context.map((item: any, i: number) => (
-                                        <tr
-                                          key={i}
-                                          className={`${item.isCurrent ? 'bg-indigo-50/50' : ''} cursor-pointer hover:bg-slate-50 transition-colors`}
-                                          onClick={() => navigate(`/jugadores/${item.playerId?._id || item.playerId}`)}
-                                        >
-                                          <td className="px-3 py-3 text-slate-400 font-mono w-8 text-center">{item.rank}</td>
-                                          <td className="px-2 py-3 flex items-center gap-2">
-                                            <div className="h-5 w-5 rounded-full bg-slate-100 flex-shrink-0">
-                                               {item.playerId?.foto && <img src={item.playerId.foto} className="h-full w-full rounded-full object-cover" alt="" />}
-                                            </div>
-                                            <span className={`truncate max-w-[40%] ${item.isCurrent ? 'font-bold text-indigo-700' : 'text-slate-700'}`}>
-                                              {item.playerId?.nombre || 'Desconocido'}
-                                            </span>
-                                          </td>
-                                          <td className="px-3 py-3 text-right font-bold text-slate-900 w-16">{item.rating ? Number(item.rating).toFixed(3) : '---'}</td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
+                                  <div className="overflow-x-auto">
+                                    <table className="w-full min-w-[260px] text-[11px]">
+                                      <tbody className="divide-y divide-slate-50">
+                                        {data.rankedData.context.map((item: any, i: number) => (
+                                          <tr
+                                            key={i}
+                                            className={`${item.isCurrent ? 'bg-indigo-50/50' : ''} cursor-pointer hover:bg-slate-50 transition-colors`}
+                                            onClick={() => navigate(`/jugadores/${item.playerId?._id || item.playerId}`)}
+                                          >
+                                            <td className="px-2 sm:px-3 py-3 text-slate-400 font-mono w-8 text-center">{item.rank}</td>
+                                            <td className="px-2 py-3 flex items-center gap-2 min-w-0">
+                                              <div className="h-5 w-5 rounded-full bg-slate-100 flex-shrink-0">
+                                                 {item.playerId?.foto && <img src={item.playerId.foto} className="h-full w-full rounded-full object-cover" alt="" />}
+                                              </div>
+                                              <span className={`truncate min-w-0 flex-1 ${item.isCurrent ? 'font-bold text-indigo-700' : 'text-slate-700'}`}>
+                                                {item.playerId?.nombre || 'Desconocido'}
+                                              </span>
+                                            </td>
+                                            <td className="px-2 sm:px-3 py-3 text-right font-bold text-slate-900 w-14 sm:w-16">{item.rating ? Number(item.rating).toFixed(3) : '---'}</td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
                                 </div>
                               </>
                             )}
@@ -886,13 +888,9 @@ const JugadorDetalle: React.FC = () => {
                                   </select>
                                 )}
 
-                                <div className="w-full">
+                                <div className="w-full -mx-4 px-4 sm:mx-0 sm:px-0">
                                   {data.normalData.fase.tipo === 'playoff' ? (
-                                    <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
-                                      <div className="scale-90 origin-left">
-                                        <Bracket matches={data.normalData.matches} />
-                                      </div>
-                                    </div>
+                                    <Bracket matches={data.normalData.matches} />
                                   ) : (
                                     <TablaPosiciones faseId={data.normalData.fase._id} />
                                   )}
