@@ -49,6 +49,7 @@ const SolicitudesPage = lazy(() => import('./features/solicitudes/pages/Solicitu
 const Perfil = lazy(() => import('./features/perfil/pages/PerfilPage'));
 const LoginPage = lazy(() => import('./features/auth/pages/LoginPage'));
 const RegisterPage = lazy(() => import('./features/auth/pages/RegisterPage'));
+const ClaimPage = lazy(() => import('./features/auth/pages/ClaimPage'));
 const NotificacionesPage = lazy(() => import('./features/notificaciones/pages/NotificacionesPage'));
 const NotFoundPage = lazy(() => import('./features/error/pages/NotFoundPage'));
 const ComoSeJuegaPage = lazy(() => import('./features/reglas/pages/ComoSeJuegaPage'));
@@ -69,6 +70,7 @@ const App: React.FC = () => (
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/claim/:token" element={<ClaimPage />} />
             <Route path="/jugadores" element={<Jugadores />} />
             <Route path="/jugadores/:id" element={<JugadorDetalle />} />
             <Route path="/equipos" element={<Equipos />} />

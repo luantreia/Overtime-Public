@@ -68,6 +68,13 @@ export const api = {
       method: 'POST',
       body: payload,
     }),
+  getClaimInvite: (token: string) =>
+    request<{ jugador: { nombre: string; alias?: string; foto?: string } }>(`/jugadores/invitaciones/${token}`),
+  claimWithToken: (token: string, payload: { nombre: string; email: string; password: string }) =>
+    request<{ user: any; accessToken: string; refreshToken: string; jugadorId: string }>(
+      `/jugadores/invitaciones/${token}/claim`,
+      { method: 'POST', body: payload }
+    ),
   solicitarCrearEntidad: (payload: { tipo: string; nombre: string }) =>
     request<SolicitudEdicion>(`/solicitud-edicion`, {
       method: 'POST',

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../../app/providers/AuthContext';
 import { usePageTitle } from '../../../shared/hooks/usePageTitle';
@@ -14,6 +14,12 @@ const PerfilPage = () => {
   usePageTitle('Mi Perfil');
   const { user, logout, refreshProfile } = useAuth();
   const { addToast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const showWelcome = searchParams.get('welcome') === '1';
+  const dismissWelcome = () => {
+    searchParams.delete('welcome');
+    setSearchParams(searchParams, { replace: true });
+  };
 
   // Solicitud modal
   const [isSolicitudOpen, setIsSolicitudOpen] = useState(false);
@@ -113,6 +119,35 @@ const PerfilPage = () => {
           <h1 className="text-2xl font-black text-slate-900">Mi Perfil</h1>
           <p className="mt-1 text-sm text-slate-500">Gestioná tu cuenta y tu participación en la comunidad</p>
         </div>
+
+        {/* Welcome banner post-claim */}
+        {showWelcome && (
+          <div className="rounded-2xl bg-brand-600 p-6 text-white shadow-sm relative">
+            <button
+              onClick={dismissWelcome}
+              className="absolute top-3 right-3 text-white/70 hover:text-white"
+              aria-label="Cerrar"
+            >
+              ✕
+            </button>
+            <h2 className="text-lg font-black">¡Bienvenido a Overtime!</h2>
+            <p className="mt-1 text-sm text-white/90">Ya reclamaste tu perfil de jugador. Algunas cosas para arrancar:</p>
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <Link to="/competencias" className="rounded-xl bg-white/10 px-3 py-3 text-center text-xs font-semibold hover:bg-white/20 transition-all">
+                Unirte a una competencia
+              </Link>
+              <Link to="/perfil" onClick={() => setIsEditingProfile(true)} className="rounded-xl bg-white/10 px-3 py-3 text-center text-xs font-semibold hover:bg-white/20 transition-all">
+                Editar tu perfil
+              </Link>
+              <Link to="/plaza" className="rounded-xl bg-white/10 px-3 py-3 text-center text-xs font-semibold hover:bg-white/20 transition-all">
+                Jugar en La Plaza
+              </Link>
+              <Link to="/ranking" className="rounded-xl bg-white/10 px-3 py-3 text-center text-xs font-semibold hover:bg-white/20 transition-all">
+                Ver el ranking
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* Info de cuenta */}
         <div className="rounded-2xl bg-white p-6 shadow-sm border border-slate-100">
