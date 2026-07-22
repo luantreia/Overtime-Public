@@ -125,7 +125,7 @@ export class RankedService {
     const sp = new URLSearchParams({
       modalidad: params.modalidad,
       categoria: params.categoria,
-      minGames: String(params.minGames ?? 5),
+      minGames: String(params.minGames ?? 15),
       limit: String(params.limit ?? 10),
     });
     if (params.competition && params.competition !== 'null') sp.set('competition', params.competition);
