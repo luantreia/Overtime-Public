@@ -14,6 +14,7 @@ import { StarIcon } from '@heroicons/react/24/solid';
 import { getAuthTokens } from '../../../utils/apiClient';
 import { useToast } from '../../../shared/components/Toast/ToastProvider';
 import ConfirmModal from '../../../shared/components/ConfirmModal/ConfirmModal';
+import { ShareLaPlazaResultModal } from '../components/ShareLaPlazaResultModal';
 
 type ConfirmAction =
   | { type: 'leave' }
@@ -36,6 +37,7 @@ const PlazaLobby: React.FC = () => {
   const [hasProfile, setHasProfile] = useState<boolean>(true);
   const [ratingData, setRatingData] = useState<Record<string, string>>({});
   const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
+  const [isShareOpen, setIsShareOpen] = useState(false);
 
   const fetchLobby = useCallback(async () => {
     if (!id) return;
@@ -570,6 +572,14 @@ const PlazaLobby: React.FC = () => {
                         {lobby.avgKarma || '0'}
                       </p>
                     </div>
+                    {lobby.result && (
+                      <button
+                        onClick={() => setIsShareOpen(true)}
+                        className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/20 text-center text-xs font-black uppercase tracking-wider hover:bg-white/20 transition-colors"
+                      >
+                        Compartir
+                      </button>
+                    )}
                   </div>
                 </div>
                 

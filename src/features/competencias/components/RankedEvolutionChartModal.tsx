@@ -14,6 +14,8 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { ShareEvolutionModal } from "./ShareEvolutionModal";
+import { type RankingScope } from "./RankingCardHeader";
 
 interface RankedEvolutionChartModalProps {
   isOpen: boolean;
@@ -22,6 +24,7 @@ interface RankedEvolutionChartModalProps {
   defaultSeasonId?: string;
   initialPlayerIds?: string[];
   onOpenCompareVS?: (playerIds: string[]) => void;
+  scope?: RankingScope;
 }
 
 type TimeFilter = "all" | "month";
@@ -41,8 +44,10 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
   defaultSeasonId,
   initialPlayerIds,
   onOpenCompareVS,
+  scope,
 }) => {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("all");
+  const [isShareOpen, setIsShareOpen] = useState(false);
   const [visiblePlayersCount, setVisiblePlayersCount] = useState<number>(5); // -1 means ALL
   const [playerFilter, setPlayerFilter] = useState("");
   const [playerFilter2, setPlayerFilter2] = useState("");
@@ -627,6 +632,16 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
               )}
             </div>
 
+            {scope && evolutionaryData.playerInfo.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setIsShareOpen(true)}
+                className="col-span-2 sm:col-span-1 rounded-xl px-3 py-2 text-[11px] font-black uppercase tracking-wider transition-all bg-brand-50 text-brand-700 hover:bg-brand-100"
+              >
+                Compartir evolución
+              </button>
+            )}
+
             {onOpenCompareVS && (
               <button
                 type="button"
@@ -789,6 +804,16 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
           </div>
         </div>
       </div>
+
+      {scope && (
+        <ShareEvolutionModal
+          isOpen={isShareOpen}
+          onClose={() => setIsShareOpen(false)}
+          chartData={evolutionaryData.chartData}
+          playerInfo={evolutionaryData.playerInfo}
+          scope={scope}
+        />
+      )}
     </div>
   );
 };

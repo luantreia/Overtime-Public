@@ -11,6 +11,8 @@ import {
 } from 'recharts';
 import ModalBase from '../../../shared/components/ModalBase/ModalBase';
 import { RankedService, type LeaderboardItem } from '../services/rankedService';
+import { ShareVSModal } from './ShareVSModal';
+import { type RankingScope } from './RankingCardHeader';
 
 interface CompareVSModalProps {
   isOpen: boolean;
@@ -22,6 +24,7 @@ interface CompareVSModalProps {
   categoria: string;
   competition?: string;
   season?: string;
+  scope?: RankingScope;
 }
 
 interface SetStats {
@@ -114,8 +117,10 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({
   categoria,
   competition,
   season,
+  scope,
 }) => {
   const hasEnoughPlayers = players.length >= 2;
+  const [isShareOpen, setIsShareOpen] = useState(false);
 
   const PolarAngleAxisCompat = PolarAngleAxis as unknown as React.ComponentType<any>;
   const PolarRadiusAxisCompat = PolarRadiusAxis as unknown as React.ComponentType<any>;
@@ -468,6 +473,15 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({
             </div>
           </div>
           <div className="flex items-center justify-center p-4 gap-3 w-full">
+            {scope && (
+              <button
+                onClick={() => setIsShareOpen(true)}
+                className="w-full py-3 rounded-xl bg-brand-50 text-brand-700 font-bold hover:bg-brand-100 transition-colors"
+              >
+                Compartir comparación
+              </button>
+            )}
+
             {onOpenEvolution && (
               <button
                 onClick={() => {
@@ -490,6 +504,30 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({
           </div>
         </div>
       </div>
+
+      {scope && (
+        <ShareVSModal
+          isOpen={isShareOpen}
+          onClose={() => setIsShareOpen(false)}
+          scope={scope}
+          player1={{
+            name: player1.playerName || 'Jugador A',
+            rating: player1Rating,
+            matchesPlayed: player1Matches,
+            wins: player1Wins,
+            setsWon: player1SetStats?.won,
+            setsLost: player1SetStats?.lost,
+          }}
+          player2={{
+            name: player2.playerName || 'Jugador B',
+            rating: player2Rating,
+            matchesPlayed: player2Matches,
+            wins: player2Wins,
+            setsWon: player2SetStats?.won,
+            setsLost: player2SetStats?.lost,
+          }}
+        />
+      )}
     </ModalBase>
   );
 };

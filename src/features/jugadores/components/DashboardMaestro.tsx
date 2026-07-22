@@ -7,6 +7,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import { AthleteRadar } from './AthleteRadar';
+import { ShareRadarModal } from './ShareRadarModal';
 import { JugadorService, type Jugador } from '../services/jugadorService';
 import { LoadingSpinner } from '../../../shared/components/LoadingSpinner';
 
@@ -20,6 +21,7 @@ export const DashboardMaestro: React.FC<DashboardMaestroProps> = ({ jugadorId, j
   const [categoria, setCategoria] = useState<string>('');
   const [radarData, setRadarData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isShareOpen, setIsShareOpen] = useState(false);
 
   const fetchMaestroData = useCallback(async () => {
     setLoading(true);
@@ -210,13 +212,33 @@ export const DashboardMaestro: React.FC<DashboardMaestroProps> = ({ jugadorId, j
                 <FireIcon className="h-5 w-5 text-orange-500" />
                 <h3 className="font-black text-slate-900 uppercase tracking-wider text-sm">Radar de Atleta</h3>
               </div>
-              <span className="text-[10px] font-bold text-slate-400 italic">Basado en últimos 30 días</span>
+              <div className="flex items-center gap-3">
+                <span className="text-[10px] font-bold text-slate-400 italic">Basado en últimos 30 días</span>
+                {!loading && radarData && (
+                  <button
+                    onClick={() => setIsShareOpen(true)}
+                    className="text-[10px] font-black uppercase tracking-wider text-brand-600 hover:text-brand-700"
+                  >
+                    Compartir
+                  </button>
+                )}
+              </div>
             </div>
             <div className="p-4 flex items-center justify-center">
               <AthleteRadar data={radarData} loading={loading} />
             </div>
           </div>
         </div>
+      )}
+
+      {radarData && (
+        <ShareRadarModal
+          isOpen={isShareOpen}
+          onClose={() => setIsShareOpen(false)}
+          radarData={radarData}
+          playerName={jugador.nombre}
+          playerPhoto={jugador.foto}
+        />
       )}
     </div>
   );

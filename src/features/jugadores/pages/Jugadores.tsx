@@ -22,6 +22,7 @@ const Jugadores: React.FC = () => {
   const [genderFilter, setGenderFilter] = useState('');
   const [nationalityFilter, setNationalityFilter] = useState('');
   const [teamFilter, setTeamFilter] = useState('');
+  const [teamQuery, setTeamQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const activeFiltersCount = (genderFilter ? 1 : 0) + (nationalityFilter ? 1 : 0) + (teamFilter ? 1 : 0);
 
@@ -118,7 +119,7 @@ const Jugadores: React.FC = () => {
     }
     if (teamFilter) {
       const nombreEquipo = equipos.find(e => (e._id || e.id) === teamFilter)?.nombre || teamFilter;
-      items.push({ key: 'equipo', label: `Equipo: ${nombreEquipo}`, onRemove: () => setTeamFilter('') });
+      items.push({ key: 'equipo', label: `Equipo: ${nombreEquipo}`, onRemove: () => { setTeamFilter(''); setTeamQuery(''); } });
     }
     return items;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -244,17 +245,28 @@ const Jugadores: React.FC = () => {
             </div>
             <div>
               <label htmlFor="team" className="block text-xs font-medium text-slate-500 mb-1">Equipo</label>
-              <select
+              <input
                 id="team"
-                value={teamFilter}
-                onChange={(e) => { setTeamFilter(e.target.value); }}
+                list="equipo-options"
+                type="text"
+                value={teamQuery}
+                onChange={(e) => {
+                  const nextValue = e.target.value;
+                  setTeamQuery(nextValue);
+                  const match = equiposOrdenados.find((eq) => eq.nombre === nextValue);
+                  setTeamFilter(match ? (match._id || match.id || '') : '');
+                }}
+                onBlur={() => {
+                  if (!teamFilter) setTeamQuery('');
+                }}
+                placeholder="Buscar equipo..."
                 className="w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 text-sm p-2 border"
-              >
-                <option value="">Todos</option>
-                {equiposOrdenados.map(e => (
-                  <option key={e._id || e.id} value={e._id || e.id}>{e.nombre}</option>
+              />
+              <datalist id="equipo-options">
+                {equiposOrdenados.map((e) => (
+                  <option key={e._id || e.id} value={e.nombre} />
                 ))}
-              </select>
+              </datalist>
             </div>
             <div className="flex items-end col-span-2 sm:col-span-1">
               <button
@@ -263,6 +275,7 @@ const Jugadores: React.FC = () => {
                   setGenderFilter('');
                   setNationalityFilter('');
                   setTeamFilter('');
+                  setTeamQuery('');
                 }}
                 className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors"
               >

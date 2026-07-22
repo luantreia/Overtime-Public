@@ -372,7 +372,7 @@ const PerfilPage = () => {
                       <a href="https://postimages.org/" target="_blank" rel="noopener noreferrer" className="underline">
                         postimages.org
                       </a>{' '}
-                      y pegá el link "Direct link". Usá una imagen cuadrada y de buena resolución para que se vea bien en las tarjetas compartibles.
+                      y pegá el link "Direct link". Usá una imagen vertical y de buena resolución para que se vea bien en las tarjetas compartibles.
                     </p>
                   </div>
                   <div>

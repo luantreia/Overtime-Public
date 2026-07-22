@@ -243,6 +243,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
         competenciaId={_competenciaId}
         defaultSeasonId={selectedTemporada === 'global' ? undefined : selectedTemporada}
         initialPlayerIds={evolutionPlayers}
+        scope={scope}
         onOpenCompareVS={(playerIds) => {
           setComparingPlayers(playerIds.slice(0, 2));
           setIsChartModalOpen(false);
@@ -302,6 +303,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
         onClose={() => setIsCompareModalOpen(false)}
         players={leaderboard}
         initialPlayerIds={comparingPlayers}
+        scope={scope}
         onOpenEvolution={(playerIds) => {
           setEvolutionPlayers(playerIds.slice(0, 2));
           setIsCompareModalOpen(false);
