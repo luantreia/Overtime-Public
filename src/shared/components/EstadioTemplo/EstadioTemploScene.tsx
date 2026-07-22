@@ -1,5 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
+import { PerformanceMonitor } from '@react-three/drei';
+import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import * as THREE from 'three';
 
 const COURT_WIDTH = 9; // ancho (x)
@@ -99,15 +101,20 @@ const obtenerTexturaGradas = (): THREE.Texture => {
   return textura;
 };
 
+// Objeto dummy reutilizado para calcular las matrices de cada instancia (evita crear uno por frame/bloque)
+const dummy = new THREE.Object3D();
+
 type OrientacionTribuna = 'lateral' | 'frontal';
 
-// Tribunas: filas escalonadas, reutilizable para los 4 lados de la cancha (anillo completo)
+// Tribunas: filas escalonadas, reutilizable para los 4 lados de la cancha (anillo completo).
+// Los escalones se dibujan con un único InstancedMesh (1 draw call por tribuna en vez de 1 por fila).
 const Tribuna: React.FC<{ lado: 1 | -1; orientacion: OrientacionTribuna }> = ({ lado, orientacion }) => {
   const esLateral = orientacion === 'lateral';
   const gap = esLateral ? GAP_LATERAL : GAP_FRONTAL;
   const baseOffset = (esLateral ? COURT_WIDTH : COURT_LENGTH) / 2 + gap;
   const longitudFila = esLateral ? ALCANCE_FRONTAL * 2 : ALCANCE_LATERAL * 2;
   const texturaGradas = useMemo(() => obtenerTexturaGradas(), []);
+  const meshRef = useRef<THREE.InstancedMesh>(null);
 
   const bloques = useMemo(() => {
     const arr: { offset: number; y: number; h: number }[] = [];
@@ -132,19 +139,28 @@ const Tribuna: React.FC<{ lado: 1 | -1; orientacion: OrientacionTribuna }> = ({ 
   const tamanoBloque = (h: number): [number, number, number] =>
     esLateral ? [ANCHO_FILA, h, longitudFila] : [longitudFila, h, ANCHO_FILA];
 
+  // Volcamos posición/escala/color de cada fila a la instancia correspondiente del InstancedMesh
+  useLayoutEffect(() => {
+    const mesh = meshRef.current;
+    if (!mesh) return;
+    bloques.forEach((b, i) => {
+      dummy.position.set(...posicion(b.offset, b.y));
+      dummy.scale.set(...tamanoBloque(b.h));
+      dummy.updateMatrix();
+      mesh.setMatrixAt(i, dummy.matrix);
+      mesh.setColorAt(i, new THREE.Color(paletaFilas[i % paletaFilas.length]));
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bloques]);
+
   return (
     <group>
-      {bloques.map((b, i) => (
-        <mesh key={i} position={posicion(b.offset, b.y)} castShadow receiveShadow>
-          <boxGeometry args={tamanoBloque(b.h)} />
-          <meshStandardMaterial
-            color={paletaFilas[i % paletaFilas.length]}
-            map={texturaGradas}
-            roughness={0.8}
-            metalness={0.15}
-          />
-        </mesh>
-      ))}
+      <instancedMesh ref={meshRef} args={[undefined, undefined, bloques.length]} castShadow receiveShadow>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshStandardMaterial map={texturaGradas} roughness={0.8} metalness={0.15} />
+      </instancedMesh>
       {/* Franja de luz decorativa, sutil, al pie de la tribuna (pegada a la base del primer escalón) */}
       <mesh position={posicion(baseOffset - ANCHO_FILA / 2, 0.06)}>
         <boxGeometry args={esLateral ? [0.18, 0.1, longitudFila] : [longitudFila, 0.1, 0.18]} />
@@ -155,13 +171,13 @@ const Tribuna: React.FC<{ lado: 1 | -1; orientacion: OrientacionTribuna }> = ({ 
         <boxGeometry args={esLateral ? [0.95, 0.1, longitudFila] : [longitudFila, 0.1, 0.95]} />
         <meshStandardMaterial color={colorAcento} emissive={colorAcento} emissiveIntensity={0.9} toneMapped={false} />
       </mesh>
-      {/* Luz de acento tenue */}
-      {[-longitudFila / 3, 0, longitudFila / 3].map((desplazamiento, i) => {
-        const pos: [number, number, number] = esLateral
-          ? [lado * (baseOffset + 1.3), 3.2, desplazamiento]
-          : [desplazamiento, 3.2, lado * (baseOffset + 1.3)];
-        return <pointLight key={i} position={pos} color={colorAcento} intensity={6} distance={7} />;
-      })}
+      {/* Luz de acento: una sola point light centrada por tribuna (antes 3) — el brillo extra ahora lo aporta el bloom */}
+      <pointLight
+        position={posicion(baseOffset + 1.3, 3.2)}
+        color={colorAcento}
+        intensity={5}
+        distance={9}
+      />
     </group>
   );
 };
@@ -236,25 +252,48 @@ const HacesDeLuz: React.FC = () => (
   </>
 );
 
-// Cámara con órbita lenta y automática alrededor del estadio
-const CamaraOrbital: React.FC = () => {
-  useFrame(({ clock, camera }) => {
+// Cámara con órbita lenta y automática, + parallax sutil según el mouse + dolly-in según cuánto
+// de la escena está visible en el viewport (se acerca cuando el hero está más centrado en pantalla).
+const CamaraOrbital: React.FC<{ visibilidadRef: React.MutableRefObject<number> }> = ({ visibilidadRef }) => {
+  useFrame(({ clock, camera, pointer }) => {
     const t = clock.getElapsedTime() * 0.06;
-    const radio = 22;
-    camera.position.set(Math.sin(t) * radio, 8.5, Math.cos(t) * radio);
+    const radio = 22 - visibilidadRef.current * 3.5;
+    const parallaxX = pointer.x * 1.5;
+    const parallaxY = pointer.y * 0.8;
+    camera.position.set(Math.sin(t) * radio + parallaxX, 8.5 + parallaxY, Math.cos(t) * radio);
     camera.lookAt(0, 0.5, 0);
   });
   return null;
 };
 
 const EstadioTemploScene: React.FC = () => {
+  // dpr adaptativo: PerformanceMonitor (dentro del Canvas) sube/baja la resolución según el FPS real del dispositivo
+  const [dpr, setDpr] = useState<[number, number]>([1, 1.5]);
+  const canvasElRef = useRef<HTMLCanvasElement | null>(null);
+  const visibilidadRef = useRef(1);
+
+  useEffect(() => {
+    const el = canvasElRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        visibilidadRef.current = entry.intersectionRatio;
+      },
+      { threshold: Array.from({ length: 21 }, (_, i) => i / 20) }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <Canvas
+      ref={canvasElRef}
       shadows
-      dpr={[1, 1.5]}
+      dpr={dpr}
       gl={{ antialias: true, powerPreference: 'low-power' }}
       camera={{ fov: 46, position: [0, 8.5, 22] }}
     >
+      <PerformanceMonitor onIncline={() => setDpr([1, 1.5])} onDecline={() => setDpr([1, 1])} />
       <color attach="background" args={['#0f172a']} />
       <fog attach="fog" args={['#0f172a', 26, 58]} />
       <ambientLight intensity={0.55} />
@@ -267,7 +306,10 @@ const EstadioTemploScene: React.FC = () => {
       <Tribuna lado={-1} orientacion="lateral" />
       <Tribuna lado={1} orientacion="frontal" />
       <Tribuna lado={-1} orientacion="frontal" />
-      <CamaraOrbital />
+      <CamaraOrbital visibilidadRef={visibilidadRef} />
+      <EffectComposer multisampling={0}>
+        <Bloom mipmapBlur luminanceThreshold={0.15} luminanceSmoothing={0.9} intensity={0.6} />
+      </EffectComposer>
     </Canvas>
   );
 };
