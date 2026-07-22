@@ -2,6 +2,12 @@ import React, { useRef, useState, useEffect } from 'react';
 import { toPng } from 'html-to-image';
 import ModalBase from '../ModalBase/ModalBase';
 
+interface JugadorShare {
+  id?: string;
+  nombre: string;
+  equipo: 'local' | 'visitante';
+}
+
 interface PartidoShare {
   equipoLocal?: { nombre?: string; escudo?: string };
   equipoVisitante?: { nombre?: string; escudo?: string; rival?: string };
@@ -13,6 +19,7 @@ interface PartidoShare {
   hora?: string;
   competencia?: { nombre?: string };
   escenario?: string;
+  jugadores?: JugadorShare[];
 }
 
 interface SharePartidoModalProps {
@@ -61,6 +68,12 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
   const [loadingDownload, setLoadingDownload] = useState(false);
   const [localEscudo, setLocalEscudo] = useState<string | null>(null);
   const [visitanteEscudo, setVisitanteEscudo] = useState<string | null>(null);
+
+  const jugadores = partido.jugadores || [];
+  const localJugadores = jugadores.filter((j) => j.equipo === 'local');
+  const visitanteJugadores = jugadores.filter((j) => j.equipo === 'visitante');
+  const hayJugadores = jugadores.length > 0;
+  const [incluirJugadores, setIncluirJugadores] = useState(true);
 
   const localNombre = partido.equipoLocal?.nombre || 'Local';
   const visitanteNombre = partido.equipoVisitante?.nombre || partido.rival || 'Visitante';
@@ -151,6 +164,18 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
     <ModalBase isOpen={isOpen} onClose={onClose} title="Compartir partido" size="md">
       <div className="p-6 flex flex-col items-center">
 
+        {hayJugadores && (
+          <label className="mb-4 flex w-full items-center gap-2 text-sm text-slate-600">
+            <input
+              type="checkbox"
+              checked={incluirJugadores}
+              onChange={(e) => setIncluirJugadores(e.target.checked)}
+              className="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+            />
+            Incluir lista de jugadores anotados
+          </label>
+        )}
+
         {/* ── Card capturada ── */}
         <div
           ref={cardRef}
@@ -224,10 +249,47 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
             }} />
           </div>
 
-          {/* ── ENFRENTAMIENTO ── */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '8px 20px 0' }}>
-            {/* Cancha de dodgeball como fondo — 18x9m proporcional */}
-            <div style={{ position: 'relative', width: '100%' }}>
+          {/* ── ENFRENTAMIENTO (escudos + marcador, arriba de la cancha) ── */}
+          <div style={{ display: 'flex', alignItems: 'center', padding: '10px 20px 0', gap: 0 }}>
+            {/* Local */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, textAlign: 'center' }}>
+              {renderEscudo(localEscudo, localNombre, 48)}
+              <div style={{ color: 'white', fontWeight: 800, fontSize: 12, lineHeight: 1.2, maxWidth: 100 }}>
+                {localNombre}
+              </div>
+            </div>
+
+            {/* Centro: VS o marcador */}
+            <div style={{ width: 72, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {mostrarMarcador ? (
+                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 30, fontWeight: 900, color: 'white', lineHeight: 1 }}>
+                    {partido.marcadorLocal ?? 0}
+                  </span>
+                  <span style={{ fontSize: 18, color: 'rgba(255,255,255,0.3)', fontWeight: 700 }}>-</span>
+                  <span style={{ fontSize: 30, fontWeight: 900, color: 'white', lineHeight: 1 }}>
+                    {partido.marcadorVisitante ?? 0}
+                  </span>
+                </div>
+              ) : (
+                <span style={{ fontSize: 15, fontWeight: 900, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.05em' }}>
+                  VS
+                </span>
+              )}
+            </div>
+
+            {/* Visitante */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, textAlign: 'center' }}>
+              {renderEscudo(visitanteEscudo, visitanteNombre, 48)}
+              <div style={{ color: 'white', fontWeight: 800, fontSize: 12, lineHeight: 1.2, maxWidth: 100 }}>
+                {visitanteNombre}
+              </div>
+            </div>
+          </div>
+
+          {/* ── CANCHA — con nombres de jugadores a cada lado si están disponibles ── */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '10px 20px 0' }}>
+            <div style={{ position: 'relative', width: '100%', minHeight: incluirJugadores && hayJugadores ? 110 : 60 }}>
               {/* SVG cancha */}
               <svg
                 viewBox="0 0 18 9"
@@ -247,50 +309,26 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
                 <line x1="12" y1="0.1" x2="12" y2="8.9" stroke="rgba(255,255,255,0.1)" strokeWidth="0.13" strokeDasharray="0.4 0.25" />
               </svg>
 
-              {/* Equipos sobre la cancha */}
-              <div style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%', padding: '18px 0', gap: 0 }}>
-
-                {/* Local */}
-                <div style={{
-                  flex: 1, display: 'flex', flexDirection: 'column',
-                  alignItems: 'center', gap: 12, textAlign: 'center',
-                }}>
-                  {renderEscudo(localEscudo, localNombre, 64)}
-                  <div style={{ color: 'white', fontWeight: 800, fontSize: 13, lineHeight: 1.25, maxWidth: 100 }}>
-                    {localNombre}
+              {/* Nombres de jugadores sobre la cancha */}
+              {incluirJugadores && hayJugadores && (
+                <div style={{ position: 'relative', display: 'flex', width: '100%', padding: '10px 10px' }}>
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {localJugadores.slice(0, 9).map((j, i) => (
+                      <div key={j.id || i} style={{ color: 'rgba(255,255,255,0.85)', fontSize: 8.5, fontWeight: 700, lineHeight: 1.4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {j.nombre}
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ width: 16, flexShrink: 0 }} />
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'flex-end' }}>
+                    {visitanteJugadores.slice(0, 9).map((j, i) => (
+                      <div key={j.id || i} style={{ color: 'rgba(255,255,255,0.85)', fontSize: 8.5, fontWeight: 700, lineHeight: 1.4, textAlign: 'right', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {j.nombre}
+                      </div>
+                    ))}
                   </div>
                 </div>
-
-                {/* Centro: VS o marcador */}
-                <div style={{ width: 72, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {mostrarMarcador ? (
-                    <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <span style={{ fontSize: 34, fontWeight: 900, color: 'white', lineHeight: 1 }}>
-                        {partido.marcadorLocal ?? 0}
-                      </span>
-                      <span style={{ fontSize: 20, color: 'rgba(255,255,255,0.3)', fontWeight: 700 }}>-</span>
-                      <span style={{ fontSize: 34, fontWeight: 900, color: 'white', lineHeight: 1 }}>
-                        {partido.marcadorVisitante ?? 0}
-                      </span>
-                    </div>
-                  ) : (
-                    <span style={{ fontSize: 15, fontWeight: 900, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.05em' }}>
-                      VS
-                    </span>
-                  )}
-                </div>
-
-                {/* Visitante */}
-                <div style={{
-                  flex: 1, display: 'flex', flexDirection: 'column',
-                  alignItems: 'center', gap: 12, textAlign: 'center',
-                }}>
-                  {renderEscudo(visitanteEscudo, visitanteNombre, 64)}
-                  <div style={{ color: 'white', fontWeight: 800, fontSize: 13, lineHeight: 1.25, maxWidth: 100 }}>
-                    {visitanteNombre}
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
           </div>
 

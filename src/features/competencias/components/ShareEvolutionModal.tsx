@@ -62,7 +62,7 @@ export const ShareEvolutionModal: React.FC<ShareEvolutionModalProps> = ({
   if (!selectedPlayer) return null;
 
   return (
-    <ModalBase isOpen={isOpen} onClose={onClose} title="Compartir evolución de ELO" size="md">
+    <ModalBase isOpen={isOpen} onClose={onClose} title="Compartir evolución de ELO" size="md" overlayClassName="z-[70]">
       <div className="p-6 flex flex-col items-center">
         {playerInfo.length > 1 && (
           <select

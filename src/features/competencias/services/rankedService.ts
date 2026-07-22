@@ -42,6 +42,16 @@ export interface PlayerRankedDetail {
   }[];
 }
 
+export interface SynergyPair {
+  playerA: { id: string; nombre: string; foto?: string };
+  playerB: { id: string; nombre: string; foto?: string };
+  gamesTogether: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  winrate: number;
+}
+
 export class RankedService {
   private static readonly BASE = '/ranked';
 
@@ -102,5 +112,27 @@ export class RankedService {
     }
     
     return fetchWithAuth<{ ok: boolean; rank: number | null; context: any[] }>(`${this.BASE}/players/${playerId}/rank-context?${sp.toString()}`);
+  }
+
+  static async getSynergy(params: {
+    modalidad: string;
+    categoria: string;
+    competition?: string;
+    season?: string;
+    minGames?: number;
+    limit?: number;
+  }): Promise<{ ok: boolean; items: SynergyPair[] }> {
+    const sp = new URLSearchParams({
+      modalidad: params.modalidad,
+      categoria: params.categoria,
+      minGames: String(params.minGames ?? 5),
+      limit: String(params.limit ?? 10),
+    });
+    if (params.competition && params.competition !== 'null') sp.set('competition', params.competition);
+    if (params.season !== undefined && params.season !== null && params.season !== 'null' && params.season !== 'global') {
+      sp.set('season', String(params.season));
+    }
+
+    return fetchWithAuth<{ ok: boolean; items: SynergyPair[] }>(`${this.BASE}/synergy?${sp.toString()}`);
   }
 }

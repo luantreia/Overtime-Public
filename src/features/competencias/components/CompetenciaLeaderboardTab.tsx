@@ -1,12 +1,14 @@
 import React, { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { type Temporada } from '../services/temporadaService';
-import { type LeaderboardItem } from '../services/rankedService';
+import { RankedService, type LeaderboardItem, type SynergyPair } from '../services/rankedService';
 import { type JugadorCompetencia } from '../services/jugadorCompetenciaService';
 import { EloExplanationModal } from '../../../shared/components/EloExplanationModal';
 import { RankedEvolutionChartModal } from './RankedEvolutionChartModal';
 import { CompareVSModal } from './CompareVSModal';
 import { ShareRankModal } from './ShareRankModal';
 import { ShareTopNModal } from './ShareTopNModal';
+import { ShareSynergyModal } from './ShareSynergyModal';
 import { type RankingScope } from './RankingCardHeader';
 
 interface CompetenciaLeaderboardTabProps {
@@ -87,6 +89,22 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
     playerPhoto: undefined,
   });
   const [topNConfig, setTopNConfig] = useState<{ isOpen: boolean; n: 3 | 10 }>({ isOpen: false, n: 3 });
+  const [synergyShare, setSynergyShare] = useState<SynergyPair | null>(null);
+
+  const { data: synergyPairs = [] } = useQuery<SynergyPair[]>({
+    queryKey: ['synergy', _competenciaId, selectedTemporada, modalidad, categoria],
+    queryFn: async () => {
+      const res = await RankedService.getSynergy({
+        modalidad,
+        categoria,
+        competition: _competenciaId || undefined,
+        season: selectedTemporada === 'global' ? undefined : selectedTemporada,
+        limit: 5,
+      });
+      return res.items || [];
+    },
+    staleTime: 1000 * 60 * 5,
+  });
 
   const filteredLeaderboard = useMemo(() => {
     if (!searchTerm.trim()) return leaderboard;
@@ -632,6 +650,44 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
             <div className="p-12 text-center text-slate-500">No se encontraron jugadores que coincidan con tu búsqueda.</div>
           )}
         </>
+      )}
+
+      {synergyPairs.length > 0 && (
+        <div className="mt-8 pt-6 border-t border-slate-100">
+          <h3 className="text-sm font-black text-slate-700 uppercase tracking-wider mb-3">Mejores Duplas</h3>
+          <div className="space-y-2">
+            {synergyPairs.map((pair) => (
+              <div
+                key={`${pair.playerA.id}-${pair.playerB.id}`}
+                className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-slate-900 truncate">
+                    {pair.playerA.nombre} & {pair.playerB.nombre}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {pair.winrate}% winrate juntos · {pair.gamesTogether} partidos ({pair.wins}G {pair.draws}E {pair.losses}P)
+                  </p>
+                </div>
+                <button
+                  onClick={() => setSynergyShare(pair)}
+                  className="shrink-0 rounded-lg bg-brand-50 px-3 py-1.5 text-xs font-bold text-brand-700 hover:bg-brand-100 transition-colors"
+                >
+                  Compartir
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {synergyShare && (
+        <ShareSynergyModal
+          isOpen={!!synergyShare}
+          onClose={() => setSynergyShare(null)}
+          pair={synergyShare}
+          scope={scope}
+        />
       )}
     </div>
   );
