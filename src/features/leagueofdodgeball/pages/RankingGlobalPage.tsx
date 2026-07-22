@@ -91,7 +91,7 @@ export default function RankingGlobalPage() {
             jugadoresComp={[]}
             onPlayerClick={({ id }) => navigate(`/jugadores/${id}`)}
             competenciaId=""
-            competenciaNombre="Ranking Global"
+            scope={{ tipo: 'global', categoria, modalidad }}
             modalidad={modalidad}
             categoria={categoria}
           />

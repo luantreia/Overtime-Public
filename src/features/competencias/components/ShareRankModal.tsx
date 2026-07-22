@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { toPng } from 'html-to-image';
 import ModalBase from '../../../shared/components/ModalBase/ModalBase';
 import { type LeaderboardItem } from '../services/rankedService';
+import RankingCardHeader, { type RankingScope } from './RankingCardHeader';
 
 interface ShareRankModalProps {
   isOpen: boolean;
@@ -9,8 +10,7 @@ interface ShareRankModalProps {
   player: LeaderboardItem;
   rank: number;
   playerPhoto?: string;
-  temporadaNombre: string;
-  competenciaNombre: string;
+  scope: RankingScope;
 }
 
 export const ShareRankModal: React.FC<ShareRankModalProps> = ({
@@ -19,8 +19,7 @@ export const ShareRankModal: React.FC<ShareRankModalProps> = ({
   player,
   rank,
   playerPhoto,
-  temporadaNombre,
-  competenciaNombre,
+  scope,
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(false);
@@ -31,8 +30,6 @@ export const ShareRankModal: React.FC<ShareRankModalProps> = ({
     .join('')
     .slice(0, 2)
     .toUpperCase();
-  const today = new Date().toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-  const temporadaLabel = `${temporadaNombre} · ${today}`;
 
   const handleShare = async () => {
     if (!cardRef.current) return;
@@ -66,8 +63,10 @@ export const ShareRankModal: React.FC<ShareRankModalProps> = ({
           </div>
 
           <div className="my-auto flex flex-col items-center text-center">
-            <div className="text-xl font-bold uppercase tracking-[0.2em] mb-4 opacity-80">{temporadaLabel}</div>
-            
+            <div className="mb-4">
+              <RankingCardHeader scope={scope} />
+            </div>
+
             <div className="w-32 h-32 rounded-full border-4 border-white/50 bg-white/20 flex items-center justify-center text-4xl font-black mb-6 shadow-xl backdrop-blur-sm">
               {playerPhoto ? (
                 <img src={playerPhoto} alt={playerName} className="w-full h-full rounded-full object-cover" />
@@ -78,7 +77,7 @@ export const ShareRankModal: React.FC<ShareRankModalProps> = ({
 
             <h2 className="text-3xl font-black mb-8 drop-shadow-md">{playerName}</h2>
 
-            <div className="grid grid-cols-2 gap-8 w-full">
+            <div className="grid grid-cols-2 gap-6 w-full mb-6">
                 <div className="flex flex-col">
                     <span className="text-[10px] font-bold uppercase tracking-widest opacity-70">Posición</span>
                     <span className="text-4xl font-black">#{rank}</span>
@@ -88,13 +87,28 @@ export const ShareRankModal: React.FC<ShareRankModalProps> = ({
                     <span className="text-4xl font-black">{Number(player.rating).toFixed(0)}</span>
                 </div>
             </div>
+
+            <div className="grid grid-cols-4 gap-2 w-full">
+                <div className="flex flex-col">
+                    <span className="text-[9px] font-bold uppercase tracking-widest opacity-70">PJ</span>
+                    <span className="text-xl font-black">{player.matchesPlayed ?? 0}</span>
+                </div>
+                <div className="flex flex-col">
+                    <span className="text-[9px] font-bold uppercase tracking-widest opacity-70">G</span>
+                    <span className="text-xl font-black">{player.wins ?? 0}</span>
+                </div>
+                <div className="flex flex-col">
+                    <span className="text-[9px] font-bold uppercase tracking-widest opacity-70">E</span>
+                    <span className="text-xl font-black">{player.draws ?? 0}</span>
+                </div>
+                <div className="flex flex-col">
+                    <span className="text-[9px] font-bold uppercase tracking-widest opacity-70">P</span>
+                    <span className="text-xl font-black">{player.losses ?? 0}</span>
+                </div>
+            </div>
           </div>
 
-          <div className="mt-auto pt-8 border-t border-white/20 flex justify-between items-end">
-             <div className="flex flex-col">
-               <span className="text-[10px] font-black uppercase opacity-60">Competencia</span>
-               <span className="text-sm font-bold">{competenciaNombre}</span>
-             </div>
+          <div className="mt-auto pt-8 border-t border-white/20 flex justify-center">
              <div className="text-lg font-black tracking-tighter">overtime</div>
           </div>
         </div>

@@ -6,6 +6,8 @@ import { EloExplanationModal } from '../../../shared/components/EloExplanationMo
 import { RankedEvolutionChartModal } from './RankedEvolutionChartModal';
 import { CompareVSModal } from './CompareVSModal';
 import { ShareRankModal } from './ShareRankModal';
+import { ShareTopNModal } from './ShareTopNModal';
+import { type RankingScope } from './RankingCardHeader';
 
 interface CompetenciaLeaderboardTabProps {
   temporadas: Temporada[];
@@ -16,7 +18,7 @@ interface CompetenciaLeaderboardTabProps {
   jugadoresComp: JugadorCompetencia[];
   onPlayerClick: (player: { id: string; name: string }) => void;
   competenciaId: string;
-  competenciaNombre: string;
+  scope: RankingScope;
   modalidad: string;
   categoria: string;
 }
@@ -64,7 +66,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
   jugadoresComp,
   onPlayerClick,
   competenciaId: _competenciaId,
-  competenciaNombre,
+  scope,
   modalidad,
   categoria,
 }) => {
@@ -84,11 +86,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
     rank: 0,
     playerPhoto: undefined,
   });
-
-  const temporadaNombre = useMemo(() => {
-    if (!selectedTemporada || selectedTemporada === 'global') return 'Histórico Global';
-    return temporadas.find((temporada) => temporada._id === selectedTemporada)?.nombre || 'Temporada';
-  }, [selectedTemporada, temporadas]);
+  const [topNConfig, setTopNConfig] = useState<{ isOpen: boolean; n: 3 | 10 }>({ isOpen: false, n: 3 });
 
   const filteredLeaderboard = useMemo(() => {
     if (!searchTerm.trim()) return leaderboard;
@@ -180,6 +178,24 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
         </div>
 
         <div className="mb-1 flex-shrink-0 flex items-center gap-3">
+          <button
+            onClick={() => setTopNConfig({ isOpen: true, n: 3 })}
+            disabled={leaderboard.length === 0}
+            className="text-sm text-brand-600 hover:text-brand-700 font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            Exportar Top 3
+          </button>
+
+          <button
+            onClick={() => setTopNConfig({ isOpen: true, n: 10 })}
+            disabled={leaderboard.length === 0}
+            className="text-sm text-brand-600 hover:text-brand-700 font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            Exportar Top 10
+          </button>
+
+          <div className="w-px h-4 bg-slate-300" />
+
           <button
             onClick={() => {
               setEvolutionPlayers(comparingPlayers.slice(0, 2));
@@ -304,10 +320,17 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
           player={shareConfig.player}
           rank={shareConfig.rank}
           playerPhoto={shareConfig.playerPhoto}
-          temporadaNombre={temporadaNombre}
-          competenciaNombre={competenciaNombre}
+          scope={scope}
         />
       )}
+
+      <ShareTopNModal
+        isOpen={topNConfig.isOpen}
+        onClose={() => setTopNConfig((prev) => ({ ...prev, isOpen: false }))}
+        players={leaderboard}
+        n={topNConfig.n}
+        scope={scope}
+      />
 
       {loading ? (
         <div className="p-12 text-center">

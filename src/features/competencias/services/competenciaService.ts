@@ -9,6 +9,7 @@ export interface Competencia {
   estado?: 'proximamente' | 'en_curso' | 'finalizada';
   imagen?: string;
   equipos?: number;
+  organizacion?: { _id?: string; id?: string; nombre: string };
   [key: string]: any;
 }
 

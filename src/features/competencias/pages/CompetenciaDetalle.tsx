@@ -16,6 +16,7 @@ import {
   CompetenciaResultadosTab
 } from '../components';
 import { CompetenciaLeaderboardTab } from '../components/CompetenciaLeaderboardTab';
+import { type RankingScope } from '../components/RankingCardHeader';
 
 const CompetenciaDetalle: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -316,21 +317,37 @@ const CompetenciaDetalle: React.FC = () => {
             />
           )}
 
-          {activeTab === 'leaderboard' && (
-            <CompetenciaLeaderboardTab
-              temporadas={temporadas}
-              selectedTemporada={selectedTemporada}
-              onTemporadaChange={(id: string) => updateParams({ temporada: id })}
-              loading={loadingLeaderboard}
-              leaderboard={leaderboard}
-              jugadoresComp={jugadoresComp}
-              onPlayerClick={handlePlayerClick}
-              competenciaId={id!}
-              competenciaNombre={(competencia as any)?.nombre || 'Competencia'}
-              modalidad={(competencia as any)?.modalidad || 'Foam'}
-              categoria={(competencia as any)?.categoria || 'Libre'}
-            />
-          )}
+          {activeTab === 'leaderboard' && (() => {
+            const competenciaNombre = (competencia as any)?.nombre || 'Competencia';
+            const organizacionNombre = (competencia as any)?.organizacion?.nombre;
+            const modalidad = (competencia as any)?.modalidad || 'Foam';
+            const scope: RankingScope =
+              selectedTemporada && selectedTemporada !== 'global'
+                ? {
+                    tipo: 'competencia-temporada',
+                    competenciaNombre,
+                    organizacionNombre,
+                    modalidad,
+                    temporadaNombre: temporadas.find((t: any) => t._id === selectedTemporada)?.nombre || 'Temporada',
+                  }
+                : { tipo: 'competencia', competenciaNombre, organizacionNombre, modalidad };
+
+            return (
+              <CompetenciaLeaderboardTab
+                temporadas={temporadas}
+                selectedTemporada={selectedTemporada}
+                onTemporadaChange={(tid: string) => updateParams({ temporada: tid })}
+                loading={loadingLeaderboard}
+                leaderboard={leaderboard}
+                jugadoresComp={jugadoresComp}
+                onPlayerClick={handlePlayerClick}
+                competenciaId={id!}
+                scope={scope}
+                modalidad={modalidad}
+                categoria={(competencia as any)?.categoria || 'Libre'}
+              />
+            );
+          })()}
         </div>
       </div>
 
