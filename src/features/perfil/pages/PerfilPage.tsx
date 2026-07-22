@@ -367,6 +367,13 @@ const PerfilPage = () => {
                       onChange={(e) => setJugadorForm((f) => ({ ...f, foto: e.target.value }))}
                       placeholder="https://…"
                     />
+                    <p className="mt-1 text-xs text-slate-400">
+                      Subí la imagen a{' '}
+                      <a href="https://postimages.org/" target="_blank" rel="noopener noreferrer" className="underline">
+                        postimages.org
+                      </a>{' '}
+                      y pegá el link "Direct link". Usá una imagen cuadrada y de buena resolución para que se vea bien en las tarjetas compartibles.
+                    </p>
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nacionalidad</label>
