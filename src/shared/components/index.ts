@@ -15,3 +15,4 @@ export { default as SegmentedToggle, type SegmentedToggleProps, type SegmentedTo
 export { default as FilterBar, type FilterBarProps, type FilterChip } from './FilterBar/FilterBar';
 export { default as IconToggle, type IconToggleProps, type IconToggleOption } from './IconToggle/IconToggle';
 export { default as CheckboxFilterGroup, type CheckboxFilterGroupProps, type CheckboxFilterOption } from './CheckboxFilterGroup/CheckboxFilterGroup';
+export { default as JoinCTA } from './JoinCTA/JoinCTA';

@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { EquipoCard, FilterBar } from '../../../shared/components';
+import { EquipoCard, FilterBar, JoinCTA } from '../../../shared/components';
 import { EquipoService, type Equipo } from '../services/equipoService';
 import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 
@@ -121,6 +121,15 @@ const Equipos: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 pt-3 pb-8 sm:pt-5">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <JoinCTA
+          className="mb-4"
+          message={
+            <>
+              <span className="font-bold">¿Querés jugar?</span> Entrá al perfil de un equipo y contactalo por sus redes sociales para sumarte a su próxima competencia.
+            </>
+          }
+        />
+
         {/* Búsqueda + filtros colapsables */}
         <FilterBar
           searchValue={searchTerm}

@@ -2,7 +2,7 @@
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { JugadorCard, FilterBar } from '../../../shared/components';
+import { JugadorCard, FilterBar, JoinCTA } from '../../../shared/components';
 import { JugadorService, type Jugador } from '../services/jugadorService';
 import { EquipoService } from '../../equipos/services/equipoService';
 import { useAuth } from '../../../app/providers/AuthContext';
@@ -179,7 +179,7 @@ const Jugadores: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 pt-3 pb-8 sm:pt-5">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {user && (
+        {user ? (
           <div className="mb-4 bg-brand-50 border border-brand-200 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <div className="flex items-center gap-3">
               <span className="text-xl">🏆</span>
@@ -188,6 +188,19 @@ const Jugadores: React.FC = () => {
               </p>
             </div>
           </div>
+        ) : (
+          <JoinCTA
+            className="mb-4"
+            message={
+              <>
+                <span className="font-bold">¿Todavía no jugaste?</span> Para sumarte a una competencia, contactá a un{' '}
+                <button onClick={() => navigate('/equipos')} className="font-semibold underline hover:text-brand-900">equipo</button>
+                {' '}o una{' '}
+                <button onClick={() => navigate('/competencias')} className="font-semibold underline hover:text-brand-900">organización</button>
+                {' '}por sus redes sociales.
+              </>
+            }
+          />
         )}
 
         {/* Búsqueda + filtros colapsables */}

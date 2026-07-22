@@ -139,7 +139,11 @@ export const EquipoHeader: React.FC<EquipoHeaderProps> = ({ equipo }) => {
         </div>
 
         {(equipo.sitioWeb || (equipo.redesSociales && Object.values(equipo.redesSociales).some(Boolean))) && (
-          <div className="flex flex-wrap items-center gap-3 py-4 border-t border-slate-100">
+          <div className="py-4 border-t border-slate-100">
+            <p className="mb-3 text-sm text-slate-500">
+              <span className="font-semibold text-slate-700">¿Querés sumarte a este equipo?</span> Contactalo por acá:
+            </p>
+            <div className="flex flex-wrap items-center gap-3">
             {equipo.sitioWeb && (
               <a
                 href={equipo.sitioWeb.startsWith('http') ? equipo.sitioWeb : `https://${equipo.sitioWeb}`}
@@ -170,6 +174,7 @@ export const EquipoHeader: React.FC<EquipoHeaderProps> = ({ equipo }) => {
                 </a>
               );
             })}
+            </div>
           </div>
         )}
 

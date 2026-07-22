@@ -140,7 +140,11 @@ const OrganizacionDetalle: React.FC = () => {
               <p className="mt-1 text-slate-600">{organizacion.descripcion}</p>
             )}
             {(organizacion.sitioWeb || (organizacion.redesSociales && Object.values(organizacion.redesSociales).some(Boolean))) && (
-              <div className="flex flex-wrap items-center gap-3 mt-2">
+              <div className="mt-2">
+                <p className="mb-1.5 text-xs text-slate-500">
+                  <span className="font-semibold text-slate-600">¿Querés participar?</span> Contactalos por acá:
+                </p>
+                <div className="flex flex-wrap items-center gap-3">
                 {organizacion.sitioWeb && (
                   <a
                     href={organizacion.sitioWeb.startsWith('http') ? organizacion.sitioWeb : `https://${organizacion.sitioWeb}`}
@@ -172,6 +176,7 @@ const OrganizacionDetalle: React.FC = () => {
                     </a>
                   );
                 })}
+                </div>
               </div>
             )}
           </div>
