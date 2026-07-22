@@ -157,6 +157,24 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
     return players;
   }, [leaderboard]);
 
+  // Solo pedimos el detalle (historial + sinergia/rivalidad, caro en el backend) de los
+  // jugadores que realmente se van a mostrar — antes se pedía para todo el leaderboard
+  // (hasta 500), aunque el gráfico solo muestra 5-10 por defecto.
+  const playersToFetch: LeaderboardItem[] = useMemo(() => {
+    const filter1 = normalizeText(playerFilter);
+    const filter2 = normalizeText(playerFilter2);
+    const hasAnyFilter = !!filter1 || !!filter2;
+
+    if (hasAnyFilter) {
+      return topPlayers.filter((p) => {
+        const name = normalizeText(p.playerName || "");
+        return (!!filter1 && name.includes(filter1)) || (!!filter2 && name.includes(filter2));
+      });
+    }
+    return visiblePlayersCount === -1 ? topPlayers : topPlayers.slice(0, visiblePlayersCount);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [topPlayers, playerFilter, playerFilter2, visiblePlayersCount]);
+
   useEffect(() => {
     if (!isOpen || !initialPlayerIds?.length || leaderboard.length === 0) return;
 
@@ -222,10 +240,10 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
   });
 
   const { data: rawPlayersData, isLoading: loadingPlayers } = useQuery({
-    queryKey: ["ranked-evolution-raw", competenciaId, selectedSeason, topPlayers.map(p => p.playerId).join(",")],
+    queryKey: ["ranked-evolution-raw", competenciaId, selectedSeason, playersToFetch.map(p => p.playerId).join(",")],
     queryFn: async () => {
       const results = await Promise.all(
-        topPlayers.map(async (player) => {
+        playersToFetch.map(async (player) => {
           try {
             // DISCRIMINACIÓN DE NIVELES DE RANKING (Sincronizado con Backend)
             const detail = await RankedService.getPlayerDetail(player.playerId, {
@@ -261,7 +279,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
       );
       return results;
     },
-    enabled: isOpen && topPlayers.length > 0 && !!competencia && seasonInitialized,
+    enabled: isOpen && playersToFetch.length > 0 && !!competencia && seasonInitialized,
   });
 
   // Procesamiento de datos combinado (Historia + Partidos + Filtros)
@@ -562,107 +580,111 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
         </div>
 
          <div className="flex-1 flex flex-col min-h-0 bg-white">
-          <div className="px-4 sm:px-6 py-3 sm:py-4 grid grid-cols-2 sm:flex sm:items-center sm:justify-between gap-2 sm:gap-4 shrink-0 overflow-hidden border-b border-slate-100 bg-white sm:bg-transparent sticky top-0 z-10">
-            <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 shadow-sm col-span-1">
-              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest hidden xs:block">Temporada</span>
-              <select
-                value={selectedSeason}
-                onChange={(e) => setSelectedSeason(e.target.value)}
-                disabled={loadingTemporadas || seasonOptions.length === 0}
-                className="text-[11px] font-bold bg-transparent border-none p-0 focus:ring-0 text-slate-700 cursor-pointer appearance-none outline-none"
-              >
-                {seasonOptions.map((t) => (
-                  <option key={t._id} value={t._id}>{t.nombre}</option>
-                ))}
-              </select>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
-
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth col-span-1 justify-end sm:justify-start">
-              {[{ id: "all", label: "Total" }, { id: "month", label: "Mes" }].map((f) => (
-                <button
-                  key={f.id}
-                  onClick={() => setTimeFilter(f.id as TimeFilter)}
-                  className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition-all ${timeFilter === f.id ? "bg-brand-600 text-white shadow-lg shadow-brand-200" : "bg-slate-50 text-slate-500 hover:bg-slate-100"}`}
+          <div className="px-4 sm:px-6 py-3 sm:py-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3 shrink-0 overflow-hidden border-b border-slate-100 bg-white sm:bg-transparent sticky top-0 z-10">
+            {/* Fila 1: filtros primarios — siempre 3 en fila, incluso en mobile */}
+            <div className="grid grid-cols-3 gap-2 sm:contents">
+              <div className="flex items-center gap-1.5 bg-white px-2.5 py-2 rounded-xl border border-slate-200 shadow-sm min-w-0">
+                <select
+                  value={selectedSeason}
+                  onChange={(e) => setSelectedSeason(e.target.value)}
+                  disabled={loadingTemporadas || seasonOptions.length === 0}
+                  className="w-full text-[11px] font-bold bg-transparent border-none p-0 focus:ring-0 text-slate-700 cursor-pointer appearance-none outline-none truncate"
                 >
-                  {f.label}
-                </button>
-              ))}
+                  {seasonOptions.map((t) => (
+                    <option key={t._id} value={t._id}>{t.nombre}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center gap-1 bg-slate-50 rounded-xl p-1">
+                {[{ id: "all", label: "Total" }, { id: "month", label: "Mes" }].map((f) => (
+                  <button
+                    key={f.id}
+                    onClick={() => setTimeFilter(f.id as TimeFilter)}
+                    className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition-all ${timeFilter === f.id ? "bg-brand-600 text-white shadow" : "text-slate-500 hover:bg-slate-100"}`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-1.5 bg-white px-2.5 py-2 rounded-xl border border-slate-200 shadow-sm min-w-0">
+                <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Top</span>
+                <select
+                  value={visiblePlayersCount}
+                  onChange={(e) => setVisiblePlayersCount(Number(e.target.value))}
+                  className="text-[11px] font-bold bg-transparent border-none p-0 focus:ring-0 text-slate-700 cursor-pointer appearance-none outline-none"
+                >
+                  <option value={3}>3</option>
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                </select>
+              </div>
             </div>
 
-            <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 shadow-sm shrink-0 col-span-1">
-              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest hidden xs:block">Top</span>
-              <select 
-                value={visiblePlayersCount} 
-                onChange={(e) => setVisiblePlayersCount(Number(e.target.value))} 
-                className="text-[11px] font-bold bg-transparent border-none p-0 focus:ring-0 text-slate-700 cursor-pointer appearance-none outline-none"
-              >
-                <option value={3}>3</option>
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-              </select>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-              </svg>
+            {/* Fila 2: búsqueda de jugadores para comparar */}
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-3">
+              <div className="flex items-center gap-2 bg-slate-50/80 px-3 py-2 rounded-xl border border-slate-100 sm:w-40">
+                <input
+                  value={playerFilter}
+                  onChange={(e) => setPlayerFilter(e.target.value)}
+                  placeholder="Buscar jugador"
+                  className="w-full text-[11px] font-bold bg-transparent border-none p-0 focus:ring-0 text-slate-600 placeholder:text-slate-400"
+                />
+                {playerFilter && (
+                  <button onClick={() => setPlayerFilter("")} className="text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2 bg-slate-50/80 px-3 py-2 rounded-xl border border-slate-100 sm:w-40">
+                <input
+                  value={playerFilter2}
+                  onChange={(e) => setPlayerFilter2(e.target.value)}
+                  placeholder="Buscar jugador 2"
+                  className="w-full text-[11px] font-bold bg-transparent border-none p-0 focus:ring-0 text-slate-600 placeholder:text-slate-400"
+                />
+                {playerFilter2 && (
+                  <button onClick={() => setPlayerFilter2("")} className="text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
+                )}
+              </div>
             </div>
 
-            <div className="flex items-center gap-2 bg-slate-50/80 px-3 py-2 rounded-xl border border-slate-100 col-span-2 sm:col-span-1 w-full sm:max-w-xs">
-              <input
-                value={playerFilter}
-                onChange={(e) => setPlayerFilter(e.target.value)}
-                placeholder="Buscar jugador"
-                className="w-full text-[11px] font-bold bg-transparent border-none p-0 focus:ring-0 text-slate-600 placeholder:text-slate-400"
-              />
-              {playerFilter && (
-                <button onClick={() => setPlayerFilter("")} className="text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
-              )}
-            </div>
+            {/* Fila 3: acciones — compartir / comparar */}
+            {(scope || onOpenCompareVS) && (
+              <div className="flex gap-2">
+                {scope && evolutionaryData.playerInfo.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setIsShareOpen(true)}
+                    className="flex-1 sm:flex-none rounded-xl px-3 py-2 text-[11px] font-black uppercase tracking-wider transition-all bg-brand-50 text-brand-700 hover:bg-brand-100"
+                  >
+                    Compartir evolución
+                  </button>
+                )}
 
-            <div className="flex items-center gap-2 bg-slate-50/80 px-3 py-2 rounded-xl border border-slate-100 col-span-2 sm:col-span-1 w-full sm:max-w-xs">
-              <input
-                value={playerFilter2}
-                onChange={(e) => setPlayerFilter2(e.target.value)}
-                placeholder="Buscar jugador 2"
-                className="w-full text-[11px] font-bold bg-transparent border-none p-0 focus:ring-0 text-slate-600 placeholder:text-slate-400"
-              />
-              {playerFilter2 && (
-                <button onClick={() => setPlayerFilter2("")} className="text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
-              )}
-            </div>
-
-            {scope && evolutionaryData.playerInfo.length > 0 && (
-              <button
-                type="button"
-                onClick={() => setIsShareOpen(true)}
-                className="col-span-2 sm:col-span-1 rounded-xl px-3 py-2 text-[11px] font-black uppercase tracking-wider transition-all bg-brand-50 text-brand-700 hover:bg-brand-100"
-              >
-                Compartir evolución
-              </button>
+                {onOpenCompareVS && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (selectedComparePlayers.length === 2) {
+                        onOpenCompareVS(selectedComparePlayers.map((player) => player.id));
+                      }
+                    }}
+                    disabled={selectedComparePlayers.length !== 2}
+                    className={`flex-1 sm:flex-none rounded-xl px-3 py-2 text-[11px] font-black uppercase tracking-wider transition-all ${
+                      selectedComparePlayers.length === 2
+                        ? "bg-brand-600 text-white shadow-lg shadow-brand-200 hover:bg-brand-700"
+                        : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                    }`}
+                  >
+                    Ver en VS
+                  </button>
+                )}
+              </div>
             )}
 
-            {onOpenCompareVS && (
-              <button
-                type="button"
-                onClick={() => {
-                  if (selectedComparePlayers.length === 2) {
-                    onOpenCompareVS(selectedComparePlayers.map((player) => player.id));
-                  }
-                }}
-                disabled={selectedComparePlayers.length !== 2}
-                className={`col-span-2 sm:col-span-1 rounded-xl px-3 py-2 text-[11px] font-black uppercase tracking-wider transition-all ${
-                  selectedComparePlayers.length === 2
-                    ? "bg-brand-600 text-white shadow-lg shadow-brand-200 hover:bg-brand-700"
-                    : "bg-slate-100 text-slate-400 cursor-not-allowed"
-                }`}
-              >
-                Ver en VS
-              </button>
-            )}
-
-            {onOpenCompareVS && (
-              <p className="col-span-2 sm:col-span-1 text-[10px] font-bold text-slate-500 leading-tight">
+            {onOpenCompareVS && (playerFilter || playerFilter2) && (
+              <p className="text-[10px] font-bold text-slate-500 leading-tight">
                 {selectedComparePlayers.length === 2
                   ? `Detectados: ${selectedComparePlayers[0].name} vs ${selectedComparePlayers[1].name}`
                   : "Escribe dos nombres para habilitar la comparativa VS."}
@@ -755,26 +777,8 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                         }}
                       />
                               <Legend verticalAlign="top" height={isMobileView ? 44 : 60} iconType="circle" wrapperStyle={{ fontSize: isMobileView ? "9px" : "10px", fontWeight: 800, paddingBottom: isMobileView ? "8px" : "20px" }} />
-                              {(() => {
-                                const filter1 = normalizeText(playerFilter);
-                                const filter2 = normalizeText(playerFilter2);
-                                const hasAnyFilter = !!filter1 || !!filter2;
-
-                                const list = (evolutionaryData.playerInfo || []).filter((p) =>
-                                  !hasAnyFilter
-                                    ? true
-                                    : (() => {
-                                        const name = normalizeText(p.name || "");
-                                        const matches1 = !!filter1 && name.includes(filter1);
-                                        const matches2 = !!filter2 && name.includes(filter2);
-                                        return matches1 || matches2;
-                                      })()
-                                );
-                                const visible = hasAnyFilter
-                                  ? list
-                                  : (visiblePlayersCount === -1 ? list : list.slice(0, visiblePlayersCount));
-                                return visible;
-                              })().map((info) => (
+                              {/* evolutionaryData.playerInfo ya refleja solo playersToFetch (visibles/filtrados) */}
+                              {(evolutionaryData.playerInfo || []).map((info) => (
                         <Line 
                           key={info.key} 
                           type="stepAfter" 
