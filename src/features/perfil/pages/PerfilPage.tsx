@@ -8,7 +8,7 @@ import SolicitudModal from '../../../shared/components/SolicitudModal/SolicitudM
 import { SolicitudEdicionTipo } from '../../../shared/types/solicitudesEdicion';
 import { actualizarUsuario, cambiarPassword } from '../services/usuarioService';
 import { getSolicitudesEdicion } from '../../solicitudes/services/solicitudesEdicionService';
-import { JugadorService } from '../../jugadores/services/jugadorService';
+import { JugadorService, Jugador } from '../../jugadores/services/jugadorService';
 
 const PerfilPage = () => {
   usePageTitle('Mi Perfil');
@@ -36,12 +36,46 @@ const PerfilPage = () => {
   const [passwordForm, setPasswordForm] = useState({ passwordActual: '', passwordNueva: '', confirmar: '' });
   const [passwordLoading, setPasswordLoading] = useState(false);
 
-  const { data: miJugador } = useQuery({
+  const { data: miJugador, refetch: refetchMiJugador } = useQuery({
     queryKey: ['mi-jugador'],
     queryFn: () => JugadorService.getMyProfile(),
     enabled: !!user,
     retry: false,
   });
+
+  // Editar jugador
+  const [isEditingJugador, setIsEditingJugador] = useState(false);
+  const [jugadorForm, setJugadorForm] = useState<Partial<Jugador>>({});
+  const [jugadorSaving, setJugadorSaving] = useState(false);
+
+  const openEditJugador = () => {
+    if (!miJugador) return;
+    setJugadorForm({
+      nombre: miJugador.nombre ?? '',
+      alias: miJugador.alias ?? '',
+      fechaNacimiento: miJugador.fechaNacimiento ? String(miJugador.fechaNacimiento).slice(0, 10) : '',
+      genero: miJugador.genero,
+      foto: miJugador.foto ?? '',
+      nacionalidad: miJugador.nacionalidad ?? '',
+    });
+    setIsEditingJugador(true);
+  };
+
+  const handleSaveJugador = async () => {
+    const jugadorId = miJugador?._id || miJugador?.id;
+    if (!jugadorId) return;
+    try {
+      setJugadorSaving(true);
+      await JugadorService.update(jugadorId, jugadorForm);
+      await refetchMiJugador();
+      setIsEditingJugador(false);
+      addToast({ type: 'success', title: 'Perfil actualizado', message: 'Los datos de tu jugador fueron guardados.' });
+    } catch (err: any) {
+      addToast({ type: 'error', title: 'Error', message: err?.message || 'No se pudo actualizar el perfil de jugador' });
+    } finally {
+      setJugadorSaving(false);
+    }
+  };
 
   const { data: solicitudesPendientes } = useQuery({
     queryKey: ['mis-solicitudes-pendientes'],
@@ -136,9 +170,9 @@ const PerfilPage = () => {
               <Link to="/competencias" className="rounded-xl bg-white/10 px-3 py-3 text-center text-xs font-semibold hover:bg-white/20 transition-all">
                 Unirte a una competencia
               </Link>
-              <Link to="/perfil" onClick={() => setIsEditingProfile(true)} className="rounded-xl bg-white/10 px-3 py-3 text-center text-xs font-semibold hover:bg-white/20 transition-all">
+              <button onClick={() => { dismissWelcome(); openEditJugador(); }} className="rounded-xl bg-white/10 px-3 py-3 text-center text-xs font-semibold hover:bg-white/20 transition-all">
                 Editar tu perfil
-              </Link>
+              </button>
               <Link to="/plaza" className="rounded-xl bg-white/10 px-3 py-3 text-center text-xs font-semibold hover:bg-white/20 transition-all">
                 Jugar en La Plaza
               </Link>
@@ -258,25 +292,108 @@ const PerfilPage = () => {
         <div className="rounded-2xl bg-white p-6 shadow-sm border border-slate-100">
           <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4">Mi perfil de jugador</h2>
           {miJugador ? (
-            <Link
-              to={`/jugadores/${miJugador._id || miJugador.id}`}
-              className="flex items-center gap-4 p-4 rounded-xl border border-slate-200 hover:border-brand-300 hover:bg-brand-50 transition-all group"
-            >
-              <div className="h-12 w-12 rounded-xl bg-slate-100 flex items-center justify-center text-xl font-bold text-slate-400 overflow-hidden flex-shrink-0">
-                {miJugador.foto
-                  ? <img src={miJugador.foto} alt={miJugador.nombre} className="h-full w-full object-cover" />
-                  : miJugador.nombre.charAt(0)
-                }
+            <>
+              <button
+                type="button"
+                onClick={openEditJugador}
+                className="flex w-full items-center gap-4 p-4 rounded-xl border border-slate-200 hover:border-brand-300 hover:bg-brand-50 transition-all group text-left"
+              >
+                <div className="h-12 w-12 rounded-xl bg-slate-100 flex items-center justify-center text-xl font-bold text-slate-400 overflow-hidden flex-shrink-0">
+                  {miJugador.foto
+                    ? <img src={miJugador.foto} alt={miJugador.nombre} className="h-full w-full object-cover" />
+                    : miJugador.nombre.charAt(0)
+                  }
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-slate-900 group-hover:text-brand-700 transition-colors">{miJugador.nombre}</p>
+                  {miJugador.alias && <p className="text-sm text-brand-600 font-medium">@{miJugador.alias}</p>}
+                  <p className="text-xs text-slate-400 capitalize">{miJugador.genero} · {miJugador.nacionalidad}</p>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-300 group-hover:text-brand-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </button>
+              <div className="mt-2 text-right">
+                <Link to={`/jugadores/${miJugador._id || miJugador.id}`} className="text-xs font-semibold text-slate-400 hover:text-brand-600">
+                  Ver perfil público →
+                </Link>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-bold text-slate-900 group-hover:text-brand-700 transition-colors">{miJugador.nombre}</p>
-                {miJugador.alias && <p className="text-sm text-brand-600 font-medium">@{miJugador.alias}</p>}
-                <p className="text-xs text-slate-400 capitalize">{miJugador.genero} · {miJugador.nacionalidad}</p>
-              </div>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-300 group-hover:text-brand-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
+
+              {isEditingJugador && (
+                <div className="mt-4 border-t border-slate-100 pt-5 space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nombre</label>
+                    <input
+                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                      value={jugadorForm.nombre ?? ''}
+                      onChange={(e) => setJugadorForm((f) => ({ ...f, nombre: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Alias</label>
+                    <input
+                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                      value={jugadorForm.alias ?? ''}
+                      onChange={(e) => setJugadorForm((f) => ({ ...f, alias: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Fecha de nacimiento</label>
+                    <input
+                      type="date"
+                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                      value={typeof jugadorForm.fechaNacimiento === 'string' ? jugadorForm.fechaNacimiento : ''}
+                      onChange={(e) => setJugadorForm((f) => ({ ...f, fechaNacimiento: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Género</label>
+                    <select
+                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                      value={jugadorForm.genero ?? ''}
+                      onChange={(e) => setJugadorForm((f) => ({ ...f, genero: e.target.value as Jugador['genero'] }))}
+                    >
+                      <option value="">Sin especificar</option>
+                      <option value="masculino">Masculino</option>
+                      <option value="femenino">Femenino</option>
+                      <option value="otro">Otro</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Foto (URL)</label>
+                    <input
+                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                      value={jugadorForm.foto ?? ''}
+                      onChange={(e) => setJugadorForm((f) => ({ ...f, foto: e.target.value }))}
+                      placeholder="https://…"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nacionalidad</label>
+                    <input
+                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                      value={jugadorForm.nacionalidad ?? ''}
+                      onChange={(e) => setJugadorForm((f) => ({ ...f, nacionalidad: e.target.value }))}
+                    />
+                  </div>
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      onClick={handleSaveJugador}
+                      disabled={jugadorSaving}
+                      className="px-4 py-2 bg-brand-600 text-white text-sm font-semibold rounded-lg hover:bg-brand-700 disabled:opacity-50 transition-all"
+                    >
+                      {jugadorSaving ? 'Guardando...' : 'Guardar'}
+                    </button>
+                    <button
+                      onClick={() => setIsEditingJugador(false)}
+                      className="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-800 rounded-lg hover:bg-slate-100 transition-all"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           ) : (
             <div className="flex items-start gap-3 p-4 rounded-xl bg-slate-50 border border-dashed border-slate-200">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
