@@ -1025,6 +1025,20 @@ const PlazaLobby: React.FC = () => {
         onConfirm={executeConfirmedAction}
         onCancel={() => setConfirmAction(null)}
       />
+
+      {lobby.result && (
+        <ShareLaPlazaResultModal
+          isOpen={isShareOpen}
+          onClose={() => setIsShareOpen(false)}
+          title={lobby.title}
+          locationName={lobby.location?.name}
+          scheduledDate={lobby.scheduledDate}
+          scoreA={lobby.result.scoreA}
+          scoreB={lobby.result.scoreB}
+          teamA={teamA}
+          teamB={teamB}
+        />
+      )}
     </div>
   );
 };
