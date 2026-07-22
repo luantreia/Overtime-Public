@@ -1,6 +1,6 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { PerformanceMonitor } from '@react-three/drei';
+import { PerformanceMonitor, Environment } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import * as THREE from 'three';
 
@@ -201,7 +201,7 @@ const LucesEstadio: React.FC = () => (
         target-position={destino}
         angle={ANGULO_REFLECTOR}
         penumbra={0.6}
-        intensity={95}
+        intensity={55}
         distance={38}
         color="#f5f7ff"
         castShadow={i === 0}
@@ -235,7 +235,7 @@ const HazDeLuz: React.FC<{ origen: [number, number, number]; destino: [number, n
       <meshBasicMaterial
         color={color}
         transparent
-        opacity={0.045}
+        opacity={0.025}
         blending={THREE.AdditiveBlending}
         depthWrite={false}
         side={THREE.DoubleSide}
@@ -252,15 +252,13 @@ const HacesDeLuz: React.FC = () => (
   </>
 );
 
-// Cámara con órbita lenta y automática, + parallax sutil según el mouse + dolly-in según cuánto
-// de la escena está visible en el viewport (se acerca cuando el hero está más centrado en pantalla).
+// Cámara con órbita lenta y automática + dolly-in según cuánto de la escena está visible
+// en el viewport (se acerca cuando el hero está más centrado en pantalla al scrollear).
 const CamaraOrbital: React.FC<{ visibilidadRef: React.MutableRefObject<number> }> = ({ visibilidadRef }) => {
-  useFrame(({ clock, camera, pointer }) => {
+  useFrame(({ clock, camera }) => {
     const t = clock.getElapsedTime() * 0.06;
     const radio = 22 - visibilidadRef.current * 3.5;
-    const parallaxX = pointer.x * 1.5;
-    const parallaxY = pointer.y * 0.8;
-    camera.position.set(Math.sin(t) * radio + parallaxX, 8.5 + parallaxY, Math.cos(t) * radio);
+    camera.position.set(Math.sin(t) * radio, 8.5, Math.cos(t) * radio);
     camera.lookAt(0, 0.5, 0);
   });
   return null;
@@ -298,6 +296,7 @@ const EstadioTemploScene: React.FC = () => {
       <fog attach="fog" args={['#0f172a', 26, 58]} />
       <ambientLight intensity={0.55} />
       <hemisphereLight args={['#6b82ff', '#0b1020', 0.65]} />
+      <Environment preset="night" environmentIntensity={0.4} />
       <LucesEstadio />
       <HacesDeLuz />
       <Cancha />
@@ -308,7 +307,7 @@ const EstadioTemploScene: React.FC = () => {
       <Tribuna lado={-1} orientacion="frontal" />
       <CamaraOrbital visibilidadRef={visibilidadRef} />
       <EffectComposer multisampling={0}>
-        <Bloom mipmapBlur luminanceThreshold={0.15} luminanceSmoothing={0.9} intensity={0.6} />
+        <Bloom mipmapBlur luminanceThreshold={0.4} luminanceSmoothing={0.85} intensity={0.35} />
       </EffectComposer>
     </Canvas>
   );
