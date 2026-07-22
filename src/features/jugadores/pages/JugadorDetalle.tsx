@@ -5,7 +5,9 @@ import { useQuery } from '@tanstack/react-query';
 import { JugadorService } from '../services/jugadorService';
 import { CompetenciaService } from '../../competencias/services/competenciaService';
 import { JugadorCompetenciaService } from '../../competencias/services/jugadorCompetenciaService';
-import { PlayerRankedHistoryModal, JugadorCompetenciaModal } from '../../competencias/components';
+import { PlayerRankedHistoryModal, JugadorCompetenciaModal, RankedEvolutionChartModal, CompareVSModal } from '../../competencias/components';
+import { RankedService, type LeaderboardItem } from '../../competencias/services/rankedService';
+import { type RankingScope } from '../../competencias/components/RankingCardHeader';
 import { DashboardMaestro } from '../components/DashboardMaestro';
 import { PartidosHistorial } from '../components/PartidosHistorial';
 import { useAuth } from '../../../app/providers/AuthContext';
@@ -189,6 +191,61 @@ const JugadorDetalle: React.FC = () => {
     temporadas: TemporadaBadge[];
     initialTemporadaId: string;
   } | null>(null);
+
+  // Evolución de ELO / Comparación VS por competencia+temporada (desde el perfil del jugador)
+  const [evolutionModalData, setEvolutionModalData] = useState<{
+    competenciaId: string;
+    seasonId: string;
+    scope: RankingScope;
+  } | null>(null);
+
+  const [vsModalData, setVsModalData] = useState<{
+    competenciaId: string;
+    seasonId: string;
+    modalidad: string;
+    categoria: string;
+    scope: RankingScope;
+  } | null>(null);
+
+  const { data: vsLeaderboard = [] } = useQuery<LeaderboardItem[]>({
+    queryKey: ['jugador-vs-leaderboard', vsModalData?.competenciaId, vsModalData?.seasonId],
+    queryFn: async () => {
+      if (!vsModalData) return [];
+      const res = await RankedService.getLeaderboard({
+        modalidad: vsModalData.modalidad,
+        categoria: vsModalData.categoria,
+        competition: vsModalData.competenciaId,
+        season: vsModalData.seasonId === 'global' ? undefined : vsModalData.seasonId,
+        limit: 500,
+      });
+      return res.items || [];
+    },
+    enabled: !!vsModalData,
+  });
+
+  const buildScope = (data: any, season: TemporadaBadge): RankingScope => ({
+    tipo: 'competencia-temporada',
+    competenciaNombre: data.competencia.nombre,
+    organizacionNombre: data.competencia.organizacion?.nombre,
+    temporadaNombre: season.nombre,
+    modalidad: data.competencia.modalidad || 'Foam',
+  });
+
+  const handleShowEvolution = (data: any, season: TemporadaBadge) => {
+    const compId = data.competencia._id || data.competencia.id;
+    setEvolutionModalData({ competenciaId: compId, seasonId: season._id, scope: buildScope(data, season) });
+  };
+
+  const handleShowVS = (data: any, season: TemporadaBadge) => {
+    const compId = data.competencia._id || data.competencia.id;
+    setVsModalData({
+      competenciaId: compId,
+      seasonId: season._id,
+      modalidad: data.competencia.modalidad || 'Foam',
+      categoria: data.competencia.categoria || 'Libre',
+      scope: buildScope(data, season),
+    });
+  };
 
   const handleBadgeClick = (data: any, season: TemporadaBadge) => {
     const compId = data.competencia._id || data.competencia.id;
@@ -424,16 +481,37 @@ const JugadorDetalle: React.FC = () => {
                       </div>
 
                       {data.playedSeasonIds && data.playedSeasonIds.length > 0 ? (
-                        <div className="mt-3 flex flex-wrap gap-2">
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
                           {data.playedSeasonIds.map((season: TemporadaBadge) => (
-                            <button
-                              type="button"
-                              key={season._id}
-                              onClick={() => handleBadgeClick(data, season)}
-                              className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700 hover:bg-brand-50 hover:text-brand-700 transition-colors"
-                            >
-                              {season.nombre}
-                            </button>
+                            <div key={season._id} className="inline-flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => handleBadgeClick(data, season)}
+                                className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700 hover:bg-brand-50 hover:text-brand-700 transition-colors"
+                              >
+                                {season.nombre}
+                              </button>
+                              {data.isRanked && (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleShowEvolution(data, season)}
+                                    title="Ver evolución"
+                                    className="text-[10px] px-1.5 py-1 rounded-full text-slate-400 hover:text-brand-600 hover:bg-brand-50 transition-colors"
+                                  >
+                                    📈
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleShowVS(data, season)}
+                                    title="Comparar"
+                                    className="text-[10px] px-1.5 py-1 rounded-full text-slate-400 hover:text-brand-600 hover:bg-brand-50 transition-colors"
+                                  >
+                                    ⚔️
+                                  </button>
+                                </>
+                              )}
+                            </div>
                           ))}
                         </div>
                       ) : (
@@ -487,6 +565,31 @@ const JugadorDetalle: React.FC = () => {
           competenciaId={compModalData.competenciaId}
           temporadas={compModalData.temporadas}
           initialTemporadaId={compModalData.initialTemporadaId}
+        />
+      )}
+
+      {evolutionModalData && (
+        <RankedEvolutionChartModal
+          isOpen={!!evolutionModalData}
+          onClose={() => setEvolutionModalData(null)}
+          competenciaId={evolutionModalData.competenciaId}
+          defaultSeasonId={evolutionModalData.seasonId === 'global' ? undefined : evolutionModalData.seasonId}
+          initialPlayerIds={[id!]}
+          scope={evolutionModalData.scope}
+        />
+      )}
+
+      {vsModalData && (
+        <CompareVSModal
+          isOpen={!!vsModalData}
+          onClose={() => setVsModalData(null)}
+          players={vsLeaderboard}
+          initialPlayerIds={[id!]}
+          modalidad={vsModalData.modalidad}
+          categoria={vsModalData.categoria}
+          competition={vsModalData.competenciaId}
+          season={vsModalData.seasonId === 'global' ? undefined : vsModalData.seasonId}
+          scope={vsModalData.scope}
         />
       )}
     </div>

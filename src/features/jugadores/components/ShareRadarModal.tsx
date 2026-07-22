@@ -1,9 +1,9 @@
 import React, { useRef, useState } from 'react';
 import { toPng } from 'html-to-image';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
+import ModalBase from '../../../shared/components/ModalBase/ModalBase';
 
 const PolarAngleAxisCompat = PolarAngleAxis as unknown as React.ComponentType<any>;
-import ModalBase from '../../../shared/components/ModalBase/ModalBase';
 
 interface RadarData {
   power: number;
