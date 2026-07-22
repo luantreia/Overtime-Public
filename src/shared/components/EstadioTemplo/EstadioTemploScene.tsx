@@ -182,76 +182,6 @@ const Tribuna: React.FC<{ lado: 1 | -1; orientacion: OrientacionTribuna }> = ({ 
   );
 };
 
-// Reflectores de estadio en las 4 esquinas, ahora fuera del anillo de tribunas.
-// Cada uno apunta al centro de SU mitad de cancha (no los 4 al mismo punto), para que los haces no se amontonen.
-const ANGULO_REFLECTOR = 0.32;
-const REFLECTORES: { origen: [number, number, number]; destino: [number, number, number] }[] = [
-  { origen: [ALCANCE_LATERAL + 2, 11, ALCANCE_FRONTAL + 2], destino: [0, 0, HALF * 0.4] },
-  { origen: [-(ALCANCE_LATERAL + 2), 11, ALCANCE_FRONTAL + 2], destino: [0, 0, HALF * 0.4] },
-  { origen: [ALCANCE_LATERAL + 2, 11, -(ALCANCE_FRONTAL + 2)], destino: [0, 0, -HALF * 0.4] },
-  { origen: [-(ALCANCE_LATERAL + 2), 11, -(ALCANCE_FRONTAL + 2)], destino: [0, 0, -HALF * 0.4] },
-];
-
-const LucesEstadio: React.FC = () => (
-  <>
-    {REFLECTORES.map(({ origen, destino }, i) => (
-      <spotLight
-        key={i}
-        position={origen}
-        target-position={destino}
-        angle={ANGULO_REFLECTOR}
-        penumbra={0.6}
-        intensity={55}
-        distance={38}
-        color="#f5f7ff"
-        castShadow={i === 0}
-      />
-    ))}
-  </>
-);
-
-// Haz de luz volumétrico (cono semi-transparente, angosto) desde cada reflector hacia su objetivo
-const HazDeLuz: React.FC<{ origen: [number, number, number]; destino: [number, number, number]; color?: string }> = ({
-  origen,
-  destino,
-  color = '#dbe4ff',
-}) => {
-  const { posicion, cuaternion, altura, radio } = useMemo(() => {
-    const o = new THREE.Vector3(...origen);
-    const d = new THREE.Vector3(...destino);
-    const direccion = new THREE.Vector3().subVectors(d, o);
-    const altura = direccion.length();
-    const posicion = new THREE.Vector3().addVectors(o, d).multiplyScalar(0.5);
-    const arriba = new THREE.Vector3(0, 1, 0);
-    const cuaternion = new THREE.Quaternion().setFromUnitVectors(arriba, direccion.clone().normalize().negate());
-    // Radio angosto: una fracción del ancho real que ilumina el spotlight en el destino, no el cono completo
-    const radio = altura * Math.tan(ANGULO_REFLECTOR) * 0.45;
-    return { posicion, cuaternion, altura, radio };
-  }, [origen, destino]);
-
-  return (
-    <mesh position={posicion} quaternion={cuaternion}>
-      <coneGeometry args={[radio, altura, 16, 1, true]} />
-      <meshBasicMaterial
-        color={color}
-        transparent
-        opacity={0.025}
-        blending={THREE.AdditiveBlending}
-        depthWrite={false}
-        side={THREE.DoubleSide}
-      />
-    </mesh>
-  );
-};
-
-const HacesDeLuz: React.FC = () => (
-  <>
-    {REFLECTORES.map(({ origen, destino }, i) => (
-      <HazDeLuz key={i} origen={origen} destino={destino} />
-    ))}
-  </>
-);
-
 // Cámara con órbita lenta y automática + dolly-in según cuánto de la escena está visible
 // en el viewport (se acerca cuando el hero está más centrado en pantalla al scrollear).
 const CamaraOrbital: React.FC<{ visibilidadRef: React.MutableRefObject<number> }> = ({ visibilidadRef }) => {
@@ -297,8 +227,6 @@ const EstadioTemploScene: React.FC = () => {
       <ambientLight intensity={0.55} />
       <hemisphereLight args={['#6b82ff', '#0b1020', 0.65]} />
       <Environment preset="night" environmentIntensity={0.4} />
-      <LucesEstadio />
-      <HacesDeLuz />
       <Cancha />
       <Pelotas />
       <Tribuna lado={1} orientacion="lateral" />
