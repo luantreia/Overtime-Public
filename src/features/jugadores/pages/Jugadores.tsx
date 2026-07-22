@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { JugadorCard, FilterBar } from '../../../shared/components';
 import { JugadorService, type Jugador } from '../services/jugadorService';
+import { EquipoService } from '../../equipos/services/equipoService';
 import { useAuth } from '../../../app/providers/AuthContext';
 import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 
@@ -20,8 +21,9 @@ const Jugadores: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [genderFilter, setGenderFilter] = useState('');
   const [nationalityFilter, setNationalityFilter] = useState('');
+  const [teamFilter, setTeamFilter] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const activeFiltersCount = (genderFilter ? 1 : 0) + (nationalityFilter ? 1 : 0);
+  const activeFiltersCount = (genderFilter ? 1 : 0) + (nationalityFilter ? 1 : 0) + (teamFilter ? 1 : 0);
 
   // Semilla diaria para rotación de perfiles (cambia cada 24h)
   const discoverySeed = useMemo(() => {
@@ -42,6 +44,24 @@ const Jugadores: React.FC = () => {
     return Array.from(unique).sort() as string[];
   }, [paged]);
 
+  const { data: equipos = [] } = useQuery({
+    queryKey: ['equipos-list-filtro'],
+    queryFn: () => EquipoService.getAll(),
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const equiposOrdenados = useMemo(
+    () => [...equipos].sort((a, b) => a.nombre.localeCompare(b.nombre)),
+    [equipos]
+  );
+
+  const { data: teamJugadorIds } = useQuery({
+    queryKey: ['jugador-equipo-roster', teamFilter],
+    queryFn: () => JugadorService.getIdsByEquipo(teamFilter),
+    enabled: !!teamFilter,
+    staleTime: 1000 * 60 * 5,
+  });
+
   const filteredAndSortedItems = useMemo(() => {
     const rawItems = Array.isArray(paged) ? paged : (paged as any)?.items || [];
     let items = [...rawItems];
@@ -58,6 +78,10 @@ const Jugadores: React.FC = () => {
     // 2. Aplicar filtros
     if (genderFilter) items = items.filter(j => j.genero === genderFilter);
     if (nationalityFilter) items = items.filter(j => j.nacionalidad === nationalityFilter);
+    if (teamFilter) {
+      const idsEquipo = new Set(teamJugadorIds || []);
+      items = items.filter(j => idsEquipo.has((j._id || j.id) as string));
+    }
 
     // 3. Orden: rotación diaria (mezcla estable durante 24hs, cambia al día siguiente)
     const getDailyNoise = (j: Jugador, seed: number) => {
@@ -69,7 +93,7 @@ const Jugadores: React.FC = () => {
     items.sort((a, b) => getDailyNoise(b, discoverySeed) - getDailyNoise(a, discoverySeed));
     
     return items;
-  }, [paged, searchTerm, genderFilter, nationalityFilter, discoverySeed]);
+  }, [paged, searchTerm, genderFilter, nationalityFilter, teamFilter, teamJugadorIds, discoverySeed]);
 
   // Jugadores a mostrar actualmente (el "slide" del infinite scroll)
   const jugadoresVisible = useMemo(() => {
@@ -92,9 +116,13 @@ const Jugadores: React.FC = () => {
     if (nationalityFilter) {
       items.push({ key: 'nacionalidad', label: `Nacionalidad: ${nationalityFilter}`, onRemove: () => setNationalityFilter('') });
     }
+    if (teamFilter) {
+      const nombreEquipo = equipos.find(e => (e._id || e.id) === teamFilter)?.nombre || teamFilter;
+      items.push({ key: 'equipo', label: `Equipo: ${nombreEquipo}`, onRemove: () => setTeamFilter('') });
+    }
     return items;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [genderFilter, nationalityFilter]);
+  }, [genderFilter, nationalityFilter, teamFilter, equipos]);
 
   // Intersection Observer para disparar la carga de más elementos
   useEffect(() => {
@@ -117,7 +145,7 @@ const Jugadores: React.FC = () => {
   // Resetear el scroll cuando cambian los filtros
   useEffect(() => {
     setDisplayLimit(24);
-  }, [searchTerm, genderFilter, nationalityFilter]);
+  }, [searchTerm, genderFilter, nationalityFilter, teamFilter]);
 
   if (loading) {
     return (
@@ -172,7 +200,7 @@ const Jugadores: React.FC = () => {
           activeFiltersCount={activeFiltersCount}
           chips={jugadoresChips}
         >
-          <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
+          <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
             <div>
               <label htmlFor="gender" className="block text-xs font-medium text-slate-500 mb-1">Género</label>
               <select
@@ -201,12 +229,27 @@ const Jugadores: React.FC = () => {
                 ))}
               </select>
             </div>
+            <div>
+              <label htmlFor="team" className="block text-xs font-medium text-slate-500 mb-1">Equipo</label>
+              <select
+                id="team"
+                value={teamFilter}
+                onChange={(e) => { setTeamFilter(e.target.value); }}
+                className="w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 text-sm p-2 border"
+              >
+                <option value="">Todos</option>
+                {equiposOrdenados.map(e => (
+                  <option key={e._id || e.id} value={e._id || e.id}>{e.nombre}</option>
+                ))}
+              </select>
+            </div>
             <div className="flex items-end col-span-2 sm:col-span-1">
               <button
                 onClick={() => {
                   setSearchTerm('');
                   setGenderFilter('');
                   setNationalityFilter('');
+                  setTeamFilter('');
                 }}
                 className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors"
               >

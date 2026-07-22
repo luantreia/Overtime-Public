@@ -114,6 +114,13 @@ export class JugadorService {
     });
   }
 
+  static async getIdsByEquipo(equipoId: string): Promise<string[]> {
+    const relaciones = await fetchWithAuth<any[]>(`/jugador-equipo?equipo=${equipoId}`, { useAuth: false });
+    return relaciones
+      .filter((r) => r.estado === 'aceptado' && r.jugador)
+      .map((r) => (typeof r.jugador === 'string' ? r.jugador : r.jugador._id));
+  }
+
   static async getMyProfile(): Promise<Jugador | null> {
     try {
       return await fetchWithAuth<Jugador>(`${this.API_ENDPOINT}/me/profile`);
