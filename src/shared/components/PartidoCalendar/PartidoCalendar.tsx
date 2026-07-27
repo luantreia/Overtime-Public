@@ -229,7 +229,7 @@ export const PartidoCalendar: React.FC<PartidoCalendarProps> = ({
           <h3 className="mb-3 text-sm font-semibold text-slate-600">
             Semana del {getWeekDays(cursor)[0].getUTCDate()} de {MONTHS[getWeekDays(cursor)[0].getUTCMonth()]}
           </h3>
-          <div className="grid grid-cols-7 gap-1.5">
+          <div className="grid grid-cols-7 gap-0.5 sm:gap-1.5">
             {getWeekDays(cursor).map((date, i) => (
               <div key={i} className="space-y-1">
                 <div className="text-center text-[10px] font-bold uppercase text-slate-400">{WEEKDAYS[i]}</div>
@@ -250,7 +250,7 @@ export const PartidoCalendar: React.FC<PartidoCalendarProps> = ({
               <div key={w} className="text-[10px] font-bold uppercase text-slate-400">{w}</div>
             ))}
           </div>
-          <div className="grid grid-cols-7 gap-1.5">
+          <div className="grid grid-cols-7 gap-0.5 sm:gap-1.5">
             {getMonthGridDays(cursor).map((date) =>
               renderDayCell(date, { fueraDeMes: date.getUTCMonth() !== cursor.getUTCMonth(), maxChips: MAX_CHIPS_MENSUAL })
             )}

@@ -1,8 +1,9 @@
 import React, { useCallback } from 'react';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { EquipoService, type Equipo } from '../services/equipoService';
 import { usePageTitle } from '../../../shared/hooks/usePageTitle';
+import { BackButton, LoadingSpinner } from '../../../shared/components';
 import {
   EquipoHeader,
   EquipoPlantelTab,
@@ -20,7 +21,6 @@ const TABS: { key: TabKey; label: string }[] = [
 
 const EquipoDetalle: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const activeTab = (searchParams.get('tab') as TabKey) || 'plantel';
@@ -51,14 +51,7 @@ const EquipoDetalle: React.FC = () => {
   const equipoId = equipo?._id || equipo?.id || id || '';
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600 mx-auto"></div>
-          <p className="text-slate-600">Cargando detalles del equipo...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner fullScreen message="Cargando detalles del equipo..." />;
   }
 
   if (error || !equipo) {
@@ -66,9 +59,7 @@ const EquipoDetalle: React.FC = () => {
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <p className="mb-4 text-red-600">Error al cargar equipo: {error || 'No encontrado'}</p>
-          <button onClick={() => navigate('/equipos')} className="text-brand-600 hover:underline">
-            Volver a la lista
-          </button>
+          <BackButton fallback="/equipos" label="Volver a la lista" className="justify-center" />
         </div>
       </div>
     );
@@ -76,7 +67,8 @@ const EquipoDetalle: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 sm:py-8">
-      <div className="mx-auto max-w-4xl sm:px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-4xl px-4 sm:px-4 sm:px-6 lg:px-8">
+        <BackButton fallback="/equipos" className="mb-4 sm:mb-6" />
         <div className="bg-white sm:rounded-2xl shadow-none sm:shadow-sm border-0 sm:border sm:border-slate-200 overflow-hidden">
           <EquipoHeader equipo={equipo} />
 

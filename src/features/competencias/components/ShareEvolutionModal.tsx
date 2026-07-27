@@ -1,7 +1,8 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { toPng } from 'html-to-image';
 import { LineChart, Line, XAxis, ResponsiveContainer } from 'recharts';
 import ModalBase from '../../../shared/components/ModalBase/ModalBase';
+import { ShareDownloadButtons } from '../../../shared/components/ShareDownloadButtons/ShareDownloadButtons';
+import { useShareImage } from '../../../shared/hooks/useShareImage';
 import RankingCardHeader, { type RankingScope } from './RankingCardHeader';
 
 interface PlayerInfo {
@@ -27,7 +28,6 @@ export const ShareEvolutionModal: React.FC<ShareEvolutionModalProps> = ({
   scope,
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [loading, setLoading] = useState(false);
   const [selectedId, setSelectedId] = useState<string>(playerInfo[0]?.id || '');
 
   const selectedPlayer = playerInfo.find((p) => p.id === selectedId) || playerInfo[0];
@@ -43,21 +43,10 @@ export const ShareEvolutionModal: React.FC<ShareEvolutionModalProps> = ({
     return { data: points, startRating: first, currentRating: last, totalDiff: last - first };
   }, [chartData, selectedPlayer]);
 
-  const handleDownload = async () => {
-    if (!cardRef.current) return;
-    setLoading(true);
-    try {
-      const dataUrl = await toPng(cardRef.current, { cacheBust: true, pixelRatio: 2 });
-      const link = document.createElement('a');
-      link.download = `overtime-evolucion-${(selectedPlayer?.name || 'jugador').replace(/\s+/g, '-').toLowerCase()}.png`;
-      link.href = dataUrl;
-      link.click();
-    } catch (err) {
-      console.error('Error exportando evolución:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { handleShare, handleDownload, loadingShare, loadingDownload } = useShareImage(cardRef, {
+    filename: `overtime-evolucion-${(selectedPlayer?.name || 'jugador').replace(/\s+/g, '-').toLowerCase()}.png`,
+    shareTitle: `Evolución de ELO de ${selectedPlayer?.name || 'jugador'}`,
+  });
 
   if (!selectedPlayer) return null;
 
@@ -130,14 +119,13 @@ export const ShareEvolutionModal: React.FC<ShareEvolutionModalProps> = ({
           </div>
         </div>
 
-        <div className="mt-8 w-full space-y-3">
-          <button
-            onClick={handleDownload}
-            disabled={loading}
-            className="w-full py-4 rounded-2xl bg-brand-600 text-white font-black text-lg hover:bg-brand-700 transition-all shadow-xl active:scale-95 flex items-center justify-center gap-2"
-          >
-            {loading ? 'Generando...' : 'Descargar para Stories'}
-          </button>
+        <div className="mt-8 w-full">
+          <ShareDownloadButtons
+            onShare={handleShare}
+            onDownload={handleDownload}
+            loadingShare={loadingShare}
+            loadingDownload={loadingDownload}
+          />
         </div>
       </div>
     </ModalBase>

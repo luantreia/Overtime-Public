@@ -1,6 +1,7 @@
-import React, { useRef, useState } from 'react';
-import { toPng } from 'html-to-image';
+import React, { useRef } from 'react';
 import ModalBase from '../../../shared/components/ModalBase/ModalBase';
+import { ShareDownloadButtons } from '../../../shared/components/ShareDownloadButtons/ShareDownloadButtons';
+import { useShareImage } from '../../../shared/hooks/useShareImage';
 import RankingCardHeader, { type RankingScope } from './RankingCardHeader';
 import { type SynergyPair } from '../services/rankedService';
 
@@ -22,23 +23,10 @@ const Avatar: React.FC<{ nombre: string; foto?: string; accent: string }> = ({ n
 
 export const ShareSynergyModal: React.FC<ShareSynergyModalProps> = ({ isOpen, onClose, pair, scope }) => {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [loading, setLoading] = useState(false);
-
-  const handleDownload = async () => {
-    if (!cardRef.current) return;
-    setLoading(true);
-    try {
-      const dataUrl = await toPng(cardRef.current, { cacheBust: true, pixelRatio: 2 });
-      const link = document.createElement('a');
-      link.download = `overtime-dupla-${pair.playerA.nombre}-${pair.playerB.nombre}`.replace(/\s+/g, '-').toLowerCase() + '.png';
-      link.href = dataUrl;
-      link.click();
-    } catch (err) {
-      console.error('Error exportando dupla:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { handleShare, handleDownload, loadingShare, loadingDownload } = useShareImage(cardRef, {
+    filename: `overtime-dupla-${pair.playerA.nombre}-${pair.playerB.nombre}`.replace(/\s+/g, '-').toLowerCase() + '.png',
+    shareTitle: `${pair.playerA.nombre} & ${pair.playerB.nombre}`,
+  });
 
   return (
     <ModalBase isOpen={isOpen} onClose={onClose} title="Compartir dupla" size="md">
@@ -85,14 +73,13 @@ export const ShareSynergyModal: React.FC<ShareSynergyModalProps> = ({ isOpen, on
           </div>
         </div>
 
-        <div className="mt-8 w-full space-y-3">
-          <button
-            onClick={handleDownload}
-            disabled={loading}
-            className="w-full py-4 rounded-2xl bg-brand-600 text-white font-black text-lg hover:bg-brand-700 transition-all shadow-xl active:scale-95 flex items-center justify-center gap-2"
-          >
-            {loading ? 'Generando...' : 'Descargar para Stories'}
-          </button>
+        <div className="mt-8 w-full">
+          <ShareDownloadButtons
+            onShare={handleShare}
+            onDownload={handleDownload}
+            loadingShare={loadingShare}
+            loadingDownload={loadingDownload}
+          />
         </div>
       </div>
     </ModalBase>

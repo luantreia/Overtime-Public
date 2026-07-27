@@ -15,6 +15,7 @@ import { TemporadaService, Temporada } from '../../competencias/services/tempora
 import { FaseService, Fase } from '../../competencias/services/faseService';
 import { EquipoService, Equipo } from '../../equipos/services/equipoService';
 import { TablaPosiciones } from '../../../shared/components/TablaPosiciones/TablaPosiciones';
+import { EmptyState } from '../../../shared/components/EmptyState/EmptyState';
 
 type Vista = 'lista' | 'calendario';
 
@@ -314,7 +315,7 @@ const Partidos: React.FC = () => {
           loadingCalendario ? (
             <div className="flex items-center justify-center py-12">
               <div className="text-center">
-                <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-slate-300 border-t-slate-600 mx-auto"></div>
+                <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600 mx-auto"></div>
                 <p className="text-slate-600">Cargando partidos...</p>
               </div>
             </div>
@@ -326,7 +327,7 @@ const Partidos: React.FC = () => {
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="text-center">
-                  <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-slate-300 border-t-slate-600 mx-auto"></div>
+                  <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600 mx-auto"></div>
                   <p className="text-slate-600">Cargando partidos...</p>
                 </div>
               </div>
@@ -367,9 +368,7 @@ const Partidos: React.FC = () => {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12">
-                <p className="text-slate-500">No hay partidos disponibles con estos filtros</p>
-              </div>
+              <EmptyState icon="🏐" message="No hay partidos disponibles con estos filtros" />
             )}
 
             {/* Pagination controls */}

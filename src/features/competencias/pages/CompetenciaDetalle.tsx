@@ -17,10 +17,12 @@ import {
 } from '../components';
 import { CompetenciaLeaderboardTab } from '../components/CompetenciaLeaderboardTab';
 import { type RankingScope } from '../components/RankingCardHeader';
+import { BackButton, LoadingSpinner, useSmartBack } from '../../../shared/components';
 
 const CompetenciaDetalle: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const goBack = useSmartBack('/competencias');
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Tabs and Selections from URL
@@ -189,14 +191,7 @@ const CompetenciaDetalle: React.FC = () => {
   }, [isRanked, activeTab, updateParams]);
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600 mx-auto"></div>
-          <p className="text-slate-600">Cargando competencia...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner fullScreen message="Cargando competencia..." />;
   }
 
   if (error || !competencia) {
@@ -204,9 +199,7 @@ const CompetenciaDetalle: React.FC = () => {
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <p className="mb-4 text-red-600">Error al cargar competencia: {error || 'No encontrada'}</p>
-          <button onClick={() => navigate('/competencias')} className="text-brand-600 hover:underline">
-            Volver a competencias
-          </button>
+          <BackButton fallback="/competencias" label="Volver a competencias" className="justify-center" />
         </div>
       </div>
     );
@@ -219,7 +212,7 @@ const CompetenciaDetalle: React.FC = () => {
         <CompetenciaHeader
           competencia={competencia}
           isRanked={isRanked}
-          onBack={() => navigate('/competencias')}
+          onBack={goBack}
         />
 
         {/* Tabs */}

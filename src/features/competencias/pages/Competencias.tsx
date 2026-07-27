@@ -6,6 +6,7 @@ import { CompetenciaCard } from '../../../shared/components';
 import { OrganizacionCard } from '../../../shared/components';
 import { FilterBar } from '../../../shared/components';
 import { IconToggle } from '../../../shared/components';
+import { EmptyState } from '../../../shared/components';
 import { CompetenciaService, type Competencia } from '../services/competenciaService';
 import { OrganizacionService } from '../services/organizacionService';
 import { mapEstadoVariante, type CompetenciaEstadoVariante } from '../../../shared/utils/competenciaEstado';
@@ -177,9 +178,7 @@ const Competencias: React.FC = () => {
 
         {vista === 'todas' ? (
           competenciasFiltradas.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-slate-500">No hay competencias que coincidan con la búsqueda.</p>
-            </div>
+            <EmptyState icon="🏆" message="No hay competencias que coincidan con la búsqueda." />
           ) : (
             <div className="grid gap-3 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {competenciasFiltradas.map((competencia) => (
@@ -204,11 +203,10 @@ const Competencias: React.FC = () => {
             </div>
           )
         ) : organizacionesFiltradas.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-slate-500">
-              {busquedaOrg ? 'No hay organizaciones que coincidan con la búsqueda.' : 'No hay organizaciones disponibles'}
-            </p>
-          </div>
+          <EmptyState
+            icon="🏢"
+            message={busquedaOrg ? 'No hay organizaciones que coincidan con la búsqueda.' : 'No hay organizaciones disponibles'}
+          />
         ) : (
           <div className="grid gap-3 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {organizacionesFiltradas.map((organizacion) => (

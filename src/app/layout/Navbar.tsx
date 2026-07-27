@@ -17,7 +17,7 @@ const links = [
   { to: '/equipos', label: 'Equipos' },
   { to: '/competencias', label: 'Competencias' },
   { to: '/partidos', label: 'Partidos' },
-  { to: '/como-se-juega', label: '' },
+  { to: '/como-se-juega', label: 'Cómo se juega' },
 ];
 
 const Navbar: React.FC = () => {

@@ -2,7 +2,7 @@
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { JugadorCard, FilterBar, JoinCTA } from '../../../shared/components';
+import { JugadorCard, FilterBar, JoinCTA, EmptyState } from '../../../shared/components';
 import { JugadorService, type Jugador } from '../services/jugadorService';
 import { EquipoService } from '../../equipos/services/equipoService';
 import { useAuth } from '../../../app/providers/AuthContext';
@@ -286,9 +286,7 @@ const Jugadores: React.FC = () => {
         </FilterBar>
 
         {!jugadoresVisible || jugadoresVisible.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-slate-500">No hay jugadores disponibles</p>
-          </div>
+          <EmptyState icon="🤾" message="No hay jugadores disponibles" />
         ) : (
           <>
             <div className="grid grid-cols-2 gap-3 sm:gap-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">

@@ -1,7 +1,8 @@
-import React, { useRef, useState } from 'react';
-import { toPng } from 'html-to-image';
+import React, { useRef } from 'react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
 import ModalBase from '../../../shared/components/ModalBase/ModalBase';
+import { ShareDownloadButtons } from '../../../shared/components/ShareDownloadButtons/ShareDownloadButtons';
+import { useShareImage } from '../../../shared/hooks/useShareImage';
 
 const PolarAngleAxisCompat = PolarAngleAxis as unknown as React.ComponentType<any>;
 
@@ -29,25 +30,13 @@ export const ShareRadarModal: React.FC<ShareRadarModalProps> = ({
   playerPhoto,
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [loading, setLoading] = useState(false);
   const initials = playerName.split(' ').map((t) => t[0]).join('').slice(0, 2).toUpperCase();
   const hoy = new Date().toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
-  const handleDownload = async () => {
-    if (!cardRef.current) return;
-    setLoading(true);
-    try {
-      const dataUrl = await toPng(cardRef.current, { cacheBust: true, pixelRatio: 2 });
-      const link = document.createElement('a');
-      link.download = `overtime-radar-${playerName.replace(/\s+/g, '-').toLowerCase()}.png`;
-      link.href = dataUrl;
-      link.click();
-    } catch (err) {
-      console.error('Error exportando radar:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { handleShare, handleDownload, loadingShare, loadingDownload } = useShareImage(cardRef, {
+    filename: `overtime-radar-${playerName.replace(/\s+/g, '-').toLowerCase()}.png`,
+    shareTitle: `Radar de atleta de ${playerName}`,
+  });
 
   return (
     <ModalBase isOpen={isOpen} onClose={onClose} title="Compartir radar de atleta" size="md">
@@ -103,14 +92,13 @@ export const ShareRadarModal: React.FC<ShareRadarModalProps> = ({
           </div>
         </div>
 
-        <div className="mt-8 w-full space-y-3">
-          <button
-            onClick={handleDownload}
-            disabled={loading}
-            className="w-full py-4 rounded-2xl bg-brand-600 text-white font-black text-lg hover:bg-brand-700 transition-all shadow-xl active:scale-95 flex items-center justify-center gap-2"
-          >
-            {loading ? 'Generando...' : 'Descargar para Stories'}
-          </button>
+        <div className="mt-8 w-full">
+          <ShareDownloadButtons
+            onShare={handleShare}
+            onDownload={handleDownload}
+            loadingShare={loadingShare}
+            loadingDownload={loadingDownload}
+          />
         </div>
       </div>
     </ModalBase>

@@ -16,3 +16,5 @@ export { default as FilterBar, type FilterBarProps, type FilterChip } from './Fi
 export { default as IconToggle, type IconToggleProps, type IconToggleOption } from './IconToggle/IconToggle';
 export { default as CheckboxFilterGroup, type CheckboxFilterGroupProps, type CheckboxFilterOption } from './CheckboxFilterGroup/CheckboxFilterGroup';
 export { default as JoinCTA } from './JoinCTA/JoinCTA';
+export { default as BackButton, useSmartBack, type BackButtonProps } from './BackButton/BackButton';
+export { default as ShareDownloadButtons, type ShareDownloadButtonsProps } from './ShareDownloadButtons/ShareDownloadButtons';

@@ -12,6 +12,7 @@ import { DashboardMaestro } from '../components/DashboardMaestro';
 import { PartidosHistorial } from '../components/PartidosHistorial';
 import { useAuth } from '../../../app/providers/AuthContext';
 import { useToast } from '../../../shared/components/Toast/ToastProvider';
+import { BackButton, LoadingSpinner } from '../../../shared/components';
 
 type Tab = 'partidos' | 'torneos' | 'lod';
 
@@ -282,14 +283,7 @@ const JugadorDetalle: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600 mx-auto"></div>
-          <p className="text-slate-600">Cargando perfil del jugador...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner fullScreen message="Cargando perfil del jugador..." />;
   }
 
   if (error || !jugador) {
@@ -299,12 +293,7 @@ const JugadorDetalle: React.FC = () => {
           <p className="mb-4 text-red-600">
             Error al cargar jugador: {error instanceof Error ? error.message : (error || 'No encontrado')}
           </p>
-          <button
-            onClick={() => navigate('/jugadores')}
-            className="text-brand-600 hover:underline"
-          >
-            Volver a la lista
-          </button>
+          <BackButton fallback="/jugadores" label="Volver a la lista" className="justify-center" />
         </div>
       </div>
     );
@@ -312,7 +301,8 @@ const JugadorDetalle: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 sm:py-8">
-      <div className="mx-auto max-w-4xl sm:px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-4xl px-4 sm:px-4 sm:px-6 lg:px-8">
+        <BackButton fallback="/jugadores" className="mb-4 sm:mb-6" />
         <div className="bg-white sm:rounded-2xl shadow-none sm:shadow-sm border-0 sm:border sm:border-slate-200 overflow-hidden">
           {/* Header/Cover color */}
           <div className="h-24 sm:h-32 bg-gradient-to-r from-brand-600 to-indigo-600"></div>

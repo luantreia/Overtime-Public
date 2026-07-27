@@ -1,6 +1,7 @@
-import React, { useRef, useState } from 'react';
-import { toPng } from 'html-to-image';
+import React, { useRef } from 'react';
 import ModalBase from '../../../shared/components/ModalBase/ModalBase';
+import { ShareDownloadButtons } from '../../../shared/components/ShareDownloadButtons/ShareDownloadButtons';
+import { useShareImage } from '../../../shared/hooks/useShareImage';
 import { type LeaderboardItem } from '../services/rankedService';
 import RankingCardHeader, { type RankingScope } from './RankingCardHeader';
 
@@ -22,23 +23,10 @@ const getInitials = (name: string): string =>
 
 export const ShareTopNModal: React.FC<ShareTopNModalProps> = ({ isOpen, onClose, players, n, scope }) => {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [loading, setLoading] = useState(false);
-
-  const handleDownload = async () => {
-    if (!cardRef.current) return;
-    setLoading(true);
-    try {
-      const dataUrl = await toPng(cardRef.current, { cacheBust: true, pixelRatio: 2 });
-      const link = document.createElement('a');
-      link.download = `overtime-top${n}.png`;
-      link.href = dataUrl;
-      link.click();
-    } catch (err) {
-      console.error('Error exportando Top N:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { handleShare, handleDownload, loadingShare, loadingDownload } = useShareImage(cardRef, {
+    filename: `overtime-top${n}.png`,
+    shareTitle: `Top ${n} Overtime`,
+  });
 
   return (
     <ModalBase isOpen={isOpen} onClose={onClose} title={`Compartir Top ${n}`} size="md">
@@ -85,22 +73,14 @@ export const ShareTopNModal: React.FC<ShareTopNModalProps> = ({ isOpen, onClose,
           </div>
         </div>
 
-        <div className="mt-8 w-full space-y-3">
-          <button
-            onClick={handleDownload}
-            disabled={loading}
-            className="w-full py-4 rounded-2xl bg-brand-600 text-white font-black text-lg hover:bg-brand-700 transition-all shadow-xl active:scale-95 flex items-center justify-center gap-2"
-          >
-            {loading ? 'Generando...' : (
-              <>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                </svg>
-                Descargar Top {n}
-              </>
-            )}
-          </button>
-          <p className="text-[10px] text-slate-400 text-center font-medium">Formato optimizado para captura y redes sociales.</p>
+        <div className="mt-8 w-full">
+          <ShareDownloadButtons
+            onShare={handleShare}
+            onDownload={handleDownload}
+            loadingShare={loadingShare}
+            loadingDownload={loadingDownload}
+            hint="Formato optimizado para redes sociales. Compartir abre el selector de apps en móvil."
+          />
         </div>
       </div>
     </ModalBase>

@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { toPng } from 'html-to-image';
 import ModalBase from '../ModalBase/ModalBase';
+import { ShareDownloadButtons } from '../ShareDownloadButtons/ShareDownloadButtons';
+import { useShareImage } from '../../hooks/useShareImage';
 
 interface JugadorShare {
   id?: string;
@@ -64,8 +65,6 @@ function parseFecha(fecha?: string, hora?: string) {
 
 export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, onClose, partido }) => {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [loadingShare, setLoadingShare] = useState(false);
-  const [loadingDownload, setLoadingDownload] = useState(false);
   const [localEscudo, setLocalEscudo] = useState<string | null>(null);
   const [visitanteEscudo, setVisitanteEscudo] = useState<string | null>(null);
 
@@ -81,6 +80,10 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
   const mostrarMarcador = estado === 'finalizado' || estado === 'en_juego';
   const fechaParsed = parseFecha(partido.fecha, partido.hora);
   const filename = `partido-${localNombre.replace(/\s+/g, '-').toLowerCase()}-vs-${visitanteNombre.replace(/\s+/g, '-').toLowerCase()}.png`;
+  const { handleShare, handleDownload, loadingShare, loadingDownload } = useShareImage(cardRef, {
+    filename,
+    shareTitle: `${localNombre} vs ${visitanteNombre}`,
+  });
 
   useEffect(() => {
     if (!isOpen) return;
@@ -89,52 +92,6 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
     if (partido.equipoLocal?.escudo) toDataUrl(partido.equipoLocal.escudo).then(setLocalEscudo);
     if (partido.equipoVisitante?.escudo) toDataUrl(partido.equipoVisitante.escudo).then(setVisitanteEscudo);
   }, [isOpen, partido.equipoLocal?.escudo, partido.equipoVisitante?.escudo]);
-
-  const generatePng = async (): Promise<{ dataUrl: string; blob: Blob } | null> => {
-    if (!cardRef.current) return null;
-    const dataUrl = await toPng(cardRef.current, { cacheBust: true, pixelRatio: 2, skipFonts: true });
-    const res = await fetch(dataUrl);
-    const blob = await res.blob();
-    return { dataUrl, blob };
-  };
-
-  const handleShare = async () => {
-    setLoadingShare(true);
-    try {
-      const result = await generatePng();
-      if (!result) return;
-      const { dataUrl, blob } = result;
-      const file = new File([blob], filename, { type: 'image/png' });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: `${localNombre} vs ${visitanteNombre}` });
-      } else {
-        const link = document.createElement('a');
-        link.download = filename;
-        link.href = dataUrl;
-        link.click();
-      }
-    } catch (err: any) {
-      if (err?.name !== 'AbortError') console.error('Error compartiendo:', err);
-    } finally {
-      setLoadingShare(false);
-    }
-  };
-
-  const handleDownload = async () => {
-    setLoadingDownload(true);
-    try {
-      const result = await generatePng();
-      if (!result) return;
-      const link = document.createElement('a');
-      link.download = filename;
-      link.href = result.dataUrl;
-      link.click();
-    } catch (err) {
-      console.error('Error descargando:', err);
-    } finally {
-      setLoadingDownload(false);
-    }
-  };
 
   const renderEscudo = (dataUrl: string | null, nombre: string, size = 72) => {
     const sz = `${size}px`;
@@ -404,39 +361,13 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
         </div>
 
         {/* ── Botones ── */}
-        <div className="mt-6 w-full flex gap-3">
-          <button
-            onClick={handleShare}
-            disabled={loadingShare || loadingDownload}
-            className="flex-1 py-3 rounded-xl bg-brand-600 text-white font-bold text-sm hover:bg-brand-700 transition-all shadow active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
-          >
-            {loadingShare ? '…' : (
-              <>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-                  <path fillRule="evenodd" d="M15.75 4.5a3 3 0 1 1 .825 2.066l-8.421 4.679a3.002 3.002 0 0 1 0 1.51l8.421 4.679a3 3 0 1 1-.729 1.31l-8.421-4.678a3 3 0 1 1 0-4.132l8.421-4.679a3 3 0 0 1-.096-.755Z" clipRule="evenodd" />
-                </svg>
-                Compartir
-              </>
-            )}
-          </button>
-          <button
-            onClick={handleDownload}
-            disabled={loadingShare || loadingDownload}
-            className="flex-1 py-3 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold text-sm hover:bg-slate-50 transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
-          >
-            {loadingDownload ? '…' : (
-              <>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-                  <path fillRule="evenodd" d="M12 2.25a.75.75 0 0 1 .75.75v11.69l3.22-3.22a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 1 1 1.06-1.06l3.22 3.22V3a.75.75 0 0 1 .75-.75Zm-9 13.5a.75.75 0 0 1 .75.75v2.25a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5V16.5a.75.75 0 0 1 1.5 0v2.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V16.5a.75.75 0 0 1 .75-.75Z" clipRule="evenodd" />
-                </svg>
-                Descargar
-              </>
-            )}
-          </button>
-        </div>
-        <p className="mt-1.5 text-[10px] text-slate-400 text-center">
-          Compartir abre el selector de apps en móvil
-        </p>
+        <ShareDownloadButtons
+          className="mt-6"
+          onShare={handleShare}
+          onDownload={handleDownload}
+          loadingShare={loadingShare}
+          loadingDownload={loadingDownload}
+        />
       </div>
     </ModalBase>
   );

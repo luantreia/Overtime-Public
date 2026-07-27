@@ -1,6 +1,7 @@
-import React, { useRef, useState } from 'react';
-import { toPng } from 'html-to-image';
+import React, { useRef } from 'react';
 import ModalBase from '../../../shared/components/ModalBase/ModalBase';
+import { ShareDownloadButtons } from '../../../shared/components/ShareDownloadButtons/ShareDownloadButtons';
+import { useShareImage } from '../../../shared/hooks/useShareImage';
 import RankingCardHeader, { type RankingScope } from './RankingCardHeader';
 
 interface VsPlayer {
@@ -42,23 +43,10 @@ const PlayerStatCol: React.FC<{ player: VsPlayer; accent: string }> = ({ player,
 
 export const ShareVSModal: React.FC<ShareVSModalProps> = ({ isOpen, onClose, player1, player2, scope }) => {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [loading, setLoading] = useState(false);
-
-  const handleDownload = async () => {
-    if (!cardRef.current) return;
-    setLoading(true);
-    try {
-      const dataUrl = await toPng(cardRef.current, { cacheBust: true, pixelRatio: 2 });
-      const link = document.createElement('a');
-      link.download = `overtime-vs-${player1.name}-${player2.name}`.replace(/\s+/g, '-').toLowerCase() + '.png';
-      link.href = dataUrl;
-      link.click();
-    } catch (err) {
-      console.error('Error exportando comparación:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { handleShare, handleDownload, loadingShare, loadingDownload } = useShareImage(cardRef, {
+    filename: `overtime-vs-${player1.name}-${player2.name}`.replace(/\s+/g, '-').toLowerCase() + '.png',
+    shareTitle: `${player1.name} vs ${player2.name}`,
+  });
 
   return (
     <ModalBase isOpen={isOpen} onClose={onClose} title="Compartir comparación" size="md" overlayClassName="z-[70]">
@@ -86,14 +74,13 @@ export const ShareVSModal: React.FC<ShareVSModalProps> = ({ isOpen, onClose, pla
           </div>
         </div>
 
-        <div className="mt-8 w-full space-y-3">
-          <button
-            onClick={handleDownload}
-            disabled={loading}
-            className="w-full py-4 rounded-2xl bg-brand-600 text-white font-black text-lg hover:bg-brand-700 transition-all shadow-xl active:scale-95 flex items-center justify-center gap-2"
-          >
-            {loading ? 'Generando...' : 'Descargar comparación'}
-          </button>
+        <div className="mt-8 w-full">
+          <ShareDownloadButtons
+            onShare={handleShare}
+            onDownload={handleDownload}
+            loadingShare={loadingShare}
+            loadingDownload={loadingDownload}
+          />
         </div>
       </div>
     </ModalBase>

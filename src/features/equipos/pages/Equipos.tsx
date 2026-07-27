@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { EquipoCard, FilterBar, JoinCTA } from '../../../shared/components';
+import { EquipoCard, FilterBar, JoinCTA, EmptyState } from '../../../shared/components';
 import { EquipoService, type Equipo } from '../services/equipoService';
 import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 
@@ -177,9 +177,7 @@ const Equipos: React.FC = () => {
         </p>
 
         {!equipos || equipos.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-slate-500">No hay equipos que coincidan con la búsqueda</p>
-          </div>
+          <EmptyState icon="🛡️" message="No hay equipos que coincidan con la búsqueda" />
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:gap-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {equipos.map((equipo) => {
