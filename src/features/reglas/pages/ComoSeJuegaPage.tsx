@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 import { seccionesSimplificadas, diferenciasFormato } from '../data/reglasSimplificadas';
-import { CourtDiagram, type CourtMode } from '../components/CourtDiagram';
+import { CourtDiagram3D as CourtDiagram, type CourtMode } from '../components/CourtDiagram3D';
 
 // Cada sección de la explicación controla qué se dibuja en la cancha única de arriba.
 const MODO_POR_TITULO: Record<string, CourtMode> = {
@@ -35,12 +35,14 @@ const ComoSeJuegaPage: React.FC = () => {
   const seccionActiva = seccionesSimplificadas[abierta];
   const modoActivo = MODO_POR_TITULO[seccionActiva?.titulo] || 'inicio';
 
+  const acentoActivo = ACENTOS[abierta % ACENTOS.length];
+
   return (
-    <div className="mx-auto max-w-4xl space-y-8">
+    <div className="mx-auto max-w-5xl space-y-8">
       <div className="rounded-3xl bg-gradient-to-br from-brand-600 to-indigo-700 p-6 sm:p-8 text-white shadow-lg">
         <h1 className="text-2xl font-black tracking-tight sm:text-3xl">🏐 ¿Cómo se juega al dodgeball?</h1>
         <p className="mt-2 text-brand-50">
-          Lo esencial para entender un partido, en criollo. Tocá cada sección y mirá cómo cambia la cancha. Si
+          Lo esencial para entender un partido, en criollo. Elegí un tema y mirá cómo cambia la cancha. Si
           querés el reglamento oficial completo,{' '}
           <Link to="/reglamento" className="font-semibold text-white underline underline-offset-2 hover:text-brand-100">
             está acá
@@ -49,78 +51,80 @@ const ComoSeJuegaPage: React.FC = () => {
         </p>
       </div>
 
-      {/* Cancha única, pegada arriba en desktop, siempre visible */}
-      <div className="sm:sticky sm:top-4 z-10">
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
-          <CourtDiagram mode={modoActivo} formato={formatoApertura} />
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,320px)_1fr] lg:items-start">
+        {/* Cancha: siempre visible, nunca tapada por los botones ni por el texto */}
+        <div className="lg:sticky lg:top-4">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <CourtDiagram mode={modoActivo} formato={formatoApertura} />
 
-          {modoActivo === 'apertura' && (
-            <div className="mt-3 flex items-center justify-center gap-3">
-              <span className={`text-xs font-bold ${formatoApertura === 'cloth' ? 'text-amber-700' : 'text-slate-400'}`}>Cloth (5)</span>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={formatoApertura === 'foam'}
-                onClick={() => setFormatoApertura((f) => (f === 'foam' ? 'cloth' : 'foam'))}
-                className={`relative h-6 w-11 rounded-full transition-colors ${formatoApertura === 'foam' ? 'bg-sky-500' : 'bg-amber-500'}`}
-              >
-                <span
-                  className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
-                    formatoApertura === 'foam' ? 'translate-x-[22px]' : 'translate-x-0.5'
+            {modoActivo === 'apertura' && (
+              <div className="mt-3 flex items-center justify-center gap-3">
+                <span className={`text-xs font-bold ${formatoApertura === 'cloth' ? 'text-amber-700' : 'text-slate-400'}`}>Cloth (5)</span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={formatoApertura === 'foam'}
+                  onClick={() => setFormatoApertura((f) => (f === 'foam' ? 'cloth' : 'foam'))}
+                  className={`relative h-6 w-11 rounded-full transition-colors ${formatoApertura === 'foam' ? 'bg-sky-500' : 'bg-amber-500'}`}
+                >
+                  <span
+                    className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                      formatoApertura === 'foam' ? 'translate-x-[22px]' : 'translate-x-0.5'
+                    }`}
+                  />
+                </button>
+                <span className={`text-xs font-bold ${formatoApertura === 'foam' ? 'text-sky-700' : 'text-slate-400'}`}>Foam (6)</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {/* Botones de tema: siempre todos accesibles, ninguno tapa la cancha al elegirse */}
+          <div className="flex flex-wrap gap-2">
+            {seccionesSimplificadas.map((seccion, i) => {
+              const acento = ACENTOS[i % ACENTOS.length];
+              const isActive = abierta === i;
+              return (
+                <button
+                  key={seccion.titulo}
+                  type="button"
+                  onClick={() => setAbierta(i)}
+                  aria-pressed={isActive}
+                  className={`flex items-center gap-2 rounded-full border px-3.5 py-2 text-sm font-semibold transition-colors ${
+                    isActive
+                      ? `${acento.badge} border-transparent shadow-sm`
+                      : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
                   }`}
-                />
-              </button>
-              <span className={`text-xs font-bold ${formatoApertura === 'foam' ? 'text-sky-700' : 'text-slate-400'}`}>Foam (6)</span>
+                >
+                  <span aria-hidden="true">{seccion.emoji}</span>
+                  {seccion.titulo}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Panel de la sección elegida */}
+          {seccionActiva && (
+            <div className={`rounded-2xl border ${acentoActivo.border} bg-white p-5 sm:p-6`}>
+              <h2 className="text-lg font-bold text-slate-900">{seccionActiva.titulo}</h2>
+              <div className="mt-2 space-y-2">
+                {seccionActiva.parrafos.map((parrafo, j) => (
+                  <p key={j} className="text-sm leading-relaxed text-slate-600">
+                    {parrafo}
+                  </p>
+                ))}
+              </div>
+              {seccionActiva.bullets && (
+                <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-slate-600">
+                  {seccionActiva.bullets.map((bullet, j) => (
+                    <li key={j}>{bullet}</li>
+                  ))}
+                </ul>
+              )}
             </div>
           )}
         </div>
-      </div>
-
-      {/* Acordeón de secciones */}
-      <div className="space-y-3">
-        {seccionesSimplificadas.map((seccion, i) => {
-          const acento = ACENTOS[i % ACENTOS.length];
-          const isOpen = abierta === i;
-          return (
-            <section key={seccion.titulo} className={`rounded-2xl border ${acento.border} bg-white overflow-hidden`}>
-              <button
-                type="button"
-                onClick={() => setAbierta(isOpen ? -1 : i)}
-                className="w-full flex items-center gap-3 p-4 sm:p-5 text-left"
-                aria-expanded={isOpen}
-              >
-                <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl ${acento.badge}`} aria-hidden="true">
-                  {seccion.emoji}
-                </span>
-                <h2 className="flex-1 text-base sm:text-lg font-bold text-slate-900">{seccion.titulo}</h2>
-                <svg
-                  className={`h-5 w-5 shrink-0 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-                  fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              {isOpen && (
-                <div className="px-4 sm:px-5 pb-5 -mt-1">
-                  <div className="space-y-2">
-                    {seccion.parrafos.map((parrafo, j) => (
-                      <p key={j} className="text-sm leading-relaxed text-slate-600">
-                        {parrafo}
-                      </p>
-                    ))}
-                  </div>
-                  {seccion.bullets && (
-                    <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-slate-600">
-                      {seccion.bullets.map((bullet, j) => (
-                        <li key={j}>{bullet}</li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              )}
-            </section>
-          );
-        })}
       </div>
 
       <section className="rounded-2xl border border-slate-200 bg-white p-6">
