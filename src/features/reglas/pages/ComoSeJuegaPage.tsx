@@ -1,38 +1,47 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 import { seccionesSimplificadas, diferenciasFormato } from '../data/reglasSimplificadas';
-import { CourtDiagram } from '../components/CourtDiagram';
-import { IlustracionArrancada, IlustracionEliminacion, IlustracionAtajarYVolver } from '../components/RuleIllustrations';
+import { CourtDiagram, type CourtMode } from '../components/CourtDiagram';
 
-// Ilustración opcional por sección, buscada por título. Mantiene la página friendly
-// sin forzar una ilustración en cada tarjeta (algunas se explican mejor solo con texto).
-const ILUSTRACION_POR_TITULO: Record<string, React.FC> = {
-  'Así arranca un set': IlustracionArrancada,
-  '¿Cómo quedás eliminado?': IlustracionEliminacion,
-  'Volver a la cancha': IlustracionAtajarYVolver,
+// Cada sección de la explicación controla qué se dibuja en la cancha única de arriba.
+const MODO_POR_TITULO: Record<string, CourtMode> = {
+  '¿Cuál es el objetivo?': 'inicio',
+  'La cancha': 'cancha',
+  'Los equipos': 'equipos',
+  'Así arranca un set': 'apertura',
+  '¿Cómo quedás eliminado?': 'eliminado',
+  'Volver a la cancha': 'volver',
+  '¿Cómo se gana un set y el partido?': 'gana',
+  'Juego limpio': 'limpio',
 };
 
-// Paleta de acentos que rota por tarjeta para que la página se sienta viva, no una lista gris.
 const ACENTOS = [
-  { bg: 'bg-brand-50', border: 'border-brand-100', badge: 'bg-brand-100 text-brand-700' },
-  { bg: 'bg-amber-50', border: 'border-amber-100', badge: 'bg-amber-100 text-amber-700' },
-  { bg: 'bg-rose-50', border: 'border-rose-100', badge: 'bg-rose-100 text-rose-700' },
-  { bg: 'bg-emerald-50', border: 'border-emerald-100', badge: 'bg-emerald-100 text-emerald-700' },
-  { bg: 'bg-indigo-50', border: 'border-indigo-100', badge: 'bg-indigo-100 text-indigo-700' },
-  { bg: 'bg-orange-50', border: 'border-orange-100', badge: 'bg-orange-100 text-orange-700' },
-  { bg: 'bg-sky-50', border: 'border-sky-100', badge: 'bg-sky-100 text-sky-700' },
+  { border: 'border-brand-100', badge: 'bg-brand-100 text-brand-700' },
+  { border: 'border-amber-100', badge: 'bg-amber-100 text-amber-700' },
+  { border: 'border-rose-100', badge: 'bg-rose-100 text-rose-700' },
+  { border: 'border-emerald-100', badge: 'bg-emerald-100 text-emerald-700' },
+  { border: 'border-indigo-100', badge: 'bg-indigo-100 text-indigo-700' },
+  { border: 'border-orange-100', badge: 'bg-orange-100 text-orange-700' },
+  { border: 'border-sky-100', badge: 'bg-sky-100 text-sky-700' },
+  { border: 'border-fuchsia-100', badge: 'bg-fuchsia-100 text-fuchsia-700' },
 ];
 
 const ComoSeJuegaPage: React.FC = () => {
   usePageTitle('Cómo se juega');
+  const [abierta, setAbierta] = useState(0);
+  const [formatoApertura, setFormatoApertura] = useState<'foam' | 'cloth'>('foam');
+
+  const seccionActiva = seccionesSimplificadas[abierta];
+  const modoActivo = MODO_POR_TITULO[seccionActiva?.titulo] || 'inicio';
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
       <div className="rounded-3xl bg-gradient-to-br from-brand-600 to-indigo-700 p-6 sm:p-8 text-white shadow-lg">
         <h1 className="text-2xl font-black tracking-tight sm:text-3xl">🏐 ¿Cómo se juega al dodgeball?</h1>
         <p className="mt-2 text-brand-50">
-          Lo esencial para entender un partido, en criollo y con dibujitos. Si querés el reglamento oficial completo,{' '}
+          Lo esencial para entender un partido, en criollo. Tocá cada sección y mirá cómo cambia la cancha. Si
+          querés el reglamento oficial completo,{' '}
           <Link to="/reglamento" className="font-semibold text-white underline underline-offset-2 hover:text-brand-100">
             está acá
           </Link>
@@ -40,25 +49,59 @@ const ComoSeJuegaPage: React.FC = () => {
         </p>
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2">
+      {/* Cancha única, pegada arriba en desktop, siempre visible */}
+      <div className="sm:sticky sm:top-4 z-10">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
+          <CourtDiagram mode={modoActivo} formato={formatoApertura} />
+
+          {modoActivo === 'apertura' && (
+            <div className="mt-3 flex items-center justify-center gap-3">
+              <span className={`text-xs font-bold ${formatoApertura === 'cloth' ? 'text-amber-700' : 'text-slate-400'}`}>Cloth (5)</span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={formatoApertura === 'foam'}
+                onClick={() => setFormatoApertura((f) => (f === 'foam' ? 'cloth' : 'foam'))}
+                className={`relative h-6 w-11 rounded-full transition-colors ${formatoApertura === 'foam' ? 'bg-sky-500' : 'bg-amber-500'}`}
+              >
+                <span
+                  className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                    formatoApertura === 'foam' ? 'translate-x-[22px]' : 'translate-x-0.5'
+                  }`}
+                />
+              </button>
+              <span className={`text-xs font-bold ${formatoApertura === 'foam' ? 'text-sky-700' : 'text-slate-400'}`}>Foam (6)</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Acordeón de secciones */}
+      <div className="space-y-3">
         {seccionesSimplificadas.map((seccion, i) => {
           const acento = ACENTOS[i % ACENTOS.length];
-          const Ilustracion = ILUSTRACION_POR_TITULO[seccion.titulo];
-          const esCancha = seccion.titulo === 'La cancha';
+          const isOpen = abierta === i;
           return (
-            <section
-              key={seccion.titulo}
-              className={`rounded-2xl border ${acento.border} ${acento.bg} p-5 sm:p-6 flex flex-col ${esCancha ? 'sm:col-span-2' : ''}`}
-            >
-              <div className="flex items-center gap-3">
+            <section key={seccion.titulo} className={`rounded-2xl border ${acento.border} bg-white overflow-hidden`}>
+              <button
+                type="button"
+                onClick={() => setAbierta(isOpen ? -1 : i)}
+                className="w-full flex items-center gap-3 p-4 sm:p-5 text-left"
+                aria-expanded={isOpen}
+              >
                 <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl ${acento.badge}`} aria-hidden="true">
                   {seccion.emoji}
                 </span>
-                <h2 className="text-lg font-bold text-slate-900">{seccion.titulo}</h2>
-              </div>
-
-              <div className={`mt-3 ${esCancha ? 'sm:flex sm:items-center sm:gap-6' : ''}`}>
-                <div className={esCancha ? 'sm:flex-1' : ''}>
+                <h2 className="flex-1 text-base sm:text-lg font-bold text-slate-900">{seccion.titulo}</h2>
+                <svg
+                  className={`h-5 w-5 shrink-0 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                  fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {isOpen && (
+                <div className="px-4 sm:px-5 pb-5 -mt-1">
                   <div className="space-y-2">
                     {seccion.parrafos.map((parrafo, j) => (
                       <p key={j} className="text-sm leading-relaxed text-slate-600">
@@ -73,17 +116,6 @@ const ComoSeJuegaPage: React.FC = () => {
                       ))}
                     </ul>
                   )}
-                </div>
-                {esCancha && (
-                  <div className="mt-4 sm:mt-0 sm:w-72 sm:shrink-0">
-                    <CourtDiagram />
-                  </div>
-                )}
-              </div>
-
-              {Ilustracion && (
-                <div className="mt-4 rounded-xl bg-white/70 p-3">
-                  <Ilustracion />
                 </div>
               )}
             </section>
