@@ -38,14 +38,17 @@ const ColaBox: React.FC<{ x: number; zMin: number; zMax: number; color: string }
   </mesh>
 );
 
+// Sin distanceFactor: ese modo de drei calcula la escala a partir de camera.fov, que no
+// existe en una cámara ortográfica (rompía el render de toda la escena). Sin él, el Html
+// queda en tamaño de pantalla fijo (screen-space), que es justo lo que queremos acá.
 const Emoji: React.FC<{ x: number; z: number; children: string; size?: number }> = ({ x, z, children, size = 20 }) => (
-  <Html position={[x, 0.5, z]} center distanceFactor={12} style={{ fontSize: size, pointerEvents: 'none', userSelect: 'none' }}>
+  <Html position={[x, 0.5, z]} center style={{ fontSize: size, pointerEvents: 'none', userSelect: 'none' }}>
     {children}
   </Html>
 );
 
 const Etiqueta: React.FC<{ x: number; z: number; children: React.ReactNode; className?: string }> = ({ x, z, children, className }) => (
-  <Html position={[x, 0.5, z]} center distanceFactor={12} style={{ pointerEvents: 'none', userSelect: 'none', whiteSpace: 'nowrap' }}>
+  <Html position={[x, 0.5, z]} center style={{ pointerEvents: 'none', userSelect: 'none', whiteSpace: 'nowrap' }}>
     <span className={className}>{children}</span>
   </Html>
 );

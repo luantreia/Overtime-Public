@@ -15,7 +15,7 @@ interface CourtDiagram3DProps {
  */
 export const CourtDiagram3D: React.FC<CourtDiagram3DProps> = ({ mode, formato = 'foam' }) => {
   return (
-    <div className="w-full mx-auto" style={{ aspectRatio: '9 / 19', maxWidth: 360 }}>
+    <div className="w-full mx-auto" style={{ aspectRatio: '9 / 19', maxWidth: 360, minHeight: 320 }}>
       <Court3DScene mode={mode} formato={formato} />
     </div>
   );
