@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo } from 'react';
-import { Canvas, useThree } from '@react-three/fiber';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
+import type { Mesh } from 'three';
 import { COURT_WIDTH, HALF, LINE_THICKNESS, RED_Z, BLUE_Z, type CourtMode } from './constants';
 
 const HABILITACION_DIST = 3;
@@ -99,6 +100,40 @@ const EquiposOverlay: React.FC = () => {
   );
 };
 
+// Pelota que flota suavemente arriba/abajo -> sugiere que está "viva", a la espera de que
+// alguien la agarre (usado en la arrancada).
+const BolaFlotante: React.FC<{ x: number; color: string; phase?: number }> = ({ x, color, phase = 0 }) => {
+  const ref = useRef<Mesh>(null);
+  useFrame(({ clock }) => {
+    if (ref.current) {
+      ref.current.position.y = 0.22 + Math.sin(clock.elapsedTime * 2.2 + phase) * 0.07;
+    }
+  });
+  return (
+    <mesh ref={ref} position={[x, 0.22, 0]}>
+      <sphereGeometry args={[0.28, 16, 16]} />
+      <meshStandardMaterial color="#f59e0b" emissive={color} emissiveIntensity={0.35} />
+    </mesh>
+  );
+};
+
+// Pelota que pulsa (crece/achica) -> remarca el instante del impacto en la eliminación.
+const BolaPulsante: React.FC<{ x: number; z: number }> = ({ x, z }) => {
+  const ref = useRef<Mesh>(null);
+  useFrame(({ clock }) => {
+    if (ref.current) {
+      const s = 1 + Math.sin(clock.elapsedTime * 6) * 0.18;
+      ref.current.scale.set(s, s, s);
+    }
+  });
+  return (
+    <mesh ref={ref} position={[x, 0.25, z]}>
+      <sphereGeometry args={[0.25, 16, 16]} />
+      <meshStandardMaterial color="#f59e0b" />
+    </mesh>
+  );
+};
+
 const AperturaOverlay: React.FC<{ formato: 'foam' | 'cloth' }> = ({ formato }) => {
   const total = formato === 'foam' ? 6 : 5;
   const spread = COURT_WIDTH - 1.6;
@@ -119,12 +154,7 @@ const AperturaOverlay: React.FC<{ formato: 'foam' | 'cloth' }> = ({ formato }) =
         const contested = total % 2 === 1 && i === mitad;
         const esDeRojo = i < mitad;
         const color = contested ? '#64748b' : esDeRojo ? '#b91c1c' : '#1d4ed8';
-        return (
-          <mesh key={i} position={[x, 0.25, 0]}>
-            <sphereGeometry args={[0.28, 16, 16]} />
-            <meshStandardMaterial color="#f59e0b" emissive={color} emissiveIntensity={0.35} />
-          </mesh>
-        );
+        return <BolaFlotante key={i} x={x} color={color} phase={i * 0.6} />;
       })}
       <Etiqueta x={0} z={HALF + 1.6} className="text-[10px] font-bold text-slate-600">
         {formato === 'foam' ? '6 pelotas de espuma' : '5 pelotas de tela'} sobre la línea central
@@ -137,11 +167,8 @@ const EliminadoOverlay: React.FC = () => (
   <group>
     <Emoji x={-2} z={RED_Z}>🙋‍♂️</Emoji>
     <Emoji x={2} z={BLUE_Z}>🙋‍♀️</Emoji>
-    <mesh position={[0, 0.25, 0]}>
-      <sphereGeometry args={[0.25, 16, 16]} />
-      <meshStandardMaterial color="#f59e0b" />
-    </mesh>
-    <Etiqueta x={-2} z={RED_Z + 1.4} className="text-[10px] font-black text-red-700">✗ eliminado</Etiqueta>
+    <BolaPulsante x={0} z={0} />
+    <Etiqueta x={-2} z={RED_Z + 1.4} className="text-[10px] font-black text-red-700 animate-pulse">✗ eliminado</Etiqueta>
   </group>
 );
 
@@ -149,9 +176,9 @@ const VolverOverlay: React.FC = () => (
   <group>
     <Emoji x={-2} z={RED_Z}>🙌</Emoji>
     <Emoji x={2} z={BLUE_Z}>🙋‍♀️</Emoji>
-    <Etiqueta x={-2} z={RED_Z + 1.4} className="text-[10px] font-black text-blue-700">¡atajada!</Etiqueta>
+    <Etiqueta x={-2} z={RED_Z + 1.4} className="text-[10px] font-black text-blue-700 animate-pulse">¡atajada!</Etiqueta>
     <Emoji x={COURT_WIDTH / 2 + 1} z={HALF - 2}>🙋‍♂️</Emoji>
-    <Etiqueta x={COURT_WIDTH / 2 + 1} z={HALF - 3.2} className="text-[9px] font-bold text-red-700">vuelve</Etiqueta>
+    <Etiqueta x={COURT_WIDTH / 2 + 1} z={HALF - 3.2} className="text-[9px] font-bold text-red-700 animate-bounce">vuelve ↩</Etiqueta>
   </group>
 );
 
@@ -162,7 +189,7 @@ const GanaOverlay: React.FC = () => {
     <group>
       {xsRojo.map((x, i) => <Emoji key={i} x={x} z={RED_Z}>🙋‍♂️</Emoji>)}
       {xsAzul.map((x, i) => <Emoji key={i} x={x} z={BLUE_Z}>🙋‍♀️</Emoji>)}
-      <Etiqueta x={0} z={HALF + 1.6} className="text-[10px] font-black text-red-700">🏆 Gana Rojo: más jugadores en cancha</Etiqueta>
+      <Etiqueta x={0} z={HALF + 1.6} className="text-[10px] font-black text-red-700 animate-bounce">🏆 Gana Rojo: más jugadores en cancha</Etiqueta>
     </group>
   );
 };
