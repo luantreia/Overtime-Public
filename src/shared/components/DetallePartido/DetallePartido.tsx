@@ -35,6 +35,7 @@ interface JugadorPartido {
 const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [showShare, setShowShare] = useState(false);
+  const [setSeleccionado, setSetSeleccionado] = useState<number | null>(null);
   
   const { data: partido, isLoading: loading, error } = useQuery({
     queryKey: ['partido-detalle', partidoId],
@@ -248,53 +249,90 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
       {/* Resultados por Set */}
       {sets.length > 0 && (
         <div className="mb-6 sm:mb-8">
-          <h2 className="text-lg sm:text-xl font-semibold text-slate-900 mb-3 sm:mb-4">Resultados por Set</h2>
-          <div className="overflow-x-auto -mx-3 sm:mx-0">
-            <div className="inline-block min-w-full align-middle">
-              <table className="min-w-full divide-y divide-slate-200">
-                <thead className="bg-slate-50">
-                  <tr>
-                    <th className="px-3 py-3 sm:px-6 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Set</th>
-                    <th className="px-3 py-3 sm:px-6 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">{partido.equipoLocal?.nombre || 'Local'}</th>
-                    <th className="px-3 py-3 sm:px-6 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">{partido.equipoVisitante?.nombre || 'Visitante'}</th>
-                    <th className="px-3 py-3 sm:px-6 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ganador</th>
-                    {sets.some((s: SetData) => s.tiempo) && (
-                      <th className="px-3 py-3 sm:px-6 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Tiempo</th>
-                    )}
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-slate-200">
-                  {sets.map((set: SetData) => (
-                    <tr key={set.numeroSet} className="hover:bg-slate-50">
-                      <td className="px-3 py-4 sm:px-6 whitespace-nowrap text-sm font-medium text-slate-900">
+          <h2 className="text-lg sm:text-xl font-semibold text-slate-900 mb-1">Resultados por Set</h2>
+          <p className="text-xs sm:text-sm text-slate-500 mb-3 sm:mb-4">Tocá un set para ver el detalle.</p>
+
+          <div className="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0 pb-1">
+            <div className="flex items-start min-w-max">
+              {sets.map((set: SetData, idx: number) => {
+                const isSelected = setSeleccionado === set.numeroSet;
+                const dotColor = set.ganador === 'local'
+                  ? 'bg-brand-600'
+                  : set.ganador === 'visitante'
+                  ? 'bg-rose-600'
+                  : set.ganador === 'empate'
+                  ? 'bg-amber-500'
+                  : 'bg-slate-300';
+                return (
+                  <React.Fragment key={set.numeroSet}>
+                    {idx > 0 && <div className="w-4 sm:w-7 h-0.5 bg-slate-200 mt-[19px] flex-shrink-0" />}
+                    <button
+                      type="button"
+                      onClick={() => setSetSeleccionado(isSelected ? null : set.numeroSet)}
+                      aria-expanded={isSelected}
+                      aria-label={`Set ${set.numeroSet}, ${
+                        set.ganador === 'empate' ? 'empate' :
+                        set.ganador === 'local' ? `ganó ${partido.equipoLocal?.nombre || 'Local'}` :
+                        set.ganador === 'visitante' ? `ganó ${partido.equipoVisitante?.nombre || 'Visitante'}` :
+                        'pendiente'
+                      }`}
+                      className="flex flex-col items-center gap-1.5 px-1 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                    >
+                      <span className={`flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full text-xs sm:text-sm font-bold text-white shadow-sm ring-2 ring-white transition-transform ${dotColor} ${isSelected ? 'scale-110 ring-2 ring-brand-300' : ''}`}>
                         {set.numeroSet}
-                      </td>
-                      <td className={`px-3 py-4 sm:px-6 whitespace-nowrap text-sm font-bold ${
-                        set.ganador === 'local' ? 'text-green-600 bg-green-50' : set.ganador === 'empate' ? 'text-amber-600 bg-amber-50' : 'text-slate-900'
-                      }`}>
-                        {set.marcadorLocal}
-                      </td>
-                      <td className={`px-3 py-4 sm:px-6 whitespace-nowrap text-sm font-bold ${
-                        set.ganador === 'visitante' ? 'text-green-600 bg-green-50' : set.ganador === 'empate' ? 'text-amber-600 bg-amber-50' : 'text-slate-900'
-                      }`}>
-                        {set.marcadorVisitante}
-                      </td>
-                      <td className="px-3 py-4 sm:px-6 whitespace-nowrap text-sm text-slate-500">
-                        <span className="max-w-[100px] block truncate text-xs sm:text-sm">
-                          {set.ganador === 'local' ? partido.equipoLocal?.nombre : set.ganador === 'visitante' ? partido.equipoVisitante?.nombre : set.ganador === 'empate' ? 'Empate' : '-'}
-                        </span>
-                      </td>
-                      {sets.some((s: SetData) => s.tiempo) && (
-                        <td className="px-3 py-4 sm:px-6 whitespace-nowrap text-sm text-slate-500">
-                          {set.tiempo || '-'}
-                        </td>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </span>
+                      <span className="text-[11px] sm:text-xs font-semibold text-slate-600 tabular-nums whitespace-nowrap">
+                        {set.marcadorLocal}-{set.marcadorVisitante}
+                      </span>
+                    </button>
+                  </React.Fragment>
+                );
+              })}
             </div>
           </div>
+
+          {setSeleccionado !== null && (() => {
+            const set = sets.find((s: SetData) => s.numeroSet === setSeleccionado);
+            if (!set) return null;
+            const badgeText = set.ganador === 'empate'
+              ? 'Empate'
+              : set.ganador === 'local'
+              ? `Ganó ${partido.equipoLocal?.nombre || 'Local'}`
+              : set.ganador === 'visitante'
+              ? `Ganó ${partido.equipoVisitante?.nombre || 'Visitante'}`
+              : 'Sin definir';
+            const badgeColor = set.ganador === 'local'
+              ? 'text-brand-600'
+              : set.ganador === 'visitante'
+              ? 'text-rose-600'
+              : set.ganador === 'empate'
+              ? 'text-amber-600'
+              : 'text-slate-500';
+            return (
+              <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex items-baseline justify-between gap-2 mb-3">
+                  <h3 className="text-sm font-bold text-slate-900">Set {set.numeroSet}</h3>
+                  <span className={`text-xs sm:text-sm font-bold ${badgeColor}`}>{badgeText}</span>
+                </div>
+                <dl className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <div>
+                    <dt className="text-[10px] font-medium uppercase text-slate-400">{partido.equipoLocal?.nombre || 'Local'}</dt>
+                    <dd className="text-sm font-bold text-slate-900 tabular-nums">{set.marcadorLocal} pts</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[10px] font-medium uppercase text-slate-400">{partido.equipoVisitante?.nombre || 'Visitante'}</dt>
+                    <dd className="text-sm font-bold text-slate-900 tabular-nums">{set.marcadorVisitante} pts</dd>
+                  </div>
+                  {set.tiempo && (
+                    <div>
+                      <dt className="text-[10px] font-medium uppercase text-slate-400">Duración</dt>
+                      <dd className="text-sm font-bold text-slate-900 tabular-nums">{set.tiempo}</dd>
+                    </div>
+                  )}
+                </dl>
+              </div>
+            );
+          })()}
         </div>
       )}
 
