@@ -166,6 +166,7 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({
     playerName: selectedPlayer2.playerName || 'Jugador B',
   };
   const [setStatsByPlayer, setSetStatsByPlayer] = useState<Record<string, SetStats>>({});
+  const [headToHead, setHeadToHead] = useState<{ matches: number; player1Wins: number; player2Wins: number; draws: number } | null>(null);
   const player1Wins = player1.wins ?? 0;
   const player2Wins = player2.wins ?? 0;
   const player1Rating = Number(player1.rating || 0);
@@ -282,9 +283,25 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({
           [player1Id]: computeSetStats(detail1.history || []),
           [player2Id]: computeSetStats(detail2.history || []),
         });
+
+        // El backend ya trae, por jugador, el récord contra cada rival
+        // (matches/wins/draws) en `rivalry` — buscamos ahí el enfrentamiento
+        // directo entre estos dos en vez de calcularlo de nuevo acá.
+        const rivalEntry = detail1.rivalry?.find((r) => r.id === player2Id);
+        if (rivalEntry) {
+          setHeadToHead({
+            matches: rivalEntry.matches,
+            player1Wins: rivalEntry.wins,
+            draws: rivalEntry.draws ?? 0,
+            player2Wins: Math.max(0, rivalEntry.matches - rivalEntry.wins - (rivalEntry.draws ?? 0)),
+          });
+        } else {
+          setHeadToHead(null);
+        }
       } catch {
         if (!cancelled) {
           setSetStatsByPlayer({});
+          setHeadToHead(null);
         }
       }
     };
@@ -470,6 +487,17 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({
                   {player1.matchesPlayed > player2.matchesPlayed ? player1.playerName : player2.playerName}
                 </span>
               </div>
+              {headToHead && headToHead.matches > 0 && (
+                <div className="flex justify-between text-sm pt-2 mt-2 border-t border-slate-200">
+                  <span className="text-slate-600">
+                    Enfrentamientos directos ({headToHead.matches}):
+                  </span>
+                  <span className="font-bold text-slate-900">
+                    {headToHead.player1Wins} - {headToHead.player2Wins}
+                    {headToHead.draws > 0 ? ` (${headToHead.draws} emp.)` : ''}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
           <div className="flex items-center justify-center p-4 gap-3 w-full">
@@ -526,6 +554,7 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({
             setsWon: player2SetStats?.won,
             setsLost: player2SetStats?.lost,
           }}
+          headToHead={headToHead}
         />
       )}
     </ModalBase>

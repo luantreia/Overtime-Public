@@ -1,6 +1,8 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { LineChart, Line, XAxis, ResponsiveContainer } from 'recharts';
 import ModalBase from '../../../shared/components/ModalBase/ModalBase';
+import { ShareCardShell } from '../../../shared/components/ShareCardShell/ShareCardShell';
+import { ShareRatioSwitch, SHARE_RATIO_ASPECT, type ShareRatio } from '../../../shared/components/ShareCardShell/ShareRatioSwitch';
 import { ShareDownloadButtons } from '../../../shared/components/ShareDownloadButtons/ShareDownloadButtons';
 import { useShareImage } from '../../../shared/hooks/useShareImage';
 import RankingCardHeader, { type RankingScope } from './RankingCardHeader';
@@ -29,6 +31,7 @@ export const ShareEvolutionModal: React.FC<ShareEvolutionModalProps> = ({
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [selectedId, setSelectedId] = useState<string>(playerInfo[0]?.id || '');
+  const [ratio, setRatio] = useState<ShareRatio>('story');
 
   const selectedPlayer = playerInfo.find((p) => p.id === selectedId) || playerInfo[0];
 
@@ -65,22 +68,20 @@ export const ShareEvolutionModal: React.FC<ShareEvolutionModalProps> = ({
           </select>
         )}
 
-        <div
-          ref={cardRef}
-          className="w-[320px] aspect-[9/16] rounded-3xl overflow-hidden relative shadow-2xl bg-gradient-to-br from-brand-600 to-indigo-700 p-8 flex flex-col text-white"
-        >
-          <div className="absolute top-0 right-0 p-8 opacity-20 pointer-events-none">
-            <div className="text-4xl font-black transform rotate-12">OVERTIME</div>
-          </div>
+        <div className="mb-4">
+          <ShareRatioSwitch value={ratio} onChange={setRatio} />
+        </div>
 
+        <ShareCardShell ref={cardRef} aspectRatio={SHARE_RATIO_ASPECT[ratio]}>
+          <div className="px-8 py-6 flex flex-col flex-1 text-white">
           <div className="mb-4">
             <RankingCardHeader scope={scope} />
           </div>
 
-          <div className="my-auto flex flex-col items-center text-center">
+          <div className="my-auto flex flex-col items-center text-center w-full">
             <h2 className="text-3xl font-black mb-6 drop-shadow-md">{selectedPlayer.name || 'Jugador'}</h2>
 
-            <div className="w-full h-32 mb-6">
+            <div className="w-full mb-6" style={{ height: ratio === 'square' ? 90 : 128 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={data} margin={{ top: 4, right: 4, left: 4, bottom: 4 }}>
                   <XAxis dataKey="matchLabel" hide />
@@ -113,11 +114,8 @@ export const ShareEvolutionModal: React.FC<ShareEvolutionModalProps> = ({
               </div>
             </div>
           </div>
-
-          <div className="mt-auto pt-8 border-t border-white/20 flex justify-center">
-            <div className="text-lg font-black tracking-tighter">overtime</div>
           </div>
-        </div>
+        </ShareCardShell>
 
         <div className="mt-8 w-full">
           <ShareDownloadButtons
