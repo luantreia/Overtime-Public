@@ -134,8 +134,9 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
   // borde — en vez de asumir un número fijo de filas que "debería" entrar.
   useLayoutEffect(() => {
     if (!isOpen || !showingPlayers || !cardRef.current) return;
+    const applyCap = (value: number) => flushSync(() => setPlayerCap(value));
     let cap = Math.max(localJugadores.length, visitanteJugadores.length, 1);
-    flushSync(() => setPlayerCap(cap));
+    applyCap(cap);
     let guard = 20;
     while (
       cap > 0 &&
@@ -144,7 +145,7 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
       guard-- > 0
     ) {
       cap -= 1;
-      flushSync(() => setPlayerCap(cap));
+      applyCap(cap);
     }
   }, [isOpen, showingPlayers, ratio, localJugadores.length, visitanteJugadores.length, partido.sets?.length]);
 
