@@ -515,6 +515,11 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
           categoria={partido.rankedMeta?.categoria || partido.categoria || 'Libre'}
           competenciaId={partido.competenciaId || ''}
           seasonId={partido.rankedMeta?.temporadaId || (partido as any).temporadaId}
+          scope={partido.competencia?.nombre ? {
+            tipo: 'competencia',
+            competenciaNombre: partido.competencia.nombre,
+            modalidad: partido.rankedMeta?.modalidad || partido.modalidad || 'Foam',
+          } : undefined}
         />
       )}
 

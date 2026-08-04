@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { RankedService, type LeaderboardItem } from '../../competencias/services/rankedService';
 import { CompetenciaLeaderboardTab } from '../../competencias/components/CompetenciaLeaderboardTab';
+import { PlayerRankedHistoryModal } from '../../competencias/components/PlayerRankedHistoryModal';
 import { TrophyIcon } from '@heroicons/react/24/outline';
 import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 
@@ -13,11 +13,11 @@ type Categoria = (typeof CATEGORIAS)[number];
 
 export default function RankingGlobalPage() {
   usePageTitle('Ranking Global');
-  const navigate = useNavigate();
   const [modalidad, setModalidad] = useState<Modalidad>('Foam');
   const [categoria, setCategoria] = useState<Categoria>('Libre');
   const [leaderboard, setLeaderboard] = useState<LeaderboardItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedPlayer, setSelectedPlayer] = useState<{ id: string; name: string } | null>(null);
 
   const fetchLeaderboard = useCallback(async () => {
     setLoading(true);
@@ -89,13 +89,26 @@ export default function RankingGlobalPage() {
             loading={loading}
             leaderboard={leaderboard}
             jugadoresComp={[]}
-            onPlayerClick={({ id }) => navigate(`/jugadores/${id}`)}
+            onPlayerClick={setSelectedPlayer}
             competenciaId=""
             scope={{ tipo: 'global', categoria, modalidad }}
             modalidad={modalidad}
             categoria={categoria}
           />
         </div>
+      )}
+
+      {selectedPlayer && (
+        <PlayerRankedHistoryModal
+          isOpen={!!selectedPlayer}
+          onClose={() => setSelectedPlayer(null)}
+          playerId={selectedPlayer.id}
+          playerName={selectedPlayer.name}
+          modalidad={modalidad}
+          categoria={categoria}
+          competenciaId=""
+          scope={{ tipo: 'global', categoria, modalidad }}
+        />
       )}
     </div>
   );

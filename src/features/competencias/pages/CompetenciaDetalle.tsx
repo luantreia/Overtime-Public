@@ -151,6 +151,23 @@ const CompetenciaDetalle: React.FC = () => {
     return fases.find(f => f._id === selectedFase) || null;
   }, [fases, selectedFase]);
 
+  // Usado tanto por el tab de ranking como por el modal de historial del
+  // jugador, para que ambos muestren la misma competencia/temporada.
+  const leaderboardScope = useMemo<RankingScope>(() => {
+    const competenciaNombre = (competencia as any)?.nombre || 'Competencia';
+    const organizacionNombre = (competencia as any)?.organizacion?.nombre;
+    const modalidad = (competencia as any)?.modalidad || 'Foam';
+    return selectedTemporada && selectedTemporada !== 'global'
+      ? {
+          tipo: 'competencia-temporada',
+          competenciaNombre,
+          organizacionNombre,
+          modalidad,
+          temporadaNombre: temporadas.find((t: any) => t._id === selectedTemporada)?.nombre || 'Temporada',
+        }
+      : { tipo: 'competencia', competenciaNombre, organizacionNombre, modalidad };
+  }, [competencia, selectedTemporada, temporadas]);
+
   // Modal Detail state
   const [selectedPlayer, setSelectedPlayer] = useState<{ id: string, name: string } | null>(null);
 
@@ -310,37 +327,21 @@ const CompetenciaDetalle: React.FC = () => {
             />
           )}
 
-          {activeTab === 'leaderboard' && (() => {
-            const competenciaNombre = (competencia as any)?.nombre || 'Competencia';
-            const organizacionNombre = (competencia as any)?.organizacion?.nombre;
-            const modalidad = (competencia as any)?.modalidad || 'Foam';
-            const scope: RankingScope =
-              selectedTemporada && selectedTemporada !== 'global'
-                ? {
-                    tipo: 'competencia-temporada',
-                    competenciaNombre,
-                    organizacionNombre,
-                    modalidad,
-                    temporadaNombre: temporadas.find((t: any) => t._id === selectedTemporada)?.nombre || 'Temporada',
-                  }
-                : { tipo: 'competencia', competenciaNombre, organizacionNombre, modalidad };
-
-            return (
-              <CompetenciaLeaderboardTab
-                temporadas={temporadas}
-                selectedTemporada={selectedTemporada}
-                onTemporadaChange={(tid: string) => updateParams({ temporada: tid })}
-                loading={loadingLeaderboard}
-                leaderboard={leaderboard}
-                jugadoresComp={jugadoresComp}
-                onPlayerClick={handlePlayerClick}
-                competenciaId={id!}
-                scope={scope}
-                modalidad={modalidad}
-                categoria={(competencia as any)?.categoria || 'Libre'}
-              />
-            );
-          })()}
+          {activeTab === 'leaderboard' && (
+            <CompetenciaLeaderboardTab
+              temporadas={temporadas}
+              selectedTemporada={selectedTemporada}
+              onTemporadaChange={(tid: string) => updateParams({ temporada: tid })}
+              loading={loadingLeaderboard}
+              leaderboard={leaderboard}
+              jugadoresComp={jugadoresComp}
+              onPlayerClick={handlePlayerClick}
+              competenciaId={id!}
+              scope={leaderboardScope}
+              modalidad={(competencia as any)?.modalidad || 'Foam'}
+              categoria={(competencia as any)?.categoria || 'Libre'}
+            />
+          )}
         </div>
       </div>
 
@@ -354,6 +355,7 @@ const CompetenciaDetalle: React.FC = () => {
           categoria={(competencia as any).categoria || 'Libre'}
           competenciaId={id!}
           seasonId={selectedTemporada}
+          scope={leaderboardScope}
         />
       )}
     </div>

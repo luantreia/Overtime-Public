@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toPng } from 'html-to-image';
 import { RankedService } from '../services/rankedService';
 import { formatDate } from '../../../shared/utils/formatDate';
+import { type RankingScope } from './RankingCardHeader';
 
 interface PlayerRankedHistoryModalProps {
   isOpen: boolean;
@@ -13,7 +14,16 @@ interface PlayerRankedHistoryModalProps {
   categoria: string;
   competenciaId: string;
   seasonId?: string;
+  scope?: RankingScope;
 }
+
+// Mismo título que RankingCardHeader, pero para el fondo blanco de este modal.
+const scopeLabel = (scope?: RankingScope): string | null => {
+  if (!scope) return null;
+  if (scope.tipo === 'global') return 'Ranking Global';
+  if (scope.tipo === 'competencia') return scope.competenciaNombre;
+  return `${scope.competenciaNombre} · ${scope.temporadaNombre}`;
+};
 
 export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> = ({
   isOpen,
@@ -23,7 +33,8 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
   modalidad,
   categoria,
   competenciaId,
-  seasonId
+  seasonId,
+  scope
 }) => {
   const navigate = useNavigate();
   const [, setSearchParams] = useSearchParams();
@@ -189,6 +200,9 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
              <div>
                 <h2 className="text-xl font-bold text-slate-900 leading-tight">{activePlayer.name}</h2>
                 <p className="text-xs text-slate-500 uppercase font-semibold tracking-wider">{modalidad} • {categoria}</p>
+                {scopeLabel(scope) && (
+                  <p className="text-[11px] text-brand-600 font-bold mt-0.5">{scopeLabel(scope)}</p>
+                )}
              </div>
           </div>
           <div className="no-export flex items-center gap-1">

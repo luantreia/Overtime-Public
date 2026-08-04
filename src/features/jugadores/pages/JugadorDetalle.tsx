@@ -184,6 +184,7 @@ const JugadorDetalle: React.FC = () => {
   const [rankedModalData, setRankedModalData] = useState<{
     competencia: any;
     seasonId: string;
+    scope: RankingScope;
   } | null>(null);
 
   // Modal de competencia no-ranked (Posiciones/Bracket + Partidos)
@@ -251,7 +252,7 @@ const JugadorDetalle: React.FC = () => {
   const handleBadgeClick = (data: any, season: TemporadaBadge) => {
     const compId = data.competencia._id || data.competencia.id;
     if (data.isRanked) {
-      setRankedModalData({ competencia: data.competencia, seasonId: season._id });
+      setRankedModalData({ competencia: data.competencia, seasonId: season._id, scope: buildScope(data, season) });
     } else {
       setCompModalData({
         competenciaId: compId,
@@ -544,6 +545,7 @@ const JugadorDetalle: React.FC = () => {
           categoria={rankedModalData.competencia.categoria || 'Libre'}
           competenciaId={rankedModalData.competencia._id || rankedModalData.competencia.id}
           seasonId={rankedModalData.seasonId}
+          scope={rankedModalData.scope}
         />
       )}
 
