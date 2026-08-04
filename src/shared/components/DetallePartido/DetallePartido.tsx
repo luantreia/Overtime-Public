@@ -15,7 +15,7 @@ interface SetData {
   marcadorLocal: number;
   marcadorVisitante: number;
   tiempo?: string;
-  ganador?: 'local' | 'visitante';
+  ganador?: 'local' | 'visitante' | 'empate';
 }
 
 interface JugadorPartido {
@@ -52,13 +52,17 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
       // Cargar sets si no vienen poblados
       if (!p.sets || p.sets.length === 0) {
         const rawSets = await PartidoService.getSets(partidoId);
-        p.sets = rawSets.map((s: any) => ({
-          numeroSet: s.numeroSet,
-          marcadorLocal: s.ganadorSet === 'local' ? 1 : 0,
-          marcadorVisitante: s.ganadorSet === 'visitante' ? 1 : 0,
-          ganador: s.ganadorSet === 'local' ? 'local' : s.ganadorSet === 'visitante' ? 'visitante' : undefined,
-          tiempo: s.duracionSetTimer ? `${Math.floor(s.duracionSetTimer / 60)}:${(s.duracionSetTimer % 60).toString().padStart(2, '0')}` : undefined
-        }));
+        const puntosPorSet = p.modalidad === 'Cloth' ? 2 : 1;
+        p.sets = rawSets.map((s: any) => {
+          const empate = s.ganadorSet === 'empate';
+          return {
+            numeroSet: s.numeroSet,
+            marcadorLocal: s.ganadorSet === 'local' ? puntosPorSet : empate ? 1 : 0,
+            marcadorVisitante: s.ganadorSet === 'visitante' ? puntosPorSet : empate ? 1 : 0,
+            ganador: s.ganadorSet === 'local' ? 'local' : s.ganadorSet === 'visitante' ? 'visitante' : empate ? 'empate' : undefined,
+            tiempo: s.duracionSetTimer ? `${Math.floor(s.duracionSetTimer / 60)}:${(s.duracionSetTimer % 60).toString().padStart(2, '0')}` : undefined
+          };
+        });
       }
 
       if (p.esRanked) {
@@ -266,18 +270,18 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
                         {set.numeroSet}
                       </td>
                       <td className={`px-3 py-4 sm:px-6 whitespace-nowrap text-sm font-bold ${
-                        set.ganador === 'local' ? 'text-green-600 bg-green-50' : 'text-slate-900'
+                        set.ganador === 'local' ? 'text-green-600 bg-green-50' : set.ganador === 'empate' ? 'text-amber-600 bg-amber-50' : 'text-slate-900'
                       }`}>
                         {set.marcadorLocal}
                       </td>
                       <td className={`px-3 py-4 sm:px-6 whitespace-nowrap text-sm font-bold ${
-                        set.ganador === 'visitante' ? 'text-green-600 bg-green-50' : 'text-slate-900'
+                        set.ganador === 'visitante' ? 'text-green-600 bg-green-50' : set.ganador === 'empate' ? 'text-amber-600 bg-amber-50' : 'text-slate-900'
                       }`}>
                         {set.marcadorVisitante}
                       </td>
                       <td className="px-3 py-4 sm:px-6 whitespace-nowrap text-sm text-slate-500">
                         <span className="max-w-[100px] block truncate text-xs sm:text-sm">
-                          {set.ganador === 'local' ? partido.equipoLocal?.nombre : set.ganador === 'visitante' ? partido.equipoVisitante?.nombre : '-'}
+                          {set.ganador === 'local' ? partido.equipoLocal?.nombre : set.ganador === 'visitante' ? partido.equipoVisitante?.nombre : set.ganador === 'empate' ? 'Empate' : '-'}
                         </span>
                       </td>
                       {sets.some((s: SetData) => s.tiempo) && (
