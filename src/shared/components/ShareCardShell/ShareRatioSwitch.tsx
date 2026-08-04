@@ -8,7 +8,7 @@ export const SHARE_RATIO_ASPECT: Record<ShareRatio, string> = {
   square: '1 / 1',
 };
 
-const OPTIONS: { value: ShareRatio; label: string }[] = [
+const ALL_OPTIONS: { value: ShareRatio; label: string }[] = [
   { value: 'card', label: 'Post (3:4)' },
   { value: 'story', label: 'Story (9:16)' },
   { value: 'square', label: 'Cuadrado (1:1)' },
@@ -17,11 +17,13 @@ const OPTIONS: { value: ShareRatio; label: string }[] = [
 interface ShareRatioSwitchProps {
   value: ShareRatio;
   onChange: (ratio: ShareRatio) => void;
+  /** Subconjunto de formatos a mostrar. Por defecto, los 3. */
+  options?: ShareRatio[];
 }
 
-export const ShareRatioSwitch: React.FC<ShareRatioSwitchProps> = ({ value, onChange }) => (
+export const ShareRatioSwitch: React.FC<ShareRatioSwitchProps> = ({ value, onChange, options }) => (
   <div className="inline-flex rounded-full border border-slate-200 bg-slate-50 p-0.5">
-    {OPTIONS.map(opt => (
+    {ALL_OPTIONS.filter(opt => !options || options.includes(opt.value)).map(opt => (
       <button
         key={opt.value}
         type="button"

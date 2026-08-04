@@ -4,6 +4,7 @@ import { toPng } from 'html-to-image';
 import { RankedService } from '../services/rankedService';
 import { formatDate } from '../../../shared/utils/formatDate';
 import { type RankingScope } from './RankingCardHeader';
+import { ShareRelationsModal } from './ShareRelationsModal';
 
 interface PlayerRankedHistoryModalProps {
   isOpen: boolean;
@@ -53,7 +54,9 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
   const [selectedFilterId, setSelectedFilterId] = useState<string | null>(null);
   const [filterType, setFilterType] = useState<'synergy' | 'rivalry' | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [showRelationsShare, setShowRelationsShare] = useState(false);
   const exportRef = useRef<HTMLDivElement | null>(null);
+  const relationsScope: RankingScope = scope || { tipo: 'global', categoria, modalidad };
 
   const handleExportImage = async () => {
     const node = exportRef.current;
@@ -206,6 +209,17 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
              </div>
           </div>
           <div className="no-export flex items-center gap-1">
+            {(synergy.length > 0 || rivalry.length > 0) && (
+              <button
+                onClick={() => setShowRelationsShare(true)}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+                title="Compartir tarjeta de sinergias / rivalidades"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0-5.314a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093" />
+                </svg>
+              </button>
+            )}
             <button
               onClick={handleExportImage}
               disabled={exporting}
@@ -484,6 +498,15 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
            <p className="text-[9px] text-slate-400 font-medium">Los puntos se calculan dinámicamente según el nivel de los oponentes.</p>
         </div>
       </div>
+
+      <ShareRelationsModal
+        isOpen={showRelationsShare}
+        onClose={() => setShowRelationsShare(false)}
+        playerName={activePlayer.name}
+        scope={relationsScope}
+        synergy={synergy}
+        rivalry={rivalry}
+      />
     </div>
   );
 };

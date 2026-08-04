@@ -1,0 +1,192 @@
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import ModalBase from '../../../shared/components/ModalBase/ModalBase';
+import { ShareCardShell } from '../../../shared/components/ShareCardShell/ShareCardShell';
+import { ShareRatioSwitch, SHARE_RATIO_ASPECT, type ShareRatio } from '../../../shared/components/ShareCardShell/ShareRatioSwitch';
+import { ShareDownloadButtons } from '../../../shared/components/ShareDownloadButtons/ShareDownloadButtons';
+import { useShareImage } from '../../../shared/hooks/useShareImage';
+import RankingCardHeader, { type RankingScope } from './RankingCardHeader';
+
+export interface RelationItem {
+  id: string;
+  name: string;
+  matches: number;
+  wins: number;
+  draws?: number;
+  losses?: number;
+  winrate: number;
+}
+
+interface ShareRelationsModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  playerName: string;
+  scope: RankingScope;
+  synergy: RelationItem[];
+  rivalry: RelationItem[];
+}
+
+type RelType = 'synergy' | 'rivalry';
+
+const REL_COLOR: Record<RelType, string> = { synergy: '#22c55e', rivalry: '#ef4444' };
+const REL_LABEL: Record<RelType, string> = {
+  synergy: 'Con quién gana más — sinergias',
+  rivalry: 'Contra quién juega más — rivalidades',
+};
+
+export const ShareRelationsModal: React.FC<ShareRelationsModalProps> = ({
+  isOpen,
+  onClose,
+  playerName,
+  scope,
+  synergy,
+  rivalry,
+}) => {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [ratio, setRatio] = useState<ShareRatio>('story');
+  const [relType, setRelType] = useState<RelType>(synergy.length > 0 ? 'synergy' : 'rivalry');
+  const [selected, setSelected] = useState<{ synergy: Set<string>; rivalry: Set<string> }>({
+    synergy: new Set(synergy.map((s) => s.id)),
+    rivalry: new Set(rivalry.map((r) => r.id)),
+  });
+
+  // Si el modal se abre con datos nuevos (otro jugador), arrancar con todo tildado de nuevo.
+  useEffect(() => {
+    if (!isOpen) return;
+    setRelType(synergy.length > 0 ? 'synergy' : 'rivalry');
+    setSelected({
+      synergy: new Set(synergy.map((s) => s.id)),
+      rivalry: new Set(rivalry.map((r) => r.id)),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, playerName]);
+
+  const { handleShare, handleDownload, loadingShare, loadingDownload } = useShareImage(cardRef, {
+    filename: `overtime-${relType}-${playerName.replace(/\s+/g, '-').toLowerCase()}.png`,
+    shareTitle: `${relType === 'synergy' ? 'Sinergias' : 'Rivalidades'} de ${playerName}`,
+  });
+
+  const currentList = relType === 'synergy' ? synergy : rivalry;
+  const currentSelected = selected[relType];
+  const rows = useMemo(
+    () => currentList.filter((item) => currentSelected.has(item.id)),
+    [currentList, currentSelected],
+  );
+
+  const toggleItem = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev[relType]);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return { ...prev, [relType]: next };
+    });
+  };
+
+  return (
+    <ModalBase isOpen={isOpen} onClose={onClose} title="Compartir sinergias / rivalidades" size="lg">
+      <div className="p-6 flex flex-col items-center">
+        <div className="mb-4 flex w-full flex-wrap items-center gap-2">
+          {synergy.length > 0 && rivalry.length > 0 && (
+            <div className="inline-flex rounded-full border border-slate-200 bg-slate-50 p-0.5">
+              <button
+                type="button"
+                onClick={() => setRelType('synergy')}
+                className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                  relType === 'synergy' ? 'bg-emerald-600 text-white' : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                🟢 Sinergias
+              </button>
+              <button
+                type="button"
+                onClick={() => setRelType('rivalry')}
+                className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                  relType === 'rivalry' ? 'bg-red-600 text-white' : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                🔴 Rivalidades
+              </button>
+            </div>
+          )}
+          <ShareRatioSwitch value={ratio} onChange={setRatio} options={['card', 'story']} />
+        </div>
+
+        {currentList.length > 0 && (
+          <div className="mb-4 w-full rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <p className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-500">Elegí quiénes aparecen</p>
+            <div className="flex flex-wrap gap-1.5">
+              {currentList.map((item) => {
+                const active = currentSelected.has(item.id);
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => toggleItem(item.id)}
+                    className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
+                      active
+                        ? 'border-brand-600 bg-brand-600 text-white'
+                        : 'border-slate-300 bg-white text-slate-500 hover:border-slate-400'
+                    }`}
+                  >
+                    {item.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        <ShareCardShell ref={cardRef} aspectRatio={SHARE_RATIO_ASPECT[ratio]}>
+          <div className="px-8 py-6 flex flex-col flex-1 text-white">
+            <div className="mb-4">
+              <RankingCardHeader scope={scope} />
+            </div>
+
+            <div className="my-auto flex flex-col w-full">
+              <h2 className="text-center text-xl font-black mb-1">{playerName}</h2>
+              <p className="text-center text-[10px] font-bold uppercase tracking-widest opacity-70 mb-4">
+                {REL_LABEL[relType]}
+              </p>
+
+              {rows.length === 0 ? (
+                <p className="text-center text-sm opacity-70 italic py-6">Elegí al menos uno en la lista de arriba.</p>
+              ) : (
+                <div className="flex flex-col gap-1.5">
+                  {rows.map((item) => {
+                    const losses = item.losses ?? Math.max(0, item.matches - item.wins - (item.draws ?? 0));
+                    const winrate = Math.round(item.winrate);
+                    return (
+                      <div key={item.id} className="flex items-center gap-3 rounded-xl bg-white/10 px-4 py-2.5">
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-bold truncate">{item.name}</div>
+                          <div className="text-[9px] opacity-70">
+                            {item.matches} PJ · {item.wins}G {item.draws ?? 0}E {losses}P
+                          </div>
+                        </div>
+                        <div className="h-1.5 w-16 rounded-full bg-white/20 overflow-hidden flex-shrink-0">
+                          <div
+                            className="h-full rounded-full"
+                            style={{ width: `${winrate}%`, background: REL_COLOR[relType] }}
+                          />
+                        </div>
+                        <div className="w-9 flex-shrink-0 text-right text-sm font-black">{winrate}%</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </ShareCardShell>
+
+        <div className="mt-8 w-full">
+          <ShareDownloadButtons
+            onShare={handleShare}
+            onDownload={handleDownload}
+            loadingShare={loadingShare}
+            loadingDownload={loadingDownload}
+          />
+        </div>
+      </div>
+    </ModalBase>
+  );
+};
