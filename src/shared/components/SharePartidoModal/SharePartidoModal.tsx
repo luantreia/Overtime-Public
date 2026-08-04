@@ -174,7 +174,6 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
   };
 
   const sets = partido.sets || [];
-  const puntosPorSet = partido.modalidad === 'Cloth' ? 2 : 1;
   const setColor = (g?: 'local' | 'visitante' | 'empate') =>
     g === 'local' ? COLOR_LOCAL : g === 'visitante' ? COLOR_VISITANTE : g === 'empate' ? COLOR_TIE : 'rgba(255,255,255,0.25)';
 
@@ -374,7 +373,7 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
                     textAlign: 'center', color: 'rgba(255,255,255,0.5)', fontSize: 8.5, fontWeight: 700,
                     letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: 4,
                   }}>
-                    Set a set{partido.modalidad === 'Cloth' ? ` · gana +${puntosPorSet}` : ''}
+                    Set a set
                   </div>
                 </>
               );

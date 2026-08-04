@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
 import ModalBase from '../../../shared/components/ModalBase/ModalBase';
+import { ShareCardShell } from '../../../shared/components/ShareCardShell/ShareCardShell';
 import { ShareDownloadButtons } from '../../../shared/components/ShareDownloadButtons/ShareDownloadButtons';
 import { useShareImage } from '../../../shared/hooks/useShareImage';
 
