@@ -167,7 +167,7 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
     ? formatDate(partido.fecha)
     : 'Fecha no disponible';
 
-  const sets = (partido as any).sets || [];
+  const sets = ((partido as any).sets || []) as SetData[];
   const jugadores = (partido as any).jugadores || [] as JugadorPartido[];
   const localJugadores = jugadores.filter((j: any) => j.equipo === 'local');
   const visitanteJugadores = jugadores.filter((j: any) => j.equipo === 'visitante');
@@ -254,7 +254,12 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
 
           <div className="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0 pb-1">
             <div className="flex items-start min-w-max">
-              {sets.map((set: SetData, idx: number) => {
+              {sets.reduce<{ local: number; visitante: number }[]>((acc, s) => {
+                const prev = acc[acc.length - 1] || { local: 0, visitante: 0 };
+                acc.push({ local: prev.local + s.marcadorLocal, visitante: prev.visitante + s.marcadorVisitante });
+                return acc;
+              }, []).map((acumulado, idx: number) => {
+                const set = sets[idx];
                 const isSelected = setSeleccionado === set.numeroSet;
                 const dotColor = set.ganador === 'local'
                   ? 'bg-brand-600'
@@ -282,7 +287,7 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
                         {set.numeroSet}
                       </span>
                       <span className="text-[11px] sm:text-xs font-semibold text-slate-600 tabular-nums whitespace-nowrap">
-                        {set.marcadorLocal}-{set.marcadorVisitante}
+                        {acumulado.local}-{acumulado.visitante}
                       </span>
                     </button>
                   </React.Fragment>
