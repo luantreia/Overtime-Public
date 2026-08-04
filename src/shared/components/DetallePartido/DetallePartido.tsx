@@ -262,9 +262,9 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
                 const set = sets[idx];
                 const isSelected = setSeleccionado === set.numeroSet;
                 const dotColor = set.ganador === 'local'
-                  ? 'bg-brand-600'
+                  ? 'bg-red-600'
                   : set.ganador === 'visitante'
-                  ? 'bg-rose-600'
+                  ? 'bg-brand-600'
                   : set.ganador === 'empate'
                   ? 'bg-amber-500'
                   : 'bg-slate-300';
@@ -307,9 +307,9 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
               ? `Ganó ${partido.equipoVisitante?.nombre || 'Visitante'}`
               : 'Sin definir';
             const badgeColor = set.ganador === 'local'
-              ? 'text-brand-600'
+              ? 'text-red-600'
               : set.ganador === 'visitante'
-              ? 'text-rose-600'
+              ? 'text-brand-600'
               : set.ganador === 'empate'
               ? 'text-amber-600'
               : 'text-slate-500';
