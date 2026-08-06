@@ -32,6 +32,8 @@ const REL_LABEL: Record<RelType, string> = {
   synergy: 'Con quién gana más — sinergias',
   rivalry: 'Contra quién juega más — rivalidades',
 };
+// Tope de tarjetas visibles según el formato, para que la lista no desborde la card.
+const MAX_BY_RATIO: Record<ShareRatio, number> = { card: 3, story: 5, square: 3 };
 
 export const ShareRelationsModal: React.FC<ShareRelationsModalProps> = ({
   isOpen,
@@ -44,21 +46,35 @@ export const ShareRelationsModal: React.FC<ShareRelationsModalProps> = ({
   const cardRef = useRef<HTMLDivElement>(null);
   const [ratio, setRatio] = useState<ShareRatio>('story');
   const [relType, setRelType] = useState<RelType>(synergy.length > 0 ? 'synergy' : 'rivalry');
+  const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<{ synergy: Set<string>; rivalry: Set<string> }>({
-    synergy: new Set(synergy.map((s) => s.id)),
-    rivalry: new Set(rivalry.map((r) => r.id)),
+    synergy: new Set(synergy.slice(0, MAX_BY_RATIO.story).map((s) => s.id)),
+    rivalry: new Set(rivalry.slice(0, MAX_BY_RATIO.story).map((r) => r.id)),
   });
+  const max = MAX_BY_RATIO[ratio];
 
-  // Si el modal se abre con datos nuevos (otro jugador), arrancar con todo tildado de nuevo.
+  // Si el modal se abre con datos nuevos (otro jugador), arrancar con los primeros del formato actual.
   useEffect(() => {
     if (!isOpen) return;
     setRelType(synergy.length > 0 ? 'synergy' : 'rivalry');
+    setSearch('');
     setSelected({
-      synergy: new Set(synergy.map((s) => s.id)),
-      rivalry: new Set(rivalry.map((r) => r.id)),
+      synergy: new Set(synergy.slice(0, MAX_BY_RATIO.story).map((s) => s.id)),
+      rivalry: new Set(rivalry.slice(0, MAX_BY_RATIO.story).map((r) => r.id)),
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, playerName]);
+
+  // Si el formato baja el tope (ej. de Story a Post), recortar el excedente manteniendo el orden ya elegido.
+  useEffect(() => {
+    setSelected((prev) => {
+      const trim = (set: Set<string>) => (set.size > max ? new Set(Array.from(set).slice(0, max)) : set);
+      const nextSynergy = trim(prev.synergy);
+      const nextRivalry = trim(prev.rivalry);
+      if (nextSynergy === prev.synergy && nextRivalry === prev.rivalry) return prev;
+      return { synergy: nextSynergy, rivalry: nextRivalry };
+    });
+  }, [max]);
 
   const { handleShare, handleDownload, loadingShare, loadingDownload } = useShareImage(cardRef, {
     filename: `overtime-${relType}-${playerName.replace(/\s+/g, '-').toLowerCase()}.png`,
@@ -71,12 +87,21 @@ export const ShareRelationsModal: React.FC<ShareRelationsModalProps> = ({
     () => currentList.filter((item) => currentSelected.has(item.id)),
     [currentList, currentSelected],
   );
+  const visibleList = useMemo(
+    () => currentList.filter((item) => item.name.toLowerCase().includes(search.trim().toLowerCase())),
+    [currentList, search],
+  );
+  const atMax = currentSelected.size >= max;
 
   const toggleItem = (id: string) => {
     setSelected((prev) => {
       const next = new Set(prev[relType]);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        if (next.size >= max) return prev;
+        next.add(id);
+      }
       return { ...prev, [relType]: next };
     });
   };
@@ -89,7 +114,7 @@ export const ShareRelationsModal: React.FC<ShareRelationsModalProps> = ({
             <div className="inline-flex rounded-full border border-slate-200 bg-slate-50 p-0.5">
               <button
                 type="button"
-                onClick={() => setRelType('synergy')}
+                onClick={() => { setRelType('synergy'); setSearch(''); }}
                 className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
                   relType === 'synergy' ? 'bg-emerald-600 text-white' : 'text-slate-500 hover:text-slate-700'
                 }`}
@@ -98,7 +123,7 @@ export const ShareRelationsModal: React.FC<ShareRelationsModalProps> = ({
               </button>
               <button
                 type="button"
-                onClick={() => setRelType('rivalry')}
+                onClick={() => { setRelType('rivalry'); setSearch(''); }}
                 className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
                   relType === 'rivalry' ? 'bg-red-600 text-white' : 'text-slate-500 hover:text-slate-700'
                 }`}
@@ -112,19 +137,43 @@ export const ShareRelationsModal: React.FC<ShareRelationsModalProps> = ({
 
         {currentList.length > 0 && (
           <div className="mb-4 w-full rounded-xl border border-slate-200 bg-slate-50 p-3">
-            <p className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-500">Elegí quiénes aparecen</p>
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Elegí quiénes aparecen</p>
+              <span className={`text-[11px] font-bold ${atMax ? 'text-brand-600' : 'text-slate-400'}`}>
+                {currentSelected.size}/{max}
+              </span>
+            </div>
+
+            {currentList.length > max && (
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Buscar por nombre..."
+                className="mb-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-brand-500"
+              />
+            )}
+
             <div className="flex flex-wrap gap-1.5">
-              {currentList.map((item) => {
+              {visibleList.length === 0 && (
+                <p className="text-xs text-slate-400 italic py-1">Sin resultados para "{search}".</p>
+              )}
+              {visibleList.map((item) => {
                 const active = currentSelected.has(item.id);
+                const disabled = !active && atMax;
                 return (
                   <button
                     key={item.id}
                     type="button"
+                    disabled={disabled}
                     onClick={() => toggleItem(item.id)}
+                    title={disabled ? `Máximo ${max} para este formato` : undefined}
                     className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
                       active
                         ? 'border-brand-600 bg-brand-600 text-white'
-                        : 'border-slate-300 bg-white text-slate-500 hover:border-slate-400'
+                        : disabled
+                          ? 'border-slate-200 bg-slate-100 text-slate-300 cursor-not-allowed'
+                          : 'border-slate-300 bg-white text-slate-500 hover:border-slate-400'
                     }`}
                   >
                     {item.name}
