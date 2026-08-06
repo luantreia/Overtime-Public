@@ -1,6 +1,5 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { toPng } from 'html-to-image';
 import { RankedService } from '../services/rankedService';
 import { formatDate } from '../../../shared/utils/formatDate';
 import { type RankingScope } from './RankingCardHeader';
@@ -25,6 +24,17 @@ const scopeLabel = (scope?: RankingScope): string | null => {
   if (scope.tipo === 'global') return 'Ranking Global';
   if (scope.tipo === 'competencia') return scope.competenciaNombre;
   return `${scope.competenciaNombre} · ${scope.temporadaNombre}`;
+};
+
+// A dónde lleva el label de scope: ranking global, o el leaderboard de la competencia
+// (con la temporada como referencia en la URL si el scope venía acotado a una).
+const scopeHref = (scope: RankingScope | undefined, competenciaId: string, seasonId?: string): string | null => {
+  if (!scope) return null;
+  if (scope.tipo === 'global') return '/ranking';
+  if (!competenciaId) return null;
+  const params = new URLSearchParams({ tab: 'leaderboard' });
+  if (seasonId) params.set('temporada', seasonId);
+  return `/competencias/${competenciaId}?${params.toString()}`;
 };
 
 export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> = ({
@@ -54,9 +64,7 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
   const [playerStack, setPlayerStack] = useState<{ id: string; name: string }[]>([]);
   const [selectedFilterId, setSelectedFilterId] = useState<string | null>(null);
   const [filterType, setFilterType] = useState<'synergy' | 'rivalry' | null>(null);
-  const [exporting, setExporting] = useState(false);
   const [showRelationsShare, setShowRelationsShare] = useState(false);
-  const exportRef = useRef<HTMLDivElement | null>(null);
   const relationsScope: RankingScope = scope || { tipo: 'global', categoria, modalidad };
   const [zIndex, setZIndex] = useState(() => getNextModalZIndex());
 
@@ -64,37 +72,6 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
     if (!isOpen) return;
     setZIndex(getNextModalZIndex());
   }, [isOpen]);
-
-  const handleExportImage = async () => {
-    const node = exportRef.current;
-    if (!node) return;
-    try {
-      setExporting(true);
-      const dataUrl = await toPng(node, {
-        filter: (el: any) => {
-          if (
-            el.classList?.contains('no-export') ||
-            el.tagName === 'BUTTON' ||
-            el.tagName === 'SELECT'
-          ) return false;
-          return true;
-        },
-        backgroundColor: '#ffffff',
-        style: { borderRadius: '16px' },
-        cacheBust: true,
-      });
-
-      const link = document.createElement('a');
-      const playerName = activePlayer.name?.replace(/\s+/g, '-') || 'jugador';
-      link.download = `ranking-${playerName}-${modalidad}-${categoria}.png`;
-      link.href = dataUrl;
-      link.click();
-    } catch (err) {
-      console.error('Error generating image', err);
-    } finally {
-      setExporting(false);
-    }
-  };
 
   useEffect(() => {
     if (isOpen) {
@@ -191,7 +168,7 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-slate-900/60 p-2 sm:p-4 backdrop-blur-sm" style={{ zIndex }}>
-      <div ref={exportRef} className="w-full max-w-lg rounded-2xl bg-white p-4 sm:p-6 shadow-2xl max-h-[90vh] flex flex-col border border-slate-200">
+      <div className="w-full max-w-lg rounded-2xl bg-white p-4 sm:p-6 shadow-2xl max-h-[90vh] flex flex-col border border-slate-200">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
              {playerStack.length > 0 && (
@@ -211,11 +188,26 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
                 <h2 className="text-xl font-bold text-slate-900 leading-tight">{activePlayer.name}</h2>
                 <p className="text-xs text-slate-500 uppercase font-semibold tracking-wider">{modalidad} • {categoria}</p>
                 {scopeLabel(scope) && (
-                  <p className="text-[11px] text-brand-600 font-bold mt-0.5">{scopeLabel(scope)}</p>
+                  scopeHref(scope, competenciaId, seasonId) ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const href = scopeHref(scope, competenciaId, seasonId);
+                        if (!href) return;
+                        onClose();
+                        navigate(href);
+                      }}
+                      className="text-[11px] text-brand-600 font-bold mt-0.5 hover:underline text-left"
+                    >
+                      {scopeLabel(scope)}
+                    </button>
+                  ) : (
+                    <p className="text-[11px] text-brand-600 font-bold mt-0.5">{scopeLabel(scope)}</p>
+                  )
                 )}
              </div>
           </div>
-          <div className="no-export flex items-center gap-1">
+          <div className="flex items-center gap-1">
             {(synergy.length > 0 || rivalry.length > 0) && (
               <button
                 onClick={() => setShowRelationsShare(true)}
@@ -227,16 +219,6 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
                 </svg>
               </button>
             )}
-            <button
-              onClick={handleExportImage}
-              disabled={exporting}
-              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-50"
-              title="Descargar Ranking como PNG"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-            </button>
             <button
               onClick={onClose}
               className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
