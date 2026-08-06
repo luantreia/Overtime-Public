@@ -1,12 +1,14 @@
 import React, { useMemo, useState } from 'react';
 import { type Temporada } from '../services/temporadaService';
 import { type Fase } from '../services/faseService';
-import { type Partido } from '../../partidos/services/partidoService';
+import { type Partido, type PartidoEstado } from '../../partidos/services/partidoService';
 import { type JugadorCompetencia } from '../services/jugadorCompetenciaService';
 import PartidoCard from '../../../shared/components/PartidoCard/PartidoCard';
 import { PartidoCalendar } from '../../../shared/components/PartidoCalendar';
 
-type EstadoFiltro = '' | 'proximamente' | 'en_curso' | 'finalizado';
+// Los valores tienen que ser estados reales del backend: el filtro compara contra
+// `partido.estado`, así que un valor de UI inventado no matchea nunca.
+type EstadoFiltro = '' | PartidoEstado;
 type Vista = 'lista' | 'calendario';
 
 interface CompetenciaPartidosTabProps {
@@ -27,9 +29,10 @@ interface CompetenciaPartidosTabProps {
 
 const ESTADO_LABELS: Record<EstadoFiltro, string> = {
   '': 'Todos',
-  proximamente: 'Próximos',
-  en_curso: 'En curso',
+  programado: 'Próximos',
+  en_juego: 'En curso',
   finalizado: 'Finalizados',
+  cancelado: 'Cancelados',
 };
 
 export const CompetenciaPartidosTab: React.FC<CompetenciaPartidosTabProps> = ({

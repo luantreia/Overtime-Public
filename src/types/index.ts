@@ -69,39 +69,7 @@ export interface SetPartido {
     marcadorVisitante?: number;
 }
 
-export interface Partido {
-    id: string;
-    _id?: string;
-    nombre?: string;
-    equipoLocal?: {
-        id: string;
-        nombre: string;
-        escudo?: string;
-    };
-    equipoVisitante?: {
-        id: string;
-        nombre: string;
-        escudo?: string;
-    };
-    fecha?: string;
-    hora?: string;
-    estado?: 'programado' | 'en_juego' | 'finalizado' | 'cancelado' | 'proximamente' | 'en_curso';
-    resultado?: {
-        puntosEquipo: number;
-        puntosRival: number;
-    } | string;
-    marcadorLocal?: number;
-    marcadorVisitante?: number;
-    competencia?: {
-        nombre: string;
-    };
-    competenciaId?: string;
-    faseId?: string;
-    rival?: string;
-    escenario?: string;
-    imagen?: string;
-    modoEstadisticas?: any;
-    modoVisualizacion?: any;
-    sets?: SetPartido[];
-    [key: string]: any;
-}
+// `Partido` vivía acá duplicado. La definición canónica es la de
+// `features/partidos/services/partidoService.ts` — importala de ahí.
+// Se re-exporta para no romper imports viejos que apunten a este módulo.
+export type { Partido, PartidoEstado } from '../features/partidos/services/partidoService';

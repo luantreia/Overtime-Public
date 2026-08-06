@@ -1,12 +1,13 @@
 import React, { useMemo, useState } from 'react';
 import { type Temporada } from '../services/temporadaService';
 import { type Fase } from '../services/faseService';
-import { type Partido } from '../../partidos/services/partidoService';
+import { type Partido, type PartidoEstado } from '../../partidos/services/partidoService';
 import { TablaPosiciones } from '../../../shared/components/TablaPosiciones/TablaPosiciones';
 import { Bracket } from '../../../shared/components/Bracket/Bracket';
 import PartidoCard from '../../../shared/components/PartidoCard/PartidoCard';
 
-type EstadoFiltro = '' | 'proximamente' | 'en_curso' | 'finalizado';
+// Ver nota en CompetenciaPartidosTab: los valores deben ser estados reales del backend.
+type EstadoFiltro = '' | PartidoEstado;
 
 interface CompetenciaResultadosTabProps {
   temporadas: Temporada[];
@@ -23,9 +24,10 @@ interface CompetenciaResultadosTabProps {
 
 const ESTADO_LABELS: Record<EstadoFiltro, string> = {
   '': 'Todos',
-  proximamente: 'Próximos',
-  en_curso: 'En curso',
+  programado: 'Próximos',
+  en_juego: 'En curso',
   finalizado: 'Finalizados',
+  cancelado: 'Cancelados',
 };
 
 export const CompetenciaResultadosTab: React.FC<CompetenciaResultadosTabProps> = ({

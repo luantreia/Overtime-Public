@@ -14,7 +14,7 @@ import Spinner from '../../../shared/components/ui/Spinner/Spinner';
 import EmptyState from '../../../shared/components/EmptyState/EmptyState';
 import InstalarAppModal from '../../../shared/components/InstalarAppModal/InstalarAppModal';
 import EstadioTemplo from '../../../shared/components/EstadioTemplo/EstadioTemplo';
-import type { Partido } from '../../../types';
+import type { Partido } from '../../partidos/services/partidoService';
 
 const esStandalone = (): boolean =>
   window.matchMedia?.('(display-mode: standalone)')?.matches || (window.navigator as any).standalone === true;

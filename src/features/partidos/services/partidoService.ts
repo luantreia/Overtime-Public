@@ -1,7 +1,17 @@
 import { fetchWithAuth } from '../../../utils/apiClient';
 
+/**
+ * Único origen de verdad para el estado de un partido en esta app.
+ * Refleja exactamente el enum de Mongoose en `overtime/src/models/Partido/Partido.js`.
+ * No agregar valores acá sin agregarlos primero en el backend: el filtro `?estado=`
+ * va directo a la query de Mongo, así que un valor inventado devuelve 0 resultados
+ * en silencio en vez de fallar.
+ */
+export type PartidoEstado = 'programado' | 'en_juego' | 'finalizado' | 'cancelado';
+
 export interface Partido {
   id: string;
+  _id?: string;
   nombre?: string;
   equipoLocal?: {
     id: string;
@@ -15,9 +25,13 @@ export interface Partido {
   };
   fecha?: string;
   hora?: string;
-  estado?: 'programado' | 'en_juego' | 'finalizado' | 'cancelado' | 'proximamente' | 'en_curso';
-  resultado?: string;
+  estado?: PartidoEstado;
+  /** El backend devuelve string; el objeto es la forma que usa el perfil del jugador. */
+  resultado?: string | { puntosEquipo: number; puntosRival: number };
   competenciaId?: string;
+  competencia?: {
+    nombre: string;
+  };
   faseId?: string;
   etapa?: 'octavos' | 'cuartos' | 'semifinal' | 'final' | 'tercer_puesto' | 'repechaje' | 'otro';
   fase?: {
@@ -30,9 +44,13 @@ export interface Partido {
       nombre: string;
     };
   };
+  rival?: string;
+  escenario?: string;
   imagen?: string;
   marcadorLocal?: number;
   marcadorVisitante?: number;
+  modoEstadisticas?: any;
+  modoVisualizacion?: any;
   sets?: any[];
   [key: string]: any;
 }
@@ -124,16 +142,16 @@ export class PartidoService {
     return this.getAll({ fase: faseId });
   }
 
-  static async getByEstado(estado: string): Promise<Partido[]> {
+  static async getByEstado(estado: PartidoEstado): Promise<Partido[]> {
     return this.getAll({ estado });
   }
 
   static async getProximos(): Promise<Partido[]> {
-    return this.getByEstado('proximamente');
+    return this.getByEstado('programado');
   }
 
   static async getEnCurso(): Promise<Partido[]> {
-    return this.getByEstado('en_curso');
+    return this.getByEstado('en_juego');
   }
 
   static async getFinalizados(): Promise<Partido[]> {
