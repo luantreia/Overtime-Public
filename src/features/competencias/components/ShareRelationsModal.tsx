@@ -47,6 +47,7 @@ export const ShareRelationsModal: React.FC<ShareRelationsModalProps> = ({
   const [ratio, setRatio] = useState<ShareRatio>('story');
   const [relType, setRelType] = useState<RelType>(synergy.length > 0 ? 'synergy' : 'rivalry');
   const [search, setSearch] = useState('');
+  const [showAll, setShowAll] = useState(false);
   const [selected, setSelected] = useState<{ synergy: Set<string>; rivalry: Set<string> }>({
     synergy: new Set(synergy.slice(0, MAX_BY_RATIO.story).map((s) => s.id)),
     rivalry: new Set(rivalry.slice(0, MAX_BY_RATIO.story).map((r) => r.id)),
@@ -58,6 +59,7 @@ export const ShareRelationsModal: React.FC<ShareRelationsModalProps> = ({
     if (!isOpen) return;
     setRelType(synergy.length > 0 ? 'synergy' : 'rivalry');
     setSearch('');
+    setShowAll(false);
     setSelected({
       synergy: new Set(synergy.slice(0, MAX_BY_RATIO.story).map((s) => s.id)),
       rivalry: new Set(rivalry.slice(0, MAX_BY_RATIO.story).map((r) => r.id)),
@@ -114,7 +116,7 @@ export const ShareRelationsModal: React.FC<ShareRelationsModalProps> = ({
             <div className="inline-flex rounded-full border border-slate-200 bg-slate-50 p-0.5">
               <button
                 type="button"
-                onClick={() => { setRelType('synergy'); setSearch(''); }}
+                onClick={() => { setRelType('synergy'); setSearch(''); setShowAll(false); }}
                 className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
                   relType === 'synergy' ? 'bg-emerald-600 text-white' : 'text-slate-500 hover:text-slate-700'
                 }`}
@@ -123,7 +125,7 @@ export const ShareRelationsModal: React.FC<ShareRelationsModalProps> = ({
               </button>
               <button
                 type="button"
-                onClick={() => { setRelType('rivalry'); setSearch(''); }}
+                onClick={() => { setRelType('rivalry'); setSearch(''); setShowAll(false); }}
                 className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
                   relType === 'rivalry' ? 'bg-red-600 text-white' : 'text-slate-500 hover:text-slate-700'
                 }`}
@@ -144,43 +146,71 @@ export const ShareRelationsModal: React.FC<ShareRelationsModalProps> = ({
               </span>
             </div>
 
+            {rows.length > 0 && (
+              <div className="mb-2 flex flex-wrap gap-1.5">
+                {rows.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => toggleItem(item.id)}
+                    className="flex items-center gap-1 rounded-full border border-brand-600 bg-brand-600 px-3 py-1 text-xs font-semibold text-white"
+                  >
+                    {item.name}
+                    <span className="opacity-70">×</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
             {currentList.length > max && (
               <input
                 type="text"
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => { setSearch(e.target.value); if (e.target.value.trim()) setShowAll(true); }}
                 placeholder="Buscar por nombre..."
-                className="mb-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-brand-500"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-brand-500"
               />
             )}
 
-            <div className="flex flex-wrap gap-1.5">
-              {visibleList.length === 0 && (
-                <p className="text-xs text-slate-400 italic py-1">Sin resultados para "{search}".</p>
-              )}
-              {visibleList.map((item) => {
-                const active = currentSelected.has(item.id);
-                const disabled = !active && atMax;
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    disabled={disabled}
-                    onClick={() => toggleItem(item.id)}
-                    title={disabled ? `Máximo ${max} para este formato` : undefined}
-                    className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
-                      active
-                        ? 'border-brand-600 bg-brand-600 text-white'
-                        : disabled
-                          ? 'border-slate-200 bg-slate-100 text-slate-300 cursor-not-allowed'
-                          : 'border-slate-300 bg-white text-slate-500 hover:border-slate-400'
-                    }`}
-                  >
-                    {item.name}
-                  </button>
-                );
-              })}
-            </div>
+            {(showAll || search.trim()) && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {visibleList.length === 0 && (
+                  <p className="text-xs text-slate-400 italic py-1">Sin resultados para "{search}".</p>
+                )}
+                {visibleList.map((item) => {
+                  const active = currentSelected.has(item.id);
+                  const disabled = !active && atMax;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => toggleItem(item.id)}
+                      title={disabled ? `Máximo ${max} para este formato` : undefined}
+                      className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
+                        active
+                          ? 'border-brand-600 bg-brand-600 text-white'
+                          : disabled
+                            ? 'border-slate-200 bg-slate-100 text-slate-300 cursor-not-allowed'
+                            : 'border-slate-300 bg-white text-slate-500 hover:border-slate-400'
+                      }`}
+                    >
+                      {item.name}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {currentList.length > max && (
+              <button
+                type="button"
+                onClick={() => { setShowAll((v) => !v); if (showAll) setSearch(''); }}
+                className="mt-2 text-[11px] font-bold text-brand-600 hover:text-brand-700"
+              >
+                {showAll ? 'Ver menos' : `Ver más (${currentList.length})`}
+              </button>
+            )}
           </div>
         )}
 
