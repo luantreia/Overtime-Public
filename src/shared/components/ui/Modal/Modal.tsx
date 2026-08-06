@@ -2,10 +2,7 @@
 import { useEffect, useRef, useId, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { HTMLAttributes, MouseEvent, ReactNode } from 'react';
-
-// Contador global: cada modal que se abre recibe un z-index mayor al anterior,
-// así el último abierto siempre queda arriba sin importar su posición en el árbol de componentes.
-let globalModalZIndex = 50;
+import { getNextModalZIndex } from '../../../utils/modalZIndex';
 
 type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
 
@@ -43,12 +40,11 @@ const Modal = ({
 }: ModalProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const titleId = useId();
-  const [zIndex, setZIndex] = useState(globalModalZIndex);
+  const [zIndex, setZIndex] = useState(() => getNextModalZIndex());
 
   useEffect(() => {
     if (!isOpen) return;
-    globalModalZIndex += 10;
-    setZIndex(globalModalZIndex);
+    setZIndex(getNextModalZIndex());
   }, [isOpen]);
 
   useEffect(() => {

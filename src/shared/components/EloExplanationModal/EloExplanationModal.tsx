@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { InformationCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { getNextModalZIndex } from '../../utils/modalZIndex';
 
 interface EloExplanationModalProps {
   trigger?: React.ReactNode;
@@ -7,10 +8,16 @@ interface EloExplanationModalProps {
 
 export const EloExplanationModal: React.FC<EloExplanationModalProps> = ({ trigger }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [zIndex, setZIndex] = useState(100);
+
+  const openModal = () => {
+    setZIndex(getNextModalZIndex());
+    setIsOpen(true);
+  };
 
   return (
     <>
-      <div onClick={() => setIsOpen(true)} className="cursor-pointer inline-flex items-center">
+      <div onClick={openModal} className="cursor-pointer inline-flex items-center">
         {trigger || (
           <button className="text-slate-400 hover:text-brand-600 transition-colors" aria-label="Información sobre el sistema de ranking">
             <InformationCircleIcon className="h-5 w-5" />
@@ -19,7 +26,7 @@ export const EloExplanationModal: React.FC<EloExplanationModalProps> = ({ trigge
       </div>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200" style={{ zIndex }}>
           <div className="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto relative animate-in zoom-in-95 duration-200">
             <button 
               onClick={() => setIsOpen(false)}

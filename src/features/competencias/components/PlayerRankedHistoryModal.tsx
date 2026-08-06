@@ -5,6 +5,7 @@ import { RankedService } from '../services/rankedService';
 import { formatDate } from '../../../shared/utils/formatDate';
 import { type RankingScope } from './RankingCardHeader';
 import { ShareRelationsModal } from './ShareRelationsModal';
+import { getNextModalZIndex } from '../../../shared/utils/modalZIndex';
 
 interface PlayerRankedHistoryModalProps {
   isOpen: boolean;
@@ -57,6 +58,12 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
   const [showRelationsShare, setShowRelationsShare] = useState(false);
   const exportRef = useRef<HTMLDivElement | null>(null);
   const relationsScope: RankingScope = scope || { tipo: 'global', categoria, modalidad };
+  const [zIndex, setZIndex] = useState(() => getNextModalZIndex());
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setZIndex(getNextModalZIndex());
+  }, [isOpen]);
 
   const handleExportImage = async () => {
     const node = exportRef.current;
@@ -183,7 +190,7 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 p-2 sm:p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 flex items-center justify-center bg-slate-900/60 p-2 sm:p-4 backdrop-blur-sm" style={{ zIndex }}>
       <div ref={exportRef} className="w-full max-w-lg rounded-2xl bg-white p-4 sm:p-6 shadow-2xl max-h-[90vh] flex flex-col border border-slate-200">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">

@@ -18,6 +18,7 @@ import type {
   EstadisticasEquiposData,
   EstadisticasJugadoresData,
 } from './types';
+import { getNextModalZIndex } from '../../utils/modalZIndex';
 
 type VistaEstadisticas = 'general' | 'equipos' | 'jugadores';
 
@@ -52,6 +53,7 @@ export const EstadisticasPartidoModal: FC<EstadisticasPartidoModalProps> = ({
   const [modoEstadisticasUI, setModoEstadisticasUI] = useState<ModoEstadisticas>(
     partido?.modoEstadisticas ?? 'automatico',
   );
+  const [zIndex, setZIndex] = useState(() => getNextModalZIndex());
 
   const cargarEstadisticas = useCallback(async (): Promise<void> => {
     try {
@@ -93,6 +95,7 @@ export const EstadisticasPartidoModal: FC<EstadisticasPartidoModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       void cargarEstadisticas();
+      setZIndex(getNextModalZIndex());
     }
   }, [isOpen, cargarEstadisticas]);
 
@@ -116,7 +119,7 @@ export const EstadisticasPartidoModal: FC<EstadisticasPartidoModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style={{ zIndex }}>
       <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full mx-4 max-h-[90vh] overflow-hidden">
         <div className="flex justify-between items-center p-6 border-b">
           <h2 className="text-2xl font-bold">Estadísticas del Partido</h2>

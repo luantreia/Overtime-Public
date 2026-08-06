@@ -55,7 +55,7 @@ export const ShareVSModal: React.FC<ShareVSModalProps> = ({ isOpen, onClose, pla
   });
 
   return (
-    <ModalBase isOpen={isOpen} onClose={onClose} title="Compartir comparación" size="md" overlayClassName="z-[70]">
+    <ModalBase isOpen={isOpen} onClose={onClose} title="Compartir comparación" size="md">
       <div className="p-6 flex flex-col items-center">
         <ShareCardShell ref={cardRef} width={480}>
           <div className="px-8 py-6 flex flex-col flex-1 text-white">

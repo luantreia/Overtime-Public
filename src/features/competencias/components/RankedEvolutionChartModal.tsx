@@ -16,6 +16,7 @@ import {
 } from "recharts";
 import { ShareEvolutionModal } from "./ShareEvolutionModal";
 import { type RankingScope } from "./RankingCardHeader";
+import { getNextModalZIndex } from "../../../shared/utils/modalZIndex";
 
 interface RankedEvolutionChartModalProps {
   isOpen: boolean;
@@ -46,6 +47,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
   onOpenCompareVS,
   scope,
 }) => {
+  const [zIndex, setZIndex] = useState(() => getNextModalZIndex());
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("all");
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [visiblePlayersCount, setVisiblePlayersCount] = useState<number>(5); // -1 means ALL
@@ -120,6 +122,11 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
     },
     enabled: isOpen && !!competencia && !!competenciaId && seasonInitialized,
   });
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setZIndex(getNextModalZIndex());
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -557,7 +564,8 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
 
   return (
     <div 
-      className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-md p-0 sm:p-4"
+      className="fixed inset-0 flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-md p-0 sm:p-4"
+      style={{ zIndex }}
       onClick={onClose}
     >
       <div 
