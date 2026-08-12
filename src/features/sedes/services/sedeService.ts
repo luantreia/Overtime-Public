@@ -13,7 +13,6 @@ export interface Sede {
   organizacion?: {
     _id: string;
     nombre: string;
-    logoUrl?: string;
   } | string;
 }
 
