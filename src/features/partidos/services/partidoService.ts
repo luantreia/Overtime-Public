@@ -46,6 +46,13 @@ export interface Partido {
   };
   rival?: string;
   escenario?: string;
+  sede?: {
+    _id: string;
+    nombre: string;
+    direccion?: string;
+    coordenadas?: { lat: number; lng: number };
+    canchas?: string[];
+  };
   imagen?: string;
   marcadorLocal?: number;
   marcadorVisitante?: number;

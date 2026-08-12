@@ -18,3 +18,4 @@ export { default as CheckboxFilterGroup, type CheckboxFilterGroupProps, type Che
 export { default as JoinCTA } from './JoinCTA/JoinCTA';
 export { default as BackButton, useSmartBack, type BackButtonProps } from './BackButton/BackButton';
 export { default as ShareDownloadButtons, type ShareDownloadButtonsProps } from './ShareDownloadButtons/ShareDownloadButtons';
+export { default as SedeMap } from './SedeMap/SedeMap';

@@ -5,6 +5,7 @@ import { PartidoService } from '../../../features/partidos/services/partidoServi
 import { formatDate, formatDateTime } from '../../../shared/utils/formatDate';
 import { PlayerRankedHistoryModal } from '../../../features/competencias/components/PlayerRankedHistoryModal';
 import { SharePartidoModal } from '../SharePartidoModal/SharePartidoModal';
+import SedeMap from '../SedeMap/SedeMap';
 
 interface DetallePartidoProps {
   partidoId: string;
@@ -501,7 +502,29 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
             <dt className="text-[10px] sm:text-sm font-medium text-slate-500 uppercase">Estado</dt>
             <dd className="mt-0.5 text-xs sm:text-sm text-slate-900 font-medium capitalize">{partido.estado?.replace('_', ' ') || 'N/A'}</dd>
           </div>
+          {partido.sede && (
+            <div className="col-span-2">
+              <dt className="text-[10px] sm:text-sm font-medium text-slate-500 uppercase">Sede</dt>
+              <dd className="mt-0.5 text-xs sm:text-sm font-medium truncate">
+                <Link to={`/sedes/${partido.sede._id}`} className="text-brand-600 hover:underline">
+                  {partido.sede.nombre}
+                </Link>
+                {partido.sede.direccion && (
+                  <span className="text-slate-500"> · {partido.sede.direccion}</span>
+                )}
+              </dd>
+            </div>
+          )}
         </dl>
+        {partido.sede?.coordenadas?.lat != null && partido.sede?.coordenadas?.lng != null && (
+          <div className="mt-4">
+            <SedeMap
+              lat={partido.sede.coordenadas.lat}
+              lng={partido.sede.coordenadas.lng}
+              nombre={partido.sede.nombre}
+            />
+          </div>
+        )}
       </div>
 
       {/* Modal de Historial del Jugador */}

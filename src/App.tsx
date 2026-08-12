@@ -36,6 +36,7 @@ const EquipoDetalle = lazy(() => import('./features/equipos/pages/EquipoDetalle'
 const Competencias = lazy(() => import('./features/competencias/pages/Competencias'));
 const CompetenciaDetalle = lazy(() => import('./features/competencias/pages/CompetenciaDetalle'));
 const OrganizacionDetalle = lazy(() => import('./features/competencias/pages/OrganizacionDetalle'));
+const SedeDetalle = lazy(() => import('./features/sedes/pages/SedeDetalle'));
 const Partidos = lazy(() => import('./features/partidos/pages/Partidos'));
 const PartidoDetalle = lazy(() => import('./features/partidos/pages/PartidoDetalle'));
 const PlazaExplorar = lazy(() => import('./features/leagueofdodgeball/pages/PlazaExplorar'));
@@ -78,6 +79,7 @@ const App: React.FC = () => (
             <Route path="/competencias" element={<Competencias />} />
             <Route path="/competencias/:id" element={<CompetenciaDetalle />} />
             <Route path="/organizaciones/:id" element={<OrganizacionDetalle />} />
+            <Route path="/sedes/:id" element={<SedeDetalle />} />
             <Route path="/partidos" element={<Partidos />} />
             <Route path="/partidos/:id" element={<PartidoDetalle />} />
             <Route path="/como-se-juega" element={<ComoSeJuegaPage />} />

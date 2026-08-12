@@ -6,6 +6,7 @@ import { CompetenciaCard } from '../../../shared/components';
 import PartidoCard from '../../../shared/components/PartidoCard/PartidoCard';
 import { CompetenciaService, type Competencia } from '../services/competenciaService';
 import { OrganizacionService } from '../services/organizacionService';
+import { SedeService } from '../../sedes/services/sedeService';
 import { PartidoService, type Partido } from '../../partidos/services/partidoService';
 import { mapEstadoVariante, type CompetenciaEstadoVariante } from '../../../shared/utils/competenciaEstado';
 
@@ -31,6 +32,12 @@ const OrganizacionDetalle: React.FC = () => {
     enabled: !!id,
   });
   usePageTitle(organizacion?.nombre);
+
+  const { data: sedes = [] } = useQuery({
+    queryKey: ['sedes-organizacion', id],
+    queryFn: () => SedeService.getByOrganizacion(id!),
+    enabled: !!id,
+  });
 
   const { data: competencias = [], isLoading: loadingComps } = useQuery({
     queryKey: ['competencias'],
@@ -181,6 +188,28 @@ const OrganizacionDetalle: React.FC = () => {
             )}
           </div>
         </div>
+
+        {/* Sedes */}
+        {sedes.length > 0 && (
+          <div className="mb-10">
+            <h2 className="mb-3 text-lg font-semibold text-slate-900">Sedes</h2>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {sedes.map((sede) => (
+                <button
+                  key={sede.id}
+                  onClick={() => navigate(`/sedes/${sede.id}`)}
+                  className="rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-card hover:border-brand-300 transition-colors"
+                >
+                  <p className="font-semibold text-slate-900">{sede.nombre}</p>
+                  {sede.direccion && <p className="mt-0.5 text-sm text-slate-500">{sede.direccion}</p>}
+                  {sede.canchas && sede.canchas.length > 0 && (
+                    <p className="mt-2 text-xs text-slate-400">{sede.canchas.join(' · ')}</p>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Novedades */}
         {!loadingPartidos && (resultadosRecientes.length > 0 || proximosPartidos.length > 0) && (
