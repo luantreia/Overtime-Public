@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
 import { usePageTitle } from '../../../shared/hooks/usePageTitle';
@@ -28,10 +28,14 @@ const ACENTOS = [
   { border: 'border-fuchsia-100', badge: 'bg-fuchsia-100 text-fuchsia-700' },
 ];
 
+// Umbral mínimo de arrastre (px) para que un touch cuente como swipe y no como un toque/scroll vertical.
+const SWIPE_THRESHOLD = 40;
+
 const ComoSeJuegaPage: React.FC = () => {
   usePageTitle('Cómo se juega');
   const [abierta, setAbierta] = useState(0);
   const [formatoApertura, setFormatoApertura] = useState<'foam' | 'cloth'>('foam');
+  const touchStartX = useRef<number | null>(null);
 
   const total = seccionesSimplificadas.length;
   const seccionActiva = seccionesSimplificadas[abierta];
@@ -40,134 +44,121 @@ const ComoSeJuegaPage: React.FC = () => {
 
   const irA = (i: number) => setAbierta(((i % total) + total) % total);
 
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const delta = e.changedTouches[0].clientX - touchStartX.current;
+    touchStartX.current = null;
+    if (delta > SWIPE_THRESHOLD) irA(abierta - 1);
+    else if (delta < -SWIPE_THRESHOLD) irA(abierta + 1);
+  };
+
   return (
-    <div className="mx-auto max-w-5xl space-y-6 sm:space-y-8">
-      <div className="rounded-2xl bg-gradient-to-br from-brand-600 to-indigo-700 px-4 py-3 text-white shadow-lg sm:rounded-3xl sm:p-8">
-        <h1 className="text-lg font-black tracking-tight sm:text-3xl">🏐 ¿Cómo se juega al dodgeball?</h1>
-        <p className="mt-1 hidden text-sm text-brand-50 sm:mt-2 sm:block sm:text-base">
-          Lo esencial para entender un partido, en criollo. Elegí un tema y mirá cómo cambia la cancha. Si
-          querés el reglamento oficial completo,{' '}
-          <Link to="/reglamento" className="font-semibold text-white underline underline-offset-2 hover:text-brand-100">
-            está acá
+    <div className="mx-auto max-w-md space-y-5 sm:max-w-lg">
+      <div className="rounded-2xl bg-gradient-to-br from-brand-600 to-indigo-700 px-4 py-4 text-white shadow-lg">
+        <h1 className="text-xl font-black tracking-tight">🏐 ¿Cómo se juega al dodgeball?</h1>
+        <p className="mt-1 text-sm text-brand-50">
+          Lo esencial, en criollo. Deslizá para pasar de tema, o tocá uno de los íconos.{' '}
+          <Link to="/reglamento" className="font-semibold text-white underline underline-offset-2">
+            Reglamento oficial completo acá
           </Link>
           .
         </p>
       </div>
 
-      {/* Widget interactivo: cancha + texto van en fila incluso en mobile, para que entren
-          juntos en la pantalla sin tener que hacer scroll para pasar de uno al otro. */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:rounded-3xl sm:p-5">
-        {/* Selector rápido de tema: tira horizontal con scroll propio, nunca empuja el resto hacia abajo */}
-        <div className="-mx-1 flex snap-x gap-1.5 overflow-x-auto px-1 pb-2">
-          {seccionesSimplificadas.map((seccion, i) => {
-            const acento = ACENTOS[i % ACENTOS.length];
-            const isActive = abierta === i;
-            return (
-              <button
-                key={seccion.titulo}
-                type="button"
-                onClick={() => setAbierta(i)}
-                aria-pressed={isActive}
-                title={seccion.titulo}
-                className={`flex shrink-0 snap-start items-center justify-center rounded-full border text-base transition-colors sm:hidden ${
-                  isActive ? `${acento.badge} border-transparent shadow-sm` : 'border-slate-200 bg-white text-slate-500'
-                }`}
-                style={{ width: 34, height: 34 }}
-              >
-                <span aria-hidden="true">{seccion.emoji}</span>
-              </button>
-            );
-          })}
-          {/* Versión con texto para pantallas más anchas */}
-          {seccionesSimplificadas.map((seccion, i) => {
-            const acento = ACENTOS[i % ACENTOS.length];
-            const isActive = abierta === i;
-            return (
-              <button
-                key={`wide-${seccion.titulo}`}
-                type="button"
-                onClick={() => setAbierta(i)}
-                aria-pressed={isActive}
-                className={`hidden shrink-0 items-center gap-2 rounded-full border px-3.5 py-2 text-sm font-semibold transition-colors sm:flex ${
-                  isActive
-                    ? `${acento.badge} border-transparent shadow-sm`
-                    : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-                }`}
-              >
-                <span aria-hidden="true">{seccion.emoji}</span>
-                {seccion.titulo}
-              </button>
-            );
-          })}
+      {/* Selector de tema: fila de íconos con scroll propio, siempre a mano del pulgar */}
+      <div className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-1">
+        {seccionesSimplificadas.map((seccion, i) => {
+          const acento = ACENTOS[i % ACENTOS.length];
+          const isActive = abierta === i;
+          return (
+            <button
+              key={seccion.titulo}
+              type="button"
+              onClick={() => setAbierta(i)}
+              aria-pressed={isActive}
+              aria-label={seccion.titulo}
+              className={`flex shrink-0 snap-start items-center justify-center rounded-full border text-lg transition-colors ${
+                isActive ? `${acento.badge} border-transparent shadow-sm` : 'border-slate-200 bg-white text-slate-500'
+              }`}
+              style={{ width: 44, height: 44 }}
+            >
+              <span aria-hidden="true">{seccion.emoji}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Widget principal: cancha arriba, texto abajo — nunca lado a lado, para que ambos
+          se lean cómodos con el pulgar sin achicar la cancha a un tamaño ilegible. */}
+      <div
+        className="touch-pan-y rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+      >
+        <div className="mx-auto w-full max-w-[240px]">
+          <CourtDiagram mode={modoActivo} formato={formatoApertura} className="w-full" />
         </div>
 
-        <div className="flex items-start gap-3 sm:grid sm:grid-cols-[minmax(0,220px)_1fr] sm:gap-6">
-          {/* Cancha: achicada en mobile para que quepa al lado del texto */}
-          <div className="shrink-0">
-            <CourtDiagram
-              mode={modoActivo}
-              formato={formatoApertura}
-              className="w-[120px] xs:w-[150px] sm:w-full sm:max-w-[220px]"
-            />
-            {modoActivo === 'apertura' && (
-              <div className="mt-1.5 flex items-center justify-center gap-1.5 sm:mt-3 sm:gap-3">
-                <span className={`text-[10px] font-bold sm:text-xs ${formatoApertura === 'cloth' ? 'text-amber-700' : 'text-slate-400'}`}>
-                  Cloth
-                </span>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={formatoApertura === 'foam'}
-                  aria-label="Cambiar entre formato Cloth y Foam"
-                  onClick={() => setFormatoApertura((f) => (f === 'foam' ? 'cloth' : 'foam'))}
-                  className={`relative h-5 w-9 shrink-0 rounded-full transition-colors sm:h-6 sm:w-11 ${
-                    formatoApertura === 'foam' ? 'bg-sky-500' : 'bg-amber-500'
-                  }`}
-                >
-                  <span
-                    className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform sm:h-5 sm:w-5 ${
-                      formatoApertura === 'foam' ? 'translate-x-[18px] sm:translate-x-[22px]' : 'translate-x-0.5'
-                    }`}
-                  />
-                </button>
-                <span className={`text-[10px] font-bold sm:text-xs ${formatoApertura === 'foam' ? 'text-sky-700' : 'text-slate-400'}`}>
-                  Foam
-                </span>
-              </div>
+        {modoActivo === 'apertura' && (
+          <div className="mt-2 flex items-center justify-center gap-2">
+            <span className={`text-xs font-bold ${formatoApertura === 'cloth' ? 'text-amber-700' : 'text-slate-400'}`}>
+              Cloth
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={formatoApertura === 'foam'}
+              aria-label="Cambiar entre formato Cloth y Foam"
+              onClick={() => setFormatoApertura((f) => (f === 'foam' ? 'cloth' : 'foam'))}
+              className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+                formatoApertura === 'foam' ? 'bg-sky-500' : 'bg-amber-500'
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                  formatoApertura === 'foam' ? 'translate-x-[22px]' : 'translate-x-0.5'
+                }`}
+              />
+            </button>
+            <span className={`text-xs font-bold ${formatoApertura === 'foam' ? 'text-sky-700' : 'text-slate-400'}`}>
+              Foam
+            </span>
+          </div>
+        )}
+
+        {seccionActiva && (
+          <div className={`mt-4 rounded-xl border ${acentoActivo.border} bg-white p-4`}>
+            <h2 className="text-base font-bold text-slate-900">{seccionActiva.titulo}</h2>
+            <div className="mt-2 space-y-2">
+              {seccionActiva.parrafos.map((parrafo, j) => (
+                <p key={j} className="text-sm leading-relaxed text-slate-600">
+                  {parrafo}
+                </p>
+              ))}
+            </div>
+            {seccionActiva.bullets && (
+              <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-slate-600">
+                {seccionActiva.bullets.map((bullet, j) => (
+                  <li key={j}>{bullet}</li>
+                ))}
+              </ul>
             )}
           </div>
+        )}
 
-          {/* Panel de texto de la sección elegida, al lado de la cancha siempre */}
-          {seccionActiva && (
-            <div className={`min-w-0 flex-1 rounded-xl border ${acentoActivo.border} bg-white p-3 sm:rounded-2xl sm:p-5`}>
-              <h2 className="text-sm font-bold text-slate-900 sm:text-lg">{seccionActiva.titulo}</h2>
-              <div className="mt-1.5 space-y-1.5 sm:mt-2 sm:space-y-2">
-                {seccionActiva.parrafos.map((parrafo, j) => (
-                  <p key={j} className="text-xs leading-relaxed text-slate-600 sm:text-sm">
-                    {parrafo}
-                  </p>
-                ))}
-              </div>
-              {seccionActiva.bullets && (
-                <ul className="mt-2 list-disc space-y-1 pl-4 text-xs leading-relaxed text-slate-600 sm:mt-3 sm:space-y-1.5 sm:pl-5 sm:text-sm">
-                  {seccionActiva.bullets.map((bullet, j) => (
-                    <li key={j}>{bullet}</li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Navegación guiada: paso a paso, para quien prefiere seguir el orden en vez de saltar temas */}
-        <div className="mt-3 flex items-center justify-between gap-2 border-t border-slate-100 pt-2.5 sm:mt-4 sm:pt-3">
+        {/* Navegación: botones grandes para el pulgar + puntos de progreso. El swipe en el widget
+            hace lo mismo, esto es para quien prefiere tocar en vez de deslizar. */}
+        <div className="mt-4 flex items-center justify-between gap-2 border-t border-slate-100 pt-3">
           <button
             type="button"
             onClick={() => irA(abierta - 1)}
             aria-label="Tema anterior"
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition-colors hover:bg-slate-50 sm:h-9 sm:w-9"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 text-slate-500 active:bg-slate-100"
           >
-            <ChevronLeftIcon className="h-4 w-4" />
+            <ChevronLeftIcon className="h-5 w-5" />
           </button>
           <div className="flex items-center gap-1.5">
             {seccionesSimplificadas.map((seccion, i) => (
@@ -177,7 +168,7 @@ const ComoSeJuegaPage: React.FC = () => {
                 onClick={() => irA(i)}
                 aria-label={`Ir a: ${seccion.titulo}`}
                 aria-current={abierta === i}
-                className={`h-1.5 rounded-full transition-all ${abierta === i ? 'w-4 bg-brand-600' : 'w-1.5 bg-slate-200'}`}
+                className={`h-1.5 rounded-full transition-all ${abierta === i ? 'w-5 bg-brand-600' : 'w-1.5 bg-slate-200'}`}
               />
             ))}
           </div>
@@ -185,55 +176,51 @@ const ComoSeJuegaPage: React.FC = () => {
             type="button"
             onClick={() => irA(abierta + 1)}
             aria-label="Siguiente tema"
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition-colors hover:bg-slate-50 sm:h-9 sm:w-9"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 text-slate-500 active:bg-slate-100"
           >
-            <ChevronRightIcon className="h-4 w-4" />
+            <ChevronRightIcon className="h-5 w-5" />
           </button>
         </div>
       </div>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-6">
-        <h2 className="text-lg font-bold text-slate-900">🥊 Cloth vs. Foam: dos modalidades, una idea</h2>
+      <section className="rounded-2xl border border-slate-200 bg-white p-4">
+        <h2 className="text-base font-bold text-slate-900">🥊 Cloth vs. Foam</h2>
         <p className="mt-1 text-sm text-slate-600">
-          Overtime organiza competencias en las dos modalidades oficiales. Comparten el mismo objetivo y la misma
-          cancha, pero difieren en la pelota y en cómo se evita que un equipo se quede sentado sobre todas las
-          pelotas.
+          Overtime organiza competencias en las dos modalidades oficiales. Comparten objetivo y cancha, pero
+          difieren en la pelota y en cómo evitan que un equipo se quede con todas.
         </p>
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full min-w-[480px] text-left text-sm">
-            <thead>
-              <tr className="text-xs font-bold uppercase tracking-wide text-slate-500">
-                <th className="py-2 pr-4">Aspecto</th>
-                <th className="rounded-t-lg bg-amber-50 px-3 py-2 text-amber-700">🧵 Cloth</th>
-                <th className="rounded-t-lg bg-sky-50 px-3 py-2 text-sky-700">🟠 Foam</th>
-              </tr>
-            </thead>
-            <tbody>
-              {diferenciasFormato.map((fila, i) => (
-                <tr key={fila.aspecto} className={i % 2 === 0 ? 'bg-slate-50/60' : ''}>
-                  <td className="py-3 pr-4 align-top font-semibold text-slate-800">{fila.aspecto}</td>
-                  <td className="px-3 py-3 align-top text-slate-600">{fila.cloth}</td>
-                  <td className="px-3 py-3 align-top text-slate-600">{fila.foam}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="mt-3 space-y-3">
+          {diferenciasFormato.map((fila) => (
+            <div key={fila.aspecto} className="rounded-xl border border-slate-100 bg-slate-50/60 p-3">
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-500">{fila.aspecto}</p>
+              <div className="mt-2 space-y-2">
+                <div className="rounded-lg bg-amber-50 p-2.5">
+                  <span className="text-xs font-bold text-amber-700">🧵 Cloth</span>
+                  <p className="mt-0.5 text-sm text-slate-700">{fila.cloth}</p>
+                </div>
+                <div className="rounded-lg bg-sky-50 p-2.5">
+                  <span className="text-xs font-bold text-sky-700">🟠 Foam</span>
+                  <p className="mt-0.5 text-sm text-slate-700">{fila.foam}</p>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
-      <section className="rounded-2xl border border-dashed border-brand-300 bg-brand-50 p-6 text-center">
-        <h2 className="text-lg font-bold text-slate-900">¿Ya entendiste lo básico?</h2>
+      <section className="rounded-2xl border border-dashed border-brand-300 bg-brand-50 p-4 text-center">
+        <h2 className="text-base font-bold text-slate-900">¿Ya entendiste lo básico?</h2>
         <p className="mt-1 text-sm text-slate-600">Buscá un partido cerca tuyo o anotate para jugar tu primer set.</p>
-        <div className="mt-4 flex flex-wrap justify-center gap-3">
+        <div className="mt-3 flex flex-col gap-2.5">
           <Link
             to="/plaza"
-            className="rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700"
+            className="rounded-lg bg-brand-600 px-5 py-3 text-sm font-semibold text-white transition active:bg-brand-700"
           >
             Buscar un partido en La Plaza
           </Link>
           <Link
             to="/reglamento"
-            className="rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            className="rounded-lg border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition active:bg-slate-50"
           >
             Ver el reglamento completo
           </Link>
