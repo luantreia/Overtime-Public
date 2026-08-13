@@ -18,6 +18,9 @@ interface EquipoHistoriaModalProps {
 // en orden de primera aparición. La 9na competencia en adelante cae en el gris.
 const PALETTE = ['#2a78d6', '#1baf7a', '#eda100', '#008300', '#4a3aa7', '#e34948', '#e87ba4', '#eb6834'];
 const OTRAS_COLOR = '#94a3b8';
+// Ancho mínimo (en % del eje) de un tramo, para que una temporada de pocos días siga siendo
+// visible y tocable en mobile en vez de un hilo de 2-3px.
+const MIN_ANCHO_TRAMO = 3;
 
 type TemporadaEvento = {
   /** Id de la participación (equipo-temporada): sirve de key en React, no identifica la temporada. */
@@ -203,12 +206,15 @@ export const EquipoHistoriaModal: React.FC<EquipoHistoriaModalProps> = ({
                             {carril.competenciaId !== 'sin-competencia' ? (
                               <a
                                 href={`/competencias/${carril.competenciaId}`}
+                                title={carril.competenciaNombre}
                                 className="truncate font-medium text-slate-700 hover:text-brand-600 hover:underline"
                               >
                                 {carril.competenciaNombre}
                               </a>
                             ) : (
-                              <span className="truncate font-medium text-slate-700">{carril.competenciaNombre}</span>
+                              <span title={carril.competenciaNombre} className="truncate font-medium text-slate-700">
+                                {carril.competenciaNombre}
+                              </span>
                             )}
                           </span>
                           <span className="flex-shrink-0 text-slate-400">
@@ -217,34 +223,46 @@ export const EquipoHistoriaModal: React.FC<EquipoHistoriaModalProps> = ({
                           </span>
                         </div>
 
-                        <div className="relative h-6 rounded-full bg-slate-100">
-                          {carril.temporadas.map((t) => {
-                            const left = posicion(t.inicio);
-                            const width = Math.max(posicion(t.fin) - left, 2.2);
-                            const centro = left + width / 2;
-                            const activa = seleccion === t.id;
-                            return (
-                              <React.Fragment key={t.id}>
-                                <button
-                                  type="button"
-                                  onClick={() => setSeleccion((prev) => (prev === t.id ? null : t.id))}
-                                  className={`absolute inset-y-0 rounded-full transition-[filter,box-shadow] hover:brightness-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 ${
-                                    t.enCurso ? 'animate-pulse' : ''
-                                  } ${activa ? 'ring-2 ring-offset-1 ring-brand-500' : ''}`}
-                                  style={{ left: `${left}%`, width: `${width}%`, backgroundColor: carril.color }}
-                                  aria-pressed={activa}
-                                  aria-label={`${t.nombre}, del ${formatDate(new Date(t.inicio))} al ${t.enCurso ? 'hoy (en curso)' : formatDate(new Date(t.fin))}${t.gano ? ', campeón' : ''}`}
-                                />
-                                {t.gano && (
+                        {/* Fila de trofeos aparte: si va pegada arriba del track choca con el nombre
+                            de la competencia en pantallas angostas. Solo ocupa espacio si hace falta. */}
+                        {carril.titulos > 0 && (
+                          <div className="relative h-4">
+                            {carril.temporadas
+                              .filter((t) => t.gano)
+                              .map((t) => {
+                                const left = posicion(t.inicio);
+                                const width = Math.max(posicion(t.fin) - left, MIN_ANCHO_TRAMO);
+                                return (
                                   <span
-                                    className="pointer-events-none absolute -top-3.5 -translate-x-1/2 text-[11px] leading-none"
-                                    style={{ left: `${centro}%` }}
+                                    key={t.id}
+                                    className="pointer-events-none absolute -translate-x-1/2 text-[12px] leading-none"
+                                    style={{ left: `${left + width / 2}%` }}
                                     aria-hidden="true"
                                   >
                                     🏆
                                   </span>
-                                )}
-                              </React.Fragment>
+                                );
+                              })}
+                          </div>
+                        )}
+
+                        <div className="relative h-6 rounded-full bg-slate-100">
+                          {carril.temporadas.map((t) => {
+                            const left = posicion(t.inicio);
+                            const width = Math.max(posicion(t.fin) - left, MIN_ANCHO_TRAMO);
+                            const activa = seleccion === t.id;
+                            return (
+                              <button
+                                type="button"
+                                key={t.id}
+                                onClick={() => setSeleccion((prev) => (prev === t.id ? null : t.id))}
+                                className={`absolute inset-y-0 rounded-full transition-[filter,box-shadow] hover:brightness-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 ${
+                                  t.enCurso ? 'animate-pulse' : ''
+                                } ${activa ? 'ring-2 ring-offset-1 ring-brand-500' : ''}`}
+                                style={{ left: `${left}%`, width: `${width}%`, backgroundColor: carril.color }}
+                                aria-pressed={activa}
+                                aria-label={`${t.nombre}, del ${formatDate(new Date(t.inicio))} al ${t.enCurso ? 'hoy (en curso)' : formatDate(new Date(t.fin))}${t.gano ? ', campeón' : ''}`}
+                              />
                             );
                           })}
                         </div>

@@ -188,7 +188,6 @@ export const EquipoPlantelTab: React.FC<EquipoPlantelTabProps> = ({ equipo }) =>
               <div className="flex-1 min-w-0">
                 <div className="font-bold text-slate-900 truncate flex items-center gap-1.5">
                   {jugador?.nombre}
-                  {tieneTitulo(contratos) && <span title="Campeón con este equipo">🏆</span>}
                 </div>
                 {contratos.length === 1 ? (
                   <div className="text-xs text-slate-500">
