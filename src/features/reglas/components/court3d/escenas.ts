@@ -203,13 +203,14 @@ const escenaApertura = (t: number, fmt: Formato): Frame => {
       let manos = 0;
 
       if (objetivo !== undefined) {
-        // Va a buscar su pelota al centro y se la lleva pasando su línea de activación.
-        x = mezcla(mezcla(inicio, s * 0.6, corre), s * (act + 0.9), vuelve);
+        // Va a buscar su pelota al centro y se la lleva bien atrás de su línea: la que tiene que
+        // cruzarla del todo es la pelota, que va adelante del cuerpo en sus manos.
+        x = mezcla(mezcla(inicio, s * 0.6, corre), s * (act + 1.7), vuelve);
         z = mezcla(mezcla(j.z, objetivo, corre), mezcla(objetivo, j.z, 0.6), vuelve);
-        manos = campana(lineal(t, 2.1, 3.4));
+        manos = Math.max(campana(lineal(t, 2.1, 3.4)), t > 2.8 ? 0.45 : 0);
       } else {
         // Los demás avanzan y se abren detrás de la línea.
-        x = mezcla(inicio, s * (act + 1.9), corre);
+        x = mezcla(inicio, s * (act + 0.5), corre);
         z = j.z;
       }
       posiciones.set(j.id, { x, z });
@@ -232,12 +233,15 @@ const escenaApertura = (t: number, fmt: Formato): Frame => {
     const duenio = duenioPelota(fmt, z);
     const portador = llevaLaPelota(z);
     const destino = portador ? posiciones.get(portador) : undefined;
-    const x = destino ? mezcla(0, destino.x, agarre) : 0;
+    // Una vez agarrada va en las manos: adelante del cuerpo, del lado del rival. Si la dejáramos
+    // en la misma posición que el jugador quedaría escondida adentro del cuerpo.
+    const frente = duenio === 'azul' ? -0.85 : 0.85;
+    const x = destino ? mezcla(0, destino.x + frente, agarre) : 0;
     const zz = destino ? mezcla(z, destino.z, agarre) : z;
     // Se activa recién cuando cruzó del todo su línea (Cloth 13.11.1 / Foam 13.1).
     const lado = duenio === 'azul' ? 1 : -1;
     const activada = lado === -1 ? x <= -act : x >= act;
-    return pelota(`p${i}`, x, zz, { duenio, activada });
+    return pelota(`p${i}`, x, zz, { duenio, activada, y: 0.25 * agarre });
   });
 
   const nota =
