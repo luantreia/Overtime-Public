@@ -1,221 +1,312 @@
-import React, { useEffect, useMemo, useRef } from 'react';
-import { Canvas, useThree, useFrame } from '@react-three/fiber';
+import React, { useEffect, useRef } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
-import type { Mesh } from 'three';
-import { COURT_WIDTH, HALF, LINE_THICKNESS, RED_Z, BLUE_Z, type CourtMode } from './constants';
+import type { Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, OrthographicCamera } from 'three';
+import {
+  ANCHO,
+  FORMATOS,
+  GROSOR_LINEA,
+  LARGO,
+  MEDIO_ANCHO,
+  MEDIO_LARGO,
+  Z_COLA,
+  Z_SHAGGERS,
+  DURACIONES,
+  type CourtMode,
+  type Formato,
+} from './constants';
+import { calcularFrame, MAX_JUGADORES, MAX_PELOTAS, type JugadorFrame } from './escenas';
 
-const HABILITACION_DIST = 3;
+// Ancho de mundo (en metros) que entra en la escena. La cámara ajusta el zoom al tamaño real
+// del canvas para que el encuadre sea el mismo en cualquier pantalla.
+const ANCHO_VISTA = 22.5;
 
-// Cámara ortográfica fija, mirando derecho hacia abajo -> vista "de arriba", cancha en vertical
-// (X = ancho de 9m en horizontal de pantalla, Z = largo de 18m en vertical de pantalla).
-const CamaraTopDown: React.FC = () => {
-  const { camera } = useThree();
+const COLORES = {
+  rojo: '#dc2626',
+  azul: '#2563eb',
+  // Los shaggers llevan el color del equipo en una variante más clara: mismo bando, otro rol.
+  shaggerRojo: '#f87171',
+  shaggerAzul: '#60a5fa',
+  eliminado: '#94a3b8',
+  piel: '#e8edf4',
+  pelotaActiva: '#f97316',
+  pelotaSinActivar: '#fcd34d',
+  pelotaMuerta: '#cbd5e1',
+};
+
+const colorCuerpo = (j: JugadorFrame) => {
+  if (j.estado === 'eliminado') return COLORES.eliminado;
+  if (j.estado === 'shagger') return j.equipo === 'rojo' ? COLORES.shaggerRojo : COLORES.shaggerAzul;
+  return j.equipo === 'rojo' ? COLORES.rojo : COLORES.azul;
+};
+
+const colorMarca = (duenio: 'rojo' | 'azul' | 'libre') =>
+  duenio === 'rojo' ? '#ef4444' : duenio === 'azul' ? '#3b82f6' : '#94a3b8';
+
+/**
+ * Cámara ortográfica fija, arriba y algo adelante: se ve toda la cancha de una pero con
+ * suficiente inclinación para distinguir la cabeza y las manos de cada jugador.
+ */
+const CamaraFija: React.FC = () => {
+  const { camera, size } = useThree();
   useEffect(() => {
-    camera.position.set(0, 20, 0);
-    camera.up.set(0, 0, -1);
-    camera.lookAt(0, 0, 0);
+    camera.position.set(0, 15.5, 12);
+    camera.up.set(0, 1, 0);
+    camera.lookAt(0, 0, 0.6);
+    const orto = camera as OrthographicCamera;
+    orto.zoom = size.width / ANCHO_VISTA;
     camera.updateProjectionMatrix();
-  }, [camera]);
+  }, [camera, size]);
   return null;
 };
 
-const Linea: React.FC<{ x?: number; z?: number; ancho: number; profundidad: number; color?: string; dashed?: boolean }> = ({
+const Linea: React.FC<{ x?: number; z?: number; largoX: number; largoZ: number; color?: string }> = ({
   x = 0,
   z = 0,
-  ancho,
-  profundidad,
-  color = '#f8fafc',
+  largoX,
+  largoZ,
+  color = '#ffffff',
 }) => (
-  <mesh position={[x, 0.01, z]}>
-    <boxGeometry args={[ancho, 0.01, profundidad]} />
+  <mesh position={[x, 0.012, z]} rotation={[-Math.PI / 2, 0, 0]}>
+    <planeGeometry args={[largoX, largoZ]} />
     <meshBasicMaterial color={color} />
   </mesh>
 );
 
-const ColaBox: React.FC<{ x: number; zMin: number; zMax: number; color: string }> = ({ x, zMin, zMax, color }) => (
-  <mesh position={[x, 0.005, (zMin + zMax) / 2]}>
-    <boxGeometry args={[1.2, 0.005, Math.abs(zMax - zMin) - 0.6]} />
-    <meshBasicMaterial color={color} transparent opacity={0.35} />
+const Zona: React.FC<{ x: number; z: number; largoX: number; largoZ: number; color: string }> = ({
+  x,
+  z,
+  largoX,
+  largoZ,
+  color,
+}) => (
+  <mesh position={[x, 0.006, z]} rotation={[-Math.PI / 2, 0, 0]}>
+    <planeGeometry args={[largoX, largoZ]} />
+    <meshBasicMaterial color={color} />
   </mesh>
 );
 
-// Sin distanceFactor: ese modo de drei calcula la escala a partir de camera.fov, que no
-// existe en una cámara ortográfica (rompía el render de toda la escena). Sin él, el Html
-// queda en tamaño de pantalla fijo (screen-space), que es justo lo que queremos acá.
-const Emoji: React.FC<{ x: number; z: number; children: string; size?: number }> = ({ x, z, children, size = 20 }) => (
-  <Html position={[x, 0.5, z]} center style={{ fontSize: size, pointerEvents: 'none', userSelect: 'none' }}>
-    {children}
-  </Html>
-);
-
-const Etiqueta: React.FC<{ x: number; z: number; children: React.ReactNode; className?: string }> = ({ x, z, children, className }) => (
-  <Html position={[x, 0.5, z]} center style={{ pointerEvents: 'none', userSelect: 'none', whiteSpace: 'nowrap' }}>
+const Rotulo: React.FC<{ x: number; z: number; className: string; children: React.ReactNode }> = ({
+  x,
+  z,
+  className,
+  children,
+}) => (
+  <Html position={[x, 0, z]} center style={{ pointerEvents: 'none', userSelect: 'none', whiteSpace: 'nowrap' }}>
     <span className={className}>{children}</span>
   </Html>
 );
 
-const CourtBase: React.FC = () => (
-  <group>
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, RED_Z]}>
-      <planeGeometry args={[COURT_WIDTH, HALF]} />
-      <meshBasicMaterial color="#fecaca" />
-    </mesh>
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, BLUE_Z]}>
-      <planeGeometry args={[COURT_WIDTH, HALF]} />
-      <meshBasicMaterial color="#bfdbfe" />
-    </mesh>
-    <Linea z={0} ancho={COURT_WIDTH} profundidad={LINE_THICKNESS * 2} color="#4338ca" />
-    <Linea z={HALF} ancho={COURT_WIDTH} profundidad={LINE_THICKNESS} />
-    <Linea z={-HALF} ancho={COURT_WIDTH} profundidad={LINE_THICKNESS} />
-    <Linea x={COURT_WIDTH / 2} ancho={LINE_THICKNESS} profundidad={HALF * 2} />
-    <Linea x={-COURT_WIDTH / 2} ancho={LINE_THICKNESS} profundidad={HALF * 2} />
-
-    <Etiqueta x={0} z={HALF + 1.4} className="text-xs font-black text-red-700">EQUIPO ROJO</Etiqueta>
-    <Etiqueta x={0} z={-HALF - 1.4} className="text-xs font-black text-blue-700">EQUIPO AZUL</Etiqueta>
-
-    <ColaBox x={COURT_WIDTH / 2 + 1} zMin={0.5} zMax={HALF - 0.5} color="#ef4444" />
-    <ColaBox x={-COURT_WIDTH / 2 - 1} zMin={-HALF + 0.5} zMax={-0.5} color="#3b82f6" />
-  </group>
-);
-
-const MedidasOverlay: React.FC = () => (
-  <group>
-    <Etiqueta x={COURT_WIDTH / 2 + 2.4} z={0} className="text-[11px] font-bold text-slate-600 [writing-mode:vertical-rl]">18 metros</Etiqueta>
-    <Etiqueta x={0} z={HALF + 2.6} className="text-[11px] font-bold text-slate-600">9 metros de ancho</Etiqueta>
-    <Etiqueta x={0} z={RED_Z} className="text-[10px] font-bold text-red-800">9m x 9m</Etiqueta>
-    <Etiqueta x={0} z={BLUE_Z} className="text-[10px] font-bold text-blue-800">9m x 9m</Etiqueta>
-  </group>
-);
-
-const EquiposOverlay: React.FC = () => {
-  const xs = [-3.2, -1.9, -0.6, 0.6, 1.9, 3.2];
+// Memoizados: la nota cambia varias veces por vuelta y re-renderiza la página entera. Sin memo,
+// eso volvería a montar los refs de todas las mallas en cada cambio de texto.
+const Cancha: React.FC<{ formato: Formato; mostrarActivacion: boolean }> = React.memo(({ formato, mostrarActivacion }) => {
+  const spec = FORMATOS[formato];
   return (
     <group>
-      {xs.map((x, i) => <Emoji key={`r${i}`} x={x} z={HALF - 1.6}>🙋‍♂️</Emoji>)}
-      {xs.map((x, i) => <Emoji key={`b${i}`} x={x} z={-HALF + 1.6}>🙋‍♀️</Emoji>)}
-      {[-2.5, 0, 2.5].map((x, i) => <Emoji key={`sr${i}`} x={x} z={HALF + 1} size={16}>🏃</Emoji>)}
-      {[-2.5, 0, 2.5].map((x, i) => <Emoji key={`sb${i}`} x={x} z={-HALF - 1} size={16}>🏃</Emoji>)}
-      <Etiqueta x={0} z={HALF + 2.6} className="text-[10px] font-bold text-slate-500">6 en cancha · 3 shaggers afuera por equipo</Etiqueta>
+      <Zona x={-MEDIO_LARGO / 2} z={0} largoX={MEDIO_LARGO} largoZ={ANCHO} color="#fbdada" />
+      <Zona x={MEDIO_LARGO / 2} z={0} largoX={MEDIO_LARGO} largoZ={ANCHO} color="#d9e4fb" />
+
+      <Linea x={-MEDIO_LARGO} largoX={GROSOR_LINEA} largoZ={ANCHO} />
+      <Linea x={MEDIO_LARGO} largoX={GROSOR_LINEA} largoZ={ANCHO} />
+      <Linea z={-MEDIO_ANCHO} largoX={LARGO} largoZ={GROSOR_LINEA} />
+      <Linea z={MEDIO_ANCHO} largoX={LARGO} largoZ={GROSOR_LINEA} />
+      <Linea x={0} largoX={GROSOR_LINEA * 1.8} largoZ={ANCHO} color="#312e81" />
+
+      {mostrarActivacion && (
+        <>
+          <Linea x={-spec.activacion} largoX={GROSOR_LINEA * 1.4} largoZ={ANCHO} color="#b91c1c" />
+          <Linea x={spec.activacion} largoX={GROSOR_LINEA * 1.4} largoZ={ANCHO} color="#1d4ed8" />
+          {/* Abajo, entre la línea lateral y las colas: arriba chocaban con los shaggers. */}
+          <Rotulo x={-spec.activacion} z={MEDIO_ANCHO + 0.5} className="text-[9px] font-bold text-red-700">
+            {spec.nombreLinea}
+          </Rotulo>
+          <Rotulo x={spec.activacion} z={MEDIO_ANCHO + 0.5} className="text-[9px] font-bold text-blue-700">
+            {spec.nombreLinea}
+          </Rotulo>
+        </>
+      )}
+
+      {/* Cola de eliminados: una por equipo, las dos del mismo lado de la cancha (Rule 1.4.3). */}
+      <Zona x={-6.7} z={Z_COLA} largoX={4.7} largoZ={1.2} color="#fecdd3" />
+      <Zona x={6.7} z={Z_COLA} largoX={4.7} largoZ={1.2} color="#c7d8fb" />
+
+      <Rotulo x={-10} z={0} className="text-[10px] font-black tracking-wide text-red-700">
+        ROJO
+      </Rotulo>
+      <Rotulo x={10} z={0} className="text-[10px] font-black tracking-wide text-blue-700">
+        AZUL
+      </Rotulo>
+      <Rotulo x={-6.7} z={Z_COLA + 1.5} className="text-[9px] font-bold text-slate-500">
+        cola
+      </Rotulo>
+      <Rotulo x={6.7} z={Z_COLA + 1.5} className="text-[9px] font-bold text-slate-500">
+        cola
+      </Rotulo>
+      <Rotulo x={0} z={Z_SHAGGERS - 1.1} className="text-[9px] font-bold text-slate-400">
+        shaggers
+      </Rotulo>
     </group>
   );
-};
+});
+Cancha.displayName = 'Cancha';
 
-// Pelota que flota suavemente arriba/abajo -> sugiere que está "viva", a la espera de que
-// alguien la agarre (usado en la arrancada).
-const BolaFlotante: React.FC<{ x: number; color: string; phase?: number }> = ({ x, color, phase = 0 }) => {
-  const ref = useRef<Mesh>(null);
-  useFrame(({ clock }) => {
-    if (ref.current) {
-      ref.current.position.y = 0.22 + Math.sin(clock.elapsedTime * 2.2 + phase) * 0.07;
+interface SlotJugador {
+  grupo: Group | null;
+  cuerpo: MeshStandardMaterial | null;
+  manoA: Mesh | null;
+  manoB: Mesh | null;
+}
+
+interface SlotPelota {
+  grupo: Group | null;
+  esfera: Mesh | null;
+  material: MeshStandardMaterial | null;
+  marca: MeshBasicMaterial | null;
+}
+
+interface ActoresProps {
+  mode: CourtMode;
+  formato: Formato;
+  corriendo: boolean;
+  reinicio: number;
+  onNota: (nota: string) => void;
+}
+
+const Actores: React.FC<ActoresProps> = React.memo(({ mode, formato, corriendo, reinicio, onNota }) => {
+  const jugadores = useRef<SlotJugador[]>(
+    Array.from({ length: MAX_JUGADORES }, () => ({ grupo: null, cuerpo: null, manoA: null, manoB: null }))
+  );
+  const pelotas = useRef<SlotPelota[]>(
+    Array.from({ length: MAX_PELOTAS }, () => ({ grupo: null, esfera: null, material: null, marca: null }))
+  );
+  const reloj = useRef(0);
+  const ultimaNota = useRef('');
+
+  useEffect(() => {
+    reloj.current = 0;
+    ultimaNota.current = '';
+  }, [mode, formato, reinicio]);
+
+  useFrame((_, delta) => {
+    if (corriendo) reloj.current = (reloj.current + delta) % DURACIONES[mode];
+    const frame = calcularFrame(mode, reloj.current, formato);
+
+    jugadores.current.forEach((slot, i) => {
+      if (!slot.grupo) return;
+      const j = frame.jugadores[i];
+      if (!j) {
+        slot.grupo.visible = false;
+        return;
+      }
+      slot.grupo.visible = true;
+      slot.grupo.position.set(j.x, 0, j.z);
+      // El grupo rota para que el eje local +Z apunte hacia el rival: así las manos
+      // siempre se estiran hacia adelante, sea cual sea el equipo.
+      slot.grupo.rotation.y = j.mira === 1 ? Math.PI / 2 : -Math.PI / 2;
+      const base = j.estado === 'shagger' ? 0.85 : 1;
+      const escala = base * (1 + j.pulso * 0.3);
+      slot.grupo.scale.set(escala, escala, escala);
+      slot.cuerpo?.color.set(colorCuerpo(j));
+
+      const alcance = 0.24 + j.manos * 0.55;
+      const apertura = 0.6 - j.manos * 0.2;
+      const alto = 0.62 + j.manos * 0.12;
+      slot.manoA?.position.set(-apertura, alto, alcance);
+      slot.manoB?.position.set(apertura, alto, alcance);
+    });
+
+    pelotas.current.forEach((slot, i) => {
+      if (!slot.grupo) return;
+      const p = frame.pelotas[i];
+      if (!p) {
+        slot.grupo.visible = false;
+        return;
+      }
+      slot.grupo.visible = true;
+      slot.grupo.position.set(p.x, 0, p.z);
+      if (slot.esfera) slot.esfera.position.y = 0.3 + p.y;
+      slot.material?.color.set(
+        p.muerta ? COLORES.pelotaMuerta : p.activada ? COLORES.pelotaActiva : COLORES.pelotaSinActivar
+      );
+      slot.marca?.color.set(colorMarca(p.duenio));
+    });
+
+    if (frame.nota !== ultimaNota.current) {
+      ultimaNota.current = frame.nota;
+      onNota(frame.nota);
     }
   });
-  return (
-    <mesh ref={ref} position={[x, 0.22, 0]}>
-      <sphereGeometry args={[0.28, 16, 16]} />
-      <meshStandardMaterial color="#f59e0b" emissive={color} emissiveIntensity={0.35} />
-    </mesh>
-  );
-};
-
-// Pelota que pulsa (crece/achica) -> remarca el instante del impacto en la eliminación.
-const BolaPulsante: React.FC<{ x: number; z: number }> = ({ x, z }) => {
-  const ref = useRef<Mesh>(null);
-  useFrame(({ clock }) => {
-    if (ref.current) {
-      const s = 1 + Math.sin(clock.elapsedTime * 6) * 0.18;
-      ref.current.scale.set(s, s, s);
-    }
-  });
-  return (
-    <mesh ref={ref} position={[x, 0.25, z]}>
-      <sphereGeometry args={[0.25, 16, 16]} />
-      <meshStandardMaterial color="#f59e0b" />
-    </mesh>
-  );
-};
-
-const AperturaOverlay: React.FC<{ formato: 'foam' | 'cloth' }> = ({ formato }) => {
-  const total = formato === 'foam' ? 6 : 5;
-  const spread = COURT_WIDTH - 1.6;
-  const balls = useMemo(
-    () => Array.from({ length: total }, (_, i) => -spread / 2 + (i * spread) / (total - 1)),
-    [total, spread]
-  );
-  const mitad = Math.floor(total / 2);
 
   return (
     <group>
-      <Linea z={HABILITACION_DIST} ancho={COURT_WIDTH} profundidad={LINE_THICKNESS} color="#b91c1c" />
-      <Linea z={-HABILITACION_DIST} ancho={COURT_WIDTH} profundidad={LINE_THICKNESS} color="#1d4ed8" />
-      <Etiqueta x={0} z={HABILITACION_DIST + 0.6} className="text-[9px] font-bold text-red-700">línea de habilitación</Etiqueta>
-      <Etiqueta x={0} z={-HABILITACION_DIST - 0.6} className="text-[9px] font-bold text-blue-700">línea de habilitación</Etiqueta>
+      {jugadores.current.map((_, i) => (
+        // eslint-disable-next-line react/no-array-index-key
+        <group key={i} visible={false} ref={(el) => { jugadores.current[i].grupo = el; }}>
+          {/* Cuerpo ovalado, pintado con el color del equipo. Las proporciones están exageradas
+              a propósito: a escala real un jugador sería de 3 px en una cancha de 18 m. */}
+          <mesh position={[0, 0.54, 0]} scale={[0.5, 0.55, 0.5]}>
+            <sphereGeometry args={[1, 20, 16]} />
+            <meshStandardMaterial
+              roughness={0.55}
+              metalness={0.05}
+              ref={(el) => { jugadores.current[i].cuerpo = el; }}
+            />
+          </mesh>
+          {/* Cabeza */}
+          <mesh position={[0, 1.18, 0.06]}>
+            <sphereGeometry args={[0.27, 18, 14]} />
+            <meshStandardMaterial color={COLORES.piel} roughness={0.6} />
+          </mesh>
+          {/* Manos: quedan por fuera del ancho del cuerpo para que se vean desde arriba, y se
+              estiran hacia adelante para agarrar, tirar, atajar o bloquear. */}
+          <mesh ref={(el) => { jugadores.current[i].manoA = el; }} position={[-0.6, 0.62, 0.24]}>
+            <sphereGeometry args={[0.17, 14, 12]} />
+            <meshStandardMaterial color={COLORES.piel} roughness={0.6} />
+          </mesh>
+          <mesh ref={(el) => { jugadores.current[i].manoB = el; }} position={[0.6, 0.62, 0.24]}>
+            <sphereGeometry args={[0.17, 14, 12]} />
+            <meshStandardMaterial color={COLORES.piel} roughness={0.6} />
+          </mesh>
+        </group>
+      ))}
 
-      {balls.map((x, i) => {
-        const contested = total % 2 === 1 && i === mitad;
-        const esDeRojo = i < mitad;
-        const color = contested ? '#64748b' : esDeRojo ? '#b91c1c' : '#1d4ed8';
-        return <BolaFlotante key={i} x={x} color={color} phase={i * 0.6} />;
-      })}
-      <Etiqueta x={0} z={HALF + 1.6} className="text-[10px] font-bold text-slate-600">
-        {formato === 'foam' ? '6 pelotas de espuma' : '5 pelotas de tela'} sobre la línea central
-      </Etiqueta>
+      {pelotas.current.map((_, i) => (
+        // eslint-disable-next-line react/no-array-index-key
+        <group key={i} visible={false} ref={(el) => { pelotas.current[i].grupo = el; }}>
+          <mesh ref={(el) => { pelotas.current[i].esfera = el; }} position={[0, 0.3, 0]}>
+            <sphereGeometry args={[0.3, 18, 14]} />
+            <meshStandardMaterial roughness={0.4} ref={(el) => { pelotas.current[i].material = el; }} />
+          </mesh>
+          {/* Marca en el piso: hace de sombra y dice de qué equipo es esa pelota */}
+          <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <circleGeometry args={[0.32, 20]} />
+            <meshBasicMaterial transparent opacity={0.4} ref={(el) => { pelotas.current[i].marca = el; }} />
+          </mesh>
+        </group>
+      ))}
     </group>
   );
-};
-
-const EliminadoOverlay: React.FC = () => (
-  <group>
-    <Emoji x={-2} z={RED_Z}>🙋‍♂️</Emoji>
-    <Emoji x={2} z={BLUE_Z}>🙋‍♀️</Emoji>
-    <BolaPulsante x={0} z={0} />
-    <Etiqueta x={-2} z={RED_Z + 1.4} className="text-[10px] font-black text-red-700 animate-pulse">✗ eliminado</Etiqueta>
-  </group>
-);
-
-const VolverOverlay: React.FC = () => (
-  <group>
-    <Emoji x={-2} z={RED_Z}>🙌</Emoji>
-    <Emoji x={2} z={BLUE_Z}>🙋‍♀️</Emoji>
-    <Etiqueta x={-2} z={RED_Z + 1.4} className="text-[10px] font-black text-blue-700 animate-pulse">¡atajada!</Etiqueta>
-    <Emoji x={COURT_WIDTH / 2 + 1} z={HALF - 2}>🙋‍♂️</Emoji>
-    <Etiqueta x={COURT_WIDTH / 2 + 1} z={HALF - 3.2} className="text-[9px] font-bold text-red-700 animate-bounce">vuelve ↩</Etiqueta>
-  </group>
-);
-
-const GanaOverlay: React.FC = () => {
-  const xsRojo = [-3, -1.5, 0, 1.5, 3];
-  const xsAzul = [0];
-  return (
-    <group>
-      {xsRojo.map((x, i) => <Emoji key={i} x={x} z={RED_Z}>🙋‍♂️</Emoji>)}
-      {xsAzul.map((x, i) => <Emoji key={i} x={x} z={BLUE_Z}>🙋‍♀️</Emoji>)}
-      <Etiqueta x={0} z={HALF + 1.6} className="text-[10px] font-black text-red-700 animate-bounce">🏆 Gana Rojo: más jugadores en cancha</Etiqueta>
-    </group>
-  );
-};
+});
+Actores.displayName = 'Actores';
 
 interface Court3DSceneProps {
   mode: CourtMode;
-  formato: 'foam' | 'cloth';
+  formato: Formato;
+  corriendo: boolean;
+  reinicio: number;
+  onNota: (nota: string) => void;
 }
 
-export const Court3DScene: React.FC<Court3DSceneProps> = ({ mode, formato }) => {
-  const showMedidas = mode === 'inicio' || mode === 'cancha';
-  return (
-    <Canvas orthographic camera={{ zoom: 26, position: [0, 20, 0] }} dpr={[1, 1.5]}>
-      <color attach="background" args={['#ffffff']} />
-      <ambientLight intensity={1} />
-      <directionalLight position={[4, 10, 4]} intensity={0.4} />
-      <CamaraTopDown />
-      <CourtBase />
-      {showMedidas && <MedidasOverlay />}
-      {mode === 'equipos' && <EquiposOverlay />}
-      {mode === 'apertura' && <AperturaOverlay formato={formato} />}
-      {mode === 'eliminado' && <EliminadoOverlay />}
-      {mode === 'volver' && <VolverOverlay />}
-      {mode === 'gana' && <GanaOverlay />}
-    </Canvas>
-  );
-};
+export const Court3DScene: React.FC<Court3DSceneProps> = ({ mode, formato, corriendo, reinicio, onNota }) => (
+  <Canvas orthographic camera={{ zoom: 26, position: [0, 15.5, 12] }} dpr={[1, 1.75]}>
+    <color attach="background" args={['#ffffff']} />
+    <ambientLight intensity={1.15} />
+    <directionalLight position={[5, 12, 9]} intensity={0.85} />
+    <directionalLight position={[-6, 8, -4]} intensity={0.25} />
+    <CamaraFija />
+    <Cancha formato={formato} mostrarActivacion={mode === 'apertura'} />
+    <Actores mode={mode} formato={formato} corriendo={corriendo} reinicio={reinicio} onNota={onNota} />
+  </Canvas>
+);
 
 export default Court3DScene;

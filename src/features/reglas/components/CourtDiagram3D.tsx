@@ -1,27 +1,36 @@
 import React from 'react';
 import Court3DScene from './court3d/Court3DScene';
-import type { CourtMode } from './court3d/constants';
+import type { CourtMode, Formato } from './court3d/constants';
 
-export type { CourtMode };
+export type { CourtMode, Formato };
 
 interface CourtDiagram3DProps {
   mode: CourtMode;
-  formato?: 'foam' | 'cloth';
+  formato: Formato;
+  /** Cuando está en false la animación queda congelada en el instante actual. */
+  corriendo: boolean;
+  /** Cambiar este número reinicia la animación desde el principio. */
+  reinicio: number;
+  onNota: (nota: string) => void;
   className?: string;
 }
 
 /**
- * Cancha vista desde arriba en 3D (misma API que el CourtDiagram en SVG, para poder
- * intercambiarlos). Ancho 9m en horizontal, largo 18m en vertical -> queda en "retrato".
- * El tamaño lo define el contenedor (className) para poder achicarla en mobile sin distorsión,
- * ya que la altura sale del aspect-ratio fijo.
+ * Cancha animada en 3D, vista desde arriba y algo adelante. La relación de aspecto es fija
+ * (la cámara encuadra siempre los mismos metros de mundo), así que el tamaño lo define el
+ * contenedor y se achica sin deformarse en mobile.
  */
-export const CourtDiagram3D: React.FC<CourtDiagram3DProps> = ({ mode, formato = 'foam', className = 'w-full max-w-[360px]' }) => {
-  return (
-    <div className={`mx-auto ${className}`} style={{ aspectRatio: '9 / 19' }}>
-      <Court3DScene mode={mode} formato={formato} />
-    </div>
-  );
-};
+export const CourtDiagram3D: React.FC<CourtDiagram3DProps> = ({
+  mode,
+  formato,
+  corriendo,
+  reinicio,
+  onNota,
+  className = 'w-full',
+}) => (
+  <div className={`mx-auto ${className}`} style={{ aspectRatio: '5 / 3' }}>
+    <Court3DScene mode={mode} formato={formato} corriendo={corriendo} reinicio={reinicio} onNota={onNota} />
+  </div>
+);
 
 export default CourtDiagram3D;

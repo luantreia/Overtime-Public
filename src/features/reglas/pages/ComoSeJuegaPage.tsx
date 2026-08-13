@@ -1,21 +1,9 @@
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
+import { ArrowPathIcon, ChevronLeftIcon, ChevronRightIcon, PauseIcon, PlayIcon } from '@heroicons/react/24/solid';
 import { usePageTitle } from '../../../shared/hooks/usePageTitle';
-import { seccionesSimplificadas, diferenciasFormato } from '../data/reglasSimplificadas';
-import { CourtDiagram3D as CourtDiagram, type CourtMode } from '../components/CourtDiagram3D';
-
-// Cada sección de la explicación controla qué se dibuja en la cancha única de arriba.
-const MODO_POR_TITULO: Record<string, CourtMode> = {
-  '¿Cuál es el objetivo?': 'inicio',
-  'La cancha': 'cancha',
-  'Los equipos': 'equipos',
-  'Así arranca un set': 'apertura',
-  '¿Cómo quedás eliminado?': 'eliminado',
-  'Volver a la cancha': 'volver',
-  '¿Cómo se gana un set y el partido?': 'gana',
-  'Juego limpio': 'limpio',
-};
+import { escenasExplicadas, diferenciasFormato } from '../data/reglasSimplificadas';
+import { CourtDiagram3D, type Formato } from '../components/CourtDiagram3D';
 
 const ACENTOS = [
   { border: 'border-brand-100', badge: 'bg-brand-100 text-brand-700' },
@@ -25,24 +13,36 @@ const ACENTOS = [
   { border: 'border-indigo-100', badge: 'bg-indigo-100 text-indigo-700' },
   { border: 'border-orange-100', badge: 'bg-orange-100 text-orange-700' },
   { border: 'border-sky-100', badge: 'bg-sky-100 text-sky-700' },
-  { border: 'border-fuchsia-100', badge: 'bg-fuchsia-100 text-fuchsia-700' },
 ];
 
-// Umbral mínimo de arrastre (px) para que un touch cuente como swipe y no como un toque/scroll vertical.
+// Umbral mínimo de arrastre (px) para que un touch cuente como swipe y no como toque o scroll.
 const SWIPE_THRESHOLD = 40;
+
+const REFERENCIAS = [
+  { color: 'bg-red-600', texto: 'Equipo rojo' },
+  { color: 'bg-blue-600', texto: 'Equipo azul' },
+  { color: 'bg-red-400', texto: 'Shaggers' },
+  { color: 'bg-slate-400', texto: 'Eliminados' },
+  { color: 'bg-orange-500', texto: 'Pelota' },
+];
 
 const ComoSeJuegaPage: React.FC = () => {
   usePageTitle('Cómo se juega');
   const [abierta, setAbierta] = useState(0);
-  const [formatoApertura, setFormatoApertura] = useState<'foam' | 'cloth'>('foam');
+  const [formato, setFormato] = useState<Formato>('foam');
+  const [corriendo, setCorriendo] = useState(
+    () => !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  );
+  const [reinicio, setReinicio] = useState(0);
+  const [nota, setNota] = useState('');
   const touchStartX = useRef<number | null>(null);
 
-  const total = seccionesSimplificadas.length;
-  const seccionActiva = seccionesSimplificadas[abierta];
-  const modoActivo = MODO_POR_TITULO[seccionActiva?.titulo] || 'inicio';
-  const acentoActivo = ACENTOS[abierta % ACENTOS.length];
+  const total = escenasExplicadas.length;
+  const escena = escenasExplicadas[abierta];
+  const acento = ACENTOS[abierta % ACENTOS.length];
 
   const irA = (i: number) => setAbierta(((i % total) + total) % total);
+  const manejarNota = useCallback((n: string) => setNota(n), []);
 
   const onTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
@@ -56,11 +56,11 @@ const ComoSeJuegaPage: React.FC = () => {
   };
 
   return (
-    <div className="mx-auto max-w-md space-y-5 sm:max-w-lg">
+    <div className="mx-auto max-w-md space-y-5 sm:max-w-xl">
       <div className="rounded-2xl bg-gradient-to-br from-brand-600 to-indigo-700 px-4 py-4 text-white shadow-lg">
         <h1 className="text-xl font-black tracking-tight">🏐 ¿Cómo se juega al dodgeball?</h1>
         <p className="mt-1 text-sm text-brand-50">
-          Lo esencial, en criollo. Deslizá para pasar de tema, o tocá uno de los íconos.{' '}
+          Siete jugadas animadas. Deslizá para pasar de una a otra.{' '}
           <Link to="/reglamento" className="font-semibold text-white underline underline-offset-2">
             Reglamento oficial completo acá
           </Link>
@@ -68,120 +68,139 @@ const ComoSeJuegaPage: React.FC = () => {
         </p>
       </div>
 
-      {/* Selector de tema: fila de íconos con scroll propio, siempre a mano del pulgar */}
+      {/* El formato manda en toda la página: cambia el reparto de pelotas, las líneas y los puntos. */}
+      <div className="flex items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+        <button
+          type="button"
+          onClick={() => setFormato('cloth')}
+          aria-pressed={formato === 'cloth'}
+          className={`rounded-lg px-3 py-2 text-sm font-bold transition ${
+            formato === 'cloth' ? 'bg-amber-100 text-amber-800' : 'text-slate-400'
+          }`}
+        >
+          🧵 Cloth
+        </button>
+        <span className="text-xs text-slate-300">|</span>
+        <button
+          type="button"
+          onClick={() => setFormato('foam')}
+          aria-pressed={formato === 'foam'}
+          className={`rounded-lg px-3 py-2 text-sm font-bold transition ${
+            formato === 'foam' ? 'bg-sky-100 text-sky-800' : 'text-slate-400'
+          }`}
+        >
+          🟠 Foam
+        </button>
+      </div>
+
+      {/* Selector de jugada: fila de íconos con scroll propio, siempre a mano del pulgar */}
       <div className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-1">
-        {seccionesSimplificadas.map((seccion, i) => {
-          const acento = ACENTOS[i % ACENTOS.length];
+        {escenasExplicadas.map((item, i) => {
+          const acentoItem = ACENTOS[i % ACENTOS.length];
           const isActive = abierta === i;
           return (
             <button
-              key={seccion.titulo}
+              key={item.id}
               type="button"
               onClick={() => setAbierta(i)}
               aria-pressed={isActive}
-              aria-label={seccion.titulo}
+              aria-label={item.titulo}
               className={`flex shrink-0 snap-start items-center justify-center rounded-full border text-lg transition-colors ${
-                isActive ? `${acento.badge} border-transparent shadow-sm` : 'border-slate-200 bg-white text-slate-500'
+                isActive ? `${acentoItem.badge} border-transparent shadow-sm` : 'border-slate-200 bg-white text-slate-500'
               }`}
               style={{ width: 44, height: 44 }}
             >
-              <span aria-hidden="true">{seccion.emoji}</span>
+              <span aria-hidden="true">{item.emoji}</span>
             </button>
           );
         })}
       </div>
 
-      {/* Widget principal: cancha arriba, texto abajo — nunca lado a lado, para que ambos
-          se lean cómodos con el pulgar sin achicar la cancha a un tamaño ilegible. */}
       <div
-        className="touch-pan-y rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+        className="touch-pan-y rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >
-        <div className="mx-auto w-full max-w-[240px]">
-          <CourtDiagram mode={modoActivo} formato={formatoApertura} className="w-full" />
+        <CourtDiagram3D
+          mode={escena.id}
+          formato={formato}
+          corriendo={corriendo}
+          reinicio={reinicio}
+          onNota={manejarNota}
+        />
+
+        {/* Lo que va contando la animación, sincronizado con lo que se ve en la cancha */}
+        <div className={`mt-2 flex min-h-[52px] items-center justify-center rounded-xl border ${acento.border} bg-slate-50/70 px-3 py-2`}>
+          <p className="text-center text-sm font-medium leading-snug text-slate-700">{nota}</p>
         </div>
 
-        {modoActivo === 'apertura' && (
-          <div className="mt-2 flex items-center justify-center gap-2">
-            <span className={`text-xs font-bold ${formatoApertura === 'cloth' ? 'text-amber-700' : 'text-slate-400'}`}>
-              Cloth
-            </span>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={formatoApertura === 'foam'}
-              aria-label="Cambiar entre formato Cloth y Foam"
-              onClick={() => setFormatoApertura((f) => (f === 'foam' ? 'cloth' : 'foam'))}
-              className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
-                formatoApertura === 'foam' ? 'bg-sky-500' : 'bg-amber-500'
-              }`}
-            >
-              <span
-                className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
-                  formatoApertura === 'foam' ? 'translate-x-[22px]' : 'translate-x-0.5'
-                }`}
-              />
-            </button>
-            <span className={`text-xs font-bold ${formatoApertura === 'foam' ? 'text-sky-700' : 'text-slate-400'}`}>
-              Foam
-            </span>
-          </div>
-        )}
-
-        {seccionActiva && (
-          <div className={`mt-4 rounded-xl border ${acentoActivo.border} bg-white p-4`}>
-            <h2 className="text-base font-bold text-slate-900">{seccionActiva.titulo}</h2>
-            <div className="mt-2 space-y-2">
-              {seccionActiva.parrafos.map((parrafo, j) => (
-                <p key={j} className="text-sm leading-relaxed text-slate-600">
-                  {parrafo}
-                </p>
-              ))}
-            </div>
-            {seccionActiva.bullets && (
-              <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-slate-600">
-                {seccionActiva.bullets.map((bullet, j) => (
-                  <li key={j}>{bullet}</li>
-                ))}
-              </ul>
-            )}
-          </div>
-        )}
-
-        {/* Navegación: botones grandes para el pulgar + puntos de progreso. El swipe en el widget
-            hace lo mismo, esto es para quien prefiere tocar en vez de deslizar. */}
-        <div className="mt-4 flex items-center justify-between gap-2 border-t border-slate-100 pt-3">
+        <div className="mt-3 flex items-center justify-between gap-2 border-t border-slate-100 pt-3">
           <button
             type="button"
             onClick={() => irA(abierta - 1)}
-            aria-label="Tema anterior"
+            aria-label="Jugada anterior"
             className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 text-slate-500 active:bg-slate-100"
           >
             <ChevronLeftIcon className="h-5 w-5" />
           </button>
-          <div className="flex items-center gap-1.5">
-            {seccionesSimplificadas.map((seccion, i) => (
-              <button
-                key={seccion.titulo}
-                type="button"
-                onClick={() => irA(i)}
-                aria-label={`Ir a: ${seccion.titulo}`}
-                aria-current={abierta === i}
-                className={`h-1.5 rounded-full transition-all ${abierta === i ? 'w-5 bg-brand-600' : 'w-1.5 bg-slate-200'}`}
-              />
-            ))}
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setCorriendo((v) => !v)}
+              aria-label={corriendo ? 'Pausar la animación' : 'Reproducir la animación'}
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-600 text-white active:bg-brand-700"
+            >
+              {corriendo ? <PauseIcon className="h-5 w-5" /> : <PlayIcon className="h-5 w-5" />}
+            </button>
+            <button
+              type="button"
+              onClick={() => setReinicio((v) => v + 1)}
+              aria-label="Volver a empezar la animación"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 text-slate-500 active:bg-slate-100"
+            >
+              <ArrowPathIcon className="h-5 w-5" />
+            </button>
           </div>
+
           <button
             type="button"
             onClick={() => irA(abierta + 1)}
-            aria-label="Siguiente tema"
+            aria-label="Jugada siguiente"
             className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 text-slate-500 active:bg-slate-100"
           >
             <ChevronRightIcon className="h-5 w-5" />
           </button>
         </div>
+
+        <div className="mt-3 flex items-center justify-center gap-1.5">
+          {escenasExplicadas.map((item, i) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => irA(i)}
+              aria-label={`Ir a: ${item.titulo}`}
+              aria-current={abierta === i}
+              className={`h-1.5 rounded-full transition-all ${abierta === i ? 'w-5 bg-brand-600' : 'w-1.5 bg-slate-200'}`}
+            />
+          ))}
+        </div>
       </div>
+
+      <section className={`rounded-2xl border ${acento.border} bg-white p-4`}>
+        <h2 className="text-base font-bold text-slate-900">
+          {escena.emoji} {escena.titulo}
+        </h2>
+        <p className="mt-1 text-sm leading-relaxed text-slate-600">{escena.resumen}</p>
+        <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 border-t border-slate-100 pt-3">
+          {REFERENCIAS.map((ref) => (
+            <li key={ref.texto} className="flex items-center gap-1.5 text-xs text-slate-500">
+              <span className={`h-2.5 w-2.5 rounded-full ${ref.color}`} aria-hidden="true" />
+              {ref.texto}
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <section className="rounded-2xl border border-slate-200 bg-white p-4">
         <h2 className="text-base font-bold text-slate-900">🥊 Cloth vs. Foam</h2>
@@ -194,11 +213,11 @@ const ComoSeJuegaPage: React.FC = () => {
             <div key={fila.aspecto} className="rounded-xl border border-slate-100 bg-slate-50/60 p-3">
               <p className="text-xs font-bold uppercase tracking-wide text-slate-500">{fila.aspecto}</p>
               <div className="mt-2 space-y-2">
-                <div className="rounded-lg bg-amber-50 p-2.5">
+                <div className={`rounded-lg p-2.5 ${formato === 'cloth' ? 'bg-amber-100' : 'bg-amber-50'}`}>
                   <span className="text-xs font-bold text-amber-700">🧵 Cloth</span>
                   <p className="mt-0.5 text-sm text-slate-700">{fila.cloth}</p>
                 </div>
-                <div className="rounded-lg bg-sky-50 p-2.5">
+                <div className={`rounded-lg p-2.5 ${formato === 'foam' ? 'bg-sky-100' : 'bg-sky-50'}`}>
                   <span className="text-xs font-bold text-sky-700">🟠 Foam</span>
                   <p className="mt-0.5 text-sm text-slate-700">{fila.foam}</p>
                 </div>
