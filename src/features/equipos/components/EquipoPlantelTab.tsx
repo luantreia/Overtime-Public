@@ -73,29 +73,6 @@ export const EquipoPlantelTab: React.FC<EquipoPlantelTabProps> = ({ equipo }) =>
     return jugadoresHistorialAgrupados.filter(({ jugador }) => idsPermitidos.has(jugador?._id || jugador?.id));
   }, [jugadoresHistorialAgrupados, filtroCategoria, grupoSeleccionado]);
 
-  const temporadasGanadas = useMemo(() => {
-    return (equipo.participaciontemporadas || [])
-      .filter((p: any) => p?.temporada?.ganador && String(p.temporada.ganador) === String(equipoId))
-      .map((p: any) => ({
-        inicio: p.temporada?.fechaInicio ? new Date(p.temporada.fechaInicio).getTime() : null,
-        fin: p.temporada?.fechaFin ? new Date(p.temporada.fechaFin).getTime() : null,
-      }))
-      .filter((t: any) => t.inicio || t.fin);
-  }, [equipo, equipoId]);
-
-  const tieneTitulo = (contratos: any[]) => {
-    if (temporadasGanadas.length === 0) return false;
-    return contratos.some((c) => {
-      const desde = c.desde ? new Date(c.desde).getTime() : null;
-      const hasta = c.hasta ? new Date(c.hasta).getTime() : null;
-      return temporadasGanadas.some((t: any) => {
-        const inicioOk = !t.fin || !desde || desde <= t.fin;
-        const finOk = !t.inicio || !hasta || hasta >= t.inicio;
-        return inicioOk && finOk;
-      });
-    });
-  };
-
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
@@ -158,7 +135,6 @@ export const EquipoPlantelTab: React.FC<EquipoPlantelTabProps> = ({ equipo }) =>
                 <div className="flex-1 min-w-0">
                   <div className="font-bold text-slate-900 truncate flex items-center gap-1.5">
                     {jugador?.nombre}
-                    {tieneTitulo(contratos) && <span title="Campeón con este equipo">🏆</span>}
                   </div>
                   {contratos.length === 1 ? (
                     <div className="text-xs text-slate-500 flex items-center gap-2">

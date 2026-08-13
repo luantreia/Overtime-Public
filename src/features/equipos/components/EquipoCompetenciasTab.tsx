@@ -147,6 +147,10 @@ export const EquipoCompetenciasTab: React.FC<EquipoCompetenciasTabProps> = ({ eq
           competenciasMap={competenciasMap}
           isOpen={historiaAbierta}
           onClose={() => setHistoriaAbierta(false)}
+          onVerTemporada={({ competenciaId, temporadaId, temporadas }) => {
+            setHistoriaAbierta(false);
+            setTemporadaModal({ cid: competenciaId, temporadas, temporadaId });
+          }}
         />
       )}
 
