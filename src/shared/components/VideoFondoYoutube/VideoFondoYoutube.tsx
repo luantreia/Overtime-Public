@@ -90,7 +90,9 @@ const VideoFondoYoutube: React.FC<VideoFondoYoutubeProps> = ({
       />
       {montarVideo && medidas && (
         <iframe
-          title=""
+          // El contenedor es aria-hidden, así que este título no se anuncia; va porque
+          // jsx-a11y/iframe-has-title lo exige y CRA trata los warnings como error en CI.
+          title="Video de fondo de la organización"
           tabIndex={-1}
           src={youtubeFondoEmbedUrl(videoId)}
           allow="autoplay; encrypted-media"

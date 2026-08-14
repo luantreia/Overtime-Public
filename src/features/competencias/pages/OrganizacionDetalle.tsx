@@ -155,65 +155,65 @@ const OrganizacionDetalle: React.FC = () => {
               tieneVideo ? 'min-h-[240px] items-end sm:min-h-[300px]' : 'items-start'
             }`}
           >
-          {organizacion.logoUrl && (
-            <img
-              src={organizacion.logoUrl}
-              alt={`Logo de ${organizacion.nombre}`}
-              className={`h-16 w-16 shrink-0 rounded-full object-cover ${
-                tieneVideo ? 'ring-2 ring-white/70' : ''
-              }`}
-            />
-          )}
-          <div>
-            <h1 className={`text-3xl font-bold ${tieneVideo ? 'text-white' : 'text-slate-900'}`}>
-              {organizacion.nombre}
-            </h1>
-            {organizacion.descripcion && (
-              <p className={`mt-1 ${tieneVideo ? 'text-slate-200' : 'text-slate-600'}`}>
-                {organizacion.descripcion}
-              </p>
+            {organizacion.logoUrl && (
+              <img
+                src={organizacion.logoUrl}
+                alt={`Logo de ${organizacion.nombre}`}
+                className={`h-16 w-16 shrink-0 rounded-full object-cover ${
+                  tieneVideo ? 'ring-2 ring-white/70' : ''
+                }`}
+              />
             )}
-            {(organizacion.sitioWeb || (organizacion.redesSociales && Object.values(organizacion.redesSociales).some(Boolean))) && (
-              <div className="mt-2">
-                <p className={`mb-1.5 text-xs ${tieneVideo ? 'text-slate-300' : 'text-slate-500'}`}>
-                  <span className={`font-semibold ${tieneVideo ? 'text-white' : 'text-slate-600'}`}>¿Querés participar?</span> Contactalos por acá:
+            <div>
+              <h1 className={`text-3xl font-bold ${tieneVideo ? 'text-white' : 'text-slate-900'}`}>
+                {organizacion.nombre}
+              </h1>
+              {organizacion.descripcion && (
+                <p className={`mt-1 ${tieneVideo ? 'text-slate-200' : 'text-slate-600'}`}>
+                  {organizacion.descripcion}
                 </p>
-                <div className="flex flex-wrap items-center gap-3">
-                {organizacion.sitioWeb && (
-                  <a
-                    href={organizacion.sitioWeb.startsWith('http') ? organizacion.sitioWeb : `https://${organizacion.sitioWeb}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`text-sm hover:underline ${tieneVideo ? 'text-brand-200' : 'text-brand-600'}`}
-                  >
-                    Sitio web
-                  </a>
-                )}
-                {([
-                  ['instagram', 'Instagram'],
-                  ['facebook', 'Facebook'],
-                  ['twitter', 'X / Twitter'],
-                  ['tiktok', 'TikTok'],
-                  ['youtube', 'YouTube'],
-                ] as const).map(([key, label]) => {
-                  const url = organizacion.redesSociales?.[key];
-                  if (!url) return null;
-                  return (
-                    <a
-                      key={key}
-                      href={url.startsWith('http') ? url : `https://${url}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`text-sm hover:underline ${tieneVideo ? 'text-brand-200' : 'text-brand-600'}`}
-                    >
-                      {label}
-                    </a>
-                  );
-                })}
+              )}
+              {(organizacion.sitioWeb || (organizacion.redesSociales && Object.values(organizacion.redesSociales).some(Boolean))) && (
+                <div className="mt-2">
+                  <p className={`mb-1.5 text-xs ${tieneVideo ? 'text-slate-300' : 'text-slate-500'}`}>
+                    <span className={`font-semibold ${tieneVideo ? 'text-white' : 'text-slate-600'}`}>¿Querés participar?</span> Contactalos por acá:
+                  </p>
+                  <div className="flex flex-wrap items-center gap-3">
+                    {organizacion.sitioWeb && (
+                      <a
+                        href={organizacion.sitioWeb.startsWith('http') ? organizacion.sitioWeb : `https://${organizacion.sitioWeb}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`text-sm hover:underline ${tieneVideo ? 'text-brand-200' : 'text-brand-600'}`}
+                      >
+                        Sitio web
+                      </a>
+                    )}
+                    {([
+                      ['instagram', 'Instagram'],
+                      ['facebook', 'Facebook'],
+                      ['twitter', 'X / Twitter'],
+                      ['tiktok', 'TikTok'],
+                      ['youtube', 'YouTube'],
+                    ] as const).map(([key, label]) => {
+                      const url = organizacion.redesSociales?.[key];
+                      if (!url) return null;
+                      return (
+                        <a
+                          key={key}
+                          href={url.startsWith('http') ? url : `https://${url}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`text-sm hover:underline ${tieneVideo ? 'text-brand-200' : 'text-brand-600'}`}
+                        >
+                          {label}
+                        </a>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
           </div>
         </div>
 
