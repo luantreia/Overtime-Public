@@ -2,8 +2,9 @@ import React, { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueries } from '@tanstack/react-query';
 import { usePageTitle } from '../../../shared/hooks/usePageTitle';
-import { CompetenciaCard } from '../../../shared/components';
+import { CompetenciaCard, VideoFondoYoutube } from '../../../shared/components';
 import PartidoCard from '../../../shared/components/PartidoCard/PartidoCard';
+import { extraerYoutubeId } from '../../../shared/utils/youtube';
 import { CompetenciaService, type Competencia } from '../services/competenciaService';
 import { OrganizacionService } from '../services/organizacionService';
 import { SedeService } from '../../sedes/services/sedeService';
@@ -123,6 +124,10 @@ const OrganizacionDetalle: React.FC = () => {
     );
   }
 
+  // Solo pasamos a header con video si la URL cargada es reconocible: una mal pegada tiene que
+  // dejar el header claro de siempre, no un bloque negro vacío.
+  const tieneVideo = !!extraerYoutubeId(organizacion.videoFondoUrl);
+
   return (
     <div className="min-h-screen bg-slate-50 py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -133,23 +138,45 @@ const OrganizacionDetalle: React.FC = () => {
           ← Volver a organizaciones
         </button>
 
-        <div className="mb-8 flex items-start gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-card">
+        <div
+          className={`relative mb-8 overflow-hidden rounded-2xl shadow-card ${
+            tieneVideo ? 'bg-slate-900' : 'border border-slate-200 bg-white'
+          }`}
+        >
+          {tieneVideo && (
+            <>
+              <VideoFondoYoutube url={organizacion.videoFondoUrl} />
+              {/* Velo oscuro: sin esto el texto queda ilegible apenas el video tenga un plano claro. */}
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/75 to-slate-950/30" />
+            </>
+          )}
+          <div
+            className={`relative flex gap-4 p-6 ${
+              tieneVideo ? 'min-h-[240px] items-end sm:min-h-[300px]' : 'items-start'
+            }`}
+          >
           {organizacion.logoUrl && (
             <img
               src={organizacion.logoUrl}
               alt={`Logo de ${organizacion.nombre}`}
-              className="h-16 w-16 rounded-full object-cover"
+              className={`h-16 w-16 shrink-0 rounded-full object-cover ${
+                tieneVideo ? 'ring-2 ring-white/70' : ''
+              }`}
             />
           )}
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">{organizacion.nombre}</h1>
+            <h1 className={`text-3xl font-bold ${tieneVideo ? 'text-white' : 'text-slate-900'}`}>
+              {organizacion.nombre}
+            </h1>
             {organizacion.descripcion && (
-              <p className="mt-1 text-slate-600">{organizacion.descripcion}</p>
+              <p className={`mt-1 ${tieneVideo ? 'text-slate-200' : 'text-slate-600'}`}>
+                {organizacion.descripcion}
+              </p>
             )}
             {(organizacion.sitioWeb || (organizacion.redesSociales && Object.values(organizacion.redesSociales).some(Boolean))) && (
               <div className="mt-2">
-                <p className="mb-1.5 text-xs text-slate-500">
-                  <span className="font-semibold text-slate-600">¿Querés participar?</span> Contactalos por acá:
+                <p className={`mb-1.5 text-xs ${tieneVideo ? 'text-slate-300' : 'text-slate-500'}`}>
+                  <span className={`font-semibold ${tieneVideo ? 'text-white' : 'text-slate-600'}`}>¿Querés participar?</span> Contactalos por acá:
                 </p>
                 <div className="flex flex-wrap items-center gap-3">
                 {organizacion.sitioWeb && (
@@ -157,7 +184,7 @@ const OrganizacionDetalle: React.FC = () => {
                     href={organizacion.sitioWeb.startsWith('http') ? organizacion.sitioWeb : `https://${organizacion.sitioWeb}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-brand-600 hover:underline"
+                    className={`text-sm hover:underline ${tieneVideo ? 'text-brand-200' : 'text-brand-600'}`}
                   >
                     Sitio web
                   </a>
@@ -177,7 +204,7 @@ const OrganizacionDetalle: React.FC = () => {
                       href={url.startsWith('http') ? url : `https://${url}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-brand-600 hover:underline"
+                      className={`text-sm hover:underline ${tieneVideo ? 'text-brand-200' : 'text-brand-600'}`}
                     >
                       {label}
                     </a>
@@ -186,6 +213,7 @@ const OrganizacionDetalle: React.FC = () => {
                 </div>
               </div>
             )}
+          </div>
           </div>
         </div>
 
