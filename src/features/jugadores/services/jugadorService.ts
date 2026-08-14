@@ -17,6 +17,14 @@ export interface Jugador {
   [key: string]: any;
 }
 
+export interface HistoryPage {
+  items: any[];
+  total: number;
+  page: number;
+  limit: number;
+  pages: number;
+}
+
 export class JugadorService {
   private static readonly API_ENDPOINT = '/jugadores';
 
@@ -78,6 +86,23 @@ export class JugadorService {
     
     const url = params.toString() ? `${this.API_ENDPOINT}/${id}/history?${params}` : `${this.API_ENDPOINT}/${id}/history`;
     return fetchWithAuth<any[]>(url);
+  }
+
+  /**
+   * Historial paginado. El backend responde el array plano de siempre si no se manda page/limit,
+   * así que el paginado es opt-in: mandarlos es lo que cambia la respuesta a este shape.
+   */
+  static async getHistoryPage(
+    id: string,
+    params: { page: number; limit?: number; modalidad?: string; categoria?: string }
+  ): Promise<HistoryPage> {
+    const qs = new URLSearchParams();
+    qs.append('page', String(params.page));
+    qs.append('limit', String(params.limit ?? 20));
+    if (params.modalidad) qs.append('modalidad', params.modalidad);
+    if (params.categoria) qs.append('categoria', params.categoria);
+
+    return fetchWithAuth<HistoryPage>(`${this.API_ENDPOINT}/${id}/history?${qs}`);
   }
 
   static async getCompetencias(id: string): Promise<any[]> {
