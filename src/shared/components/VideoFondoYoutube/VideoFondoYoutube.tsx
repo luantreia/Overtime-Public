@@ -1,6 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { extraerYoutubeId, youtubeFondoEmbedUrl, youtubeThumbnailUrls } from '../../utils/youtube';
 
+/** Alto aproximado, en px, de la barra de título/botones que YouTube dibuja sobre el video. */
+const MARGEN_CHROME = 64;
+
 export interface VideoFondoYoutubeProps {
   /** URL de YouTube en cualquier formato (watch, youtu.be, shorts, embed) o el ID pelado. */
   url?: string | null;
@@ -57,7 +60,12 @@ const VideoFondoYoutube: React.FC<VideoFondoYoutubeProps> = ({ url, className = 
     const observer = new ResizeObserver(([entrada]) => {
       const { width, height } = entrada.contentRect;
       if (!width || !height) return;
-      const escala = Math.max(width / 16, height / 9);
+      // Al alto le sumamos MARGEN_CHROME arriba y abajo antes de calcular la escala, así el
+      // iframe siempre sobresale lo suficiente como para que el recorte se coma la barra de
+      // título de YouTube. Sin esto, en un header angosto (mobile) el alto del video coincide
+      // con el del contenedor, no se recorta nada, y queda a la vista el nombre del canal —
+      // que muchas veces no es el de la organización cuyo header estás mirando.
+      const escala = Math.max(width / 16, (height + MARGEN_CHROME * 2) / 9);
       setMedidas({ ancho: escala * 16, alto: escala * 9 });
     });
     observer.observe(el);
