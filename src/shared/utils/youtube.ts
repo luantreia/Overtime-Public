@@ -60,6 +60,14 @@ export const youtubeFondoEmbedUrl = (id: string): string => {
   return `https://www.youtube-nocookie.com/embed/${id}?${params.toString()}`;
 };
 
-/** Miniatura del video, para usar de poster mientras el iframe no está montado. */
-export const youtubeThumbnailUrl = (id: string): string =>
-  `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`;
+/**
+ * Miniaturas del video, de mejor a peor calidad, para usar de poster mientras el player carga.
+ *
+ * `maxresdefault` no existe para todos los videos (los subidos en baja nunca la tienen) y
+ * devuelve 404, así que hay que tener a mano el siguiente escalón: `hqdefault` sí está
+ * siempre.
+ */
+export const youtubeThumbnailUrls = (id: string): string[] => [
+  `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`,
+  `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
+];

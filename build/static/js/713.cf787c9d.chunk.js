@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunkovertime_public=self.webpackChunkovertime_public||[]).push([[713],{7713:(e,i,a)=>{a.r(i),a.d(i,{default:()=>u});a(5043);var o=a(2519),r=a(7319),s=a(579);function u(){return(0,r.H)("Mis Solicitudes"),(0,s.jsx)(o.p,{title:"Mis Solicitudes",description:"Revisa el estado de tus solicitudes enviadas",allowedTipos:["usuario-crear-jugador","usuario-crear-equipo","usuario-crear-organizacion","jugador-claim"],entityType:"none",scope:"mine",canApprove:!1,showCategoriaFilter:!0,showEntidadFilter:!1})}}}]);
+//# sourceMappingURL=713.cf787c9d.chunk.js.map
