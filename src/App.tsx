@@ -27,6 +27,19 @@ const persister = createSyncStoragePersister({
   storage: window.localStorage,
 });
 
+/**
+ * Invalida la caché persistida cuando cambia la forma de los datos guardados.
+ *
+ * La caché de react-query vive en localStorage y sobrevive a los deploys (el chequeo de
+ * APP_VERSION de index.tsx solo limpia el Cache API, no localStorage). Si una query cambia de
+ * forma —por ejemplo de `useQuery` a `useInfiniteQuery`, que guarda `{ pages, pageParams }` en
+ * vez de un array— la entrada vieja se hidrata igual y rompe el render.
+ *
+ * Subir este valor descarta la caché una sola vez por usuario. Hay que subirlo cada vez que
+ * cambie la forma de lo que devuelve una query cacheada.
+ */
+const CACHE_BUSTER = 'v2-historial-paginado';
+
 // Lazy load components
 const LandingPage = lazy(() => import('./features/dashboard/pages/LandingPage'));
 const Jugadores = lazy(() => import('./features/jugadores/pages/Jugadores'));
@@ -59,7 +72,7 @@ const ReglamentoPage = lazy(() => import('./features/reglas/pages/ReglamentoPage
 const App: React.FC = () => (
   <PersistQueryClientProvider 
     client={queryClient} 
-    persistOptions={{ persister }}
+    persistOptions={{ persister, buster: CACHE_BUSTER }}
   >
     <FeatureFlagsProvider>
     <div className="App">

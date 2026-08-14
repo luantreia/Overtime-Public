@@ -22,7 +22,10 @@ export const PartidosHistorial: React.FC<PartidosHistorialProps> = ({ jugadorId 
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery({
-    queryKey: ['jugador-history', jugadorId],
+    // La key lleva sufijo porque antes esta query era un useQuery que guardaba un array plano:
+    // sin cambiarla, la entrada vieja persistida en localStorage se hidrata acá y revienta al
+    // buscarle `.pages`. Ver CACHE_BUSTER en App.tsx.
+    queryKey: ['jugador-history-paginado', jugadorId],
     queryFn: ({ pageParam }) =>
       JugadorService.getHistoryPage(jugadorId, { page: pageParam, limit: POR_PAGINA }),
     initialPageParam: 1,
