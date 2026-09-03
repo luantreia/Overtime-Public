@@ -6,6 +6,7 @@ import App from './App';
 import { AuthProvider } from './app/providers/AuthContext';
 import { ToastProvider } from './shared/components/Toast/ToastProvider';
 import { SolicitudesProvider } from './app/providers/SolicitudesContext';
+import { iniciarObservabilidad } from './shared/observabilidad/sentry';
 
 // Versión de build (cambia con cada deploy). Usa REACT_APP_VERSION si la defines en el build, si no cae a la versión del package.
 const BUILD_VERSION = process.env.REACT_APP_VERSION || process.env.npm_package_version || 'dev';
@@ -53,6 +54,9 @@ class GlobalErrorBoundary extends React.Component<{ children: React.ReactNode },
     return this.props.children;
   }
 }
+
+// Antes del primer render: si el SDK arranca despues, los errores de montaje se pierden.
+iniciarObservabilidad();
 
 const container = document.getElementById('root');
 if (container) {

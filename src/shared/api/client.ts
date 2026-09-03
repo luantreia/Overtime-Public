@@ -68,13 +68,13 @@ export const api = {
       method: 'POST',
       body: payload,
     }),
-  getClaimInvite: (token: string) =>
-    request<{ jugador: { nombre: string; alias?: string; foto?: string } }>(`/jugadores/invitaciones/${token}`),
-  claimWithToken: (token: string, payload: { nombre: string; email: string; password: string }) =>
-    request<{ user: any; accessToken: string; refreshToken: string; jugadorId: string }>(
-      `/jugadores/invitaciones/${token}/claim`,
-      { method: 'POST', body: payload }
-    ),
+  // El canje de invitaciones por token se mudó a Overtime-Manager, que es la app del jugador.
+  // Acá vivían `getClaimInvite` y `claimWithToken`; se borran para que nadie vuelva a colgar
+  // una pantalla de canje de este portal, que no tiene sesión. La ruta /claim/:token sigue
+  // existiendo pero sólo redirige (ver ClaimRedirect).
+  //
+  // Ojo con no confundirlo con `jugador-claim`, que es otra cosa y sigue vigente: la solicitud
+  // de un usuario YA logueado para reclamar un perfil desde el portal.
   solicitarCrearEntidad: (payload: { tipo: string; nombre: string }) =>
     request<SolicitudEdicion>(`/solicitud-edicion`, {
       method: 'POST',
