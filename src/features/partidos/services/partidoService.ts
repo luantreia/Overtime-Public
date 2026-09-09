@@ -33,7 +33,7 @@ export interface Partido {
     nombre: string;
   };
   faseId?: string;
-  etapa?: 'octavos' | 'cuartos' | 'semifinal' | 'final' | 'tercer_puesto' | 'repechaje' | 'otro';
+  etapa?: 'treintaidosavos' | 'dieciseisavos' | 'octavos' | 'cuartos' | 'semifinal' | 'final' | 'tercer_puesto' | 'repechaje' | 'otro';
   fase?: {
     _id: string;
     nombre: string;
