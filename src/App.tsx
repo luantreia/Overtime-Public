@@ -9,6 +9,7 @@ import { FeatureFlagsProvider } from './shared/config/featureFlags';
 import ErrorBoundary from './shared/components/ui/Error/ErrorBoundary';
 import FeedbackWidget from './shared/components/FeedbackWidget';
 import { minijuegosRoutes } from './features/minijuegos/routes';
+import DesignPreview from './__DesignPreview';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -83,6 +84,7 @@ const App: React.FC = () => (
         <Suspense fallback={<div className="flex min-h-screen items-center justify-center"><div className="text-center"><div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600 mx-auto"></div><p className="text-slate-600">Cargando...</p></div></div>}>
           <Routes>
             <Route path="/" element={<LandingPage />} />
+            <Route path="/__design-preview" element={<DesignPreview />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/claim/:token" element={<ClaimRedirect />} />
