@@ -1,10 +1,10 @@
-// Contador global compartido por todos los modales de la app (tanto los que usan
-// el componente `Modal` como los que implementan su propio overlay `fixed inset-0`).
-// Cada vez que un modal se abre pide el próximo valor, así el último abierto
-// siempre queda arriba sin importar su posición en el árbol de componentes.
-let counter = 100;
-
-export const getNextModalZIndex = (): number => {
-  counter += 10;
-  return counter;
-};
+/**
+ * Puente al kit: la pila de z-index vive en `overtime-kit` y este archivo existe sólo para que
+ * los overlays hechos a mano que todavía no migraron a `<Overlay>` (varios modales de esta app)
+ * sigan pidiendo su z-index sin cambiar el import.
+ *
+ * Importa mantenerlo como re-export y no como una implementación propia: comparte el mismo
+ * contador que usa `<Modal>`/`<Overlay>` del kit, así un modal hecho a mano y uno migrado se
+ * siguen apilando en el orden correcto entre sí.
+ */
+export { getNextModalZIndex } from 'overtime-kit';
