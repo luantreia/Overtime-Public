@@ -327,9 +327,11 @@ export const Court3DScene: React.FC<Court3DSceneProps> = ({ mode, formato, corri
     <directionalLight position={[5, 12, 9]} intensity={0.85} />
     <directionalLight position={[-6, 8, -4]} intensity={0.25} />
     <CamaraFija />
+    {/* La línea de ataque/activación se muestra en las dos escenas que la nombran: la arrancada
+        (donde activa la pelota) y los shaggers (que devuelven por detrás de ella). */}
     <Cancha
       formato={formato}
-      mostrarActivacion={mode === 'apertura'}
+      mostrarActivacion={mode === 'apertura' || mode === 'shaggers'}
       rotularZonaNeutra={mode === 'linea'}
     />
     <Actores mode={mode} formato={formato} corriendo={corriendo} reinicio={reinicio} onNota={onNota} />

@@ -593,6 +593,9 @@ const escenaShaggers = (t: number, fmt: Formato): Frame => {
   // de ataque propia, que es lo único que el reglamento habilita (Cloth Rule 31.13).
   const xAfuera = -3.2;
   const xDevolucion = -(spec.activacion + 0.9);
+  // La pelota queda delante de la fila de shaggers, si no el cuerpo del que la lleva la tapa.
+  // Tiene que seguir fuera de la línea lateral (-4.5): ahí adentro el shagger no puede tocarla.
+  const Z_PELOTA_AFUERA = Z_SHAGGERS + 0.9;
 
   const shagger = (id: string, x: number, extra: Partial<JugadorFrame> = {}) =>
     jugador(id, 'rojo', x, Z_SHAGGERS, { estado: 'shagger', ...extra });
@@ -615,18 +618,20 @@ const escenaShaggers = (t: number, fmt: Formato): Frame => {
   // La pelota: sale de la cancha, la junta el shagger, y vuelve a un compañero habilitado.
   let p: PelotaFrame;
   if (t < 1.7) {
-    p = pelota('p0', mezcla(-2.6, xAfuera, sePierde), mezcla(-1.8, Z_SHAGGERS + 0.4, sePierde), { duenio: 'rojo' });
+    p = pelota('p0', mezcla(-2.6, xAfuera, sePierde), mezcla(-1.8, Z_PELOTA_AFUERA, sePierde), { duenio: 'rojo' });
   } else if (t < 3.8) {
-    p = pelota('p0', xAfuera, Z_SHAGGERS + 0.4, { duenio: 'rojo', muerta: true });
+    // Sin `muerta`: afuera y en manos del shagger la pelota sigue en posesión del equipo, y
+    // gris sobre el fondo blanco se perdía de vista justo en la parte que hay que seguir.
+    p = pelota('p0', xAfuera, Z_PELOTA_AFUERA, { duenio: 'rojo' });
   } else if (t < 5.8) {
-    p = pelota('p0', xBuscador, Z_SHAGGERS + 0.4, { duenio: 'rojo', muerta: true });
+    p = pelota('p0', xBuscador, Z_PELOTA_AFUERA, { duenio: 'rojo' });
   } else {
     // Cae al costado del receptor, no encima: si comparten posición la pelota queda tapada.
     const xFinal = receptor.x + 0.6;
     const zFinal = receptor.z - 0.5;
     p =
       t < 6.8
-        ? pelota('p0', mezcla(xDevolucion, xFinal, devuelve), mezcla(Z_SHAGGERS + 0.4, zFinal, devuelve), {
+        ? pelota('p0', mezcla(xDevolucion, xFinal, devuelve), mezcla(Z_PELOTA_AFUERA, zFinal, devuelve), {
             duenio: 'rojo',
             y: campana(devuelve) * 0.8,
           })
