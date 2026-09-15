@@ -595,10 +595,15 @@ const escenaShaggers = (t: number, fmt: Formato): Frame => {
   const seAsoma = tramo(t, 7.4, 8.6);
   const retrocede = tramo(t, 9.4, 10.4);
 
-  // Dónde queda la pelota afuera, y desde dónde la devuelve: siempre por detrás de la línea
-  // de ataque propia, que es lo único que el reglamento habilita (Cloth Rule 31.13).
-  const xAfuera = -3.2;
-  const xDevolucion = -(spec.activacion + 0.9);
+  // Todo el recorrido se mide desde la línea del equipo, no en metros fijos. La de Foam está a
+  // 3 m y la de Cloth a 5.5: con valores absolutos el mismo tramo daba 3.2 m en Cloth y 0.7 m en
+  // Foam, y encima en Foam la pelota ya caía detrás de la línea, así que el beat no mostraba lo
+  // único que tiene que mostrar — cruzarla. Anclado a la línea, el recorrido es idéntico en los
+  // dos formatos: la pelota nace 0.9 m delante y se devuelve 0.9 m detrás.
+  const L = spec.activacion;
+  const xAfuera = -(L - 0.9);
+  const xDevolucion = -(L + 0.9);
+  const xPuesto = -(L + 2.2);
   // La pelota queda delante de la fila de shaggers, si no el cuerpo del que la lleva la tapa.
   // Tiene que seguir fuera de la línea lateral (-4.5): ahí adentro el shagger no puede tocarla.
   const Z_PELOTA_AFUERA = Z_SHAGGERS + 0.9;
@@ -606,11 +611,21 @@ const escenaShaggers = (t: number, fmt: Formato): Frame => {
   const shagger = (id: string, x: number, extra: Partial<JugadorFrame> = {}) =>
     jugador(id, 'rojo', x, Z_SHAGGERS, { estado: 'shagger', ...extra });
 
-  const xBuscador = t < 2.0 ? -2 : t < 3.8 ? mezcla(-2, xAfuera, vaABuscar) : mezcla(xAfuera, xDevolucion, laTrae);
+  const xBuscador =
+    t < 2.0 ? xPuesto : t < 3.8 ? mezcla(xPuesto, xAfuera, vaABuscar) : mezcla(xAfuera, xDevolucion, laTrae);
+
   // El que se asoma frena antes de la línea del medio y después vuelve a su puesto. Frena a 1 m
-  // y no pegado al centro: ahí arriba está el rótulo "shaggers" y se pisan.
+  // y no pegado al centro: ahí arriba está el rótulo "shaggers" y se pisan. Su puesto sí es fijo
+  // —este beat habla de la línea del medio, no de la del equipo— pero deja al menos 0.9 m con
+  // todo lo demás en los dos formatos, que es donde Foam queda más apretado.
   const xTope = -1.1;
-  const xLimite = t < 7.4 ? -4.6 : t < 9.4 ? mezcla(-4.6, xTope, seAsoma) : mezcla(xTope, -4.6, retrocede);
+  const xPuestoAsoma = -3.0;
+  const xLimite =
+    t < 7.4
+      ? xPuestoAsoma
+      : t < 9.4
+        ? mezcla(xPuestoAsoma, xTope, seAsoma)
+        : mezcla(xTope, xPuestoAsoma, retrocede);
 
   // A dónde mira el que junta la pelota: primero a la pelota (mientras va, la levanta y la
   // lleva) y después al compañero al que se la devuelve. Sin esto queda mirando al otro lado
@@ -630,9 +645,9 @@ const escenaShaggers = (t: number, fmt: Formato): Frame => {
   const jugadores = [
     ...rojos,
     ...azules,
-    // Más al fondo que en las otras escenas: acá el que devuelve se para en `xDevolucion` y en
-    // el puesto de siempre (-7.2) los dos cuerpos se superponen justo en el momento del pase.
-    shagger('sr0', -8.3),
+    // Detrás del que junta, también anclado a la línea: con un puesto fijo los dos cuerpos se
+    // superponen justo en el momento del pase, en un formato o en el otro.
+    shagger('sr0', xPuesto - 1.4),
     shagger('sr1', xLimite, { manos: t >= 8.4 && t < 9.4 ? 0.5 : 0 }),
     shagger('sr2', xBuscador, { manos: manosBuscador, rumbo: rumboBuscador }),
     ...[2, 4.6, 7.2].map((x, i) => jugador(`sa${i}`, 'azul', x, Z_SHAGGERS, { estado: 'shagger' })),
