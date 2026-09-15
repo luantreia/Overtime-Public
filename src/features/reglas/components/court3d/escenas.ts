@@ -630,7 +630,9 @@ const escenaShaggers = (t: number, fmt: Formato): Frame => {
   const jugadores = [
     ...rojos,
     ...azules,
-    shagger('sr0', -7.2),
+    // Más al fondo que en las otras escenas: acá el que devuelve se para en `xDevolucion` y en
+    // el puesto de siempre (-7.2) los dos cuerpos se superponen justo en el momento del pase.
+    shagger('sr0', -8.3),
     shagger('sr1', xLimite, { manos: t >= 8.4 && t < 9.4 ? 0.5 : 0 }),
     shagger('sr2', xBuscador, { manos: manosBuscador, rumbo: rumboBuscador }),
     ...[2, 4.6, 7.2].map((x, i) => jugador(`sa${i}`, 'azul', x, Z_SHAGGERS, { estado: 'shagger' })),
