@@ -11,7 +11,7 @@ import {
   MEDIO_LARGO,
   Z_COLA,
   Z_SHAGGERS,
-  DURACIONES,
+  duracionDe,
   type CourtMode,
   type Formato,
 } from './constants';
@@ -73,14 +73,16 @@ const Linea: React.FC<{ x?: number; z?: number; largoX: number; largoZ: number; 
   </mesh>
 );
 
-const Zona: React.FC<{ x: number; z: number; largoX: number; largoZ: number; color: string }> = ({
-  x,
-  z,
-  largoX,
-  largoZ,
-  color,
-}) => (
-  <mesh position={[x, 0.006, z]} rotation={[-Math.PI / 2, 0, 0]}>
+const Zona: React.FC<{
+  x: number;
+  z: number;
+  largoX: number;
+  largoZ: number;
+  color: string;
+  /** Orden de apilado entre zonas que se superponen: evita el z-fighting de dos planos coplanares. */
+  capa?: number;
+}> = ({ x, z, largoX, largoZ, color, capa = 0 }) => (
+  <mesh position={[x, 0.006 + capa * 0.002, z]} rotation={[-Math.PI / 2, 0, 0]}>
     <planeGeometry args={[largoX, largoZ]} />
     <meshBasicMaterial color={color} />
   </mesh>
@@ -99,12 +101,33 @@ const Rotulo: React.FC<{ x: number; z: number; className: string; children: Reac
 
 // Memoizados: la nota cambia varias veces por vuelta y re-renderiza la página entera. Sin memo,
 // eso volvería a montar los refs de todas las mallas en cada cambio de texto.
-const Cancha: React.FC<{ formato: Formato; mostrarActivacion: boolean }> = React.memo(({ formato, mostrarActivacion }) => {
+interface CanchaProps {
+  formato: Formato;
+  mostrarActivacion: boolean;
+  rotularZonaNeutra: boolean;
+}
+
+const Cancha: React.FC<CanchaProps> = React.memo(({ formato, mostrarActivacion, rotularZonaNeutra }) => {
   const spec = FORMATOS[formato];
   return (
     <group>
       <Zona x={-MEDIO_LARGO / 2} z={0} largoX={MEDIO_LARGO} largoZ={ANCHO} color="#fbdada" />
       <Zona x={MEDIO_LARGO / 2} z={0} largoX={MEDIO_LARGO} largoZ={ANCHO} color="#d9e4fb" />
+
+      {/* Zona neutra: solo Cloth. Se pinta encima de las dos mitades porque no pertenece a
+          ninguna de las dos — es la franja en la que se puede entrar sin quedar out. */}
+      {spec.zonaNeutra !== null && (
+        <>
+          <Zona x={0} z={0} largoX={spec.zonaNeutra * 2} largoZ={ANCHO} color="#eceff4" capa={1} />
+          <Linea x={-spec.zonaNeutra} largoX={GROSOR_LINEA * 1.4} largoZ={ANCHO} color="#6366f1" />
+          <Linea x={spec.zonaNeutra} largoX={GROSOR_LINEA * 1.4} largoZ={ANCHO} color="#6366f1" />
+          {rotularZonaNeutra && (
+            <Rotulo x={0} z={MEDIO_ANCHO + 0.5} className="text-[9px] font-bold text-indigo-600">
+              zona neutra
+            </Rotulo>
+          )}
+        </>
+      )}
 
       <Linea x={-MEDIO_LARGO} largoX={GROSOR_LINEA} largoZ={ANCHO} />
       <Linea x={MEDIO_LARGO} largoX={GROSOR_LINEA} largoZ={ANCHO} />
@@ -188,7 +211,7 @@ const Actores: React.FC<ActoresProps> = React.memo(({ mode, formato, corriendo, 
   }, [mode, formato, reinicio]);
 
   useFrame((_, delta) => {
-    if (corriendo) reloj.current = (reloj.current + delta) % DURACIONES[mode];
+    if (corriendo) reloj.current = (reloj.current + delta) % duracionDe(mode, formato);
     const frame = calcularFrame(mode, reloj.current, formato);
 
     jugadores.current.forEach((slot, i) => {
@@ -199,7 +222,7 @@ const Actores: React.FC<ActoresProps> = React.memo(({ mode, formato, corriendo, 
         return;
       }
       slot.grupo.visible = true;
-      slot.grupo.position.set(j.x, 0, j.z);
+      slot.grupo.position.set(j.x, j.y, j.z);
       // El grupo rota para que el eje local +Z apunte hacia el rival: así las manos
       // siempre se estiran hacia adelante, sea cual sea el equipo.
       slot.grupo.rotation.y = j.mira === 1 ? Math.PI / 2 : -Math.PI / 2;
@@ -304,7 +327,11 @@ export const Court3DScene: React.FC<Court3DSceneProps> = ({ mode, formato, corri
     <directionalLight position={[5, 12, 9]} intensity={0.85} />
     <directionalLight position={[-6, 8, -4]} intensity={0.25} />
     <CamaraFija />
-    <Cancha formato={formato} mostrarActivacion={mode === 'apertura'} />
+    <Cancha
+      formato={formato}
+      mostrarActivacion={mode === 'apertura'}
+      rotularZonaNeutra={mode === 'linea'}
+    />
     <Actores mode={mode} formato={formato} corriendo={corriendo} reinicio={reinicio} onNota={onNota} />
   </Canvas>
 );

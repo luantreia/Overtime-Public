@@ -40,7 +40,15 @@ export interface Reglamento {
 // Contenido de la explicación simplificada ("cómo se juega"): redactado propio, no transcripción.
 // Cada escena es una animación 3D; el texto solo la encabeza, el detalle lo cuenta la animación
 // con sus propias notas paso a paso (ver components/court3d/escenas.ts).
-export type CourtMode = 'posiciones' | 'apertura' | 'lanzamiento' | 'catch' | 'bloqueo' | 'linea' | 'gana';
+export type CourtMode =
+  | 'posiciones'
+  | 'apertura'
+  | 'lanzamiento'
+  | 'catch'
+  | 'bloqueo'
+  | 'linea'
+  | 'shaggers'
+  | 'gana';
 
 export interface EscenaExplicada {
   id: CourtMode;

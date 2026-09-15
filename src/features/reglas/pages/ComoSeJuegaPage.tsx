@@ -13,6 +13,7 @@ const ACENTOS = [
   { border: 'border-indigo-100', badge: 'bg-indigo-100 text-indigo-700' },
   { border: 'border-orange-100', badge: 'bg-orange-100 text-orange-700' },
   { border: 'border-sky-100', badge: 'bg-sky-100 text-sky-700' },
+  { border: 'border-teal-100', badge: 'bg-teal-100 text-teal-700' },
 ];
 
 // Umbral mínimo de arrastre (px) para que un touch cuente como swipe y no como toque o scroll.
@@ -60,7 +61,7 @@ const ComoSeJuegaPage: React.FC = () => {
       <div className="rounded-2xl bg-gradient-to-br from-brand-600 to-indigo-700 px-4 py-4 text-white shadow-lg">
         <h1 className="text-xl font-black tracking-tight">🏐 ¿Cómo se juega al dodgeball?</h1>
         <p className="mt-1 text-sm text-brand-50">
-          Siete jugadas animadas. Deslizá para pasar de una a otra.{' '}
+          Ocho jugadas animadas. Deslizá para pasar de una a otra.{' '}
           <Link to="/reglamento" className="font-semibold text-white underline underline-offset-2">
             Reglamento oficial completo acá
           </Link>

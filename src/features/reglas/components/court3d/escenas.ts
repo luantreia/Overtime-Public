@@ -23,6 +23,8 @@ export interface JugadorFrame {
   equipo: Equipo;
   x: number;
   z: number;
+  /** Altura sobre el piso: >0 solo mientras está en el aire (jugada de sacrificio). */
+  y: number;
   estado: EstadoJugador;
   /** Hacia dónde mira: 1 = hacia +X, -1 = hacia -X. Cada equipo mira al rival. */
   mira: 1 | -1;
@@ -80,7 +82,7 @@ const jugador = (
   x: number,
   z: number,
   extra: Partial<JugadorFrame> = {}
-): JugadorFrame => ({ id, equipo, x, z, estado: 'vivo', mira: miraDe(equipo), manos: 0, pulso: 0, ...extra });
+): JugadorFrame => ({ id, equipo, x, z, y: 0, estado: 'vivo', mira: miraDe(equipo), manos: 0, pulso: 0, ...extra });
 
 const pelota = (id: string, x: number, z: number, extra: Partial<PelotaFrame> = {}): PelotaFrame => ({
   id,
@@ -437,29 +439,61 @@ const escenaBloqueo = (t: number, fmt: Formato): Frame => {
 
 // ---------------------------------------------------------------------------
 // Escena 6: las líneas
+//
+// El límite no es el mismo en los dos formatos. En Foam la línea del medio te frena. En Cloth
+// hay una zona neutra de 4 m (Rule 1.4.2) en la que se puede entrar: lo que elimina es tocar
+// la línea de zona neutra del rival (Rule 26.4). Por eso Cloth agrega al final la jugada de
+// sacrificio (Rule 28), la única forma legal de cruzar esa línea.
 // ---------------------------------------------------------------------------
 
-const escenaLinea = (t: number): Frame => {
+const escenaLinea = (t: number, fmt: Formato): Frame => {
+  const spec = FORMATOS[fmt];
+  const nz = spec.zonaNeutra;
   const rojos = enJuego('rojo');
   const azules = enJuego('azul');
   const cruza = rojos[1];
   const sale = rojos[2];
+  const sacrifica = rojos[0];
+  const blanco = azules[4];
 
-  const persigue = tramo(t, 0.8, 2.3);
-  const castigoCruce = t >= 2.3;
-  const salidaCruce = tramo(t, 2.7, 4.8);
+  // Hasta dónde puede llegar el rojo sin quedar out, y dónde está la línea que lo elimina.
+  const limiteLegal = nz === null ? -0.55 : -0.35;
+  const lineaQueElimina = nz === null ? 0.45 : nz;
 
-  const derrapa = tramo(t, 5.2, 6.6);
+  const avanza = tramo(t, 0.8, 2.2);
+  const invade = tramo(t, 2.4, 3.3);
+  const castigoCruce = t >= 3.3;
+  const salidaCruce = tramo(t, 3.6, 5.0);
+
+  const derrapa = tramo(t, 5.4, 6.6);
   const castigoSalida = t >= 6.6;
   const salidaFuera = tramo(t, 7.0, 9.2);
+
+  // Jugada de sacrificio, solo Cloth: carrera, vuelo cruzando la línea rival, tiro y vuelta.
+  const carrera = tramo(t, 9.8, 10.6);
+  const vuelo = lineal(t, 10.6, 11.9);
+  const regreso = tramo(t, 11.9, 13.2);
+  const enElAire = spec.sacrificio && t >= 10.6 && t < 11.9;
+  const yaTiro = spec.sacrificio && t >= 11.2;
+
+  const xSacrificio = spec.sacrificio
+    ? t < 10.6
+      ? mezcla(sacrifica.x, 1.5, carrera)
+      : t < 11.9
+        ? mezcla(1.5, 3.6, vuelo)
+        : mezcla(3.6, nz === null ? 1.5 : nz - 0.5, regreso)
+    : sacrifica.x;
+  // Se corre hacia el centro del ancho antes de saltar: pegado al borde, el salto se confunde
+  // con estar fuera de la cancha.
+  const zSacrificio = mezcla(sacrifica.z, -1.1, carrera);
 
   const jugadores = [
     ...rojos.map((j) => {
       if (j.id === cruza.id) {
-        const x = mezcla(j.x, 0.45, persigue);
-        if (!castigoCruce) return { ...j, x, manos: persigue * 0.8 };
+        const x = mezcla(mezcla(j.x, limiteLegal, avanza), lineaQueElimina, invade);
+        if (!castigoCruce) return { ...j, x, manos: avanza * 0.8 };
         const p = camino(salidaCruce, [{ x, z: j.z }, puestoCola('rojo', 0)]);
-        return { ...j, x: p.x, z: p.z, estado: 'eliminado' as const, pulso: campana(lineal(t, 2.3, 2.9)) };
+        return { ...j, x: p.x, z: p.z, estado: 'eliminado' as const, pulso: campana(lineal(t, 3.3, 3.9)) };
       }
       if (j.id === sale.id) {
         const z = mezcla(j.z, 5.1, derrapa);
@@ -467,31 +501,137 @@ const escenaLinea = (t: number): Frame => {
         const p = camino(salidaFuera, [{ x: j.x, z }, puestoCola('rojo', 1)]);
         return { ...j, x: p.x, z: p.z, estado: 'eliminado' as const, pulso: campana(lineal(t, 6.6, 7.2)) };
       }
+      if (j.id === sacrifica.id && spec.sacrificio && t >= 9.8) {
+        // Despega al cruzar la línea del rival y aterriza recién de vuelta en la zona neutra.
+        return {
+          ...j,
+          x: xSacrificio,
+          z: zSacrificio,
+          y: enElAire ? campana(vuelo) * 1.1 : 0,
+          manos: yaTiro ? 0.2 : 0.9,
+        };
+      }
       return j;
     }),
-    ...azules,
+    ...azules.map((j) =>
+      j.id === blanco.id && yaTiro && t < 13.2
+        ? { ...j, estado: 'eliminado' as const, pulso: campana(lineal(t, 11.5, 12.1)) }
+        : j
+    ),
     ...shaggers(),
   ];
 
   const pelotas = [pelota('p0', mezcla(-1.4, 0.9, tramo(t, 0.4, 2.2)), 0, { duenio: 'libre' })];
+  if (spec.sacrificio && t >= 9.8) {
+    // La pelota va con el que salta hasta que la suelta, y después vuela al rival.
+    const disparo = lineal(t, 11.2, 11.8);
+    const xPelota = yaTiro ? mezcla(xSacrificio, blanco.x, disparo) : xSacrificio + 0.5;
+    const zPelota = yaTiro ? mezcla(zSacrificio, blanco.z, disparo) : zSacrificio;
+    pelotas[0] = pelota('p0', xPelota, zPelota, {
+      duenio: 'rojo',
+      y: yaTiro ? campana(disparo) * 0.9 : enElAire ? campana(vuelo) * 1.1 : 0.4,
+    });
+  }
 
-  const nota =
-    t < 2.3
-      ? 'La línea del medio es tu límite: la pelota se busca hasta ahí.'
-      : t < 5.0
-        ? 'Pisarla o cruzarla te elimina.'
-        : t < 7.0
-          ? 'Irte de la cancha por el costado, también.'
-          : 'Única excepción: en la arrancada sí podés pisar el centro.';
+  const limite = nz === null ? 'La línea del medio es tu límite' : 'El medio es zona neutra: podés entrar';
+
+  let nota: string;
+  if (t < 2.3) nota = `${limite}. La pelota se busca hasta ahí.`;
+  else if (t < 3.3)
+    nota = nz === null ? 'Pero pisarla o cruzarla te elimina.' : 'Lo que te elimina es tocar la línea de zona neutra del rival.';
+  else if (t < 5.2) nota = 'Quedó out: se va a la cola.';
+  else if (t < 7.0) nota = 'Irte de la cancha por el costado, también te elimina.';
+  else if (!spec.sacrificio) nota = 'Única excepción: en la arrancada sí podés pisar el centro.';
+  else if (t < 10.6) nota = 'Hay una sola forma legal de cruzar: la jugada de sacrificio.';
+  else if (t < 11.9) nota = 'Cruzás por el aire, sin tocar el piso del rival, y tirás.';
+  else if (t < 13.2) nota = 'Si le pegás, volvés a la zona neutra. Si errás, quedás out vos.';
+  else nota = 'Solo un jugador por equipo puede estar en el aire a la vez.';
 
   return { jugadores, pelotas, nota };
 };
 
 // ---------------------------------------------------------------------------
-// Escena 7: cómo se gana
+// Escena 7: los shaggers (ball retrievers)
+//
+// Cloth Rule 4 y 31 · Foam Rule 4: hasta 3 por equipo, salen de los jugadores que no arrancan
+// el set, solo juntan pelotas de afuera de las líneas, no pueden pasar la línea del medio y
+// devuelven la pelota detrás de la línea de ataque de su propio equipo.
+// ---------------------------------------------------------------------------
+
+const escenaShaggers = (t: number, fmt: Formato): Frame => {
+  const spec = FORMATOS[fmt];
+  const rojos = enJuego('rojo');
+  const azules = enJuego('azul');
+  const receptor = rojos[5]; // el más retrasado: está detrás de la línea de ataque
+
+  const sePierde = tramo(t, 0.3, 1.7);
+  const vaABuscar = tramo(t, 2.0, 3.6);
+  const laTrae = tramo(t, 3.8, 5.6);
+  const devuelve = lineal(t, 5.8, 6.8);
+  const seAsoma = tramo(t, 7.4, 8.6);
+  const retrocede = tramo(t, 9.4, 10.4);
+
+  // Dónde queda la pelota afuera, y desde dónde la devuelve: siempre por detrás de la línea
+  // de ataque propia, que es lo único que el reglamento habilita (Cloth Rule 31.13).
+  const xAfuera = -3.2;
+  const xDevolucion = -(spec.activacion + 0.9);
+
+  const shagger = (id: string, x: number, extra: Partial<JugadorFrame> = {}) =>
+    jugador(id, 'rojo', x, Z_SHAGGERS, { estado: 'shagger', ...extra });
+
+  const xBuscador = t < 2.0 ? -2 : t < 3.8 ? mezcla(-2, xAfuera, vaABuscar) : mezcla(xAfuera, xDevolucion, laTrae);
+  // El que se asoma frena antes de la línea del medio y después vuelve a su puesto. Frena a 1 m
+  // y no pegado al centro: ahí arriba está el rótulo "shaggers" y se pisan.
+  const xTope = -1.1;
+  const xLimite = t < 7.4 ? -4.6 : t < 9.4 ? mezcla(-4.6, xTope, seAsoma) : mezcla(xTope, -4.6, retrocede);
+
+  const jugadores = [
+    ...rojos,
+    ...azules,
+    shagger('sr0', -7.2),
+    shagger('sr1', xLimite, { manos: t >= 8.4 && t < 9.4 ? 0.5 : 0 }),
+    shagger('sr2', xBuscador, { manos: t >= 3.4 && t < 4.2 ? 0.8 : t >= 5.8 && t < 6.8 ? 0.9 : 0 }),
+    ...[2, 4.6, 7.2].map((x, i) => jugador(`sa${i}`, 'azul', x, Z_SHAGGERS, { estado: 'shagger' })),
+  ];
+
+  // La pelota: sale de la cancha, la junta el shagger, y vuelve a un compañero habilitado.
+  let p: PelotaFrame;
+  if (t < 1.7) {
+    p = pelota('p0', mezcla(-2.6, xAfuera, sePierde), mezcla(-1.8, Z_SHAGGERS + 0.4, sePierde), { duenio: 'rojo' });
+  } else if (t < 3.8) {
+    p = pelota('p0', xAfuera, Z_SHAGGERS + 0.4, { duenio: 'rojo', muerta: true });
+  } else if (t < 5.8) {
+    p = pelota('p0', xBuscador, Z_SHAGGERS + 0.4, { duenio: 'rojo', muerta: true });
+  } else {
+    // Cae al costado del receptor, no encima: si comparten posición la pelota queda tapada.
+    const xFinal = receptor.x + 0.6;
+    const zFinal = receptor.z - 0.5;
+    p =
+      t < 6.8
+        ? pelota('p0', mezcla(xDevolucion, xFinal, devuelve), mezcla(Z_SHAGGERS + 0.4, zFinal, devuelve), {
+            duenio: 'rojo',
+            y: campana(devuelve) * 0.8,
+          })
+        : pelota('p0', xFinal, zFinal, { duenio: 'rojo' });
+  }
+
+  let nota: string;
+  if (t < 1.9) nota = 'Cada equipo puede tener hasta 3 shaggers: los que no arrancan el set.';
+  else if (t < 3.8) nota = 'Van a buscar las pelotas que salen, siempre por fuera de las líneas.';
+  else if (t < 5.8) nota = `La traen hasta detrás de su ${spec.nombreLinea}.`;
+  else if (t < 7.4) nota = 'Y se la pasan a un compañero, o la apoyan ahí mismo en la cancha.';
+  else if (t < 9.4) nota = 'Nunca cruzan la línea del medio: cada uno junta solo de su mitad.';
+  else nota = 'No pueden pisar una línea ni tocar una pelota viva adentro de la cancha.';
+
+  return { jugadores, pelotas: [p], nota };
+};
+
+// ---------------------------------------------------------------------------
+// Escena 8: cómo se gana
 // ---------------------------------------------------------------------------
 
 const escenaGana = (t: number, fmt: Formato): Frame => {
+  const spec = FORMATOS[fmt];
   const rojos = enJuego('rojo');
   const azules = enJuego('azul');
 
@@ -517,7 +657,9 @@ const escenaGana = (t: number, fmt: Formato): Frame => {
     };
   }
 
-  // Segundo tramo: partido detenido, se compara cuántos quedan de cada lado.
+  // Segundo tramo: 4 contra 2 y el reloj del set llegando a cero. Acá los formatos se separan:
+  // Cloth define el set por cantidad de jugadores vivos (Rule 10.2.1), Foam no lo define nunca
+  // por tiempo — el set sigue, sin bloqueos, hasta que un equipo se quede sin nadie (Rule 28).
   const jugadores = [
     ...rojos.slice(0, 4),
     ...rojos.slice(4).map((j, i) => ({ ...j, ...puestoCola('rojo', i), estado: 'eliminado' as const })),
@@ -526,14 +668,22 @@ const escenaGana = (t: number, fmt: Formato): Frame => {
     ...shaggers(),
   ];
 
-  const nota =
-    t < 8.8
-      ? 'O si al terminar el tiempo tenés más jugadores en cancha.'
-      : t < 10.4
-        ? '4 contra 2: el set es del rojo.'
-        : fmt === 'cloth'
-          ? 'En Cloth el set ganado vale 2 puntos, y 1 para cada uno si empatan.'
-          : 'En Foam cada set vale 1 punto y nunca termina empatado.';
+  let nota: string;
+  if (spec.ganaPorTiempo) {
+    nota =
+      t < 8.8
+        ? 'O si al terminar los 3 minutos del set tenés más jugadores en cancha.'
+        : t < 10.4
+          ? '4 contra 2 cuando suena: el set es del rojo.'
+          : 'El set ganado vale 2 puntos, y 1 para cada uno si quedan iguales.';
+  } else {
+    nota =
+      t < 8.8
+        ? 'En Foam tener más no alcanza: el set no se gana por tiempo.'
+        : t < 10.4
+          ? 'Si se acaba el tiempo sin definir, el árbitro canta "No-Blocking".'
+          : 'Ahí la pelota que tenés en la mano ya no bloquea: cuenta como tu cuerpo.';
+  }
 
   return { jugadores, pelotas: [pelota('p0', -3.0, 1.4, { duenio: 'rojo' })], nota };
 };
@@ -553,7 +703,9 @@ export const calcularFrame = (mode: CourtMode, t: number, fmt: Formato): Frame =
     case 'bloqueo':
       return escenaBloqueo(t, fmt);
     case 'linea':
-      return escenaLinea(t);
+      return escenaLinea(t, fmt);
+    case 'shaggers':
+      return escenaShaggers(t, fmt);
     case 'gana':
       return escenaGana(t, fmt);
     default:

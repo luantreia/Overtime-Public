@@ -39,13 +39,21 @@ export const escenasExplicadas: EscenaExplicada[] = [
     id: 'linea',
     emoji: '🚫',
     titulo: 'Las líneas',
-    resumen: 'Pisar la mitad del rival o salirte de la cancha también te elimina.',
+    resumen:
+      'Salirte de la cancha te elimina. Dónde termina tu mitad depende del formato: en Cloth hay una zona neutra en el medio en la que sí podés entrar.',
+  },
+  {
+    id: 'shaggers',
+    emoji: '🧺',
+    titulo: 'Los shaggers',
+    resumen: 'Hasta tres por equipo juntan las pelotas que salen y las devuelven detrás de su propia línea.',
   },
   {
     id: 'gana',
     emoji: '🏆',
     titulo: 'Cómo se gana',
-    resumen: 'Ganás el set limpiando la cancha, o llegando al final del tiempo con más jugadores.',
+    resumen:
+      'Ganás el set dejando al rival sin nadie en cancha. En Cloth también ganás si se acaba el tiempo y tenés más jugadores vivos.',
   },
 ];
 
@@ -60,6 +68,21 @@ export const diferenciasFormato: DiferenciaFormato[] = [
     aspecto: 'Dónde se activa la pelota',
     cloth: 'Línea de ataque, a 5.5 m del centro',
     foam: 'Línea de activación, a 3 m del centro',
+  },
+  {
+    aspecto: 'Zona neutra',
+    cloth: 'Franja de 4 m en el medio (2 m de cada lado). Podés entrar sin quedar out: lo que elimina es tocar la línea de zona neutra del rival',
+    foam: 'No existe. La línea del medio es el límite: pisarla ya te elimina',
+  },
+  {
+    aspecto: 'Cruzar a la mitad del rival',
+    cloth: 'Se puede con la "jugada de sacrificio": cruzás por el aire, tirás, y si le pegás volvés a la zona neutra. Si errás, quedás out. Solo uno por equipo a la vez',
+    foam: 'Nunca: no hay jugada de sacrificio',
+  },
+  {
+    aspecto: 'Si se acaba el tiempo del set',
+    cloth: 'Gana el que tenga más jugadores vivos; si están iguales, el set es empate',
+    foam: 'No se gana por tiempo: se declara "No-Blocking" y el set sigue hasta que un equipo se quede sin nadie',
   },
   {
     aspecto: 'Evitar que un equipo se quede con todas las pelotas',
