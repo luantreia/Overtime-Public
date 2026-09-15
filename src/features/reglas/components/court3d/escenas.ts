@@ -654,8 +654,10 @@ const escenaGana = (t: number, fmt: Formato): Frame => {
   const azules = enJuego('azul');
 
   // Primer tramo: el rojo limpia la cancha. Segundo: se acaba el tiempo con 4 contra 2.
-  if (t < 6.2) {
-    const caidas = [0.9, 1.6, 2.3, 3.0, 3.7, 4.4];
+  // El primero anuncia de entrada cuántas vías hay, porque si no la nota de la eliminación se
+  // lee como si fuera la única y en Cloth no lo es.
+  if (t < 5.6) {
+    const caidas = [0.8, 1.4, 2.0, 2.6, 3.2, 3.8];
     const jugadores = [
       ...rojos,
       ...azules.map((j, i) => {
@@ -667,12 +669,14 @@ const escenaGana = (t: number, fmt: Formato): Frame => {
       }),
       ...shaggers(),
     ];
-    return {
-      jugadores,
-      pelotas: [pelota('p0', 3.2, -1.2, { duenio: 'rojo' })],
-      nota:
-        t < 4.6 ? 'Ganás el set si eliminás a los 6 del rival.' : 'Set para el rojo: no le queda nadie en cancha al azul.',
-    };
+    let nota: string;
+    if (t < 4.2)
+      nota = spec.ganaPorTiempo
+        ? 'Hay dos formas de ganar el set. Una: eliminar a los 6 del rival.'
+        : 'La única forma de ganar el set es eliminar a los 6 del rival.';
+    else nota = 'Set para el rojo: no le queda nadie en cancha al azul.';
+
+    return { jugadores, pelotas: [pelota('p0', 3.2, -1.2, { duenio: 'rojo' })], nota };
   }
 
   // Segundo tramo: 4 contra 2 y el reloj del set llegando a cero. Acá los formatos se separan:
@@ -689,16 +693,16 @@ const escenaGana = (t: number, fmt: Formato): Frame => {
   let nota: string;
   if (spec.ganaPorTiempo) {
     nota =
-      t < 8.8
-        ? 'O si al terminar los 3 minutos del set tenés más jugadores en cancha.'
-        : t < 10.4
-          ? '4 contra 2 cuando suena: el set es del rojo.'
-          : 'El set ganado vale 2 puntos, y 1 para cada uno si quedan iguales.';
+      t < 8.0
+        ? 'La otra: que se acaben los 3 minutos del set y tengas más jugadores vivos.'
+        : t < 9.8
+          ? '4 contra 2 cuando suena: el set es del rojo, sin haberlo eliminado.'
+          : 'Si quedan iguales es empate. El set ganado da 2 puntos; el empatado, 1 para cada uno.';
   } else {
     nota =
-      t < 8.8
+      t < 8.0
         ? 'En Foam tener más no alcanza: el set no se gana por tiempo.'
-        : t < 10.4
+        : t < 9.8
           ? 'Si se acaba el tiempo sin definir, el árbitro canta "No-Blocking".'
           : 'Ahí la pelota que tenés en la mano ya no bloquea: cuenta como tu cuerpo.';
   }

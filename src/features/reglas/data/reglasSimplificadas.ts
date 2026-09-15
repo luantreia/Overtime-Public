@@ -58,7 +58,13 @@ export const escenasExplicadas: EscenaExplicada[] = [
 ];
 
 export const diferenciasFormato: DiferenciaFormato[] = [
-  { aspecto: 'Pelotas', cloth: '5 pelotas de tela con relleno de espuma', foam: '6 pelotas de espuma recubierta' },
+  // Cloth Rule 2.2: cámara de butilo adentro, tela afuera y 2–4 mm de espuma en el medio — es
+  // una pelota inflada, no rellena. Foam Rule 2.1.3: espuma recubierta de PU.
+  {
+    aspecto: 'Pelotas',
+    cloth: '5 pelotas infladas recubiertas de tela',
+    foam: '6 pelotas de goma espuma recubiertas de PU (poliuretano)',
+  },
   {
     aspecto: 'Reparto en la arrancada',
     cloth: '2 propias por equipo + 1 en el medio, disputada por ambos desde el silbato',
