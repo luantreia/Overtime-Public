@@ -614,13 +614,13 @@ const escenaShaggers = (t: number, fmt: Formato): Frame => {
   const xBuscador =
     t < 2.0 ? xPuesto : t < 3.8 ? mezcla(xPuesto, xAfuera, vaABuscar) : mezcla(xAfuera, xDevolucion, laTrae);
 
-  // El que se asoma frena antes de la línea del medio y después vuelve a su puesto. Frena a 1 m
-  // y no pegado al centro: ahí arriba está el rótulo "shaggers" y se pisan. Su puesto sí es fijo
-  // —este beat habla de la línea del medio, no de la del equipo— pero deja al menos 0.9 m con
-  // todo lo demás en los dos formatos, que es donde Foam queda más apretado.
-  const xTope = -1.1;
-  const xPuestoAsoma = -3.0;
-  const xLimite =
+  // El que se asoma a la línea del medio es un shagger AZUL, no uno rojo: del lado rojo el que
+  // junta la pelota barre toda la franja entre su puesto y la pelota, y en Foam —donde la línea
+  // está a 3 m y entra todo mucho más junto— le pasaría por encima a un compañero parado ahí.
+  // El lado azul está libre en los dos formatos, y de paso muestra que la regla vale para todos.
+  const xTope = 1.1;
+  const xPuestoAsoma = 2.8;
+  const xAsoma =
     t < 7.4
       ? xPuestoAsoma
       : t < 9.4
@@ -645,12 +645,15 @@ const escenaShaggers = (t: number, fmt: Formato): Frame => {
   const jugadores = [
     ...rojos,
     ...azules,
-    // Detrás del que junta, también anclado a la línea: con un puesto fijo los dos cuerpos se
-    // superponen justo en el momento del pase, en un formato o en el otro.
-    shagger('sr0', xPuesto - 1.4),
-    shagger('sr1', xLimite, { manos: t >= 8.4 && t < 9.4 ? 0.5 : 0 }),
+    // Los otros dos rojos esperan juntos junto al banco, fuera del camino del que trabaja. El
+    // puesto va anclado a la línea igual que todo lo demás, y el segundo va medio metro más
+    // atrás para que se lean como dos y no como uno.
+    shagger('sr0', xPuesto - 1.2),
+    shagger('sr1', xPuesto - 1.2, { z: Z_SHAGGERS - 1.0 }),
     shagger('sr2', xBuscador, { manos: manosBuscador, rumbo: rumboBuscador }),
-    ...[2, 4.6, 7.2].map((x, i) => jugador(`sa${i}`, 'azul', x, Z_SHAGGERS, { estado: 'shagger' })),
+    // Sin `rumbo`: el azul ya mira hacia -X por defecto, que es justo hacia el centro.
+    jugador('sa0', 'azul', xAsoma, Z_SHAGGERS, { estado: 'shagger', manos: t >= 8.4 && t < 9.4 ? 0.5 : 0 }),
+    ...[5.0, 7.4].map((x, i) => jugador(`sa${i + 1}`, 'azul', x, Z_SHAGGERS, { estado: 'shagger' })),
   ];
 
   // La pelota: sale de la cancha, la junta el shagger, y vuelve a un compañero habilitado.
