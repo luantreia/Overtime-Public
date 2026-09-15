@@ -264,13 +264,26 @@ const escenaApertura = (t: number, fmt: Formato): Frame => {
 
 // ---------------------------------------------------------------------------
 // Escena 3: el tiro (eliminar por impacto directo)
+//
+// Desde dónde se tira cambia con el formato. En Foam el límite es la línea del medio. En Cloth
+// la zona neutra es de los dos: el tirador entra a la franja y enfrente hay un azul parado en
+// la misma franja, que es lo que hace entender que el espacio es compartido (Rule 1.4.2).
 // ---------------------------------------------------------------------------
 
-const escenaLanzamiento = (t: number): Frame => {
+const escenaLanzamiento = (t: number, fmt: Formato): Frame => {
+  const spec = FORMATOS[fmt];
+  const nz = spec.zonaNeutra;
   const rojos = enJuego('rojo');
   const azules = enJuego('azul');
   const tirador = rojos[1];
   const objetivo = azules[1];
+  const vecino = azules[0]; // el azul que comparte la zona neutra con el tirador
+
+  // En Cloth los dos se meten en la franja; en Foam cada uno se queda en su mitad.
+  const entra = tramo(t, 0.2, 1.2);
+  const xTirador = nz === null ? tirador.x : mezcla(tirador.x, -0.8, entra);
+  const posVecino =
+    nz === null ? { x: vecino.x, z: vecino.z } : { x: mezcla(vecino.x, 0.9, entra), z: mezcla(vecino.z, -1.6, entra) };
 
   const carga = tramo(t, 1.2, 1.7);
   const suelta = tramo(t, 1.7, 2.0);
@@ -282,10 +295,11 @@ const escenaLanzamiento = (t: number): Frame => {
   const jugadores = [
     ...rojos.map((j) =>
       j.id === tirador.id
-        ? { ...j, x: j.x - 0.35 * carga + 0.55 * suelta, manos: campana(lineal(t, 1.2, 2.2)) }
+        ? { ...j, x: xTirador - 0.35 * carga + 0.55 * suelta, manos: campana(lineal(t, 1.2, 2.2)) }
         : j
     ),
     ...azules.map((j) => {
+      if (j.id === vecino.id) return { ...j, ...posVecino };
       if (j.id !== objetivo.id) return j;
       if (!pegado) return j;
       const p = camino(salida, [{ x: j.x, z: j.z }, destino]);
@@ -294,7 +308,7 @@ const escenaLanzamiento = (t: number): Frame => {
     ...shaggers(),
   ];
 
-  const salidaX = tirador.x + 0.7;
+  const salidaX = xTirador + 0.7;
   const pelotas = [
     pelota(
       'p0',
@@ -308,14 +322,16 @@ const escenaLanzamiento = (t: number): Frame => {
     ),
   ];
 
-  const nota =
-    t < 1.9
-      ? 'Tirás desde tu mitad, sin pisar la línea del medio.'
-      : t < 3.4
-        ? 'Si te pega directo, sin picar antes, quedás eliminado.'
-        : t < 5.8
-          ? 'Cuenta todo el cuerpo: también la ropa y el pelo.'
-          : 'El eliminado se va a la cola de su equipo y espera ahí.';
+  let nota: string;
+  if (t < 1.9)
+    nota =
+      nz === null
+        ? 'Tirás desde tu mitad, sin pisar la línea del medio.'
+        : 'La zona neutra es de los dos: podés entrar y tirar desde ahí.';
+  else if (t < 3.4) nota = 'Si te pega directo, sin picar antes, quedás eliminado.';
+  else if (t < 5.8) nota = 'Cuenta todo el cuerpo: también la ropa y el pelo.';
+  else if (nz === null || t < 7.4) nota = 'El eliminado se va a la cola de su equipo y espera ahí.';
+  else nota = 'Eso sí: en la zona neutra no puede haber contacto. El que choca queda out.';
 
   return { jugadores, pelotas, nota };
 };
@@ -533,10 +549,12 @@ const escenaLinea = (t: number, fmt: Formato): Frame => {
     });
   }
 
-  const limite = nz === null ? 'La línea del medio es tu límite' : 'El medio es zona neutra: podés entrar';
-
   let nota: string;
-  if (t < 2.3) nota = `${limite}. La pelota se busca hasta ahí.`;
+  if (t < 2.3)
+    nota =
+      nz === null
+        ? 'La línea del medio es tu límite. La pelota se busca hasta ahí.'
+        : 'La franja del medio es zona neutra: los dos equipos pueden estar ahí.';
   else if (t < 3.3)
     nota = nz === null ? 'Pero pisarla o cruzarla te elimina.' : 'Lo que te elimina es tocar la línea de zona neutra del rival.';
   else if (t < 5.2) nota = 'Quedó out: se va a la cola.';
@@ -697,7 +715,7 @@ export const calcularFrame = (mode: CourtMode, t: number, fmt: Formato): Frame =
     case 'apertura':
       return escenaApertura(t, fmt);
     case 'lanzamiento':
-      return escenaLanzamiento(t);
+      return escenaLanzamiento(t, fmt);
     case 'catch':
       return escenaCatch(t);
     case 'bloqueo':
