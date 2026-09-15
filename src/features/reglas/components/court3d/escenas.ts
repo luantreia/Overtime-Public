@@ -28,6 +28,12 @@ export interface JugadorFrame {
   estado: EstadoJugador;
   /** Hacia dónde mira: 1 = hacia +X, -1 = hacia -X. Cada equipo mira al rival. */
   mira: 1 | -1;
+  /**
+   * Rumbo libre en radianes, para cuando mirar al rival no alcanza: el shagger que se agacha a
+   * juntar una pelota tiene que mirarla a ella, no al otro lado de la cancha. Si no está, manda
+   * `mira`. 0 = hacia +Z (el frente de la cámara), π/2 = hacia +X.
+   */
+  rumbo?: number;
   /** 0 = manos al costado; 1 = brazos estirados adelante (agarrar, tirar, atajar, bloquear). */
   manos: number;
   /** 0..1, destello momentáneo del cuerpo (impacto, atajada). */
@@ -606,12 +612,27 @@ const escenaShaggers = (t: number, fmt: Formato): Frame => {
   const xTope = -1.1;
   const xLimite = t < 7.4 ? -4.6 : t < 9.4 ? mezcla(-4.6, xTope, seAsoma) : mezcla(xTope, -4.6, retrocede);
 
+  // A dónde mira el que junta la pelota: primero a la pelota (mientras va, la levanta y la
+  // lleva) y después al compañero al que se la devuelve. Sin esto queda mirando al otro lado
+  // de la cancha con las manos estiradas a la derecha, mientras la pelota le queda de costado.
+  const xEntrega = receptor.x + 0.6;
+  const zEntrega = receptor.z - 0.5;
+  const rumboBuscador =
+    t < 2.0 || t >= 6.8
+      ? undefined
+      : t < 5.8
+        ? Math.atan2((t < 3.8 ? xAfuera : xBuscador) - xBuscador, Z_PELOTA_AFUERA - Z_SHAGGERS)
+        : Math.atan2(xEntrega - xDevolucion, zEntrega - Z_SHAGGERS);
+
+  // Estira a agarrarla, la lleva contra el cuerpo, y vuelve a estirar para devolverla.
+  const manosBuscador = t < 3.4 || t >= 6.8 ? 0 : t < 4.2 || t >= 5.8 ? 0.85 : 0.5;
+
   const jugadores = [
     ...rojos,
     ...azules,
     shagger('sr0', -7.2),
     shagger('sr1', xLimite, { manos: t >= 8.4 && t < 9.4 ? 0.5 : 0 }),
-    shagger('sr2', xBuscador, { manos: t >= 3.4 && t < 4.2 ? 0.8 : t >= 5.8 && t < 6.8 ? 0.9 : 0 }),
+    shagger('sr2', xBuscador, { manos: manosBuscador, rumbo: rumboBuscador }),
     ...[2, 4.6, 7.2].map((x, i) => jugador(`sa${i}`, 'azul', x, Z_SHAGGERS, { estado: 'shagger' })),
   ];
 
@@ -627,15 +648,13 @@ const escenaShaggers = (t: number, fmt: Formato): Frame => {
     p = pelota('p0', xBuscador, Z_PELOTA_AFUERA, { duenio: 'rojo' });
   } else {
     // Cae al costado del receptor, no encima: si comparten posición la pelota queda tapada.
-    const xFinal = receptor.x + 0.6;
-    const zFinal = receptor.z - 0.5;
     p =
       t < 6.8
-        ? pelota('p0', mezcla(xDevolucion, xFinal, devuelve), mezcla(Z_PELOTA_AFUERA, zFinal, devuelve), {
+        ? pelota('p0', mezcla(xDevolucion, xEntrega, devuelve), mezcla(Z_PELOTA_AFUERA, zEntrega, devuelve), {
             duenio: 'rojo',
             y: campana(devuelve) * 0.8,
           })
-        : pelota('p0', xFinal, zFinal, { duenio: 'rojo' });
+        : pelota('p0', xEntrega, zEntrega, { duenio: 'rojo' });
   }
 
   let nota: string;

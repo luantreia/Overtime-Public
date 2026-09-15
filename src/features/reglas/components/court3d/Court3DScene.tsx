@@ -225,7 +225,7 @@ const Actores: React.FC<ActoresProps> = React.memo(({ mode, formato, corriendo, 
       slot.grupo.position.set(j.x, j.y, j.z);
       // El grupo rota para que el eje local +Z apunte hacia el rival: así las manos
       // siempre se estiran hacia adelante, sea cual sea el equipo.
-      slot.grupo.rotation.y = j.mira === 1 ? Math.PI / 2 : -Math.PI / 2;
+      slot.grupo.rotation.y = j.rumbo ?? (j.mira === 1 ? Math.PI / 2 : -Math.PI / 2);
       const base = j.estado === 'shagger' ? 0.85 : 1;
       const escala = base * (1 + j.pulso * 0.3);
       slot.grupo.scale.set(escala, escala, escala);
