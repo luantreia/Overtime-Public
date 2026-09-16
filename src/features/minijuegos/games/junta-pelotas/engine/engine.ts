@@ -21,6 +21,7 @@ import {
   RAMPA_SALIDA,
   PUNTOS_POR_PELOTA,
   BONUS_CARGA_LLENA,
+  PUNTOS_POR_SEGUNDO,
   HIGH_SCORE_KEY,
 } from './constants';
 
@@ -47,6 +48,7 @@ export class JuntaPelotasEngine {
   isNewHighScore = false;
 
   private nextId = 0;
+  private puntosFraccion = 0;
   private salidaTimer = 1.0;
   private aviso: Aviso | null = null;
   private destinoX: number | null = null;
@@ -68,6 +70,7 @@ export class JuntaPelotasEngine {
     this.entregadas = 0;
     this.puntos = 0;
     this.segundos = 0;
+    this.puntosFraccion = 0;
     this.salidaTimer = 1.0;
     this.aviso = null;
     this.destinoX = null;
@@ -182,8 +185,15 @@ export class JuntaPelotasEngine {
     this.juntar();
     this.entregar();
 
-    // Sobrevivir también suma: el puntaje premia aguantar, no solo entregar.
-    this.puntos += Math.round(dt * 10);
+    // Sobrevivir también suma. Va por un acumulador en decimales porque a 60 fps cada frame
+    // aporta ~0.16 puntos: redondeado frame a frame daba siempre 0 y el puntaje por aguantar
+    // no existía.
+    this.puntosFraccion += dt * PUNTOS_POR_SEGUNDO;
+    const enteros = Math.floor(this.puntosFraccion);
+    if (enteros > 0) {
+      this.puntos += enteros;
+      this.puntosFraccion -= enteros;
+    }
 
     if (this.suministro <= 0) this.terminar();
   }

@@ -37,4 +37,7 @@ export const PUNTOS_POR_PELOTA = 100;
 /** Bonus por entregar la carga llena de una sola vez. */
 export const BONUS_CARGA_LLENA = 120;
 
+/** Puntos por segundo aguantado, aparte de lo que paga cada entrega. */
+export const PUNTOS_POR_SEGUNDO = 10;
+
 export const HIGH_SCORE_KEY = 'minijuegos:junta-pelotas:highscore';
