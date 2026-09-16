@@ -1,0 +1,156 @@
+import type { Situacion } from './types';
+
+/**
+ * Banco de jugadas. Cada una cita la regla que la resuelve, con el número tal como aparece en
+ * el reglamento WDBF 2026 — el mismo texto que vive en `features/reglas/data/`. La cita no es
+ * decorativa: es lo que hace que el jugador pueda ir a verificarlo si no le cierra.
+ *
+ * `formato` marca las que dependen de la modalidad. Son las más valiosas del banco, porque son
+ * exactamente las que la gente confunde entre Cloth y Foam.
+ */
+export const SITUACIONES: Situacion[] = [
+  {
+    id: 'pica-antes',
+    texto: 'Un tiro pica en el piso y después te pega en el pecho.',
+    esOut: false,
+    explicacion: 'La pelota tiene que pegarte directo. Si picó antes, ya no elimina.',
+    regla: 'Cloth 16 · Foam 21',
+    formato: 'ambos',
+  },
+  {
+    id: 'pelo',
+    texto: 'La pelota te roza solamente el pelo.',
+    esOut: true,
+    explicacion: 'Cuenta todo el cuerpo, y el pelo y la ropa entran en esa cuenta.',
+    regla: 'Cloth 26.1 · Foam 25.1',
+    formato: 'ambos',
+  },
+  {
+    id: 'atajada',
+    texto: 'Atajás el tiro en el aire antes de que toque el piso.',
+    esOut: false,
+    explicacion: 'Atajarla elimina al que tiró y además te devuelve un compañero de la cola.',
+    regla: 'Cloth 20 · Foam 22',
+    formato: 'ambos',
+  },
+  {
+    id: 'pisa-lateral',
+    texto: 'Esquivás un tiro y en el movimiento pisás la línea lateral.',
+    esOut: true,
+    explicacion: 'Tocar una línea de borde es estar fuera de la cancha, y eso te elimina al instante.',
+    regla: 'Cloth 26.1 · Foam 25.1',
+    formato: 'ambos',
+  },
+  {
+    id: 'zona-neutra-cloth',
+    texto: 'En Cloth, entrás caminando a la franja del medio y te quedás ahí.',
+    esOut: false,
+    explicacion: 'La zona neutra es de los dos equipos: se puede estar adentro. Lo que elimina es tocar la línea de zona neutra del rival.',
+    regla: 'Cloth 1.4.2 y 26.4',
+    formato: 'cloth',
+  },
+  {
+    id: 'medio-foam',
+    texto: 'En Foam, en pleno juego pisás la línea del medio yendo a buscar una pelota.',
+    esOut: true,
+    explicacion: 'En Foam no hay zona neutra: tu mitad termina en la línea del medio y pisarla ya es estar afuera.',
+    regla: 'Foam 1.3.3 y 25.1',
+    formato: 'foam',
+  },
+  {
+    id: 'medio-arrancada-foam',
+    texto: 'En Foam, durante la arrancada cruzás la línea del medio para agarrar una pelota.',
+    esOut: false,
+    explicacion: 'La arrancada es la excepción: ahí sí se puede tocar o cruzar la línea del medio para juntar pelotas.',
+    regla: 'Foam 25.4 y 11.1.2',
+    formato: 'foam',
+  },
+  {
+    id: 'sacrificio-ok',
+    texto: 'En Cloth saltás, cruzás por el aire la línea del rival, le pegás a uno y volvés a la zona neutra.',
+    esOut: false,
+    explicacion: 'Es una jugada de sacrificio válida: si le pegás, podés volver sin quedar out.',
+    regla: 'Cloth 28.1 y 28.6.1',
+    formato: 'cloth',
+  },
+  {
+    id: 'sacrificio-fallado',
+    texto: 'En Cloth hacés la misma jugada de sacrificio, pero errás el tiro.',
+    esOut: true,
+    explicacion: 'Si el que salta no le pega a nadie con la pelota que llevaba, queda eliminado.',
+    regla: 'Cloth 28.5.1',
+    formato: 'cloth',
+  },
+  {
+    id: 'bloqueo',
+    texto: 'Frenás un tiro con la pelota que tenías en la mano y no se te cae.',
+    esOut: false,
+    explicacion: 'Bloquear es legal: la pelota bloqueada sigue viva y vos seguís en cancha.',
+    regla: 'Cloth 21 · Foam 19',
+    formato: 'ambos',
+  },
+  {
+    id: 'bloqueo-no-blocking',
+    texto: 'En Foam, ya con No-Blocking declarado, frenás un tiro con tu pelota.',
+    esOut: true,
+    explicacion: 'Durante No-Blocking la pelota que tenés en la mano cuenta como tu cuerpo: bloquear pasa a ser lo mismo que recibir el impacto.',
+    regla: 'Foam 28.3 y 28.4',
+    formato: 'foam',
+  },
+  {
+    id: 'shagger-cruza',
+    texto: 'Un shagger de tu equipo cruza la línea del medio para juntar una pelota del otro lado.',
+    esOut: true,
+    explicacion: 'Infracción: cada shagger junta solo de la mitad de su equipo. El árbitro puede pasarle pelotas al rival.',
+    regla: 'Cloth 31.4 · Foam 4.3',
+    formato: 'ambos',
+  },
+  {
+    id: 'devolucion',
+    texto: 'Un shagger apoya la pelota en la cancha, adelante de la línea de ataque de su equipo.',
+    esOut: true,
+    explicacion: 'La pelota se devuelve por detrás de la línea de ataque propia. Adelante no vale.',
+    regla: 'Cloth 31.13',
+    formato: 'cloth',
+  },
+  {
+    id: 'dos-a-la-vez',
+    texto: 'Dos tiros cruzados se pegan al mismo tiempo y el árbitro no puede decidir cuál fue primero.',
+    esOut: true,
+    explicacion: 'Es jugada simultánea: se resuelven las dos a la vez, así que los dos quedan out.',
+    regla: 'Cloth 29.1 y 29.2',
+    formato: 'cloth',
+  },
+  {
+    id: 'rebote-companero',
+    texto: 'Un tiro rebota en un compañero tuyo y después te pega a vos, sin tocar el piso.',
+    esOut: true,
+    explicacion: 'La pelota sigue viva mientras no toque el piso: el rebote en un compañero elimina a los dos.',
+    regla: 'Cloth 16 · Foam 21',
+    formato: 'ambos',
+  },
+  {
+    id: 'contacto-zona-neutra',
+    texto: 'En Cloth chocás con un rival dentro de la zona neutra.',
+    esOut: true,
+    explicacion: 'En la zona neutra no puede haber contacto: el que lo inicia queda eliminado.',
+    regla: 'Cloth 27.1',
+    formato: 'cloth',
+  },
+  {
+    id: 'tiempo-cloth',
+    texto: 'En Cloth se acaban los 3 minutos del set y tu equipo tiene 4 jugadores contra 2.',
+    esOut: false,
+    explicacion: 'No hay nadie out: el set es tuyo por tener más jugadores vivos cuando se acabó el tiempo.',
+    regla: 'Cloth 10.2.1(2)',
+    formato: 'cloth',
+  },
+  {
+    id: 'pelota-afuera',
+    texto: 'Agarrás en el aire una pelota que ya había salido de la cancha por el costado.',
+    esOut: true,
+    explicacion: 'Una pelota que salió está muerta: atajarla no elimina a nadie, y salirte a buscarla sí te elimina a vos.',
+    regla: 'Cloth 26.2 y 26.5',
+    formato: 'ambos',
+  },
+];

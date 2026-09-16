@@ -40,4 +40,32 @@ export const MINIJUEGOS_REGISTRY: MinijuegoMeta[] = [
     emoji: '🎯',
     path: '/minijuegos/punteria',
   },
+  {
+    slug: 'manos-de-guante',
+    name: 'Manos de Guante',
+    description: 'Atajá al vuelo en la ventana justa. Ojo: las que ya picaron no se atajan, se dejan pasar.',
+    emoji: '🧤',
+    path: '/minijuegos/manos-de-guante',
+  },
+  {
+    slug: 'muralla',
+    name: 'Muralla',
+    description: 'Bloqueá tiro tras tiro… hasta que el árbitro canta No-Blocking y bloquear pasa a eliminarte.',
+    emoji: '🧱',
+    path: '/minijuegos/muralla',
+  },
+  {
+    slug: 'la-arrancada',
+    name: 'La Arrancada',
+    description: 'Robá pelotas del medio y volvé a cruzar tu línea de activación antes de que te peguen.',
+    emoji: '🏁',
+    path: '/minijuegos/la-arrancada',
+  },
+  {
+    slug: 'junta-pelotas',
+    name: 'Junta Pelotas',
+    description: 'Sos el shagger: juntá lo que sale, devolvelo detrás de tu línea y no dejes al equipo sin pelotas.',
+    emoji: '🧺',
+    path: '/minijuegos/junta-pelotas',
+  },
 ];
