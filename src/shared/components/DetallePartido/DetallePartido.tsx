@@ -6,6 +6,7 @@ import { formatDate, formatDateTime } from '../../../shared/utils/formatDate';
 import { PlayerRankedHistoryModal } from '../../../features/competencias/components/PlayerRankedHistoryModal';
 import { SharePartidoModal } from '../SharePartidoModal/SharePartidoModal';
 import SedeMap from '../SedeMap/SedeMap';
+import VideoPartido from '../VideoPartido/VideoPartido';
 
 interface DetallePartidoProps {
   partidoId: string;
@@ -246,6 +247,13 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
           </Link>
         </div>
       </div>
+
+      {/* Video del partido */}
+      {partido.videoUrl && (
+        <div className="mb-6 sm:mb-8">
+          <VideoPartido url={partido.videoUrl} />
+        </div>
+      )}
 
       {/* Resultados por Set */}
       {sets.length > 0 && (

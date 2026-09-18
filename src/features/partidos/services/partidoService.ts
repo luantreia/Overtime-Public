@@ -54,6 +54,8 @@ export interface Partido {
     canchas?: string[];
   };
   imagen?: string;
+  /** URL de YouTube (en vivo o video final) tal cual la pegó quien la cargó. Parsear con `extraerYoutubeId`. */
+  videoUrl?: string;
   marcadorLocal?: number;
   marcadorVisitante?: number;
   modoEstadisticas?: any;

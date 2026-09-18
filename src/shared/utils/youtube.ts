@@ -61,6 +61,19 @@ export const youtubeFondoEmbedUrl = (id: string): string => {
 };
 
 /**
+ * URL de embed para reproducir el video del partido como un player normal: con controles,
+ * sin autoplay ni loop. A diferencia de `youtubeFondoEmbedUrl`, acá el usuario decide si lo
+ * arranca y lo pausa.
+ */
+export const youtubePartidoEmbedUrl = (id: string): string => {
+  const params = new URLSearchParams({
+    rel: '0',
+    modestbranding: '1',
+  });
+  return `https://www.youtube-nocookie.com/embed/${id}?${params.toString()}`;
+};
+
+/**
  * Miniaturas del video, de mejor a peor calidad, para usar de poster mientras el player carga.
  *
  * `maxresdefault` no existe para todos los videos (los subidos en baja nunca la tienen) y
