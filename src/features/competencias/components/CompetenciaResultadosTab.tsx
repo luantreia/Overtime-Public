@@ -183,6 +183,7 @@ export const CompetenciaResultadosTab: React.FC<CompetenciaResultadosTabProps> =
           competenciaId={competenciaId}
           temporadas={temporadas}
           initialTemporadaId={selectedTemporada || undefined}
+          initialFaseId={selectedFase || undefined}
         />
       )}
     </div>

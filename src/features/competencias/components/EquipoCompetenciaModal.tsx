@@ -4,7 +4,7 @@ import ModalBase from '../../../shared/components/ModalBase/ModalBase';
 import Spinner from '../../../shared/components/ui/Spinner/Spinner';
 import EmptyState from '../../../shared/components/EmptyState/EmptyState';
 import PartidoCard from '../../../shared/components/PartidoCard/PartidoCard';
-import { FaseService } from '../services/faseService';
+import { FaseService, type Fase } from '../services/faseService';
 import { PartidoService, type Partido } from '../../partidos/services/partidoService';
 import {
   EquipoCompetenciaService,
@@ -32,6 +32,8 @@ interface EquipoCompetenciaModalProps {
   competenciaId: string;
   temporadas: TemporadaResumen[];
   initialTemporadaId?: string;
+  /** Fase desde la que se abrió el modal (p. ej. la tabla de grupos): precarga el filtro de Partidos. */
+  initialFaseId?: string;
 }
 
 const getInitials = (name: string) =>
@@ -50,6 +52,7 @@ export const EquipoCompetenciaModal: React.FC<EquipoCompetenciaModalProps> = ({
   competenciaId,
   temporadas,
   initialTemporadaId,
+  initialFaseId,
 }) => {
   const navigate = useNavigate();
   const [selectedTemporadaId, setSelectedTemporadaId] = useState(
@@ -62,6 +65,9 @@ export const EquipoCompetenciaModal: React.FC<EquipoCompetenciaModalProps> = ({
 
   const [stats, setStats] = useState<ParticipacionFaseStat[]>([]);
   const [loadingStats, setLoadingStats] = useState(false);
+
+  const [fases, setFases] = useState<Fase[]>([]);
+  const [selectedFaseId, setSelectedFaseId] = useState(initialFaseId || '');
 
   const [partidos, setPartidos] = useState<Partido[]>([]);
   const [loadingPartidos, setLoadingPartidos] = useState(false);
@@ -87,20 +93,35 @@ export const EquipoCompetenciaModal: React.FC<EquipoCompetenciaModalProps> = ({
 
     setLoadingStats(true);
     FaseService.getByTemporada(selectedTemporadaId)
-      .then((fases) => Promise.all(fases.map((f) => EquipoCompetenciaService.getParticipacionesFase(f._id))))
+      .then((fasesTemporada) => {
+        if (!cancelled) setFases(fasesTemporada);
+        return Promise.all(fasesTemporada.map((f) => EquipoCompetenciaService.getParticipacionesFase(f._id)));
+      })
       .then((results) => results.flat().filter((s) => s.participacionTemporada?.equipo?._id === equipo._id))
       .then((r) => { if (!cancelled) setStats(r); })
-      .catch(() => { if (!cancelled) setStats([]); })
+      .catch(() => { if (!cancelled) { setStats([]); setFases([]); } })
       .finally(() => { if (!cancelled) setLoadingStats(false); });
 
+    return () => { cancelled = true; };
+  }, [isOpen, equipo._id, selectedTemporadaId]);
+
+  useEffect(() => {
+    if (!isOpen || !selectedTemporadaId) return;
+
+    let cancelled = false;
     setLoadingPartidos(true);
-    PartidoService.getAll({ equipo: equipo._id, competencia: competenciaId, temporadaId: selectedTemporadaId })
+    PartidoService.getAll({
+      equipo: equipo._id,
+      competencia: competenciaId,
+      temporadaId: selectedTemporadaId,
+      ...(selectedFaseId ? { fase: selectedFaseId } : {}),
+    })
       .then((p) => { if (!cancelled) setPartidos(p); })
       .catch(() => { if (!cancelled) setPartidos([]); })
       .finally(() => { if (!cancelled) setLoadingPartidos(false); });
 
     return () => { cancelled = true; };
-  }, [isOpen, equipo._id, competenciaId, selectedTemporadaId]);
+  }, [isOpen, equipo._id, competenciaId, selectedTemporadaId, selectedFaseId]);
 
   const footer = useMemo(
     () => (
@@ -123,7 +144,10 @@ export const EquipoCompetenciaModal: React.FC<EquipoCompetenciaModalProps> = ({
           <select
             id="equipo-modal-temporada"
             value={selectedTemporadaId}
-            onChange={(e) => setSelectedTemporadaId(e.target.value)}
+            onChange={(e) => {
+              setSelectedTemporadaId(e.target.value);
+              setSelectedFaseId('');
+            }}
             className="block w-full sm:max-w-xs rounded-md border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 text-sm p-2 border"
             disabled={temporadas.length === 0}
           >
@@ -210,17 +234,37 @@ export const EquipoCompetenciaModal: React.FC<EquipoCompetenciaModalProps> = ({
         )}
 
         {activeTab === 'partidos' && (
-          loadingPartidos ? (
-            <div className="flex justify-center py-8"><Spinner /></div>
-          ) : partidos.length === 0 ? (
-            <EmptyState message="No hay partidos registrados para esta temporada." icon="🏐" />
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {partidos.map((p) => (
-                <PartidoCard key={p.id} partido={p} onClick={() => navigate(`/partidos/${p.id}`)} />
-              ))}
+          <div>
+            <div className="mb-4">
+              <label htmlFor="equipo-modal-fase" className="block text-xs font-medium text-slate-500 mb-1">
+                Fase
+              </label>
+              <select
+                id="equipo-modal-fase"
+                value={selectedFaseId}
+                onChange={(e) => setSelectedFaseId(e.target.value)}
+                className="block w-full sm:max-w-xs rounded-md border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 text-sm p-2 border"
+                disabled={fases.length === 0}
+              >
+                <option value="">Todas las fases</option>
+                {fases.map((f) => (
+                  <option key={f._id} value={f._id}>{f.nombre}</option>
+                ))}
+              </select>
             </div>
-          )
+
+            {loadingPartidos ? (
+              <div className="flex justify-center py-8"><Spinner /></div>
+            ) : partidos.length === 0 ? (
+              <EmptyState message="No hay partidos registrados para este filtro." icon="🏐" />
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2">
+                {partidos.map((p) => (
+                  <PartidoCard key={p.id} partido={p} onClick={() => navigate(`/partidos/${p.id}`)} />
+                ))}
+              </div>
+            )}
+          </div>
         )}
       </div>
     </ModalBase>
