@@ -6,6 +6,7 @@ import { useConectoresLlave } from './useConectoresLlave';
 
 interface BracketProps {
   matches: Partido[];
+  onMatchClick?: (id: string) => void;
 }
 
 /** `derivarRondas`/`construirEnlaces` necesitan el id de cada equipo en un campo plano
@@ -29,12 +30,29 @@ const LineaEquipo: React.FC<{ nombre: string; marcador: number | undefined; gano
 );
 
 /** Tarjeta de un cruce: dos líneas de equipo, el ganador resaltado. */
-const TarjetaCruce = React.forwardRef<HTMLDivElement, { match: PartidoConIds }>(({ match }, ref) => {
+const TarjetaCruce = React.forwardRef<HTMLDivElement, { match: PartidoConIds; onClick?: () => void }>(({ match, onClick }, ref) => {
   const localGana = match.estado === 'finalizado' && (match.marcadorLocal ?? 0) > (match.marcadorVisitante ?? 0);
   const visitaGana = match.estado === 'finalizado' && (match.marcadorVisitante ?? 0) > (match.marcadorLocal ?? 0);
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!onClick) return;
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onClick();
+    }
+  };
+
   return (
-    <div ref={ref} className="relative z-10 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+    <div
+      ref={ref}
+      className={`relative z-10 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition ${
+        onClick ? 'cursor-pointer hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40' : ''
+      }`}
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={handleKeyDown}
+    >
       <div className="divide-y divide-slate-100">
         <LineaEquipo nombre={match.equipoLocal?.nombre || 'Local'} marcador={match.marcadorLocal} gano={localGana} />
         <LineaEquipo nombre={match.equipoVisitante?.nombre || 'Visitante'} marcador={match.marcadorVisitante} gano={visitaGana} />
@@ -46,7 +64,7 @@ const TarjetaCruce = React.forwardRef<HTMLDivElement, { match: PartidoConIds }>(
   );
 });
 
-export const Bracket: React.FC<BracketProps> = ({ matches }) => {
+export const Bracket: React.FC<BracketProps> = ({ matches, onMatchClick }) => {
   const matchesConIds = useMemo(() => conIds(matches), [matches]);
   const rondas = useMemo(() => derivarRondas(matchesConIds), [matchesConIds]);
   const tercerPuesto = extraerTercerPuesto(matchesConIds);
@@ -91,7 +109,12 @@ export const Bracket: React.FC<BracketProps> = ({ matches }) => {
             </h3>
             <div className="flex flex-1 flex-col justify-around gap-3">
               {ronda.partidos.map((match) => (
-                <TarjetaCruce key={match.id} match={match} ref={registrarTarjeta(match.id)} />
+                <TarjetaCruce
+                  key={match.id}
+                  match={match}
+                  ref={registrarTarjeta(match.id)}
+                  onClick={onMatchClick ? () => onMatchClick(match.id) : undefined}
+                />
               ))}
             </div>
           </div>
@@ -105,7 +128,7 @@ export const Bracket: React.FC<BracketProps> = ({ matches }) => {
               3er Puesto
             </h3>
             <div className="flex flex-1 flex-col justify-around gap-3">
-              <TarjetaCruce match={tercerPuesto} />
+              <TarjetaCruce match={tercerPuesto} onClick={onMatchClick ? () => onMatchClick(tercerPuesto.id) : undefined} />
             </div>
           </div>
         )}

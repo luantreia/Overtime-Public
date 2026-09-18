@@ -314,6 +314,7 @@ const CompetenciaDetalle: React.FC = () => {
 
           {activeTab === 'resultados' && (
             <CompetenciaResultadosTab
+              competenciaId={id!}
               temporadas={temporadas}
               selectedTemporada={selectedTemporada}
               onTemporadaChange={(id) => updateParams({ temporada: id, fase: null })}

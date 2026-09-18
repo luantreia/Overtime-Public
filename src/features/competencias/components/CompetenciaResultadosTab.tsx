@@ -5,11 +5,13 @@ import { type Partido, type PartidoEstado } from '../../partidos/services/partid
 import { TablaPosiciones } from '../../../shared/components/TablaPosiciones/TablaPosiciones';
 import { Bracket } from '../../../shared/components/Bracket/Bracket';
 import PartidoCard from '../../../shared/components/PartidoCard/PartidoCard';
+import { EquipoCompetenciaModal } from './EquipoCompetenciaModal';
 
 // Ver nota en CompetenciaPartidosTab: los valores deben ser estados reales del backend.
 type EstadoFiltro = '' | PartidoEstado;
 
 interface CompetenciaResultadosTabProps {
+  competenciaId: string;
   temporadas: Temporada[];
   selectedTemporada: string;
   onTemporadaChange: (id: string) => void;
@@ -31,6 +33,7 @@ const ESTADO_LABELS: Record<EstadoFiltro, string> = {
 };
 
 export const CompetenciaResultadosTab: React.FC<CompetenciaResultadosTabProps> = ({
+  competenciaId,
   temporadas,
   selectedTemporada,
   onTemporadaChange,
@@ -43,6 +46,7 @@ export const CompetenciaResultadosTab: React.FC<CompetenciaResultadosTabProps> =
   onPartidoClick,
 }) => {
   const [selectedEstado, setSelectedEstado] = useState<EstadoFiltro>('');
+  const [selectedTeam, setSelectedTeam] = useState<{ _id: string; nombre: string; escudo?: string } | null>(null);
 
   const noTemporadas = temporadas.length === 0;
 
@@ -131,9 +135,9 @@ export const CompetenciaResultadosTab: React.FC<CompetenciaResultadosTabProps> =
       ) : (
         <div>
           {faseDetails?.tipo === 'grupo' || faseDetails?.tipo === 'liga' ? (
-            <TablaPosiciones faseId={selectedFase} />
+            <TablaPosiciones faseId={selectedFase} onEquipoClick={setSelectedTeam} />
           ) : faseDetails?.tipo === 'playoff' ? (
-            <Bracket matches={fasePartidos} />
+            <Bracket matches={fasePartidos} onMatchClick={onPartidoClick} />
           ) : (
             <>
               {filteredPartidos.length === 0 ? (
@@ -169,6 +173,17 @@ export const CompetenciaResultadosTab: React.FC<CompetenciaResultadosTabProps> =
             </>
           )}
         </div>
+      )}
+
+      {selectedTeam && (
+        <EquipoCompetenciaModal
+          isOpen={!!selectedTeam}
+          onClose={() => setSelectedTeam(null)}
+          equipo={selectedTeam}
+          competenciaId={competenciaId}
+          temporadas={temporadas}
+          initialTemporadaId={selectedTemporada || undefined}
+        />
       )}
     </div>
   );

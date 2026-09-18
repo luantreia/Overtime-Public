@@ -45,6 +45,8 @@ interface TablaPosicionesProps {
   participaciones?: ParticipacionFase[];
   /** id del equipo del usuario, si corresponde: resalta su fila. Aditivo — quien no lo pasa no ve cambios. */
   destacarEquipo?: string;
+  /** Si se pasa, cada fila de equipo se vuelve clickeable e invoca esto en vez de no hacer nada. */
+  onEquipoClick?: (equipo: { _id: string; nombre: string; escudo?: string }) => void;
 }
 
 /** Fila normalizada: las dos vías de entrada (fetch y props) terminan acá. */
@@ -107,7 +109,7 @@ const desdeProps = (p: ParticipacionFase): Fila => ({
  * Reordenar acá por puntos —como hacía antes— descartaba silenciosamente esos criterios y podía
  * mostrar un orden distinto al oficial en cuanto dos equipos empataban.
  */
-export const TablaPosiciones: React.FC<TablaPosicionesProps> = ({ faseId, participaciones: participacionesProp, destacarEquipo }) => {
+export const TablaPosiciones: React.FC<TablaPosicionesProps> = ({ faseId, participaciones: participacionesProp, destacarEquipo, onEquipoClick }) => {
   const [filas, setFilas] = useState<Fila[]>(() =>
     participacionesProp ? participacionesProp.map(desdeProps) : [],
   );
@@ -245,13 +247,29 @@ export const TablaPosiciones: React.FC<TablaPosicionesProps> = ({ faseId, partic
                   {lista.map((p, index) => {
                     const esPropio = destacarEquipo && p.equipoId === destacarEquipo;
                     const esCorte = hayClasificados && index === ultimoClasificadoIdx && ultimoClasificadoIdx < lista.length - 1;
+                    const clickable = Boolean(onEquipoClick && p.equipoId);
+                    const handleClick = clickable
+                      ? () => onEquipoClick!({ _id: p.equipoId as string, nombre: p.nombre, escudo: p.escudo ?? undefined })
+                      : undefined;
+                    const handleKeyDown = (event: React.KeyboardEvent<HTMLTableRowElement>) => {
+                      if (!handleClick) return;
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        handleClick();
+                      }
+                    };
                     return (
                       <tr
                         key={p.id}
+                        onClick={handleClick}
+                        onKeyDown={handleKeyDown}
+                        role={clickable ? 'button' : undefined}
+                        tabIndex={clickable ? 0 : undefined}
                         className={[
                           p.clasificado ? 'bg-emerald-50/60' : p.eliminado ? 'bg-red-50/50' : '',
                           esPropio ? 'bg-indigo-50 shadow-[inset_3px_0_0_0_#3b5dff]' : '',
                           esCorte ? 'border-b-2 border-dashed border-emerald-400' : 'border-b border-slate-50 last:border-b-0',
+                          clickable ? 'cursor-pointer hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 focus-visible:ring-inset' : '',
                         ].filter(Boolean).join(' ')}
                       >
                         <td className="py-1.5 px-2 text-[11px] font-bold text-slate-400">
