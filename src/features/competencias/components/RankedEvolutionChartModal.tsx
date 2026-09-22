@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { Overlay } from "overtime-kit";
 import { useQuery } from "@tanstack/react-query";
 import { CompetenciaService, type Competencia } from "../services/competenciaService";
 import { RankedService, type LeaderboardItem, type LeaderboardResponse } from "../services/rankedService";
@@ -16,7 +17,6 @@ import {
 } from "recharts";
 import { ShareEvolutionModal } from "./ShareEvolutionModal";
 import { type RankingScope } from "./RankingCardHeader";
-import { getNextModalZIndex } from "../../../shared/utils/modalZIndex";
 
 interface RankedEvolutionChartModalProps {
   isOpen: boolean;
@@ -47,7 +47,6 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
   onOpenCompareVS,
   scope,
 }) => {
-  const [zIndex, setZIndex] = useState(() => getNextModalZIndex());
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("all");
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [visiblePlayersCount, setVisiblePlayersCount] = useState<number>(5); // -1 means ALL
@@ -125,11 +124,6 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
 
   useEffect(() => {
     if (!isOpen) return;
-    setZIndex(getNextModalZIndex());
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (!isOpen) return;
     setTimeFilter("all");
     setPlayerFilter("");
     setPlayerFilter2("");
@@ -149,7 +143,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
   const leaderboard = useMemo(() => leaderboardData?.items || [], [leaderboardData]);
 
   const normalizeText = (value: string) =>
-    value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+    value.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim();
 
   const seasonOptions = useMemo(() => {
     return [{ _id: "global", nombre: "Histórico Global" }, ...temporadas];
@@ -262,7 +256,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
 
             // Intentamos buscar el historial en varios posibles nombres de campo
             const rawHistory = detail.history || (detail as any).items || (detail as any).data || (detail as any).ratings || [];
-            
+
             const history = rawHistory
               .map((h: any) => ({
                 ...h,
@@ -271,12 +265,12 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
               }))
               .sort((a: any, b: any) => a.date.getTime() - b.date.getTime());
 
-            return { 
+            return {
               id: getSafePlayerId(player),
-                name: player.playerName, 
-                history, 
+                name: player.playerName,
+                history,
                 // rating es el campo tipado; dejamos fallback por si el backend envía alias antiguos
-                currentElo: Number(player.rating ?? (player as any).elo ?? (player as any).ranking ?? 1500) 
+                currentElo: Number(player.rating ?? (player as any).elo ?? (player as any).ranking ?? 1500)
             };
           } catch (e) {
             console.error(`[RankedChart] Error en jugador ${player.playerName}:`, e);
@@ -310,12 +304,12 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
 
         return { ...player, history, usedEvents: new Set<number>() };
     });
-    
+
     // 4. Construcción del gráfico basado en PARTIDOS (Skeleton)
-    
+
     const chartData: any[] = [];
     const playerLastKnownRating: Record<string, number> = {}; // Para mantener el estado actual de la línea
-    
+
     // Configuración de colores (usamos la misma paleta que en el render, pero definida aquí para el useMemo)
     const chartColors = ["#f59e0b", "#3b82f6", "#10b981", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#f97316", "#84cc16", "#64748b"];
 
@@ -351,7 +345,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
     if (timeFilter === "month") {
         // Opción 1: Anclar al final de la temporada seleccionada o último partido disponible
         let referenceDate = new Date(); // Fallback date
-        
+
         const lastMatch = relevantMatches.length > 0 ? relevantMatches[relevantMatches.length - 1] : null;
 
         if (lastMatch?._parsedDate) {
@@ -368,20 +362,20 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
     }
 
     // PASO A: Determinar estado INICIAL (Punto de partida)
-    const startEntry: any = { 
-        matchLabel: "Inicio", 
+    const startEntry: any = {
+        matchLabel: "Inicio",
         fullDate: cutoffDate.toLocaleDateString(),
-        isStartNode: true 
+        isStartNode: true
     };
-    
+
     filteredResults.forEach((r, idx) => {
         const key = `player_${idx}`;
         // Buscar el rating que tenía el jugador justo antes o en el momento del corte
         let startRating = 1500;
-        
+
         // Buscamos el último evento ANTES de la fecha de corte
         const eventBefore = [...r.history].reverse().find((h: any) => h.date < cutoffDate);
-        
+
         if (eventBefore) {
             startRating = eventBefore.postRating;
         } else if (r.history.length > 0) {
@@ -411,30 +405,30 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
 
         filteredResults.forEach((player: any, idx: number) => {
             const key = `player_${idx}`;
-            
+
             // 1. Determinar si el jugador PARTICIPÓ en el partido (ID match || Name match)
-            
+
             // Función auxiliar para normalizar cadenas (minúsculas, sin acentos)
-            const normalize = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+            const normalize = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim();
 
             const pId = String(player.id || "").trim();
             const pName = normalize(player.name || "");
-            
+
             const localObj = match.equipoLocal || {};
             const visitObj = match.equipoVisitante || {};
-            
+
             // IDs de equipos
             const localId = String(localObj.id || localObj._id || "").trim();
             const visitId = String(visitObj.id || visitObj._id || "").trim();
-            
+
             // Nombres de equipos
             const localName = normalize(localObj.nombre || "");
             const visitName = normalize(visitObj.nombre || "");
-            
+
             // Lógica de coincidencia: ID exacto O Nombre normalizado
             const isLocal = (pId && localId && pId === localId) || (pName && localName && pName === localName);
             const isVisit = (pId && visitId && pId === visitId) || (pName && visitName && pName === visitName);
-            
+
             const mId = String(match.id || match._id || "").trim();
 
             // 2. Buscar evento de ranking correspondiente en el historial
@@ -448,7 +442,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
             if (eventMatchIdx === -1 && player.history.length > 0) {
                  const rangeStart = matchDate.getTime() - (3 * 24 * 60 * 60 * 1000); // ampliar a 3 días antes por si se registró tarde
                  const rangeEnd = matchDate.getTime() + (3 * 24 * 60 * 60 * 1000);   // 3 dias despues
-                 
+
                  let minDiff = Infinity;
 
                  player.history.forEach((h: any, i: number) => {
@@ -463,8 +457,8 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                          }
                      }
                  });
-                 
-                 // Solo asignar si la diferencia es razonable (ej. menos de 48 horas) 
+
+                 // Solo asignar si la diferencia es razonable (ej. menos de 48 horas)
                  if (minDiff > 48 * 60 * 60 * 1000) {
                      eventMatchIdx = -1;
                  }
@@ -478,7 +472,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
 
             if (played) {
                 hasRelevantPlayers = true;
-                
+
               if (eventMatch) {
                     player.usedEvents.add(eventMatchIdx);
                     const prevRating = playerLastKnownRating[key];
@@ -493,13 +487,13 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                     playerLastKnownRating[key] = (eventMatch as any).postRating;
                 } else {
                     // Jugó pero no encontramos evento de ranking/historial.
-                    // IMPORTANTE: Mostramos el punto con el mismo rating anterior (diff 0) 
+                    // IMPORTANTE: Mostramos el punto con el mismo rating anterior (diff 0)
                     // para indicar visualmente que participó en este partido.
                     entry[key] = playerLastKnownRating[key];
                     entry[`${key}_diff`] = 0; // Sin cambio detectado
                     entry[`${key}_match`] = {
                         local: localObj.nombre,
-                        visitante: visitObj.nombre, 
+                        visitante: visitObj.nombre,
                         resultado: match.resultado,
                   fase: match.fase,
                         note: "Sin cambio de ranking registrado"
@@ -517,8 +511,8 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
     });
 
     // PASO C: Punto FINAL (Estado Actual)
-    const endEntry: any = { 
-        matchLabel: "Actual", 
+    const endEntry: any = {
+        matchLabel: "Actual",
         fullDate: "Ahora",
         isEndNode: true
     };
@@ -529,14 +523,14 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
     chartData.push(endEntry);
 
 
-    return { 
-        chartData, 
-        playerInfo: filteredResults.map((r, i) => ({ 
+    return {
+        chartData,
+        playerInfo: filteredResults.map((r, i) => ({
             id: String(r.id || ""),
-            name: r.name, 
-            key: `player_${i}`, 
-            color: chartColors[i % chartColors.length] 
-        })) 
+            name: r.name,
+            key: `player_${i}`,
+            color: chartColors[i % chartColors.length]
+        }))
     };
   }, [rawPlayersData, matchesData, timeFilter, selectedSeason, seasonInitialized, temporadas]);
 
@@ -560,260 +554,246 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
 
   const isBusy = loadingPlayers || loadingLeaderboard || loadingTemporadas || !competencia;
 
-  if (!isOpen) return null;
-
   return (
-    <div 
-      className="fixed inset-0 flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-md p-0 sm:p-4"
-      style={{ zIndex }}
-      onClick={onClose}
+    <Overlay
+      isOpen={isOpen}
+      onClose={onClose}
+      size="2xl"
+      bodyScroll={false}
+      title="Evolución de Ranking"
+      subtitle={
+        <span className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          Temporada: {selectedSeasonLabel}
+        </span>
+      }
     >
-      <div 
-        className="bg-white w-full sm:max-w-5xl h-[94vh] sm:h-[85vh] rounded-t-[32px] sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-300"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between bg-white shrink-0 border-b border-slate-100">
-          <div>
-            <h3 className="text-lg sm:text-xl font-extrabold text-slate-800 tracking-tight">Evolucion de Ranking</h3>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Temporada: {selectedSeasonLabel}</p>
+      <div className="flex-1 flex flex-col min-h-0 bg-white -mx-4 -my-4 sm:-mx-6">
+        <div className="px-4 sm:px-6 py-3 sm:py-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3 shrink-0 overflow-hidden border-b border-slate-100 bg-white sm:bg-transparent sticky top-0 z-10">
+          {/* Fila 1: filtros primarios — siempre 3 en fila, incluso en mobile */}
+          <div className="grid grid-cols-3 gap-2 sm:contents">
+            <div className="flex items-center gap-1.5 bg-white px-2.5 py-2 rounded-xl border border-slate-200 shadow-sm min-w-0">
+              <select
+                value={selectedSeason}
+                onChange={(e) => setSelectedSeason(e.target.value)}
+                disabled={loadingTemporadas || seasonOptions.length === 0}
+                className="w-full text-[11px] font-bold bg-transparent border-none p-0 focus:ring-0 text-slate-700 cursor-pointer appearance-none outline-none truncate"
+              >
+                {seasonOptions.map((t) => (
+                  <option key={t._id} value={t._id}>{t.nombre}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex items-center gap-1 bg-slate-50 rounded-xl p-1">
+              {[{ id: "all", label: "Total" }, { id: "month", label: "Mes" }].map((f) => (
+                <button
+                  key={f.id}
+                  onClick={() => setTimeFilter(f.id as TimeFilter)}
+                  className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition-all ${timeFilter === f.id ? "bg-brand-600 text-white shadow" : "text-slate-500 hover:bg-slate-100"}`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-1.5 bg-white px-2.5 py-2 rounded-xl border border-slate-200 shadow-sm min-w-0">
+              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Top</span>
+              <select
+                value={visiblePlayersCount}
+                onChange={(e) => setVisiblePlayersCount(Number(e.target.value))}
+                className="text-[11px] font-bold bg-transparent border-none p-0 focus:ring-0 text-slate-700 cursor-pointer appearance-none outline-none"
+              >
+                <option value={3}>3</option>
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+              </select>
             </div>
           </div>
-          <button onClick={onClose} className="p-2.5 rounded-full bg-slate-50 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all border border-slate-100">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+
+          {/* Fila 2: búsqueda de jugadores para comparar */}
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-3">
+            <div className="flex items-center gap-2 bg-slate-50/80 px-3 py-2 rounded-xl border border-slate-100 sm:w-40">
+              <input
+                value={playerFilter}
+                onChange={(e) => setPlayerFilter(e.target.value)}
+                placeholder="Buscar jugador"
+                className="w-full text-[11px] font-bold bg-transparent border-none p-0 focus:ring-0 text-slate-600 placeholder:text-slate-400"
+              />
+              {playerFilter && (
+                <button onClick={() => setPlayerFilter("")} className="text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2 bg-slate-50/80 px-3 py-2 rounded-xl border border-slate-100 sm:w-40">
+              <input
+                value={playerFilter2}
+                onChange={(e) => setPlayerFilter2(e.target.value)}
+                placeholder="Buscar jugador 2"
+                className="w-full text-[11px] font-bold bg-transparent border-none p-0 focus:ring-0 text-slate-600 placeholder:text-slate-400"
+              />
+              {playerFilter2 && (
+                <button onClick={() => setPlayerFilter2("")} className="text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
+              )}
+            </div>
+          </div>
+
+          {/* Fila 3: acciones — compartir / comparar */}
+          {(scope || onOpenCompareVS) && (
+            <div className="flex gap-2">
+              {scope && evolutionaryData.playerInfo.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setIsShareOpen(true)}
+                  className="flex-1 sm:flex-none rounded-xl px-3 py-2 text-[11px] font-black uppercase tracking-wider transition-all bg-brand-50 text-brand-700 hover:bg-brand-100"
+                >
+                  Compartir evolución
+                </button>
+              )}
+
+              {onOpenCompareVS && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (selectedComparePlayers.length === 2) {
+                      onOpenCompareVS(selectedComparePlayers.map((player) => player.id));
+                    }
+                  }}
+                  disabled={selectedComparePlayers.length !== 2}
+                  className={`flex-1 sm:flex-none rounded-xl px-3 py-2 text-[11px] font-black uppercase tracking-wider transition-all ${
+                    selectedComparePlayers.length === 2
+                      ? "bg-brand-600 text-white shadow-lg shadow-brand-200 hover:bg-brand-700"
+                      : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                  }`}
+                >
+                  Ver en VS
+                </button>
+              )}
+            </div>
+          )}
+
+          {onOpenCompareVS && (playerFilter || playerFilter2) && (
+            <p className="text-[10px] font-bold text-slate-500 leading-tight">
+              {selectedComparePlayers.length === 2
+                ? `Detectados: ${selectedComparePlayers[0].name} vs ${selectedComparePlayers[1].name}`
+                : "Escribe dos nombres para habilitar la comparativa VS."}
+            </p>
+          )}
         </div>
 
-         <div className="flex-1 flex flex-col min-h-0 bg-white">
-          <div className="px-4 sm:px-6 py-3 sm:py-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3 shrink-0 overflow-hidden border-b border-slate-100 bg-white sm:bg-transparent sticky top-0 z-10">
-            {/* Fila 1: filtros primarios — siempre 3 en fila, incluso en mobile */}
-            <div className="grid grid-cols-3 gap-2 sm:contents">
-              <div className="flex items-center gap-1.5 bg-white px-2.5 py-2 rounded-xl border border-slate-200 shadow-sm min-w-0">
-                <select
-                  value={selectedSeason}
-                  onChange={(e) => setSelectedSeason(e.target.value)}
-                  disabled={loadingTemporadas || seasonOptions.length === 0}
-                  className="w-full text-[11px] font-bold bg-transparent border-none p-0 focus:ring-0 text-slate-700 cursor-pointer appearance-none outline-none truncate"
-                >
-                  {seasonOptions.map((t) => (
-                    <option key={t._id} value={t._id}>{t.nombre}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex items-center gap-1 bg-slate-50 rounded-xl p-1">
-                {[{ id: "all", label: "Total" }, { id: "month", label: "Mes" }].map((f) => (
-                  <button
-                    key={f.id}
-                    onClick={() => setTimeFilter(f.id as TimeFilter)}
-                    className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition-all ${timeFilter === f.id ? "bg-brand-600 text-white shadow" : "text-slate-500 hover:bg-slate-100"}`}
-                  >
-                    {f.label}
-                  </button>
-                ))}
-              </div>
-
-              <div className="flex items-center gap-1.5 bg-white px-2.5 py-2 rounded-xl border border-slate-200 shadow-sm min-w-0">
-                <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Top</span>
-                <select
-                  value={visiblePlayersCount}
-                  onChange={(e) => setVisiblePlayersCount(Number(e.target.value))}
-                  className="text-[11px] font-bold bg-transparent border-none p-0 focus:ring-0 text-slate-700 cursor-pointer appearance-none outline-none"
-                >
-                  <option value={3}>3</option>
-                  <option value={5}>5</option>
-                  <option value={10}>10</option>
-                </select>
-              </div>
+        <div className="flex-1 w-full p-3 sm:p-6 min-h-[360px] flex flex-col">
+          {isBusy ? (
+            <div className="w-full h-full flex flex-col items-center justify-center">
+              <div className="w-12 h-12 border-4 border-slate-50 border-t-brand-500 rounded-full animate-spin"></div>
+              <p className="mt-4 text-[10px] font-black text-slate-300 uppercase tracking-widest">Calculando puntos...</p>
             </div>
+          ) : evolutionaryData?.chartData && evolutionaryData.chartData.length > 0 ? (
+            <div className="w-full" style={{ height: isMobileView ? 340 : 400, minWidth: 0, minHeight: 300, position: 'relative' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={evolutionaryData.chartData} margin={isMobileView ? { top: 8, right: 8, left: -20, bottom: 24 } : { top: 10, right: 30, left: 0, bottom: 40 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="matchLabel" fontSize={isMobileView ? 9 : 10} fontWeight={700} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} dy={10} interval={isMobileView ? 'preserveStartEnd' : 0} />
+                    <YAxis hide={isMobileView} domain={["auto", "auto"]} fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} dx={-10} padding={{ top: 20, bottom: 20 }} />
+                    <Tooltip
+                      labelFormatter={(v, p) => p[0]?.payload?.fullDate || v}
+                      contentStyle={{ borderRadius: "20px", border: "none", boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)", fontSize: isMobileView ? "10px" : "11px", fontWeight: "800", padding: isMobileView ? "12px" : "16px" }}
+                      itemSorter={(item) => Number(item.value) * -1}
+                      content={({ active, payload, label }) => {
+                        if (active && payload && payload.length) {
+                           // Si es nodo inicial o final, simplificar tooltip
+                           if (payload[0].payload.isStartNode) {
+                              return (
+                                  <div className="bg-white px-4 py-2 rounded-xl shadow-xl border border-slate-100">
+                                      <p className="text-[10px] font-black text-slate-400 uppercase">Inicio de periodo</p>
+                                  </div>
+                              );
+                           }
+                           if (payload[0].payload.isEndNode) {
+                              return (
+                                  <div className="bg-white px-4 py-2 rounded-xl shadow-xl border border-slate-100">
+                                      <p className="text-[10px] font-black text-slate-400 uppercase">Estado Actual</p>
+                                  </div>
+                              );
+                           }
 
-            {/* Fila 2: búsqueda de jugadores para comparar */}
-            <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-3">
-              <div className="flex items-center gap-2 bg-slate-50/80 px-3 py-2 rounded-xl border border-slate-100 sm:w-40">
-                <input
-                  value={playerFilter}
-                  onChange={(e) => setPlayerFilter(e.target.value)}
-                  placeholder="Buscar jugador"
-                  className="w-full text-[11px] font-bold bg-transparent border-none p-0 focus:ring-0 text-slate-600 placeholder:text-slate-400"
-                />
-                {playerFilter && (
-                  <button onClick={() => setPlayerFilter("")} className="text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
-                )}
-              </div>
+                           return (
+                             <div className="bg-white p-4 rounded-2xl shadow-2xl border border-slate-100 min-w-[200px]">
+                               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{payload[0].payload.fullDate}</p>
+                               <div className="space-y-3">
+                                 {payload.map((p: any) => {
+                                    const match = p.payload[`${p.dataKey}_match`];
+                                    const diff = p.payload[`${p.dataKey}_diff`];
+                                    const isPositive = diff > 0;
 
-              <div className="flex items-center gap-2 bg-slate-50/80 px-3 py-2 rounded-xl border border-slate-100 sm:w-40">
-                <input
-                  value={playerFilter2}
-                  onChange={(e) => setPlayerFilter2(e.target.value)}
-                  placeholder="Buscar jugador 2"
-                  className="w-full text-[11px] font-bold bg-transparent border-none p-0 focus:ring-0 text-slate-600 placeholder:text-slate-400"
-                />
-                {playerFilter2 && (
-                  <button onClick={() => setPlayerFilter2("")} className="text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
-                )}
-              </div>
-            </div>
-
-            {/* Fila 3: acciones — compartir / comparar */}
-            {(scope || onOpenCompareVS) && (
-              <div className="flex gap-2">
-                {scope && evolutionaryData.playerInfo.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setIsShareOpen(true)}
-                    className="flex-1 sm:flex-none rounded-xl px-3 py-2 text-[11px] font-black uppercase tracking-wider transition-all bg-brand-50 text-brand-700 hover:bg-brand-100"
-                  >
-                    Compartir evolución
-                  </button>
-                )}
-
-                {onOpenCompareVS && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (selectedComparePlayers.length === 2) {
-                        onOpenCompareVS(selectedComparePlayers.map((player) => player.id));
-                      }
-                    }}
-                    disabled={selectedComparePlayers.length !== 2}
-                    className={`flex-1 sm:flex-none rounded-xl px-3 py-2 text-[11px] font-black uppercase tracking-wider transition-all ${
-                      selectedComparePlayers.length === 2
-                        ? "bg-brand-600 text-white shadow-lg shadow-brand-200 hover:bg-brand-700"
-                        : "bg-slate-100 text-slate-400 cursor-not-allowed"
-                    }`}
-                  >
-                    Ver en VS
-                  </button>
-                )}
-              </div>
-            )}
-
-            {onOpenCompareVS && (playerFilter || playerFilter2) && (
-              <p className="text-[10px] font-bold text-slate-500 leading-tight">
-                {selectedComparePlayers.length === 2
-                  ? `Detectados: ${selectedComparePlayers[0].name} vs ${selectedComparePlayers[1].name}`
-                  : "Escribe dos nombres para habilitar la comparativa VS."}
-              </p>
-            )}
-          </div>
-
-          <div className="flex-1 w-full p-3 sm:p-6 min-h-[360px] flex flex-col">
-            {isBusy ? (
-              <div className="w-full h-full flex flex-col items-center justify-center">
-                <div className="w-12 h-12 border-4 border-slate-50 border-t-brand-500 rounded-full animate-spin"></div>
-                <p className="mt-4 text-[10px] font-black text-slate-300 uppercase tracking-widest">Calculando puntos...</p>
-              </div>
-            ) : evolutionaryData?.chartData && evolutionaryData.chartData.length > 0 ? (
-              <div className="w-full" style={{ height: isMobileView ? 340 : 400, minWidth: 0, minHeight: 300, position: 'relative' }}>
-                <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={evolutionaryData.chartData} margin={isMobileView ? { top: 8, right: 8, left: -20, bottom: 24 } : { top: 10, right: 30, left: 0, bottom: 40 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                      <XAxis dataKey="matchLabel" fontSize={isMobileView ? 9 : 10} fontWeight={700} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} dy={10} interval={isMobileView ? 'preserveStartEnd' : 0} />
-                      <YAxis hide={isMobileView} domain={["auto", "auto"]} fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} dx={-10} padding={{ top: 20, bottom: 20 }} />
-                      <Tooltip 
-                        labelFormatter={(v, p) => p[0]?.payload?.fullDate || v}
-                        contentStyle={{ borderRadius: "20px", border: "none", boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)", fontSize: isMobileView ? "10px" : "11px", fontWeight: "800", padding: isMobileView ? "12px" : "16px" }} 
-                        itemSorter={(item) => Number(item.value) * -1}
-                        content={({ active, payload, label }) => {
-                          if (active && payload && payload.length) {
-                             // Si es nodo inicial o final, simplificar tooltip
-                             if (payload[0].payload.isStartNode) {
-                                return (
-                                    <div className="bg-white px-4 py-2 rounded-xl shadow-xl border border-slate-100">
-                                        <p className="text-[10px] font-black text-slate-400 uppercase">Inicio de periodo</p>
-                                    </div>
-                                );
-                             }
-                             if (payload[0].payload.isEndNode) {
-                                return (
-                                    <div className="bg-white px-4 py-2 rounded-xl shadow-xl border border-slate-100">
-                                        <p className="text-[10px] font-black text-slate-400 uppercase">Estado Actual</p>
-                                    </div>
-                                );
-                             }
-
-                             return (
-                               <div className="bg-white p-4 rounded-2xl shadow-2xl border border-slate-100 min-w-[200px]">
-                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{payload[0].payload.fullDate}</p>
-                                 <div className="space-y-3">
-                                   {payload.map((p: any) => {
-                                      const match = p.payload[`${p.dataKey}_match`];
-                                      const diff = p.payload[`${p.dataKey}_diff`];
-                                      const isPositive = diff > 0;
-
-                                      return (
-                                        <div key={p.dataKey} className="flex flex-col gap-1">
-                                          <div className="flex items-center justify-between gap-4">
-                                            <div className="flex items-center gap-2">
-                                              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color }}></div>
-                                              <span className="text-slate-700 font-extrabold">{p.name}</span>
-                                            </div>
-                                            <div className="flex items-center gap-1.5">
-                                              {diff !== undefined && diff !== 0 && (
-                                                <span className={`text-[9px] font-black ${isPositive ? 'text-emerald-500' : 'text-rose-500'}`}>
-                                                  {isPositive ? '+' : ''}{diff}
-                                                </span>
-                                              )}
-                                              <span className="text-brand-600 font-black">{p.value}</span>
-                                            </div>
+                                    return (
+                                      <div key={p.dataKey} className="flex flex-col gap-1">
+                                        <div className="flex items-center justify-between gap-4">
+                                          <div className="flex items-center gap-2">
+                                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color }}></div>
+                                            <span className="text-slate-700 font-extrabold">{p.name}</span>
                                           </div>
-                                          {match && (
-                                            <div className="ml-4 pl-2 border-l-2 border-slate-100 py-1 mt-1 bg-slate-50/50 rounded-r-lg">
-                                               <p className="text-[9px] text-slate-500 font-bold leading-tight">
-                                                 <span className="text-slate-400 font-black">VS: </span>
-                                                 {match.local} vs {match.visitante}
-                                               </p>
-                                               <div className="flex items-center justify-between mt-0.5">
-                                                 <p className="text-[9px] text-emerald-600 font-black">
-                                                   Result: {match.resultado}
-                                                 </p>
-                                                 {match.fase && <span className="text-[8px] px-1.5 py-0.5 bg-slate-200 text-slate-500 rounded font-bold uppercase tracking-wider">{match.fase}</span>}
-                                               </div>
-                                            </div>
-                                          )}
+                                          <div className="flex items-center gap-1.5">
+                                            {diff !== undefined && diff !== 0 && (
+                                              <span className={`text-[9px] font-black ${isPositive ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                                {isPositive ? '+' : ''}{diff}
+                                              </span>
+                                            )}
+                                            <span className="text-brand-600 font-black">{p.value}</span>
+                                          </div>
                                         </div>
-                                      );
-                                   })}
-                                 </div>
+                                        {match && (
+                                          <div className="ml-4 pl-2 border-l-2 border-slate-100 py-1 mt-1 bg-slate-50/50 rounded-r-lg">
+                                             <p className="text-[9px] text-slate-500 font-bold leading-tight">
+                                               <span className="text-slate-400 font-black">VS: </span>
+                                               {match.local} vs {match.visitante}
+                                             </p>
+                                             <div className="flex items-center justify-between mt-0.5">
+                                               <p className="text-[9px] text-emerald-600 font-black">
+                                                 Result: {match.resultado}
+                                               </p>
+                                               {match.fase && <span className="text-[8px] px-1.5 py-0.5 bg-slate-200 text-slate-500 rounded font-bold uppercase tracking-wider">{match.fase}</span>}
+                                             </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                 })}
                                </div>
-                             );
-                          }
-                          return null;
-                        }}
+                             </div>
+                           );
+                        }
+                        return null;
+                      }}
+                    />
+                            <Legend verticalAlign="top" height={isMobileView ? 44 : 60} iconType="circle" wrapperStyle={{ fontSize: isMobileView ? "9px" : "10px", fontWeight: 800, paddingBottom: isMobileView ? "8px" : "20px" }} />
+                            {/* evolutionaryData.playerInfo ya refleja solo playersToFetch (visibles/filtrados) */}
+                            {(evolutionaryData.playerInfo || []).map((info) => (
+                      <Line
+                        key={info.key}
+                        type="stepAfter"
+                        dataKey={info.key}
+                        name={info.name}
+                        stroke={info.color}
+                        strokeWidth={isMobileView ? 3 : 4}
+                        dot={{ r: isMobileView ? 3 : 4, strokeWidth: 0, fill: info.color }}
+                        activeDot={{ r: isMobileView ? 5 : 6, strokeWidth: 0 }}
+                        isAnimationActive={false}
+                        connectNulls
                       />
-                              <Legend verticalAlign="top" height={isMobileView ? 44 : 60} iconType="circle" wrapperStyle={{ fontSize: isMobileView ? "9px" : "10px", fontWeight: 800, paddingBottom: isMobileView ? "8px" : "20px" }} />
-                              {/* evolutionaryData.playerInfo ya refleja solo playersToFetch (visibles/filtrados) */}
-                              {(evolutionaryData.playerInfo || []).map((info) => (
-                        <Line 
-                          key={info.key} 
-                          type="stepAfter" 
-                          dataKey={info.key}
-                          name={info.name} 
-                          stroke={info.color} 
-                          strokeWidth={isMobileView ? 3 : 4} 
-                          dot={{ r: isMobileView ? 3 : 4, strokeWidth: 0, fill: info.color }} 
-                          activeDot={{ r: isMobileView ? 5 : 6, strokeWidth: 0 }} 
-                          isAnimationActive={false}
-                          connectNulls 
-                        />
-                      ))}
-                    </LineChart>
-                </ResponsiveContainer>
-              </div>
-            ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center text-center p-8 bg-slate-50/50 rounded-3xl">
-                <h4 className="text-slate-800 font-extrabold text-sm uppercase tracking-wider">Sin partidos registrados en esta temporada</h4>
-                <p className="text-slate-400 text-xs mt-2">Prueba cambiando el filtro de temporada en el leaderboard.</p>
-              </div>
-            )}
-          </div>
+                    ))}
+                  </LineChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center text-center p-8 bg-slate-50/50 rounded-3xl">
+              <h4 className="text-slate-800 font-extrabold text-sm uppercase tracking-wider">Sin partidos registrados en esta temporada</h4>
+              <p className="text-slate-400 text-xs mt-2">Prueba cambiando el filtro de temporada en el leaderboard.</p>
+            </div>
+          )}
+        </div>
 
-          <div className="px-6 py-6 border-t border-slate-50 bg-white sm:hidden shrink-0 mt-auto">
-            <button onClick={onClose} className="w-full py-4 bg-slate-900 text-white rounded-[20px] font-black text-xs uppercase tracking-[0.2em] shadow-xl">Cerrar</button>
-          </div>
+        <div className="px-6 py-6 border-t border-slate-50 bg-white sm:hidden shrink-0 mt-auto">
+          <button onClick={onClose} className="w-full py-4 bg-slate-900 text-white rounded-[20px] font-black text-xs uppercase tracking-[0.2em] shadow-xl">Cerrar</button>
         </div>
       </div>
 
@@ -826,6 +806,6 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
           scope={scope}
         />
       )}
-    </div>
+    </Overlay>
   );
 };
