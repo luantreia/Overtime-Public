@@ -4,7 +4,7 @@ export { SolicitudNotification, default as SolicitudNotificationDefault } from '
 export { EntityCard, type EntityCardProps, type EntityType } from './EntityCard';
 export { EntityGrid, type EntityGridProps } from './EntityGrid';
 export { LoadingSpinner, type LoadingSpinnerProps } from './LoadingSpinner';
-export { ErrorMessage, type ErrorMessageProps } from './ErrorMessage';
+export { ErrorMessage } from './ErrorMessage';
 export { EmptyState, type EmptyStateProps } from './EmptyState';
 export { default as JugadorCard, type JugadorCardProps } from './JugadorCard';
 export { default as EquipoCard, type EquipoCardProps } from './EquipoCard';
