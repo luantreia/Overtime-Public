@@ -1,59 +1,18 @@
-const CACHE_NAME = 'overtime-v1.1';
-const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/logo.png',
-  '/logo192.png'
-];
-
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
-    })
-  );
-  self.skipWaiting();
-});
+// Service worker "kill switch". Hubo un SW con caché que servía un index.html viejo; el código que lo
+// desinstalaba vivía dentro de main.js, así que si main.js fallaba nunca corría. Los navegadores
+// re-descargan este archivo solos (vercel.json lo sirve sin caché), así que este reemplazo llega
+// aunque la app no monte: borra todas las cachés, se desinstala y recarga las pestañas abiertas.
+// No volver a poner lógica de caché acá sin un plan de invalidación.
+self.addEventListener('install', () => self.skipWaiting());
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
-  );
-  self.clients.claim();
-});
-
-self.addEventListener('fetch', (event) => {
-  // Solo manejar navegaciones y peticiones GET
-  if (event.request.method !== 'GET') return;
-
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      // 1. Si está en caché, devolverlo
-      if (response) {
-        return response;
-      }
-
-      // 2. Si es una navegación (una ruta como /equipos), devolver index.html para que el JS maneje el router
-      if (event.request.mode === 'navigate') {
-        return caches.match('/index.html');
-      }
-
-      // 3. Si no, intentar red
-      return fetch(event.request).catch(() => {
-        // Fallback para imágenes si fallan todas
-        if (event.request.destination === 'image') {
-          return caches.match('/logo.png');
-        }
-      });
-    })
+    (async () => {
+      const claves = await caches.keys();
+      await Promise.all(claves.map((k) => caches.delete(k)));
+      await self.registration.unregister();
+      const clientes = await self.clients.matchAll({ type: 'window' });
+      clientes.forEach((c) => c.navigate(c.url));
+    })(),
   );
 });
