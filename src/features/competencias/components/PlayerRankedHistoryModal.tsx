@@ -5,6 +5,7 @@ import { RankedService } from '../services/rankedService';
 import { formatDate, formatFechaPartido } from '../../../shared/utils/formatDate';
 import { type RankingScope } from './RankingCardHeader';
 import { ShareRelationsModal } from './ShareRelationsModal';
+import { accionable } from '../../../shared/utils/accionable';
 
 interface PlayerRankedHistoryModalProps {
   isOpen: boolean;
@@ -279,12 +280,13 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
                   {(showAllSynergy ? synergy : synergy.slice(0, 2)).map((s: any) => (
                     <div
                       key={s.id}
-                      className={`flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer ${
+                      className={`flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 ${
                         selectedFilterId === s.id && filterType === 'synergy'
                           ? 'bg-emerald-50 border-emerald-200 ring-2 ring-emerald-100'
                           : 'bg-slate-50 border-slate-100 hover:border-slate-300'
                       }`}
-                      onClick={() => handleFilterClick(s.id, 'synergy')}
+                      {...accionable(() => handleFilterClick(s.id, 'synergy'))}
+                      aria-pressed={selectedFilterId === s.id && filterType === 'synergy'}
                     >
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-2xs font-bold text-slate-600">
@@ -354,12 +356,13 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
                   {(showAllRivalry ? rivalry : rivalry.slice(0, 2)).map((r: any) => (
                     <div
                       key={r.id}
-                      className={`flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer ${
+                      className={`flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 ${
                         selectedFilterId === r.id && filterType === 'rivalry'
                           ? 'bg-red-50 border-red-200 ring-2 ring-red-100'
                           : 'bg-slate-50 border-slate-100 hover:border-slate-300'
                       }`}
-                      onClick={() => handleFilterClick(r.id, 'rivalry')}
+                      {...accionable(() => handleFilterClick(r.id, 'rivalry'))}
+                      aria-pressed={selectedFilterId === r.id && filterType === 'rivalry'}
                     >
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-2xs font-bold text-slate-600">
@@ -429,8 +432,8 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
                      return (
                        <div
                           key={h._id}
-                          onClick={() => partidoId && navigate(`/partidos/${partidoId}`)}
-                          className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm hover:border-brand-400 hover:bg-brand-50/20 transition-all cursor-pointer flex items-center justify-between gap-4 group"
+                          {...accionable(partidoId ? () => navigate(`/partidos/${partidoId}`) : undefined)}
+                          className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm hover:border-brand-400 hover:bg-brand-50/20 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 flex items-center justify-between gap-4 group"
                        >
                           <div className="flex items-center gap-4">
                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-black transition-transform group-hover:scale-110 ${

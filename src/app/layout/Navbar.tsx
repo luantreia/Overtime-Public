@@ -159,7 +159,11 @@ const Navbar: React.FC = () => {
         {/* Menú móvil */}
         {isMenuOpen && (
           <>
+            {/* Fondo para cerrar con el mouse/toque. Con teclado se cierra con el botón del menú,
+                así que no hace falta que esto sea interactivo (y no debe recibir foco). */}
+            {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
             <div
+              aria-hidden="true"
               className="fixed inset-0 top-[73px] z-40 bg-slate-900/20 backdrop-blur-sm lg:hidden"
               onClick={() => setIsMenuOpen(false)}
             />

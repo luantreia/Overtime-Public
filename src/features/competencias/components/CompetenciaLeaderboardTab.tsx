@@ -10,6 +10,7 @@ import { ShareRankModal } from './ShareRankModal';
 import { ShareTopNModal } from './ShareTopNModal';
 import { ShareSynergyModal } from './ShareSynergyModal';
 import { type RankingScope } from './RankingCardHeader';
+import { accionable } from '../../../shared/utils/accionable';
 
 interface CompetenciaLeaderboardTabProps {
   temporadas: Temporada[];
@@ -534,12 +535,12 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
               return (
                 <div
                   key={playerId}
-                  className={`bg-white border rounded-lg p-3 shadow-sm active:scale-95 transition-all cursor-pointer ${
+                  {...accionable(() => onPlayerClick({ id: playerId, name: playerName }))}
+                  className={`bg-white border rounded-lg p-3 shadow-sm active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 ${
                     comparingPlayers.includes(playerId)
                       ? 'border-brand-400 ring-1 ring-brand-300'
                       : 'border-slate-200 hover:border-brand-300'
                   }`}
-                  onClick={() => onPlayerClick({ id: playerId, name: playerName })}
                 >
                   <div className="flex items-center gap-3">
                     <div className="relative w-12 h-12 flex-shrink-0">

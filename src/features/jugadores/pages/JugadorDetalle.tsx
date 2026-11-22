@@ -445,9 +445,9 @@ const JugadorDetalle: React.FC = () => {
                       className="p-4 bg-white border border-slate-200 rounded-xl hover:border-brand-200 transition-colors"
                     >
                       <div className="flex items-center justify-between gap-4">
-                        <div
-                          className="min-w-0 flex items-center gap-3 cursor-pointer"
-                          onClick={() => navigate(`/competencias/${data.competencia._id || data.competencia.id}`)}
+                        <Link
+                          to={`/competencias/${data.competencia._id || data.competencia.id}`}
+                          className="min-w-0 flex items-center gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
                         >
                           <div className="h-10 w-10 rounded-lg bg-brand-50 flex items-center justify-center text-brand-600 font-bold overflow-hidden border border-brand-100 flex-shrink-0">
                             {data.competencia.imagen ? (
@@ -478,7 +478,7 @@ const JugadorDetalle: React.FC = () => {
                               )}
                             </div>
                           </div>
-                        </div>
+                        </Link>
                       </div>
 
                       {data.playedSeasonIds && data.playedSeasonIds.length > 0 ? (

@@ -26,8 +26,11 @@ const EquipoCard = ({ equipo, onClick }: EquipoCardProps) => {
 
   const imageSrc = equipo.escudo || equipo.imagen;
 
+  // Clickeable → div con rol de botón; si no, <article>. Un <article role="button"> no es válido
+  // (axe: aria-allowed-role) y le borra al lector de pantalla la semántica de artículo igual.
+  const Tag = onClick ? 'div' : 'article';
   return (
-    <article
+    <Tag
       className={`relative aspect-square overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-card transition ${
         onClick ? 'cursor-pointer hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40' : ''
       }`}
@@ -53,7 +56,7 @@ const EquipoCard = ({ equipo, onClick }: EquipoCardProps) => {
       <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-3 text-white">
         <h3 className="text-sm font-medium truncate">{equipo.nombre}</h3>
       </div>
-    </article>
+    </Tag>
   );
 };
 

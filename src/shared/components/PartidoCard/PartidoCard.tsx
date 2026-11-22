@@ -60,8 +60,11 @@ const PartidoCard = ({ partido, variante = 'proximo', actions, onClick, eloDelta
     );
   };
 
+  // Clickeable → div con rol de botón; si no, <article>. Un <article role="button"> no es válido
+  // (axe: aria-allowed-role) y le borra al lector de pantalla la semántica de artículo igual.
+  const Tag = onClick ? 'div' : 'article';
   return (
-    <article
+    <Tag
       className={`flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm transition overflow-hidden ${
         onClick ? 'cursor-pointer hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40' : ''
       }`}
@@ -141,7 +144,7 @@ const PartidoCard = ({ partido, variante = 'proximo', actions, onClick, eloDelta
           {actions}
         </div>
       )}
-    </article>
+    </Tag>
   );
 };
 

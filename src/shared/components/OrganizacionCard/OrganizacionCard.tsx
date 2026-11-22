@@ -19,8 +19,11 @@ const OrganizacionCard = ({ organizacion, actions, onClick }: OrganizacionCardPr
     }
   };
 
+  // Clickeable → div con rol de botón; si no, <article>. Un <article role="button"> no es válido
+  // (axe: aria-allowed-role) y le borra al lector de pantalla la semántica de artículo igual.
+  const Tag = onClick ? 'div' : 'article';
   return (
-    <article
+    <Tag
       className={`flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-card transition ${
         onClick ? 'cursor-pointer hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40' : ''
       }`}
@@ -51,7 +54,7 @@ const OrganizacionCard = ({ organizacion, actions, onClick }: OrganizacionCardPr
       </header>
 
       {actions ? <div className="mt-auto flex flex-wrap gap-2">{actions}</div> : null}
-    </article>
+    </Tag>
   );
 };
 

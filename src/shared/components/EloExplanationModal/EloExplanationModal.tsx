@@ -11,6 +11,9 @@ export const EloExplanationModal: React.FC<EloExplanationModalProps> = ({ trigge
 
   return (
     <>
+      {/* El disparador siempre es un <button> (el default o el que pasa quien lo usa): el click
+          sube hasta acá, así que el teclado ya funciona sin que este div sea interactivo. */}
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
       <div onClick={() => setIsOpen(true)} className="cursor-pointer inline-flex items-center">
         {trigger || (
           <button className="text-muted hover:text-brand-600 transition-colors" aria-label="Información sobre el sistema de ranking">

@@ -7,6 +7,7 @@ import { PlayerRankedHistoryModal } from '../../../features/competencias/compone
 import { SharePartidoModal } from '../SharePartidoModal/SharePartidoModal';
 import SedeMap from '../SedeMap/SedeMap';
 import VideoPartido from '../VideoPartido/VideoPartido';
+import { accionable } from '../../utils/accionable';
 
 interface DetallePartidoProps {
   partidoId: string;
@@ -381,9 +382,9 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
                   {localJugadores.map((jugador: JugadorPartido) => (
                     <div 
                       key={jugador.id} 
-                      onClick={() => partido.esRanked && handlePlayerClick(jugador.id, jugador.nombre)}
+                      {...accionable(partido.esRanked ? () => handlePlayerClick(jugador.id, jugador.nombre) : undefined)}
                       className={`flex items-center justify-between p-2 sm:p-3 bg-slate-50 rounded-lg transition-all ${
-                        partido.esRanked ? 'cursor-pointer hover:bg-brand-50 hover:border-brand-100 border border-transparent' : ''
+                        partido.esRanked ? 'cursor-pointer hover:bg-brand-50 hover:border-brand-100 border border-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40' : ''
                       }`}
                     >
                       <div className="flex items-center gap-2 sm:gap-3 overflow-hidden">
@@ -443,9 +444,9 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
                   {visitanteJugadores.map((jugador: JugadorPartido) => (
                     <div 
                       key={jugador.id} 
-                      onClick={() => partido.esRanked && handlePlayerClick(jugador.id, jugador.nombre)}
+                      {...accionable(partido.esRanked ? () => handlePlayerClick(jugador.id, jugador.nombre) : undefined)}
                       className={`flex items-center justify-between p-2 sm:p-3 bg-slate-50 rounded-lg transition-all ${
-                        partido.esRanked ? 'cursor-pointer hover:bg-brand-50 hover:border-brand-100 border border-transparent' : ''
+                        partido.esRanked ? 'cursor-pointer hover:bg-brand-50 hover:border-brand-100 border border-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40' : ''
                       }`}
                     >
                       <div className="flex items-center gap-2 sm:gap-3 overflow-hidden">

@@ -41,8 +41,11 @@ const CompetenciaCard = ({ competencia, variante = 'proximamente', actions, onCl
     }
   };
 
+  // Clickeable → div con rol de botón; si no, <article>. Un <article role="button"> no es válido
+  // (axe: aria-allowed-role) y le borra al lector de pantalla la semántica de artículo igual.
+  const Tag = onClick ? 'div' : 'article';
   return (
-    <article
+    <Tag
       className={`flex flex-col rounded-2xl border bg-white shadow-sm transition overflow-hidden ${
         validVariante === 'en_curso' ? 'border-emerald-200' : 'border-slate-200'
       } ${onClick ? 'cursor-pointer hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40' : ''}`}
@@ -109,7 +112,7 @@ const CompetenciaCard = ({ competencia, variante = 'proximamente', actions, onCl
           {actions}
         </div>
       )}
-    </article>
+    </Tag>
   );
 };
 

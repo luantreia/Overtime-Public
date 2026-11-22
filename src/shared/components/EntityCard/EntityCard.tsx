@@ -56,7 +56,11 @@ export const EntityCard: React.FC<EntityCardProps> = ({
   const colorGradient = getTypeColor(type);
   const icon = getTypeIcon(type);
 
+  // Sin teclado a propósito, por ahora: la tarjeta tiene botones de acción adentro, así que no
+  // puede ser un botón ella misma. Además, el componente no se usa: EntityGrid es el único
+  // consumidor y nadie lo importa. Si se revive, pasar la acción principal a un <Link> en el título.
   return (
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
     <div
       className={`group flex h-full flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition-all hover:shadow-md ${className}`}
       onClick={onClick}
