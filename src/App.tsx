@@ -86,7 +86,7 @@ const App: React.FC = () => (
       </a>
       <RouteFocus targetId="contenido" />
       <Navbar />
-      <main id="contenido" tabIndex={-1} className="mx-auto max-w-6xl px-4 py-6 focus:outline-none">
+      <main id="contenido" tabIndex={-1} className="mx-auto max-w-6xl px-4 pt-6 pb-24 lg:pb-6 focus:outline-none">
         <ErrorBoundary>
         <Suspense fallback={<div className="flex min-h-screen items-center justify-center"><div className="text-center"><div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600 mx-auto"></div><p className="text-slate-600">Cargando...</p></div></div>}>
           <Routes>

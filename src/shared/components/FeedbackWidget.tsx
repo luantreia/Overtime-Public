@@ -63,7 +63,7 @@ export default function FeedbackWidget() {
     <>
       {/* Panel */}
       {open && (
-        <div className="fixed bottom-20 right-6 z-50 w-80 rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden">
+        <div className="fixed bottom-36 lg:bottom-20 right-6 z-50 w-80 rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 bg-brand-600 text-white">
             <div className="flex items-center gap-2">
@@ -144,7 +144,7 @@ export default function FeedbackWidget() {
       {/* Floating button */}
       <button
         onClick={() => setOpen(v => !v)}
-        className="fixed bottom-6 right-6 z-50 h-12 w-12 rounded-full bg-brand-600 hover:bg-brand-700 text-white shadow-lg hover:shadow-xl transition-all flex items-center justify-center"
+        className="fixed bottom-20 lg:bottom-6 right-6 z-50 h-12 w-12 rounded-full bg-brand-600 hover:bg-brand-700 text-white shadow-lg hover:shadow-xl transition-all flex items-center justify-center"
         aria-label="Feedback"
         title="¿Tenés alguna sugerencia?"
       >

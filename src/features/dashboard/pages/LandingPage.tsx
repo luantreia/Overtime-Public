@@ -257,7 +257,7 @@ const LandingPage: React.FC = () => {
 
   return (
     // Anula el padding del <main> para que el hero llegue a los bordes.
-    <div className="-mx-4 -mt-6 pb-24 lg:pb-10">
+    <div className="-mx-4 -mt-6 lg:pb-4">
       {/* Hero compacto */}
       <section className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-4 py-6 text-white sm:py-8">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

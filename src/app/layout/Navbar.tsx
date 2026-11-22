@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import { ChevronDownIcon, HomeIcon, CalendarDaysIcon, MapPinIcon, TrophyIcon, Bars3Icon } from '@heroicons/react/24/outline';
 import { useAuth } from '../providers/AuthContext';
 
 const LOD_LINKS = [
@@ -18,6 +18,14 @@ const links = [
   { to: '/competencias', label: 'Competencias' },
   { to: '/partidos', label: 'Partidos' },
   { to: '/como-se-juega', label: 'Cómo se juega' },
+];
+
+// Barra inferior mobile: lo que se usa en la cancha. "Más" abre el mismo menú del header.
+const BOTTOM_LINKS = [
+  { to: '/', label: 'Inicio', Icon: HomeIcon, end: true },
+  { to: '/partidos', label: 'Partidos', Icon: CalendarDaysIcon, end: false },
+  { to: '/plaza', label: 'La Plaza', Icon: MapPinIcon, end: false },
+  { to: '/ranking', label: 'Ranking', Icon: TrophyIcon, end: false },
 ];
 
 const Navbar: React.FC = () => {
@@ -45,6 +53,7 @@ const Navbar: React.FC = () => {
   }, []);
 
   return (
+    <>
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/70 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <NavLink to="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
@@ -266,6 +275,40 @@ const Navbar: React.FC = () => {
         )}
       </div>
     </header>
+
+    <nav
+      aria-label="Navegación rápida"
+      className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
+    >
+      <ul className="grid grid-cols-5">
+        {BOTTOM_LINKS.map(({ to, label, Icon, end }) => (
+          <li key={to}>
+            <NavLink
+              to={to}
+              end={end}
+              className={({ isActive }) =>
+                `flex flex-col items-center gap-0.5 py-2 text-2xs font-semibold ${isActive ? 'text-brand-600' : 'text-slate-600'}`
+              }
+            >
+              <Icon className="h-6 w-6" aria-hidden="true" />
+              {label}
+            </NavLink>
+          </li>
+        ))}
+        <li>
+          <button
+            type="button"
+            onClick={() => setIsMenuOpen((v) => !v)}
+            aria-expanded={isMenuOpen}
+            className={`flex w-full flex-col items-center gap-0.5 py-2 text-2xs font-semibold ${isMenuOpen ? 'text-brand-600' : 'text-slate-600'}`}
+          >
+            <Bars3Icon className="h-6 w-6" aria-hidden="true" />
+            Más
+          </button>
+        </li>
+      </ul>
+    </nav>
+    </>
   );
 };
 
