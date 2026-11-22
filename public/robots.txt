@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /login
+Disallow: /register
+Disallow: /claim/
+Disallow: /perfil
+Disallow: /notificaciones
+Disallow: /solicitudes
+Disallow: /plaza/crear
+
+Sitemap: https://overtime-public.vercel.app/sitemap.xml
