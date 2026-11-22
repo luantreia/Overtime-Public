@@ -61,7 +61,7 @@
       "destination": "/api/seo?tipo=:tipo"
     },
     {
-      "source": "/ranking",
+      "source": "/:tipo(ranking|como-se-juega|reglamento)",
       "has": [
         {
           "type": "header",
@@ -69,7 +69,7 @@
           "value": ".*([Bb]ot|[Cc]rawler|[Ss]pider|facebookexternalhit|Facebot|WhatsApp|Slack|Discord|Telegram|LinkedIn|Pinterest|Embedly|Google-InspectionTool|Applebot|redditbot|Iframely|SkypeUriPreview|vkShare).*"
         }
       ],
-      "destination": "/api/seo?tipo=ranking"
+      "destination": "/api/seo?tipo=:tipo"
     },
     {
       "source": "/api/(.*)",

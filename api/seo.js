@@ -88,6 +88,41 @@ const LISTADOS = {
   },
 };
 
+// Páginas estáticas: no dependen de la API, solo necesitan título/descripción/h1 propios para que
+// el buscador no las vea como copias de la home. Mantener alineado con su usePageTitle.
+const ESTATICAS = {
+  'como-se-juega': {
+    titulo: 'Cómo se juega al dodgeball: reglas básicas',
+    h1: '¿Cómo se juega al dodgeball?',
+    descripcion: 'Cómo se juega al dodgeball, explicado en jugadas animadas: cantidad de jugadores, pelotas, cancha, eliminaciones, atrapadas y cómo se gana un set, en foam y cloth.',
+    cuerpo: '<p>Dos equipos se enfrentan en una cancha dividida al medio. El objetivo es eliminar a todos los rivales: '
+      + 'un jugador queda afuera si una pelota lanzada lo toca sin rebotar antes, y si un rival atrapa su tiro, el que lanzó queda eliminado '
+      + 'y un compañero del que atrapó vuelve a entrar. Gana el set el equipo que elimina a todos los rivales o tiene más jugadores en cancha al terminar el tiempo.</p>'
+      + '<h2>Foam y cloth</h2><p>Hay dos formatos: foam, con pelotas de espuma, y cloth, con pelotas recubiertas de tela. '
+      + 'Cambian la cantidad de pelotas, las líneas de la cancha y la forma de sumar puntos.</p>'
+      + '<p><a href="/reglamento">Ver el reglamento oficial completo</a></p>',
+    jsonLd: { '@type': 'WebPage' },
+  },
+  reglamento: {
+    titulo: 'Reglamento oficial de dodgeball (foam y cloth)',
+    h1: 'Reglamento de dodgeball',
+    descripcion: 'Reglamento oficial de dodgeball WDBF 2026 en foam y cloth: reglas de juego, faltas, sets y arbitraje. Para leer online o descargar en PDF.',
+    cuerpo: '<p>Reglamento oficial de la WDBF (World Dodgeball Federation), edición 2026, en sus dos formatos.</p>'
+      + '<ul><li><a href="/reglamentos/WDBF-Foam-Rules-2026.pdf">Reglamento Foam 2026 (PDF)</a></li>'
+      + '<li><a href="/reglamentos/WDBF-Cloth-Rules-2026.pdf">Reglamento Cloth 2026 (PDF)</a></li></ul>'
+      + '<p><a href="/como-se-juega">¿Primera vez? Mirá cómo se juega</a></p>',
+    jsonLd: { '@type': 'WebPage' },
+  },
+};
+
+function estatica(res, tipo, base, html) {
+  const e = ESTATICAS[tipo];
+  html = aplicarMeta(html, `${e.titulo} | Overtime Dodgeball`, e.descripcion, `${base}/${tipo}`, { ...e.jsonLd, name: e.titulo });
+  html = html.replace(/<main([^>]*)>[\s\S]*?<\/main>/,
+    `<main$1><h1>${esc(e.h1)}</h1><p>${esc(e.descripcion)}</p>${e.cuerpo}<p><a href="/">Overtime Dodgeball</a></p></main>`);
+  enviar(res, html, true);
+}
+
 const items = (r) => (Array.isArray(r) ? r : r?.items || r?.data || []);
 
 function setMeta(html, attr, key, value) {
@@ -102,6 +137,7 @@ module.exports = async (req, res) => {
   const htmlRes = await fetch(`${base}/index.html`);
   let html = await htmlRes.text();
 
+  if (!id && ESTATICAS[tipo]) return estatica(res, tipo, base, html);
   if (!id && tipo === 'ranking') return ranking(res, base, html);
   if (!id && LISTADOS[tipo]) return listado(req, res, tipo, base, html);
 

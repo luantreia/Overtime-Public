@@ -28,7 +28,7 @@ const REFERENCIAS = [
 ];
 
 const ComoSeJuegaPage: React.FC = () => {
-  usePageTitle('Cómo se juega', { description: 'Cómo se juega al dodgeball: reglas básicas, cantidad de jugadores, pelotas, cancha y cómo se gana un set.' });
+  usePageTitle('Cómo se juega al dodgeball: reglas básicas', { description: 'Cómo se juega al dodgeball, explicado en jugadas animadas: cantidad de jugadores, pelotas, cancha, eliminaciones, atrapadas y cómo se gana un set, en foam y cloth.' });
   const [abierta, setAbierta] = useState(0);
   const [formato, setFormato] = useState<Formato>('foam');
   const [corriendo, setCorriendo] = useState(
