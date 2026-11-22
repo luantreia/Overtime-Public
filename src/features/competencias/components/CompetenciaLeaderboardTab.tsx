@@ -54,7 +54,8 @@ const getPlayerFoto = (item: LeaderboardItem, jugadoresComp: JugadorCompetencia[
 
 const getInitials = (name: string): string =>
   name
-    .split(' ')
+    .split(/s+/)
+    .filter(Boolean)
     .map((token) => token[0])
     .join('')
     .slice(0, 2)
@@ -117,6 +118,12 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
     });
   }, [leaderboard, searchTerm]);
 
+  const rankPorId = useMemo(() => {
+    const m = new Map<string, number>();
+    leaderboard.forEach((item, i) => m.set(getPlayerId(item), i));
+    return m;
+  }, [leaderboard]);
+
   const selectedPlayers = useMemo(
     () =>
       comparingPlayers
@@ -137,6 +144,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
     <div className="p-6">
       <div className="flex flex-col md:flex-row items-start md:items-end justify-between mb-6 gap-4">
         <div className="flex flex-col sm:flex-row gap-4 w-full md:w-2/3">
+          {temporadas.length > 0 && (
           <div className="w-full sm:w-1/2">
             <label htmlFor="temporada-leaderboard" className="block text-sm font-medium text-slate-700 mb-1">
               Temporada
@@ -155,16 +163,17 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
               ))}
             </select>
           </div>
+          )}
 
-          <div className="w-full sm:w-1/2">
+          <div className={`w-full ${temporadas.length > 0 ? 'sm:w-1/2' : 'sm:max-w-sm'}`}>
             <label htmlFor="search-leaderboard" className="block text-sm font-medium text-slate-700 mb-1">
               Buscar Jugador
             </label>
             <div className="relative">
               <input
                 id="search-leaderboard"
-                type="text"
-                placeholder="Nombre o ID..."
+                type="search"
+                placeholder="Nombre del jugador"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="block w-full rounded-md border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 pl-9 border"
@@ -180,6 +189,8 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
               </div>
               {searchTerm && (
                 <button
+                  type="button"
+                  aria-label="Limpiar búsqueda"
                   onClick={() => setSearchTerm('')}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted hover:text-slate-600"
                 >
@@ -271,7 +282,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
       />
 
       {comparingPlayers.length > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-white shadow-2xl border border-brand-200 rounded-full px-6 py-3 flex items-center gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <div role="status" aria-live="polite" className="fixed bottom-[max(1.5rem,env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 z-50 bg-white shadow-2xl border border-brand-200 rounded-full px-6 py-3 flex items-center gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
           <div className="flex -space-x-3">
             {selectedPlayers.map((player) => {
               const playerId = getPlayerId(player);
@@ -306,6 +317,8 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
               Comparar VS
             </button>
             <button
+              type="button"
+              aria-label="Quitar jugadores de la comparación"
               onClick={() => setComparingPlayers([])}
               className="p-2 text-muted hover:text-red-500 transition-colors"
             >
@@ -373,10 +386,10 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                     Jugador
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                    Rating (ELO)
+                    Rating
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                    Winrate %
+                    % victorias
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                     Partidos
@@ -385,13 +398,13 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                     <abbr title="Victorias - Empates - Derrotas" className="no-underline">V-E-D</abbr>
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                    Tendencia
+                    Último partido
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-slate-200">
                 {filteredLeaderboard.map((item) => {
-                  const originalIndex = leaderboard.findIndex((entry) => getPlayerId(entry) === getPlayerId(item));
+                  const originalIndex = rankPorId.get(getPlayerId(item)) ?? 0;
                   const playerId = getPlayerId(item);
                   const playerName = getPlayerName(item, playerId);
                   const playerFoto = getPlayerFoto(item, jugadoresComp);
@@ -401,16 +414,21 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                   return (
                     <tr
                       key={playerId}
-                      className={`transition-all duration-200 cursor-pointer group ${
+                      {...accionable(() => onPlayerClick({ id: playerId, name: playerName }))}
+                      aria-label={`Ver historial de ${playerName}, puesto ${originalIndex + 1}`}
+                      className={`transition-colors cursor-pointer group focus-visible:outline-none focus-visible:bg-brand-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500/40 ${
                         comparingPlayers.includes(playerId)
                           ? 'bg-brand-50 border-l-4 border-brand-500 shadow-inner'
-                          : 'hover:bg-brand-50/50 hover:scale-[1.01] hover:shadow-sm'
+                          : 'hover:bg-brand-50/50'
                       }`}
-                      onClick={() => onPlayerClick({ id: playerId, name: playerName })}
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
                           <button
+                            type="button"
+                            aria-label={`Comparar a ${playerName}`}
+                            aria-pressed={comparingPlayers.includes(playerId)}
+                            onKeyDown={(e) => e.stopPropagation()}
                             onClick={(e) => {
                               e.stopPropagation();
                               toggleCompare(playerId);
@@ -420,7 +438,6 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                                 ? 'bg-brand-600 border-brand-600 text-white'
                                 : 'bg-white border-slate-200 text-muted hover:border-brand-500 hover:text-brand-500'
                             }`}
-                            title="Comparar"
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
                               <path d="M5.127 4.49a.75.75 0 011.017.346L9 10.428l2.856-5.592a.75.75 0 111.332.678L10 11.635V16a.75.75 0 01-1.5 0v-4.365L5.474 5.507a.75.75 0 01.347-1.016z" />
@@ -433,7 +450,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                                   originalIndex === 0
                                     ? 'bg-amber-400 text-white'
                                     : originalIndex === 1
-                                      ? 'bg-slate-300 text-white'
+                                      ? 'bg-slate-400 text-white'
                                       : 'bg-amber-600 text-white'
                                 }`}
                               >
@@ -451,8 +468,9 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                             {playerFoto ? (
                               <img
                                 src={playerFoto}
-                                alt={playerName}
-                                className="absolute inset-0 w-12 h-12 rounded-full object-cover bg-slate-100 border border-slate-200 shadow-sm z-10 transition-transform group-hover:scale-110"
+                                alt=""
+                                loading="lazy"
+                                className="absolute inset-0 w-12 h-12 rounded-full object-cover bg-slate-100 border border-slate-200 shadow-sm z-10"
                               />
                             ) : null}
                             <div className="absolute inset-0 w-12 h-12 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-sm font-bold border border-brand-200">
@@ -464,7 +482,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3 text-sm font-bold text-slate-700">
-                          {Number(item.rating).toFixed(1)}
+                          {Math.round(Number(item.rating))}
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -475,8 +493,9 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                                 playerPhoto: playerFoto,
                               });
                             }}
-                            className="p-1.5 rounded-full bg-slate-50 text-muted hover:bg-brand-100 hover:text-brand-600 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
-                            title="Compartir Rank"
+                            className="p-1.5 rounded-full bg-slate-50 text-muted hover:bg-brand-100 hover:text-brand-600 transition-all [@media(hover:hover)]:opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 focus:opacity-100"
+                            aria-label={`Compartir el puesto de ${playerName}`}
+                            onKeyDown={(e) => e.stopPropagation()}
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -496,8 +515,8 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`text-sm font-black ${winrate >= 50 ? 'text-emerald-500' : 'text-muted'}`}>
-                          {winrate.toFixed(1)}%
+                        <span className={`text-sm font-black ${winrate >= 50 ? 'text-emerald-700' : 'text-slate-500'}`}>
+                          {winrate.toFixed(0)}%
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 tabular-nums">{item.matchesPlayed}</td>
@@ -516,7 +535,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                             }`}
                           >
                             {item.lastDelta > 0 ? '+' : ''}
-                            {Number(item.lastDelta).toFixed(2)}
+                            {Number(item.lastDelta).toFixed(1)}
                           </span>
                         ) : (
                           <span className="text-muted">-</span>
@@ -531,7 +550,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
 
           <div className="md:hidden space-y-2 tabular-nums">
             {filteredLeaderboard.map((item) => {
-              const originalIndex = leaderboard.findIndex((entry) => getPlayerId(entry) === getPlayerId(item));
+              const originalIndex = rankPorId.get(getPlayerId(item)) ?? 0;
               const playerId = getPlayerId(item);
               const playerName = getPlayerName(item, playerId);
               const playerFoto = getPlayerFoto(item, jugadoresComp);
@@ -553,7 +572,8 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                       {playerFoto ? (
                         <img
                           src={playerFoto}
-                          alt={playerName}
+                          alt=""
+                                loading="lazy"
                           className="absolute inset-0 w-12 h-12 rounded-full object-cover bg-slate-100 border border-slate-200 shadow-md z-10"
                         />
                       ) : null}
@@ -577,12 +597,12 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
 
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-bold text-slate-900 truncate">{playerName}</div>
-                      <div className="text-2xs text-slate-500">{winrate.toFixed(0)}% Winrate</div>
+                      <div className="text-2xs text-slate-500">{winrate.toFixed(0)}% victorias · {item.matchesPlayed} PJ</div>
                     </div>
 
                     <div className="text-right flex-shrink-0">
-                      <div className="text-sm font-black text-brand-600 leading-none">{Number(item.rating).toFixed(1)}</div>
-                      <div className="text-2xs text-muted font-bold mb-1 uppercase tracking-tighter">RATING</div>
+                      <div className="text-sm font-black text-brand-600 leading-none">{Math.round(Number(item.rating))}</div>
+                      <div className="text-2xs text-muted font-bold mb-1 uppercase tracking-tighter">Rating</div>
                       {item.lastDelta !== undefined ? (
                         <div
                           className={`text-2xs font-bold px-1.5 py-0.5 rounded ${
@@ -604,16 +624,19 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
 
                   <div className="mt-1 flex items-center justify-end gap-2">
                     <button
+                      type="button"
+                      aria-label={`Comparar a ${playerName}`}
+                      aria-pressed={comparingPlayers.includes(playerId)}
+                      onKeyDown={(e) => e.stopPropagation()}
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleCompare(playerId);
                       }}
-                      className={`p-1.5 rounded-full border transition-all ${
+                      className={`p-2.5 rounded-full border transition-all ${
                         comparingPlayers.includes(playerId)
                           ? 'bg-brand-600 border-brand-600 text-white'
                           : 'bg-white border-slate-200 text-muted hover:border-brand-500 hover:text-brand-500'
                       }`}
-                      title="Comparar"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
                         <path d="M5.127 4.49a.75.75 0 011.017.346L9 10.428l2.856-5.592a.75.75 0 111.332.678L10 11.635V16a.75.75 0 01-1.5 0v-4.365L5.474 5.507a.75.75 0 01.347-1.016z" />
@@ -629,8 +652,9 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                           playerPhoto: playerFoto,
                         });
                       }}
-                      className="p-1.5 rounded-full bg-slate-100 text-slate-500 hover:bg-brand-100 hover:text-brand-600 transition-colors"
-                      title="Compartir Rank"
+                      className="p-2.5 rounded-full bg-slate-100 text-slate-500 hover:bg-brand-100 hover:text-brand-600 transition-colors"
+                      aria-label={`Compartir el puesto de ${playerName}`}
+                      onKeyDown={(e) => e.stopPropagation()}
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -673,7 +697,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                     {pair.playerA.nombre} & {pair.playerB.nombre}
                   </p>
                   <p className="text-xs text-slate-500">
-                    {pair.winrate}% winrate juntos · {pair.gamesTogether} partidos ({pair.wins}G {pair.draws}E {pair.losses}P)
+                    {pair.winrate}% victorias juntos · {pair.gamesTogether} PJ · {pair.wins}-{pair.draws}-{pair.losses}
                   </p>
                 </div>
                 <button

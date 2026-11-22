@@ -1,10 +1,13 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { RankedService, type LeaderboardItem } from '../../competencias/services/rankedService';
+import React, { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { RankedService } from '../../competencias/services/rankedService';
 import { CompetenciaLeaderboardTab } from '../../competencias/components/CompetenciaLeaderboardTab';
 import { PlayerRankedHistoryModal } from '../../competencias/components/PlayerRankedHistoryModal';
 import { TrophyIcon } from '@heroicons/react/24/outline';
 import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 import { PodioRanking } from '../components/PodioRanking';
+import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 
 // Para figurar hace falta al menos un partido rankeado: el backend guarda filas con 0 PJ.
 const MIN_PARTIDOS = 1;
@@ -15,29 +18,32 @@ const CATEGORIAS = ['Masculino', 'Femenino', 'Mixto', 'Libre'] as const;
 type Modalidad = (typeof MODALIDADES)[number];
 type Categoria = (typeof CATEGORIAS)[number];
 
+// Los filtros viven en la URL (/ranking?modalidad=Cloth&categoria=Mixto) para poder compartir un ranking puntual.
+const leer = <T extends string>(valor: string | null, opciones: readonly T[], porDefecto: T): T =>
+  (opciones as readonly string[]).includes(valor ?? '') ? (valor as T) : porDefecto;
+
 export default function RankingGlobalPage() {
   usePageTitle('Ranking ELO de dodgeball', { description: 'Ranking ELO de jugadores de dodgeball en foam y cloth: rating, partidos jugados, victorias y derrotas según los partidos rankeados.' });
-  const [modalidad, setModalidad] = useState<Modalidad>('Foam');
-  const [categoria, setCategoria] = useState<Categoria>('Libre');
-  const [leaderboard, setLeaderboard] = useState<LeaderboardItem[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [params, setParams] = useSearchParams();
+  const modalidad = leer<Modalidad>(params.get('modalidad'), MODALIDADES, 'Foam');
+  const categoria = leer<Categoria>(params.get('categoria'), CATEGORIAS, 'Libre');
+  const setFiltro = (clave: 'modalidad' | 'categoria', valor: string) => {
+    const sig = new URLSearchParams(params);
+    sig.set(clave, valor);
+    setParams(sig, { replace: true });
+  };
   const [selectedPlayer, setSelectedPlayer] = useState<{ id: string; name: string } | null>(null);
 
-  const fetchLeaderboard = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await RankedService.getLeaderboard({ modalidad, categoria, minMatches: MIN_PARTIDOS, limit: 200 });
-      setLeaderboard(res.items ?? []);
-    } catch {
-      setLeaderboard([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [modalidad, categoria]);
-
-  useEffect(() => {
-    fetchLeaderboard();
-  }, [fetchLeaderboard]);
+  // useQuery: estado de error real, sin parpadeo de "sin resultados" al entrar, y sin carreras al
+  // cambiar filtros rápido. keepPreviousData deja la tabla anterior visible mientras llega la nueva.
+  const { data, isPending, isFetching, isError, refetch } = useQuery({
+    queryKey: ['ranking-global', modalidad, categoria, MIN_PARTIDOS],
+    queryFn: () => RankedService.getLeaderboard({ modalidad, categoria, minMatches: MIN_PARTIDOS, limit: 200 }),
+    placeholderData: keepPreviousData,
+    staleTime: 1000 * 60 * 5,
+  });
+  const leaderboard = data?.items ?? [];
+  const loading = isPending;
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -45,6 +51,7 @@ export default function RankingGlobalPage() {
         <div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">Ranking ELO de dodgeball</h1>
           <p className="text-sm text-slate-500 mt-0.5">Rating de jugadores según sus partidos rankeados, por modalidad y categoría.</p>
+          <p className="text-xs text-slate-500 mt-1">Figuran quienes tienen al menos {MIN_PARTIDOS} partido rankeado en {modalidad} · {categoria}.</p>
         </div>
 
         <div className="flex gap-3 sm:ml-auto">
@@ -52,7 +59,7 @@ export default function RankingGlobalPage() {
             <label htmlFor="rankingglobalpage-modalidad" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Modalidad</label>
             <select id="rankingglobalpage-modalidad"
               value={modalidad}
-              onChange={(e) => setModalidad(e.target.value as Modalidad)}
+              onChange={(e) => setFiltro('modalidad', e.target.value)}
               className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none"
             >
               {MODALIDADES.map((m) => (
@@ -65,7 +72,7 @@ export default function RankingGlobalPage() {
             <label htmlFor="rankingglobalpage-categoria" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Categoría</label>
             <select id="rankingglobalpage-categoria"
               value={categoria}
-              onChange={(e) => setCategoria(e.target.value as Categoria)}
+              onChange={(e) => setFiltro('categoria', e.target.value)}
               className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none"
             >
               {CATEGORIAS.map((c) => (
@@ -76,6 +83,14 @@ export default function RankingGlobalPage() {
         </div>
       </div>
 
+      {isError && !data ? (
+        <ErrorMessage
+          title="No pudimos cargar el ranking"
+          message="Puede que el servidor esté arrancando. Probá de nuevo en unos segundos."
+          onRetry={() => refetch()}
+        />
+      ) : (
+      <div className={`space-y-6 transition-opacity ${isFetching && !isPending ? 'opacity-60' : ''}`} aria-busy={isFetching}>
       <PodioRanking items={leaderboard} loading={loading} />
 
       {!loading && leaderboard.length === 0 ? (
@@ -103,10 +118,8 @@ export default function RankingGlobalPage() {
           />
         </div>
       )}
-
-      <p className="text-xs text-slate-500">
-        Figuran los jugadores con al menos {MIN_PARTIDOS} partido rankeado en {modalidad} · {categoria}. La variación es la del último partido.
-      </p>
+      </div>
+      )}
 
       {selectedPlayer && (
         <PlayerRankedHistoryModal

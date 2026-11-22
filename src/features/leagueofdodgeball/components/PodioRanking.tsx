@@ -14,7 +14,7 @@ const MEDALLA = [
 ];
 
 const iniciales = (nombre: string) =>
-  nombre.split(' ').map((t) => t[0]).join('').slice(0, 2).toUpperCase();
+  nombre.split(/s+/).filter(Boolean).map((t) => t[0]).join('').slice(0, 2).toUpperCase();
 
 function Delta({ valor }: { valor?: number }) {
   if (valor === undefined || valor === null) return null;
