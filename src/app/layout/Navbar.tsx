@@ -43,6 +43,13 @@ const Navbar: React.FC = () => {
   }, [location.pathname]);
 
   useEffect(() => {
+    if (!isMenuOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setIsMenuOpen(false); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [isMenuOpen]);
+
+  useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (lodRef.current && !lodRef.current.contains(e.target as Node)) {
         setIsLoDOpen(false);
@@ -64,16 +71,6 @@ const Navbar: React.FC = () => {
           </div>
         </NavLink>
 
-        {/* Botón hamburguesa para móviles */}
-        <button
-          className="inline-flex items-center rounded-md border border-slate-300 p-2 text-slate-700 hover:bg-slate-50 lg:hidden"
-          onClick={() => setIsMenuOpen((v) => !v)}
-          aria-label="Abrir menú"
-        >
-          <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M3 5h14a1 1 0 100-2H3a1 1 0 000 2zm14 4H3a1 1 0 000 2h14a1 1 0 100-2zm0 6H3a1 1 0 000 2h14a1 1 0 100-2z" clipRule="evenodd"/>
-          </svg>
-        </button>
 
         {/* Nav desktop */}
         <nav className="hidden flex-1 items-center justify-center gap-2 text-sm font-medium text-slate-600 lg:flex">
@@ -165,114 +162,6 @@ const Navbar: React.FC = () => {
           )}
         </nav>
 
-        {/* Menú móvil */}
-        {isMenuOpen && (
-          <>
-            {/* Fondo para cerrar con el mouse/toque. Con teclado se cierra con el botón del menú,
-                así que no hace falta que esto sea interactivo (y no debe recibir foco). */}
-            {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
-            <div
-              aria-hidden="true"
-              className="fixed inset-0 top-[73px] z-40 bg-slate-900/20 backdrop-blur-sm lg:hidden"
-              onClick={() => setIsMenuOpen(false)}
-            />
-            <div className="absolute top-full left-0 right-0 z-50 border-t border-slate-200 bg-white px-4 py-3 shadow-xl lg:hidden">
-              <div className="flex flex-col gap-2">
-                {/* LoD expandable en móvil */}
-                <div>
-                  <button
-                    onClick={() => setIsMobileLoDOpen((v) => !v)}
-                    className={`flex w-full items-center justify-between rounded-lg px-3 py-2 transition-colors ${
-                      isLoDActive ? 'bg-brand-100 text-brand-700' : 'hover:bg-slate-100'
-                    }`}
-                  >
-                    <span>LoD</span>
-                    <ChevronDownIcon className={`h-3.5 w-3.5 transition-transform duration-150 ${isMobileLoDOpen ? 'rotate-180' : ''}`} />
-                  </button>
-                  {isMobileLoDOpen && (
-                    <div className="mt-1 ml-3 flex flex-col gap-1 border-l-2 border-brand-200 pl-3">
-                      {LOD_LINKS.map(({ to, label }) => (
-                        <NavLink
-                          key={to}
-                          to={to}
-                          className={({ isActive }) =>
-                            `rounded-lg px-3 py-2 text-sm transition-colors ${
-                              isActive ? 'bg-brand-100 text-brand-700' : 'hover:bg-slate-100'
-                            }`
-                          }
-                          onClick={() => setIsMenuOpen(false)}
-                        >
-                          {label}
-                        </NavLink>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {links.map(({ to, label }) => (
-                  <NavLink
-                    key={to}
-                    to={to}
-                    className={({ isActive }) =>
-                      `rounded-lg px-3 py-2 transition-colors ${
-                        isActive ? 'bg-brand-100 text-brand-700' : 'hover:bg-slate-100'
-                      }`
-                    }
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {label}
-                  </NavLink>
-                ))}
-
-                {isLoading ? (
-                  <div className="h-9 w-24 animate-pulse rounded-lg bg-slate-200"></div>
-                ) : isAuthenticated ? (
-                  <div className="mt-2 flex items-center justify-between gap-3">
-                    <NavLink
-                      to="/solicitudes"
-                      className={({ isActive }) =>
-                        `rounded-lg px-3 py-2 transition-colors ${
-                          isActive ? 'bg-brand-100 text-brand-700' : 'hover:bg-slate-100'
-                        }`
-                      }
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Mis Solicitudes
-                    </NavLink>
-                    <NavLink
-                      to="/perfil"
-                      className={({ isActive }) =>
-                        `rounded-lg px-3 py-2 transition-colors ${
-                          isActive ? 'bg-brand-100 text-brand-700' : 'hover:bg-slate-100'
-                        }`
-                      }
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      {user?.nombre || 'Perfil'}
-                    </NavLink>
-                  </div>
-                ) : (
-                  <div className="mt-2 flex items-center gap-3">
-                    <NavLink
-                      to="/login"
-                      className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Iniciar sesión
-                    </NavLink>
-                    <NavLink
-                      to="/register"
-                      className="rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-brand-700"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Registrarse
-                    </NavLink>
-                  </div>
-                )}
-              </div>
-            </div>
-          </>
-        )}
       </div>
     </header>
 
@@ -300,6 +189,7 @@ const Navbar: React.FC = () => {
             type="button"
             onClick={() => setIsMenuOpen((v) => !v)}
             aria-expanded={isMenuOpen}
+            aria-controls="menu-mas"
             className={`flex w-full flex-col items-center gap-0.5 py-2 text-2xs font-semibold ${isMenuOpen ? 'text-brand-600' : 'text-slate-600'}`}
           >
             <Bars3Icon className="h-6 w-6" aria-hidden="true" />
@@ -308,6 +198,116 @@ const Navbar: React.FC = () => {
         </li>
       </ul>
     </nav>
+
+          {/* Menú móvil */}
+          {isMenuOpen && (
+            <>
+              {/* Fondo para cerrar con el mouse/toque. Con teclado se cierra con Escape o con "Más",
+                  así que no hace falta que esto sea interactivo (y no debe recibir foco). */}
+              {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
+              <div
+                aria-hidden="true"
+                className="fixed inset-0 z-40 bg-slate-900/30 lg:hidden"
+                onClick={() => setIsMenuOpen(false)}
+              />
+              <div id="menu-mas" aria-label="Más secciones" className="fixed inset-x-0 bottom-0 z-40 max-h-[75vh] overflow-y-auto rounded-t-2xl bg-white px-4 pt-2 pb-[calc(4.5rem+env(safe-area-inset-bottom))] shadow-2xl lg:hidden">
+                <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-slate-300" aria-hidden="true" />
+                <div className="flex flex-col gap-2">
+                  {/* LoD expandable en móvil */}
+                  <div>
+                    <button
+                      onClick={() => setIsMobileLoDOpen((v) => !v)}
+                      className={`flex w-full items-center justify-between rounded-lg px-3 py-2 transition-colors ${
+                        isLoDActive ? 'bg-brand-100 text-brand-700' : 'hover:bg-slate-100'
+                      }`}
+                    >
+                      <span>LoD</span>
+                      <ChevronDownIcon className={`h-3.5 w-3.5 transition-transform duration-150 ${isMobileLoDOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    {isMobileLoDOpen && (
+                      <div className="mt-1 ml-3 flex flex-col gap-1 border-l-2 border-brand-200 pl-3">
+                        {LOD_LINKS.map(({ to, label }) => (
+                          <NavLink
+                            key={to}
+                            to={to}
+                            className={({ isActive }) =>
+                              `rounded-lg px-3 py-2 text-sm transition-colors ${
+                                isActive ? 'bg-brand-100 text-brand-700' : 'hover:bg-slate-100'
+                              }`
+                            }
+                            onClick={() => setIsMenuOpen(false)}
+                          >
+                            {label}
+                          </NavLink>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {links.map(({ to, label }) => (
+                    <NavLink
+                      key={to}
+                      to={to}
+                      className={({ isActive }) =>
+                        `rounded-lg px-3 py-2 transition-colors ${
+                          isActive ? 'bg-brand-100 text-brand-700' : 'hover:bg-slate-100'
+                        }`
+                      }
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      {label}
+                    </NavLink>
+                  ))}
+
+                  {isLoading ? (
+                    <div className="h-9 w-24 animate-pulse rounded-lg bg-slate-200"></div>
+                  ) : isAuthenticated ? (
+                    <div className="mt-2 flex items-center justify-between gap-3">
+                      <NavLink
+                        to="/solicitudes"
+                        className={({ isActive }) =>
+                          `rounded-lg px-3 py-2 transition-colors ${
+                            isActive ? 'bg-brand-100 text-brand-700' : 'hover:bg-slate-100'
+                          }`
+                        }
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Mis Solicitudes
+                      </NavLink>
+                      <NavLink
+                        to="/perfil"
+                        className={({ isActive }) =>
+                          `rounded-lg px-3 py-2 transition-colors ${
+                            isActive ? 'bg-brand-100 text-brand-700' : 'hover:bg-slate-100'
+                          }`
+                        }
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        {user?.nombre || 'Perfil'}
+                      </NavLink>
+                    </div>
+                  ) : (
+                    <div className="mt-2 flex items-center gap-3">
+                      <NavLink
+                        to="/login"
+                        className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Iniciar sesión
+                      </NavLink>
+                      <NavLink
+                        to="/register"
+                        className="rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-brand-700"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Registrarse
+                      </NavLink>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
     </>
   );
 };
