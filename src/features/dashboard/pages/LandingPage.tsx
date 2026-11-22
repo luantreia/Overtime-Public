@@ -1,335 +1,401 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { useAuth } from '../../../app/providers/AuthContext';
 import { usePageTitle } from '../../../shared/hooks/usePageTitle';
-import api from '../../../shared/api/client';
-import { PartidoService } from '../../partidos/services/partidoService';
+import { PartidoService, type Partido } from '../../partidos/services/partidoService';
 import { CompetenciaService, type Competencia } from '../../competencias/services/competenciaService';
+import { RankedService, type LeaderboardItem } from '../../competencias/services/rankedService';
 import { PlazaService } from '../../leagueofdodgeball/services/plazaService';
 import type { Lobby } from '../../leagueofdodgeball/types';
-import PartidoCard from '../../../shared/components/PartidoCard/PartidoCard';
-import CompetenciaCard from '../../../shared/components/CompetenciaCard/CompetenciaCard';
-import Spinner from '../../../shared/components/ui/Spinner/Spinner';
-import EmptyState from '../../../shared/components/EmptyState/EmptyState';
 import InstalarAppModal from '../../../shared/components/InstalarAppModal/InstalarAppModal';
-import EstadioTemplo from '../../../shared/components/EstadioTemplo/EstadioTemplo';
-import type { Partido } from '../../partidos/services/partidoService';
+
+/**
+ * Home como tablero de acción: qué se juega ahora, dónde sumarse y quién lidera,
+ * en ese orden. Las guías (cómo se juega / reglamento) van al pie.
+ */
 
 const esStandalone = (): boolean =>
   window.matchMedia?.('(display-mode: standalone)')?.matches || (window.navigator as any).standalone === true;
 
+const idDe = (p: { _id?: string; id?: string }) => p._id || p.id || '';
+const esHoy = (iso?: string) => !!iso && new Date(iso).toDateString() === new Date().toDateString();
+const hora = (iso: string) => new Date(iso).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+const fechaCorta = (iso: string) =>
+  new Date(iso).toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' });
+
+const SectionHeader = ({ title, subtitle, href, cta = 'Ver todos' }: { title: string; subtitle?: string; href: string; cta?: string }) => (
+  <div className="mb-4 flex items-end justify-between gap-4">
+    <div className="min-w-0">
+      <h2 className="text-lg font-black tracking-tight text-slate-900 sm:text-xl">{title}</h2>
+      {subtitle && <p className="truncate text-sm text-slate-500">{subtitle}</p>}
+    </div>
+    <Link to={href} className="flex-shrink-0 text-sm font-semibold text-brand-600 hover:text-brand-700">
+      {cta} →
+    </Link>
+  </div>
+);
+
+const Skeleton = ({ className = '' }: { className?: string }) => (
+  <div className={`animate-pulse rounded-2xl bg-slate-200/70 ${className}`} aria-hidden="true" />
+);
+
+// ── Partido (en vivo / hoy / final) ─────────────────────────────────────────
+const EstadoBadge = ({ p }: { p: Partido }) => {
+  if (p.estado === 'en_juego') {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-red-600 px-2 py-0.5 text-2xs font-black uppercase tracking-wider text-white">
+        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" aria-hidden="true" />
+        En vivo
+      </span>
+    );
+  }
+  if (p.estado === 'finalizado') {
+    return <span className="rounded-full bg-slate-900 px-2 py-0.5 text-2xs font-black uppercase tracking-wider text-white">Final</span>;
+  }
+  const label = p.fecha ? `${esHoy(p.fecha) ? 'Hoy' : fechaCorta(p.fecha)} ${p.hora || hora(p.fecha)}` : 'Próximo';
+  return <span className="rounded-full bg-slate-100 px-2 py-0.5 text-2xs font-bold uppercase tracking-wider text-slate-700 tabular-nums">{label}</span>;
+};
+
+const Escudo = ({ src, nombre }: { src?: string; nombre?: string }) =>
+  src ? (
+    <img src={src} alt="" className="h-7 w-7 flex-shrink-0 rounded-full object-cover" loading="lazy" />
+  ) : (
+    <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-slate-100 text-2xs font-black text-slate-600" aria-hidden="true">
+      {(nombre || '?').slice(0, 2).toUpperCase()}
+    </span>
+  );
+
+const PartidoTile = ({ p }: { p: Partido }) => {
+  const conMarcador = p.estado === 'en_juego' || p.estado === 'finalizado';
+  const filas = [
+    { eq: p.equipoLocal, pts: p.marcadorLocal },
+    { eq: p.equipoVisitante, pts: p.marcadorVisitante },
+  ];
+  return (
+    <Link
+      to={`/partidos/${idDe(p)}`}
+      className={`block w-[82%] flex-shrink-0 snap-start rounded-2xl border bg-white p-4 shadow-sm transition hover:shadow-md sm:w-auto ${
+        p.estado === 'en_juego' ? 'border-red-200' : 'border-slate-200 hover:border-brand-300'
+      }`}
+    >
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <EstadoBadge p={p} />
+        <span className="truncate text-2xs text-muted">{p.competencia?.nombre || p.sede?.nombre || ''}</span>
+      </div>
+      <ul className="space-y-2">
+        {filas.map(({ eq, pts }, i) => (
+          <li key={i} className="flex items-center gap-2">
+            <Escudo src={eq?.escudo} nombre={eq?.nombre} />
+            <span className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-900">{eq?.nombre || 'A definir'}</span>
+            {conMarcador && <span className="text-lg font-black tabular-nums text-slate-900">{pts ?? 0}</span>}
+          </li>
+        ))}
+      </ul>
+      <p className="mt-3 text-xs font-semibold text-brand-600">Ver partido y planilla →</p>
+    </Link>
+  );
+};
+
+// ── La Plaza ────────────────────────────────────────────────────────────────
+const LobbyTile = ({ l }: { l: Lobby }) => {
+  const libres = Math.max(0, l.maxPlayers - l.players.length);
+  return (
+    <Link
+      to={`/plaza/lobby/${l._id}`}
+      className="flex flex-col gap-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-brand-300 hover:shadow-md"
+    >
+      <div className="flex items-start justify-between gap-2">
+        <p className="min-w-0 truncate font-bold text-slate-900">{l.title}</p>
+        <span className="flex-shrink-0 rounded-full bg-brand-50 px-2 py-0.5 text-2xs font-bold text-brand-700">{l.modalidad}</span>
+      </div>
+      <p className="truncate text-sm text-slate-500">
+        {l.location?.name} · <span className="tabular-nums">{fechaCorta(l.scheduledDate)} {hora(l.scheduledDate)}</span>
+      </p>
+      <div className="flex items-center justify-between text-sm">
+        <span className="tabular-nums text-slate-700">
+          <strong className="text-slate-900">{l.players.length}/{l.maxPlayers}</strong> · {libres} {libres === 1 ? 'lugar' : 'lugares'}
+        </span>
+        {typeof l.averageElo === 'number' && (
+          <span className="tabular-nums text-xs text-muted">ELO ~{Math.round(l.averageElo)}</span>
+        )}
+      </div>
+      <span className="mt-1 rounded-lg bg-brand-600 py-2 text-center text-sm font-bold text-white">Ver partido / Sumarme</span>
+    </Link>
+  );
+};
+
+// ── Ranking ─────────────────────────────────────────────────────────────────
+const MODALIDADES = ['Foam', 'Cloth'] as const;
+type Modalidad = (typeof MODALIDADES)[number];
+
+const Delta = ({ v }: { v?: number }) => {
+  if (!v) return <span className="w-10 text-right text-xs text-muted tabular-nums">—</span>;
+  return (
+    <span className={`w-10 text-right text-xs font-bold tabular-nums ${v > 0 ? 'text-emerald-700' : 'text-red-700'}`}>
+      {v > 0 ? '+' : ''}{Math.round(v)}
+    </span>
+  );
+};
+
+const TopRanking = () => {
+  const [modalidad, setModalidad] = useState<Modalidad>('Foam');
+  const { data, isLoading } = useQuery({
+    queryKey: ['home-ranking', modalidad],
+    queryFn: () => RankedService.getLeaderboard({ modalidad, categoria: 'Libre', limit: 5 }).then((r) => r.items ?? []).catch(() => [] as LeaderboardItem[]),
+    staleTime: 1000 * 60 * 10,
+  });
+  const items = (data ?? []).slice(0, 5);
+
+  return (
+    <section aria-labelledby="home-ranking">
+      <div className="mb-4 flex items-end justify-between gap-4">
+        <h2 id="home-ranking" className="text-lg font-black tracking-tight text-slate-900 sm:text-xl">Top Ranking ELO</h2>
+        <div role="group" aria-label="Modalidad" className="flex rounded-lg bg-slate-100 p-0.5 text-xs font-bold">
+          {MODALIDADES.map((m) => (
+            <button
+              key={m}
+              type="button"
+              aria-pressed={modalidad === m}
+              onClick={() => setModalidad(m)}
+              className={`rounded-md px-3 py-1 transition ${modalidad === m ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600'}`}
+            >
+              {m}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        {isLoading ? (
+          <div className="space-y-2 p-4">{[0, 1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-8" />)}</div>
+        ) : items.length === 0 ? (
+          <p className="p-6 text-center text-sm text-slate-500">Todavía no hay jugadores rankeados en {modalidad}.</p>
+        ) : (
+          <table className="w-full text-sm">
+            <thead className="sr-only sm:not-sr-only">
+              <tr className="border-b border-slate-100 text-left text-2xs uppercase tracking-wider text-muted">
+                <th scope="col" className="w-10 px-4 py-2">#</th>
+                <th scope="col" className="py-2">Jugador</th>
+                <th scope="col" className="hidden py-2 text-right lg:table-cell">PJ</th>
+                <th scope="col" className="hidden py-2 text-right lg:table-cell">Win%</th>
+                <th scope="col" className="py-2 text-right">ELO</th>
+                <th scope="col" className="px-4 py-2 text-right">Δ</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((it, i) => {
+                const wr = it.matchesPlayed ? Math.round(((it.wins ?? 0) / it.matchesPlayed) * 100) : null;
+                return (
+                  <tr key={it.playerId} className="border-b border-slate-100 last:border-0">
+                    <td className="px-4 py-2.5 font-black tabular-nums text-slate-500">{i + 1}</td>
+                    <td className="max-w-0 truncate py-2.5">
+                      <Link to={`/jugadores/${it.playerId}`} className="font-semibold text-slate-900 hover:text-brand-600">
+                        {it.playerName || 'Jugador'}
+                      </Link>
+                    </td>
+                    <td className="hidden py-2.5 text-right tabular-nums text-slate-600 lg:table-cell">{it.matchesPlayed}</td>
+                    <td className="hidden py-2.5 text-right tabular-nums text-slate-600 lg:table-cell">{wr === null ? '—' : `${wr}%`}</td>
+                    <td className="py-2.5 text-right font-black tabular-nums text-slate-900">{Math.round(it.rating)}</td>
+                    <td className="px-4 py-2.5 text-right"><Delta v={it.lastDelta} /></td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
+      <Link to="/ranking" className="mt-3 inline-block text-sm font-semibold text-brand-600 hover:text-brand-700">Ver ranking completo →</Link>
+    </section>
+  );
+};
+
+// ── Página ──────────────────────────────────────────────────────────────────
 const LandingPage: React.FC = () => {
   usePageTitle();
-  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [instalarAppAbierto, setInstalarAppAbierto] = useState(false);
   const [yaInstalada] = useState(esStandalone);
+  const [busqueda, setBusqueda] = useState('');
 
   const { data, isLoading } = useQuery({
-    queryKey: ['landing-data-v2'],
+    queryKey: ['home-tablero-v1'],
     queryFn: async () => {
-      const [insights, proximos, finalizados, competencias, lobbies] = await Promise.all([
-        api.insights().catch(() => null),
+      const [enJuego, proximos, finalizados, competencias, lobbies] = await Promise.all([
+        PartidoService.getEnCurso().catch(() => [] as Partido[]),
         PartidoService.getProximos().catch(() => [] as Partido[]),
-        // insights.destacados.partidosRecientes depende de /public/insights, que hoy 404 en producción —
-        // se arma "recientes" directo desde /partidos?estado=finalizado, que sí funciona (mismo patrón que getProximos).
         PartidoService.getFinalizados().catch(() => [] as Partido[]),
         CompetenciaService.getAll().catch(() => [] as Competencia[]),
         PlazaService.getLobbies().catch(() => [] as Lobby[]),
       ]);
-      return { insights, proximos, finalizados, competencias, lobbies };
+      return { enJuego, proximos, finalizados, competencias, lobbies };
     },
-    staleTime: 1000 * 60 * 10,
+    // El tablero muestra "ahora": no puede vivir con el staleTime de 24h global.
+    staleTime: 1000 * 60,
+    refetchInterval: 1000 * 60,
   });
 
-  const insights = data?.insights;
-  const totals = insights?.totals;
-  const proximos = ((data?.proximos ?? []) as Partido[]).slice(0, 3);
-  const recientes = ((data?.finalizados ?? []) as Partido[])
-    .slice()
-    .sort((a, b) => new Date(b.fecha || 0).getTime() - new Date(a.fecha || 0).getTime())
-    .slice(0, 3);
-  const competenciasActivas = (data?.competencias ?? [] as Competencia[])
-    .filter((c: Competencia) => {
-      const e = String(c.estado || '').toLowerCase();
-      return e.includes('curso') || e.includes('activa');
-    })
-    .slice(0, 3);
-  const lobbiesAbiertos = ((data?.lobbies ?? []) as Lobby[])
+  // En juego primero, después próximos por fecha; si no alcanza, se completa con los últimos finales.
+  const porFecha = (a: Partido, b: Partido) => new Date(a.fecha || 0).getTime() - new Date(b.fecha || 0).getTime();
+  const proximos = (data?.proximos ?? []).filter((p) => !p.fecha || new Date(p.fecha).getTime() > Date.now() - 3 * 3600e3).sort(porFecha);
+  const finales = (data?.finalizados ?? []).slice().sort((a, b) => porFecha(b, a));
+  const partidos = [...(data?.enJuego ?? []), ...proximos, ...finales].slice(0, 6);
+
+  const lobbies = (data?.lobbies ?? [])
     .filter((l) => l.status === 'open')
     .sort((a, b) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime());
-  const lobbiesPreview = lobbiesAbiertos.slice(0, 2);
+
+  const competencias = (data?.competencias ?? [])
+    .filter((c) => String(c.estado || '').toLowerCase().includes('curso'))
+    .slice(0, 4);
+
+  const hayVivo = (data?.enJuego?.length ?? 0) > 0;
+
+  const buscar = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = busqueda.trim();
+    navigate(q ? `/jugadores?q=${encodeURIComponent(q)}` : '/jugadores');
+  };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Hero — no depende de ningún fetch, renderiza siempre de inmediato. Fondo: estadio 3D "The Temple" */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-4 py-10 sm:py-16 text-white">
-        <div className="absolute inset-0">
-          <EstadioTemplo />
-        </div>
-        {/* Overlay oscuro para que el texto sea legible sobre la escena 3D */}
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/70 via-slate-900/60 to-slate-900/90" />
-
-        <div className="relative z-10 mx-auto max-w-4xl text-center">
-          <img src="/logo.png" alt="Overtime Logo" width={96} height={96} className="mx-auto mb-4 sm:mb-6 h-16 w-auto sm:h-24 drop-shadow-lg" />
-          <h1 className="mb-3 text-3xl font-black tracking-tight sm:text-5xl">Overtime Dodgeball</h1>
-          <p className="mb-6 sm:mb-8 text-base sm:text-xl text-muted">Ecosistema competitivo y comunitario de dodgeball</p>
-
-          <div className="mb-8 sm:mb-10 flex min-h-[4.5rem] flex-wrap items-center justify-center gap-x-6 gap-y-3 sm:gap-8">
-            {isLoading ? (
-              <Spinner size="sm" variant="white" showMessage={false} />
-            ) : (
-              totals && ([
-                { value: totals.jugadores, label: 'Jugadores' },
-                { value: totals.partidos, label: 'Partidos' },
-                { value: totals.equipos, label: 'Equipos' },
-                { value: totals.organizaciones, label: 'Organizaciones' },
-              ] as { value: number; label: string }[]).map(({ value, label }) => (
-                <div key={label} className="text-center">
-                  <p className="text-2xl sm:text-3xl font-black text-white">{value.toLocaleString('es-AR')}</p>
-                  <p className="text-2xs sm:text-xs uppercase tracking-widest text-muted">{label}</p>
-                </div>
-              ))
-            )}
+    // Anula el padding del <main> para que el hero llegue a los bordes.
+    <div className="-mx-4 -mt-6 pb-24 lg:pb-10">
+      {/* Hero compacto */}
+      <section className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-4 py-6 text-white sm:py-8">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="text-xl font-black tracking-tight sm:text-2xl">
+            Dodgeball en vivo: partidos, ligas y ranking en un solo lugar.
+          </h1>
+          <div className="flex flex-shrink-0 gap-3">
+            <Link to="/partidos" className="flex-1 rounded-lg bg-white px-4 py-2.5 text-center text-sm font-bold text-slate-900 hover:bg-slate-100 sm:flex-none">
+              Explorar partidos
+            </Link>
+            <Link to="/plaza" className="flex-1 rounded-lg bg-brand-600 px-4 py-2.5 text-center text-sm font-bold text-white hover:bg-brand-700 sm:flex-none">
+              Abrir La Plaza
+            </Link>
           </div>
-
-          {!isAuthenticated ? (
-            <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-              <Link to="/register" className="rounded-lg bg-brand-600 px-8 py-3 font-semibold text-white transition hover:bg-brand-700">
-                Empezá a jugar
-              </Link>
-              <Link to="/login" className="rounded-lg border border-white/20 bg-white/10 px-8 py-3 font-semibold text-white backdrop-blur transition hover:bg-white/20">
-                Ya tengo cuenta
-              </Link>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-              <Link to="/perfil" className="rounded-lg bg-brand-600 px-8 py-3 font-semibold text-white transition hover:bg-brand-700">
-                Ir a mi perfil
-              </Link>
-              <Link to="/plaza" className="rounded-lg border border-white/20 bg-white/10 px-8 py-3 font-semibold text-white backdrop-blur transition hover:bg-white/20">
-                Ir a La Plaza
-              </Link>
-            </div>
-          )}
-
-          {!yaInstalada && (
-            <button
-              type="button"
-              onClick={() => setInstalarAppAbierto(true)}
-              className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-muted underline decoration-white/30 underline-offset-4 transition hover:text-white"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
-              </svg>
-              Descargar la app
-            </button>
-          )}
         </div>
       </section>
 
-      {instalarAppAbierto && <InstalarAppModal onClose={() => setInstalarAppAbierto(false)} />}
-
-      <div className="mx-auto max-w-6xl space-y-10 sm:space-y-14 px-4 py-10 sm:py-14">
-
-        {isLoading && (
-          <div className="flex justify-center py-8">
-            <Spinner size="lg" message="Cargando actividad reciente..." />
-          </div>
-        )}
-
-        {!isLoading && (recientes.length > 0 || proximos.length > 0) && (
-          <section>
-            <div className="mb-6 sm:mb-10 text-center">
-              <h2 className="text-2xl font-black tracking-tight text-slate-900 sm:text-4xl">
-                Reviví la historia. Jugá tu próximo partido.
-              </h2>
-              <p className="mt-3 text-sm sm:text-base text-slate-500">Los resultados que ya se jugaron, y los partidos que todavía podés hacer tuyos.</p>
+      <div className="mx-auto max-w-6xl space-y-6 px-4 pt-6 sm:space-y-10 sm:pt-8">
+        {/* En juego / Próximos */}
+        <section aria-label="Partidos">
+          <SectionHeader
+            title={hayVivo ? 'En juego ahora' : 'Partidos'}
+            subtitle="Lo que se está jugando, lo que viene y lo último que terminó."
+            href="/partidos"
+          />
+          {isLoading ? (
+            <div className="flex gap-4 overflow-hidden sm:grid sm:grid-cols-2 lg:grid-cols-3">
+              {[0, 1, 2].map((i) => <Skeleton key={i} className="h-40 w-[82%] flex-shrink-0 sm:w-auto" />)}
             </div>
-
-            <div className="grid gap-10 lg:grid-cols-2">
-              {recientes.length > 0 && (
-                <div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-widest text-muted">Reviví la historia</p>
-                      <h3 className="text-xl font-black text-slate-900">Resultados Recientes</h3>
-                    </div>
-                    <Link to="/partidos" className="text-sm font-semibold text-brand-600 hover:text-brand-700">
-                      Ver todos →
-                    </Link>
-                  </div>
-                  <div className="mt-5 space-y-4">
-                    {recientes.map((p: any) => (
-                      <PartidoCard
-                        key={p._id || p.id}
-                        partido={p}
-                        variante="resultado"
-                        onClick={() => navigate(`/partidos/${p._id || p.id}`)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {proximos.length > 0 && (
-                <div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-widest text-brand-600">Jugá tu próximo partido</p>
-                      <h3 className="text-xl font-black text-slate-900">Próximos Partidos</h3>
-                    </div>
-                    <Link to="/partidos" className="text-sm font-semibold text-brand-600 hover:text-brand-700">
-                      Ver todos →
-                    </Link>
-                  </div>
-                  <div className="mt-5 space-y-4">
-                    {proximos.map((p) => (
-                      <PartidoCard
-                        key={p._id || p.id}
-                        partido={p}
-                        variante="proximo"
-                        onClick={() => navigate(`/partidos/${p._id || p.id}`)}
-                      />
-                    ))}
-                  </div>
-                  <Link
-                    to="/plaza"
-                    className="mt-5 flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-brand-200 px-4 py-4 text-sm font-bold text-brand-700 transition hover:border-brand-300 hover:bg-brand-50"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-                    </svg>
-                    ¿No hay nada cerca? Armá tu propio partido en La Plaza
-                  </Link>
-                </div>
-              )}
+          ) : partidos.length === 0 ? (
+            <p className="rounded-2xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500">No hay partidos cargados todavía.</p>
+          ) : (
+            <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-3">
+              {partidos.map((p) => <PartidoTile key={idDe(p)} p={p} />)}
             </div>
-          </section>
-        )}
+          )}
+        </section>
 
-        {!isLoading && (
-          <section>
-            <SectionHeader title="Competencias en Curso" href="/competencias" />
-            {competenciasActivas.length > 0 ? (
-              <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {competenciasActivas.map((c) => (
-                  <CompetenciaCard
-                    key={c.id}
-                    competencia={c}
-                    variante="en_curso"
-                    onClick={() => navigate(`/competencias/${c.id}`)}
-                  />
-                ))}
-              </div>
+        {/* La Plaza 7 / Ranking 5 */}
+        <div className="grid gap-6 lg:grid-cols-12">
+          <section aria-label="La Plaza" className="lg:col-span-7">
+            <SectionHeader
+              title="La Plaza: partidos abiertos"
+              subtitle={lobbies.length ? `${lobbies.length} ${lobbies.length === 1 ? 'partido busca' : 'partidos buscan'} jugadores` : 'Armá un partido rankeado con quien sea.'}
+              href="/plaza"
+              cta="Ver todos"
+            />
+            {isLoading ? (
+              <div className="grid gap-4 sm:grid-cols-2">{[0, 1].map((i) => <Skeleton key={i} className="h-40" />)}</div>
+            ) : lobbies.length === 0 ? (
+              <Link to="/plaza/crear" className="flex items-center justify-center rounded-2xl border-2 border-dashed border-brand-200 p-6 text-sm font-bold text-brand-700 hover:bg-brand-50">
+                No hay partidos abiertos. Armá el primero →
+              </Link>
             ) : (
-              <div className="mt-6">
-                <EmptyState
-                  message="Todavía no hay competencias activas en este momento."
-                  icon="🏆"
-                  action={{ label: 'Ver todas las competencias', onClick: () => navigate('/competencias') }}
-                />
+              <div className="grid gap-4 sm:grid-cols-2">
+                {lobbies.slice(0, 4).map((l) => <LobbyTile key={l._id} l={l} />)}
               </div>
             )}
           </section>
-        )}
+          <div className="lg:col-span-5">
+            <TopRanking />
+          </div>
+        </div>
 
-        {!isLoading && lobbiesPreview.length > 0 && (
-          <section>
-            <SectionHeader title="Plaza cerca tuyo" href="/plaza" />
-            <p className="-mt-4 mb-6 text-sm text-slate-500">
-              {lobbiesAbiertos.length} {lobbiesAbiertos.length === 1 ? 'partido abierto' : 'partidos abiertos'} esperando jugadores
-            </p>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {lobbiesPreview.map((lobby) => (
-                <button
-                  key={lobby._id}
-                  onClick={() => navigate('/plaza')}
-                  className="flex flex-col items-start gap-1 rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:border-brand-300 hover:shadow-md"
-                >
-                  <p className="font-bold text-slate-900">{lobby.title}</p>
-                  <p className="text-sm text-slate-500">{lobby.location.name}</p>
-                  <p className="text-sm text-slate-500">
-                    {new Date(lobby.scheduledDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                    {' · '}
-                    {lobby.players.length}/{lobby.maxPlayers} jugadores
-                  </p>
-                </button>
+        {/* Competencias activas */}
+        <section aria-label="Competencias activas">
+          <SectionHeader title="Competencias activas" subtitle="Ligas y torneos en curso." href="/competencias" />
+          {isLoading ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-24" />)}</div>
+          ) : competencias.length === 0 ? (
+            <p className="rounded-2xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500">No hay competencias en curso ahora mismo.</p>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {competencias.map((c) => (
+                <Link key={c.id} to={`/competencias/${c.id}`} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-brand-300 hover:shadow-md">
+                  <p className="truncate font-bold text-slate-900">{c.nombre}</p>
+                  <p className="truncate text-sm text-slate-500">{c.organizacion?.nombre || 'En curso'}</p>
+                  <p className="mt-2 text-xs font-semibold text-brand-600">Fixture y tabla →</p>
+                </Link>
               ))}
             </div>
-          </section>
-        )}
-
-        {/* Quick nav tiles */}
-        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {([
-            {
-              to: '/jugadores', label: 'Jugadores', desc: 'Directorio completo',
-              icon: <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />,
-            },
-            {
-              to: '/equipos', label: 'Equipos', desc: 'Todos los equipos',
-              icon: <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />,
-            },
-            {
-              to: '/competencias', label: 'Competencias', desc: 'Ligas y torneos',
-              icon: <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0" />,
-            },
-            {
-              to: '/plaza', label: 'La Plaza', desc: 'Dodgeball de calle',
-              icon: <><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></>,
-            },
-          ]).map(({ to, label, desc, icon }) => (
-            <Link
-              key={to}
-              to={to}
-              className="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-brand-300 hover:shadow-md"
-            >
-              <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600 transition-colors group-hover:bg-brand-100">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
-                  {icon}
-                </svg>
-              </span>
-              <div>
-                <p className="font-bold text-slate-900 transition-colors group-hover:text-brand-600">{label}</p>
-                <p className="text-sm text-slate-500">{desc}</p>
-              </div>
-            </Link>
-          ))}
+          )}
         </section>
-      </div>
 
-      {!isAuthenticated && (
-        <section className="bg-brand-600 px-4 py-10 sm:py-16 text-white">
-          <div className="mx-auto max-w-4xl text-center">
-            <h2 className="mb-4 text-2xl sm:text-3xl font-bold">¿Ya viste la actividad?</h2>
-            <p className="mb-6 sm:mb-8 text-base sm:text-xl text-brand-100">
-              Creá tu cuenta para sumarte a una liga competitiva, o metete a la Plaza si buscás jugar ya mismo
-            </p>
-            <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-              <Link to="/register" className="rounded-lg bg-white px-8 py-3 font-semibold text-brand-600 transition hover:bg-slate-50">
-                Crear cuenta gratis
-              </Link>
-              <Link to="/plaza" className="rounded-lg border border-white/20 bg-white/10 px-8 py-3 font-semibold backdrop-blur transition hover:bg-white/20">
-                Ver la Plaza
-              </Link>
-            </div>
+        {/* Explorador */}
+        <section aria-labelledby="home-explorar" className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+          <h2 id="home-explorar" className="mb-3 text-lg font-black tracking-tight text-slate-900">Buscá un jugador o equipo</h2>
+          <form onSubmit={buscar} className="flex gap-2" role="search">
+            <label htmlFor="home-busqueda" className="sr-only">Nombre del jugador</label>
+            <input
+              id="home-busqueda"
+              type="search"
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              placeholder="Nombre del jugador…"
+              className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            />
+            <button type="submit" className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800">Buscar</button>
+          </form>
+          <div className="mt-3 flex gap-4 text-sm font-semibold">
+            <Link to="/jugadores" className="text-brand-600 hover:text-brand-700">Todos los jugadores →</Link>
+            <Link to="/equipos" className="text-brand-600 hover:text-brand-700">Todos los equipos →</Link>
           </div>
         </section>
-      )}
+
+        {/* Onboarding */}
+        <section aria-label="Para quienes recién llegan" className="grid gap-4 sm:grid-cols-2">
+          <Link to="/como-se-juega" className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:border-brand-300">
+            <p className="font-bold text-slate-900">Cómo se juega al dodgeball</p>
+            <p className="text-sm text-slate-500">Lo básico en dos minutos.</p>
+          </Link>
+          <Link to="/reglamento" className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:border-brand-300">
+            <p className="font-bold text-slate-900">Reglamento oficial</p>
+            <p className="text-sm text-slate-500">Reglas Foam y Cloth.</p>
+          </Link>
+        </section>
+
+        {/* Footer de enlaces */}
+        <footer className="border-t border-slate-200 pt-6 text-sm">
+          <nav aria-label="Enlaces del sitio" className="flex flex-wrap gap-x-5 gap-y-2 text-slate-600">
+            {[
+              ['/partidos', 'Partidos'], ['/competencias', 'Competencias'], ['/plaza', 'La Plaza'], ['/ranking', 'Ranking'],
+              ['/equipos', 'Equipos'], ['/jugadores', 'Jugadores'], ['/como-se-juega', 'Cómo se juega'], ['/reglamento', 'Reglamento'],
+            ].map(([to, label]) => (
+              <Link key={to} to={to} className="hover:text-brand-600">{label}</Link>
+            ))}
+            {!yaInstalada && (
+              <button type="button" onClick={() => setInstalarAppAbierto(true)} className="font-semibold text-brand-600 hover:text-brand-700">
+                Descargar la app
+              </button>
+            )}
+          </nav>
+        </footer>
+      </div>
+
+      {instalarAppAbierto && <InstalarAppModal onClose={() => setInstalarAppAbierto(false)} />}
     </div>
   );
 };
-
-const SectionHeader = ({ title, href }: { title: string; href: string }) => (
-  <div className="flex items-center justify-between">
-    <h2 className="text-2xl font-black text-slate-900">{title}</h2>
-    <Link to={href} className="text-sm font-semibold text-brand-600 hover:text-brand-700">
-      Ver todos →
-    </Link>
-  </div>
-);
 
 export default LandingPage;

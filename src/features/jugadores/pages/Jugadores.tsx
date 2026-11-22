@@ -1,6 +1,6 @@
 
 import React, { useMemo, useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { JugadorCard, FilterBar, JoinCTA, EmptyState } from '../../../shared/components';
 import { JugadorService, type Jugador } from '../services/jugadorService';
@@ -17,8 +17,9 @@ const Jugadores: React.FC = () => {
 
   const observerTarget = useRef<HTMLDivElement>(null);
 
-  // Filtros
-  const [searchTerm, setSearchTerm] = useState('');
+  // Filtros (?q= viene del buscador del home)
+  const [searchParams] = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState(() => searchParams.get('q') ?? '');
   const [genderFilter, setGenderFilter] = useState('');
   const [nationalityFilter, setNationalityFilter] = useState('');
   const [teamFilter, setTeamFilter] = useState('');
