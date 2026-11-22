@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { EmptyState } from '../../../shared/components/EmptyState/EmptyState';
 import { EquipoService, type EquipoCategoriaJugador } from '../services/equipoService';
+import { Tabs } from 'overtime-kit';
 
 interface EquipoCategoriasTabProps {
   equipoId: string;
@@ -53,24 +54,13 @@ export const EquipoCategoriasTab: React.FC<EquipoCategoriasTabProps> = ({ equipo
           <span className="h-8 w-1 bg-brand-600 rounded-full"></span>
           Categorías
         </h2>
-        <div className="flex bg-slate-100 p-1 rounded-lg">
-          <button
-            onClick={() => setActiveTab('actual')}
-            className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
-              activeTab === 'actual' ? 'bg-white text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-            }`}
-          >
-            Actual
-          </button>
-          <button
-            onClick={() => setActiveTab('historial')}
-            className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
-              activeTab === 'historial' ? 'bg-white text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-            }`}
-          >
-            Historial
-          </button>
-        </div>
+        <Tabs
+          aria-label="Categorías"
+          variante="segmentado"
+          items={[{ id: 'actual', label: 'Actual' }, { id: 'historial', label: 'Historial' }]}
+          value={activeTab}
+          onChange={setActiveTab}
+        />
       </div>
 
       {gruposConJugadores.length === 0 ? (

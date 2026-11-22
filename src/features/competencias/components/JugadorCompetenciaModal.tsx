@@ -8,6 +8,7 @@ import { TablaPosiciones } from '../../../shared/components/TablaPosiciones/Tabl
 import { Bracket } from '../../../shared/components/Bracket/Bracket';
 import { FaseService } from '../services/faseService';
 import { PartidoService, type Partido } from '../../partidos/services/partidoService';
+import { Tabs } from 'overtime-kit';
 
 type Tab = 'posiciones' | 'partidos';
 
@@ -125,23 +126,7 @@ export const JugadorCompetenciaModal: React.FC<JugadorCompetenciaModalProps> = (
           </select>
         </div>
 
-        <div className="mb-6 border-b border-slate-200 -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto">
-          <nav className="-mb-px flex space-x-4 sm:space-x-8" aria-label="Tabs">
-            {TABS.map(({ id, label }) => (
-              <button
-                key={id}
-                onClick={() => setActiveTab(id)}
-                className={`${
-                  activeTab === id
-                    ? 'border-brand-500 text-brand-600'
-                    : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
-                } whitespace-nowrap border-b-2 py-3 px-1 text-sm font-medium flex-shrink-0`}
-              >
-                {label}
-              </button>
-            ))}
-          </nav>
-        </div>
+        <Tabs aria-label="Secciones del jugador" variante="subrayado" className="mb-6" items={TABS} value={activeTab} onChange={setActiveTab} />
 
         {activeTab === 'posiciones' && (
           loadingFase ? (

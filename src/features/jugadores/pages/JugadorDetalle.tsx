@@ -13,6 +13,7 @@ import { PartidosHistorial } from '../components/PartidosHistorial';
 import { useAuth } from '../../../app/providers/AuthContext';
 import { useToast } from '../../../shared/components/Toast/ToastProvider';
 import { BackButton, LoadingSpinner } from '../../../shared/components';
+import { Tabs } from 'overtime-kit';
 
 type Tab = 'partidos' | 'torneos' | 'lod';
 
@@ -388,33 +389,19 @@ const JugadorDetalle: React.FC = () => {
               </section>
             )}
 
-            {/* Navigation Tabs - Full width, sin scroll */}
-            <div className="grid grid-cols-3 gap-1 p-1 bg-slate-100/50 rounded-2xl border border-slate-100 mt-8 mb-8">
-                 <button
-                  onClick={() => setActiveTab('partidos')}
-                  className={`px-2 py-2.5 rounded-xl text-2xs sm:text-xs font-black uppercase tracking-wide sm:tracking-widest transition-all text-center ${
-                    activeTab === 'partidos' ? 'bg-white text-brand-700 shadow-sm shadow-brand-100 ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700'
-                  }`}
-                 >
-                   Partidos
-                 </button>
-                 <button
-                  onClick={() => setActiveTab('torneos')}
-                  className={`px-2 py-2.5 rounded-xl text-2xs sm:text-xs font-black uppercase tracking-wide sm:tracking-widest transition-all text-center ${
-                    activeTab === 'torneos' ? 'bg-white text-brand-700 shadow-sm shadow-brand-100 ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700'
-                  }`}
-                 >
-                   Torneos
-                 </button>
-                 <button
-                  onClick={() => setActiveTab('lod')}
-                  className={`px-2 py-2.5 rounded-xl text-2xs sm:text-xs font-black uppercase tracking-wide sm:tracking-widest transition-all text-center ${
-                    activeTab === 'lod' ? 'bg-white text-brand-700 shadow-sm shadow-brand-100 ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700'
-                  }`}
-                 >
-                   LoD
-                 </button>
-            </div>
+            <Tabs
+              aria-label="Secciones del jugador"
+              variante="segmentado"
+              fullWidth
+              className="mt-8 mb-8"
+              items={[
+                { id: 'partidos', label: 'Partidos' },
+                { id: 'torneos', label: 'Torneos' },
+                { id: 'lod', label: 'LoD' },
+              ]}
+              value={activeTab}
+              onChange={setActiveTab}
+            />
 
             {/* TAB CONTENT: PARTIDOS */}
             {activeTab === 'partidos' && (

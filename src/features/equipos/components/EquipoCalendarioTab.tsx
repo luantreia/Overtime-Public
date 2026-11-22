@@ -7,6 +7,7 @@ import ModalBase from '../../../shared/components/ModalBase/ModalBase';
 import { EstadisticasPartidoModal } from '../../../shared/components/EstadisticasPartidoModal';
 import { EmptyState } from '../../../shared/components/EmptyState/EmptyState';
 import { PartidoService, type Partido } from '../../partidos/services/partidoService';
+import { Tabs } from 'overtime-kit';
 
 interface EquipoCalendarioTabProps {
   equipoId: string;
@@ -87,24 +88,13 @@ export const EquipoCalendarioTab: React.FC<EquipoCalendarioTabProps> = ({ equipo
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex bg-slate-100 p-1 rounded-lg">
-          <button
-            onClick={() => setVista('lista')}
-            className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
-              vista === 'lista' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-            }`}
-          >
-            Lista
-          </button>
-          <button
-            onClick={() => setVista('calendario')}
-            className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
-              vista === 'calendario' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-            }`}
-          >
-            Calendario
-          </button>
-        </div>
+        <Tabs
+          aria-label="Vista de partidos"
+          variante="segmentado"
+          items={[{ id: 'lista', label: 'Lista' }, { id: 'calendario', label: 'Calendario' }]}
+          value={vista}
+          onChange={setVista}
+        />
       </div>
 
       {vista === 'lista' ? (

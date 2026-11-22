@@ -5,6 +5,7 @@ import { type Partido, type PartidoEstado } from '../../partidos/services/partid
 import { type JugadorCompetencia } from '../services/jugadorCompetenciaService';
 import PartidoCard from '../../../shared/components/PartidoCard/PartidoCard';
 import { PartidoCalendar } from '../../../shared/components/PartidoCalendar';
+import { Tabs } from 'overtime-kit';
 
 // Los valores tienen que ser estados reales del backend: el filtro compara contra
 // `partido.estado`, así que un valor de UI inventado no matchea nunca.
@@ -105,24 +106,13 @@ export const CompetenciaPartidosTab: React.FC<CompetenciaPartidosTabProps> = ({
   return (
     <div className="p-6">
       <div className="flex justify-end mb-4">
-        <div className="flex bg-slate-100 p-1 rounded-lg">
-          <button
-            onClick={() => setVista('lista')}
-            className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
-              vista === 'lista' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-            }`}
-          >
-            Lista
-          </button>
-          <button
-            onClick={() => setVista('calendario')}
-            className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
-              vista === 'calendario' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-            }`}
-          >
-            Calendario
-          </button>
-        </div>
+        <Tabs
+          aria-label="Vista de partidos"
+          variante="segmentado"
+          items={[{ id: 'lista', label: 'Lista' }, { id: 'calendario', label: 'Calendario' }]}
+          value={vista}
+          onChange={setVista}
+        />
       </div>
 
       {/* Selectors row */}
