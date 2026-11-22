@@ -275,7 +275,7 @@ const Navbar: React.FC = () => {
                                 isActive ? 'bg-brand-100 text-brand-700' : 'hover:bg-slate-100'
                               }`
                             }
-                            onClick={cerrarMenu}
+                            onClick={() => setIsMenuOpen(false)}
                           >
                             {label}
                           </NavLink>
@@ -293,7 +293,7 @@ const Navbar: React.FC = () => {
                           isActive ? 'bg-brand-100 text-brand-700' : 'hover:bg-slate-100'
                         }`
                       }
-                      onClick={cerrarMenu}
+                      onClick={() => setIsMenuOpen(false)}
                     >
                       {label}
                     </NavLink>
@@ -310,7 +310,7 @@ const Navbar: React.FC = () => {
                             isActive ? 'bg-brand-100 text-brand-700' : 'hover:bg-slate-100'
                           }`
                         }
-                        onClick={cerrarMenu}
+                        onClick={() => setIsMenuOpen(false)}
                       >
                         Mis Solicitudes
                       </NavLink>
@@ -321,7 +321,7 @@ const Navbar: React.FC = () => {
                             isActive ? 'bg-brand-100 text-brand-700' : 'hover:bg-slate-100'
                           }`
                         }
-                        onClick={cerrarMenu}
+                        onClick={() => setIsMenuOpen(false)}
                       >
                         {user?.nombre || 'Perfil'}
                       </NavLink>
@@ -331,14 +331,14 @@ const Navbar: React.FC = () => {
                       <NavLink
                         to="/login"
                         className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
-                        onClick={cerrarMenu}
+                        onClick={() => setIsMenuOpen(false)}
                       >
                         Iniciar sesión
                       </NavLink>
                       <NavLink
                         to="/register"
                         className="rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-brand-700"
-                        onClick={cerrarMenu}
+                        onClick={() => setIsMenuOpen(false)}
                       >
                         Registrarse
                       </NavLink>
