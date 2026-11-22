@@ -8,7 +8,7 @@ const items = (r) => (Array.isArray(r) ? r : r?.items || r?.data || []);
 
 module.exports = async (req, res) => {
   const base = origen(req);
-  const listas = await Promise.all(ENTIDADES.map((e) => getJson(`/${e}?limit=1000`, 8000)));
+  const listas = await Promise.all(ENTIDADES.map((e) => getJson(`/${e}?limit=1000`, 25000)));
 
   const urls = FIJAS.map((p) => `  <url><loc>${base}${p}</loc></url>`);
   ENTIDADES.forEach((e, i) => {
