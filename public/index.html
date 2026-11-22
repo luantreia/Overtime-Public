@@ -4,17 +4,17 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#4f46e5" />
-    <meta name="description" content="Overtime Dodgeball: seguí ligas y torneos de dodgeball, fixture, resultados en vivo, tablas de posiciones y estadísticas de equipos y jugadores." />
+    <meta name="description" content="Seguí ligas y torneos de dodgeball: fixture, resultados en vivo, tablas de posiciones y estadísticas de equipos y jugadores." />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Overtime Dodgeball" />
     <meta property="og:locale" content="es_AR" />
     <meta property="og:url" content="https://overtime-public.vercel.app/" />
-    <meta property="og:title" content="Overtime Dodgeball" />
-    <meta property="og:description" content="Plataforma competitiva y comunitaria de dodgeball. Seguí ligas, torneos, equipos y jugadores." />
+    <meta property="og:title" content="Overtime Dodgeball · Ligas, torneos y estadísticas" />
+    <meta property="og:description" content="Seguí ligas y torneos de dodgeball: fixture, resultados en vivo, tablas de posiciones y estadísticas de equipos y jugadores." />
     <meta property="og:image" content="https://overtime-public.vercel.app/logo.png" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Overtime Dodgeball" />
-    <meta name="twitter:description" content="Plataforma competitiva y comunitaria de dodgeball." />
+    <meta name="twitter:title" content="Overtime Dodgeball · Ligas, torneos y estadísticas" />
+    <meta name="twitter:description" content="Seguí ligas y torneos de dodgeball: fixture, resultados en vivo, tablas de posiciones y estadísticas de equipos y jugadores." />
     <meta name="twitter:image" content="https://overtime-public.vercel.app/logo.png" />
     <link rel="apple-touch-icon" href="/logo.png" />
     <link rel="manifest" href="/manifest.json" />
@@ -22,8 +22,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-    <title>Overtime Dodgeball · Ligas, torneos y estadísticas de dodgeball</title>
+    <title>Overtime Dodgeball · Ligas, torneos y estadísticas</title>
     <link rel="canonical" href="https://overtime-public.vercel.app/" />
+    <!-- Datos estructurados del sitio (válidos en todas las páginas). Los de cada entidad los agrega
+         usePageTitle en el cliente y api/seo.js para bots, en un <script> aparte. Al tener dominio
+         propio, actualizar las URLs; al tener cuentas en redes, sumarlas en "sameAs". -->
+    <script type="application/ld+json" id="site-jsonld">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://overtime-public.vercel.app/#website","url":"https://overtime-public.vercel.app/","name":"Overtime Dodgeball","inLanguage":"es","publisher":{"@id":"https://overtime-public.vercel.app/#organization"}},{"@type":"SportsOrganization","@id":"https://overtime-public.vercel.app/#organization","name":"Overtime Dodgeball","url":"https://overtime-public.vercel.app/","logo":"https://overtime-public.vercel.app/logo.png","sport":"Dodgeball"}]}</script>
 
     <!-- Google Analytics 4 — reemplazá G-XXXXXXXXXX con tu Measurement ID -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-KKZ8JBK5ET"></script>
@@ -49,14 +53,28 @@
       <!-- Contenido estático para buscadores y vistas previas: React lo reemplaza al montar. -->
       <main style="max-width:720px;margin:48px auto;padding:0 16px;font-family:Inter,system-ui,sans-serif;color:#1f2937">
         <h1>Overtime Dodgeball: ligas, torneos y estadísticas de dodgeball</h1>
-        <p>Overtime es la plataforma competitiva y comunitaria de dodgeball. Seguí las ligas y torneos de dodgeball, el fixture y los resultados de cada partido, las tablas de posiciones, el ranking y las estadísticas de equipos y jugadores.</p>
-        <nav>
+        <p>Overtime es la plataforma competitiva y comunitaria de dodgeball. Reúne en un solo lugar las ligas y torneos de dodgeball, el fixture y los resultados de cada partido, las tablas de posiciones, el ranking y las estadísticas de equipos y jugadores.</p>
+
+        <h2>Ligas, torneos y resultados en vivo</h2>
+        <p>Cada competencia tiene su fixture, sus fases (grupos, zonas y eliminatorias con llaves) y su tabla de posiciones actualizada con cada resultado. Los partidos que se están jugando muestran el marcador en vivo, set por set, y al terminar quedan las estadísticas de cada jugador.</p>
+
+        <h2>Equipos y jugadores</h2>
+        <p>Cada equipo tiene su plantel, su calendario y su historial de partidos y competencias. Cada jugador tiene su perfil con los equipos en los que jugó, sus partidos y sus estadísticas, y su posición en el ranking.</p>
+
+        <h2>Ranking y partidos de La Plaza</h2>
+        <p>El ranking de dodgeball se calcula con un sistema de rating tipo ELO a partir de los partidos rankeados. En La Plaza cualquiera puede armar o sumarse a un partido abierto cerca suyo y reportar el resultado para que cuente en el ranking.</p>
+
+        <h2>Cómo se juega al dodgeball</h2>
+        <p>Si recién empezás, la guía de cómo se juega explica las reglas básicas, y el reglamento completo detalla las reglas de las modalidades foam y cloth y cómo se definen los sets.</p>
+
+        <nav aria-label="Secciones">
           <ul>
             <li><a href="/competencias">Ligas y torneos de dodgeball</a></li>
             <li><a href="/partidos">Partidos y resultados</a></li>
             <li><a href="/equipos">Equipos</a></li>
             <li><a href="/jugadores">Jugadores</a></li>
             <li><a href="/ranking">Ranking de dodgeball</a></li>
+            <li><a href="/plaza">La Plaza: partidos abiertos</a></li>
             <li><a href="/como-se-juega">Cómo se juega al dodgeball</a></li>
             <li><a href="/reglamento">Reglamento de dodgeball</a></li>
           </ul>
