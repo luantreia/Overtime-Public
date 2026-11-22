@@ -69,7 +69,4 @@ export class CompetenciaService {
     return this.getByEstado('en_curso');
   }
 
-  static async getProximas(): Promise<Competencia[]> {
-    return this.getByEstado('proximamente');
-  }
 }
