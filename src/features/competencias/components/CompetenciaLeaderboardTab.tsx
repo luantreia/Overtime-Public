@@ -363,7 +363,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
       ) : (
         <>
           <div className="hidden md:block overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-200">
+            <table className="min-w-full divide-y divide-slate-200 tabular-nums">
               <thead className="bg-slate-50">
                 <tr>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
@@ -380,6 +380,9 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                     Partidos
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    <abbr title="Victorias - Empates - Derrotas" className="no-underline">V-E-D</abbr>
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                     Tendencia
@@ -497,7 +500,10 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                           {winrate.toFixed(1)}%
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{item.matchesPlayed}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 tabular-nums">{item.matchesPlayed}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 tabular-nums">
+                        {item.wins ?? 0}-{item.draws ?? 0}-{item.losses ?? 0}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         {item.lastDelta !== undefined ? (
                           <span
@@ -523,7 +529,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
             </table>
           </div>
 
-          <div className="md:hidden space-y-4">
+          <div className="md:hidden space-y-2 tabular-nums">
             {filteredLeaderboard.map((item) => {
               const originalIndex = leaderboard.findIndex((entry) => getPlayerId(entry) === getPlayerId(item));
               const playerId = getPlayerId(item);
@@ -536,7 +542,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                 <div
                   key={playerId}
                   {...accionable(() => onPlayerClick({ id: playerId, name: playerName }))}
-                  className={`bg-white border rounded-lg p-3 shadow-sm active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 ${
+                  className={`bg-white border rounded-lg px-3 py-2 shadow-sm active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 ${
                     comparingPlayers.includes(playerId)
                       ? 'border-brand-400 ring-1 ring-brand-300'
                       : 'border-slate-200 hover:border-brand-300'
@@ -596,7 +602,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                     </div>
                   </div>
 
-                  <div className="mt-2 flex items-center justify-end gap-2">
+                  <div className="mt-1 flex items-center justify-end gap-2">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();

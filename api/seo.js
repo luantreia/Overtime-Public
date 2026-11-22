@@ -156,7 +156,7 @@ const RANKING_TOP = 50;
 async function ranking(res, base, html) {
   const tablas = await Promise.all(RANKING_MODALIDADES.map(async (modalidad) => ({
     modalidad,
-    filas: items(await getJson(`/ranked/leaderboard?modalidad=${modalidad}&categoria=Libre&minMatches=0&limit=${RANKING_TOP}`))
+    filas: items(await getJson(`/ranked/leaderboard?modalidad=${modalidad}&categoria=Libre&minMatches=1&limit=${RANKING_TOP}`))
       .filter((f) => f?.playerId && f.playerName),
   })));
   const hayDatos = tablas.some((t) => t.filas.length);

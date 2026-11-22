@@ -4,6 +4,10 @@ import { CompetenciaLeaderboardTab } from '../../competencias/components/Compete
 import { PlayerRankedHistoryModal } from '../../competencias/components/PlayerRankedHistoryModal';
 import { TrophyIcon } from '@heroicons/react/24/outline';
 import { usePageTitle } from '../../../shared/hooks/usePageTitle';
+import { PodioRanking } from '../components/PodioRanking';
+
+// Para figurar hace falta al menos un partido rankeado: el backend guarda filas con 0 PJ.
+const MIN_PARTIDOS = 1;
 
 const MODALIDADES = ['Foam', 'Cloth'] as const;
 const CATEGORIAS = ['Masculino', 'Femenino', 'Mixto', 'Libre'] as const;
@@ -22,7 +26,7 @@ export default function RankingGlobalPage() {
   const fetchLeaderboard = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await RankedService.getLeaderboard({ modalidad, categoria, limit: 200 });
+      const res = await RankedService.getLeaderboard({ modalidad, categoria, minMatches: MIN_PARTIDOS, limit: 200 });
       setLeaderboard(res.items ?? []);
     } catch {
       setLeaderboard([]);
@@ -40,7 +44,7 @@ export default function RankingGlobalPage() {
       <div className="flex flex-col sm:flex-row sm:items-end gap-4">
         <div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">Ranking ELO de dodgeball</h1>
-          <p className="text-sm text-slate-500 mt-0.5">Los mejores jugadores de toda la plataforma</p>
+          <p className="text-sm text-slate-500 mt-0.5">Rating de jugadores según sus partidos rankeados, por modalidad y categoría.</p>
         </div>
 
         <div className="flex gap-3 sm:ml-auto">
@@ -72,6 +76,8 @@ export default function RankingGlobalPage() {
         </div>
       </div>
 
+      <PodioRanking items={leaderboard} loading={loading} />
+
       {!loading && leaderboard.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-slate-200 bg-white py-20 text-center">
           <TrophyIcon className="h-12 w-12 text-muted" />
@@ -97,6 +103,10 @@ export default function RankingGlobalPage() {
           />
         </div>
       )}
+
+      <p className="text-xs text-slate-500">
+        Figuran los jugadores con al menos {MIN_PARTIDOS} partido rankeado en {modalidad} · {categoria}. La variación es la del último partido.
+      </p>
 
       {selectedPlayer && (
         <PlayerRankedHistoryModal
