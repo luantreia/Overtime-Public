@@ -154,7 +154,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
 
   return (
     <div className="p-4 sm:p-6">
-      <div className="flex flex-col md:flex-row items-start md:items-end justify-between mb-6 gap-4">
+      <div className="flex flex-col md:flex-row items-start md:items-end justify-between mb-4 sm:mb-6 gap-3 sm:gap-4">
         <div className="flex flex-col sm:flex-row gap-4 w-full md:w-2/3">
           {temporadas.length > 0 && (
           <div className="w-full sm:w-1/2">
@@ -178,7 +178,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
           )}
 
           <div className={`w-full ${temporadas.length > 0 ? 'sm:w-1/2' : 'sm:max-w-sm'}`}>
-            <label htmlFor="search-leaderboard" className="block text-sm font-medium text-slate-700 mb-1">
+            <label htmlFor="search-leaderboard" className="sr-only sm:not-sr-only sm:block text-sm font-medium text-slate-700 mb-1">
               Buscar Jugador
             </label>
             <div className="relative">
@@ -219,13 +219,13 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
           </div>
         </div>
 
-        <div className="mb-1 flex w-full md:w-auto flex-wrap items-center gap-x-3 gap-y-2 md:flex-shrink-0">
+        <div className="mb-1 flex w-full md:w-auto flex-nowrap items-center gap-x-4 md:flex-shrink-0">
           <button
             onClick={() => setTopNConfig({ isOpen: true, n: 3 })}
             disabled={leaderboard.length === 0}
             className="text-sm text-brand-600 hover:text-brand-700 font-medium whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
-            Exportar Top 3
+            <span className="hidden sm:inline">Exportar </span>Top 3
           </button>
 
           <button
@@ -233,7 +233,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
             disabled={leaderboard.length === 0}
             className="text-sm text-brand-600 hover:text-brand-700 font-medium whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
-            Exportar Top 10
+            <span className="hidden sm:inline">Exportar </span>Top 10
           </button>
 
           <div className="hidden sm:block w-px h-4 bg-slate-300" />
@@ -257,14 +257,14 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                 d="M2.25 18a2.25 2.25 0 0 0 2.25 2.25h15a2.25 2.25 0 0 0 2.25-2.25V15a2.25 2.25 0 0 0-2.25-2.25H4.5A2.25 2.25 0 0 0 2.25 15v3z"
               />
             </svg>
-            Ver Evolución
+            <span className="hidden sm:inline">Ver </span>Evolución
           </button>
 
           <div className="hidden sm:block w-px h-4 bg-slate-300" />
 
           <EloExplanationModal
             trigger={
-              <button className="text-sm text-brand-600 hover:text-brand-700 font-medium whitespace-nowrap flex items-center gap-1 transition-colors">
+              <button aria-label="¿Cómo funciona el ranking?" className="ml-auto md:ml-0 text-sm text-brand-600 hover:text-brand-700 font-medium whitespace-nowrap flex items-center gap-1 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
                   <path
                     strokeLinecap="round"
@@ -272,7 +272,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                     d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"
                   />
                 </svg>
-                ¿Cómo funciona el ranking?
+                <span className="hidden sm:inline">¿Cómo funciona el ranking?</span>
               </button>
             }
           />

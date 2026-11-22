@@ -45,12 +45,12 @@ export default function RankingGlobalPage() {
   const loading = isPending;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+    <div className="mx-auto max-w-6xl space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Ranking ELO de dodgeball</h1>
-          <p className="text-sm text-slate-500 mt-0.5">Rating de jugadores según sus partidos rankeados, por modalidad y categoría.</p>
-          <p className="text-xs text-slate-500 mt-1">Figuran quienes tienen al menos {MIN_PARTIDOS} partido rankeado en {modalidad} · {categoria}.</p>
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Ranking ELO de dodgeball</h1>
+          <p className="hidden sm:block text-sm text-slate-500 mt-0.5">Rating de jugadores según sus partidos rankeados, por modalidad y categoría.</p>
+          <p className="hidden sm:block text-xs text-slate-500 mt-1">Figuran quienes tienen al menos {MIN_PARTIDOS} partido rankeado en {modalidad} · {categoria}.</p>
         </div>
 
         <div className="flex gap-3 sm:ml-auto w-full sm:w-auto">
