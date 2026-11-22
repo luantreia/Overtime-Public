@@ -4,6 +4,7 @@ import { QueryClient } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import Navbar from './app/layout/Navbar';
+import { RouteFocus } from './app/layout/RouteFocus';
 import ProtectedRoute from './app/routes/ProtectedRoute';
 import { FeatureFlagsProvider } from './shared/config/featureFlags';
 import ErrorBoundary from './shared/components/ui/Error/ErrorBoundary';
@@ -77,8 +78,15 @@ const App: React.FC = () => (
   >
     <FeatureFlagsProvider>
     <div className="App">
+      <a
+        href="#contenido"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-brand-600 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white focus:shadow-lg"
+      >
+        Saltar al contenido
+      </a>
+      <RouteFocus targetId="contenido" />
       <Navbar />
-      <div className="mx-auto max-w-6xl px-4 py-6">
+      <main id="contenido" tabIndex={-1} className="mx-auto max-w-6xl px-4 py-6 focus:outline-none">
         <ErrorBoundary>
         <Suspense fallback={<div className="flex min-h-screen items-center justify-center"><div className="text-center"><div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600 mx-auto"></div><p className="text-slate-600">Cargando...</p></div></div>}>
           <Routes>
@@ -144,7 +152,7 @@ const App: React.FC = () => (
           </Routes>
         </Suspense>
         </ErrorBoundary>
-      </div>
+      </main>
     </div>
       <FeedbackWidget />
     </FeatureFlagsProvider>

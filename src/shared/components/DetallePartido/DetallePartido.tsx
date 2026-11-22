@@ -109,7 +109,8 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
       // El primer argumento en v5 es el objeto Query, los datos están en query.state.data
       const data = query.state.data as any;
       const estado = data?.estado?.toLowerCase() || '';
-      return (estado.includes('curso') || estado.includes('activa') || estado.includes('vivo')) ? 30000 : false;
+      // 'en_juego' es el valor real del enum de Partido; los otros quedan por datos viejos.
+      return (estado === 'en_juego' || estado.includes('curso') || estado.includes('activa') || estado.includes('vivo')) ? 30000 : false;
     },
     refetchIntervalInBackground: false,
     staleTime: 5000,
@@ -246,6 +247,13 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
             <div className="text-sm sm:text-lg font-semibold text-slate-700 line-clamp-1 group-hover:text-brand-600 group-hover:underline">{partido.equipoVisitante?.nombre || 'Visitante'}</div>
           </Link>
         </div>
+        {/* Anuncia los cambios de marcador a lectores de pantalla mientras el partido está en juego
+            (el refetch de arriba lo actualiza cada 30s). Fuera de juego queda vacío para no anunciar nada. */}
+        <p className="sr-only" aria-live="polite" aria-atomic="true">
+          {partido.estado === 'en_juego'
+            ? `Marcador: ${partido.equipoLocal?.nombre || 'Local'} ${partido.marcadorLocal ?? 0}, ${partido.equipoVisitante?.nombre || 'Visitante'} ${partido.marcadorVisitante ?? 0}`
+            : ''}
+        </p>
       </div>
 
       {/* Video del partido */}
