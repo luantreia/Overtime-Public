@@ -18,7 +18,7 @@ const badgeStyles = {
   },
   en_juego: {
     label: 'En Juego',
-    className: 'bg-amber-100 text-amber-700 animate-pulse',
+    className: 'bg-amber-100 text-amber-700 motion-safe:animate-pulse',
   },
   finalizado: {
     label: 'Finalizado',

@@ -18,13 +18,13 @@ export const renderEstadisticasJugadores = (
         <table className="min-w-full bg-white rounded-lg overflow-hidden">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jugador</th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Equipo</th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Lanz.</th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Golpes</th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Outs</th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Atrap.</th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Efect.</th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jugador</th>
+              <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Equipo</th>
+              <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Lanz.</th>
+              <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Golpes</th>
+              <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Outs</th>
+              <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Atrap.</th>
+              <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Efect.</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">

@@ -232,15 +232,18 @@ export const TablaPosiciones: React.FC<TablaPosicionesProps> = ({ faseId, partic
                 todas las zonas de una fase se vean con la misma proporción.
               */}
               <table className="w-full table-fixed border-collapse bg-white [font-variant-numeric:tabular-nums]">
+                <caption className="sr-only">
+                  {clave === 'general' ? 'Tabla de posiciones' : `Tabla de posiciones, ${clave}`}
+                </caption>
                 <thead>
                   <tr>
-                    <th className="w-8 py-1.5 px-2 text-left text-[9.5px] font-extrabold uppercase tracking-wide text-slate-500">#</th>
-                    <th className="py-1.5 px-2 text-left text-[9.5px] font-extrabold uppercase tracking-wide text-slate-500">Equipo</th>
-                    <th className="w-11 py-1.5 px-1 text-center text-[9.5px] font-extrabold uppercase tracking-wide text-slate-500">PJ</th>
-                    <th className="w-11 py-1.5 px-1 text-center text-[9.5px] font-extrabold uppercase tracking-wide text-slate-500 hidden sm:table-cell">PG</th>
-                    <th className="w-11 py-1.5 px-1 text-center text-[9.5px] font-extrabold uppercase tracking-wide text-slate-500 hidden sm:table-cell">PP</th>
-                    <th className="w-14 py-1.5 px-1 text-center text-[9.5px] font-extrabold uppercase tracking-wide text-slate-500 hidden md:table-cell">Dif</th>
-                    <th className="w-14 py-1.5 px-1 text-center text-[9.5px] font-extrabold uppercase tracking-wide text-slate-500">Pts</th>
+                    <th scope="col" className="w-8 py-1.5 px-2 text-left text-2xs font-extrabold uppercase tracking-wide text-slate-500">#</th>
+                    <th scope="col" className="py-1.5 px-2 text-left text-2xs font-extrabold uppercase tracking-wide text-slate-500">Equipo</th>
+                    <th scope="col" className="w-11 py-1.5 px-1 text-center text-2xs font-extrabold uppercase tracking-wide text-slate-500"><abbr title="Partidos jugados" className="no-underline">PJ</abbr></th>
+                    <th scope="col" className="w-11 py-1.5 px-1 text-center text-2xs font-extrabold uppercase tracking-wide text-slate-500 hidden sm:table-cell"><abbr title="Partidos ganados" className="no-underline">PG</abbr></th>
+                    <th scope="col" className="w-11 py-1.5 px-1 text-center text-2xs font-extrabold uppercase tracking-wide text-slate-500 hidden sm:table-cell"><abbr title="Partidos perdidos" className="no-underline">PP</abbr></th>
+                    <th scope="col" className="w-14 py-1.5 px-1 text-center text-2xs font-extrabold uppercase tracking-wide text-slate-500 hidden md:table-cell"><abbr title="Diferencia de puntos" className="no-underline">Dif</abbr></th>
+                    <th scope="col" className="w-14 py-1.5 px-1 text-center text-2xs font-extrabold uppercase tracking-wide text-slate-500"><abbr title="Puntos" className="no-underline">Pts</abbr></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -251,25 +254,19 @@ export const TablaPosiciones: React.FC<TablaPosicionesProps> = ({ faseId, partic
                     const handleClick = clickable
                       ? () => onEquipoClick!({ _id: p.equipoId as string, nombre: p.nombre, escudo: p.escudo ?? undefined })
                       : undefined;
-                    const handleKeyDown = (event: React.KeyboardEvent<HTMLTableRowElement>) => {
-                      if (!handleClick) return;
-                      if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault();
-                        handleClick();
-                      }
-                    };
                     return (
                       <tr
                         key={p.id}
+                        // La fila sigue siendo fila (un role="button" acá borraba la semántica de
+                        // tabla para el lector de pantalla). El click en cualquier parte de la fila
+                        // queda para el mouse; con teclado se entra por el botón del nombre, cuyo
+                        // click sube hasta acá.
                         onClick={handleClick}
-                        onKeyDown={handleKeyDown}
-                        role={clickable ? 'button' : undefined}
-                        tabIndex={clickable ? 0 : undefined}
                         className={[
                           p.clasificado ? 'bg-emerald-50/60' : p.eliminado ? 'bg-red-50/50' : '',
                           esPropio ? 'bg-indigo-50 shadow-[inset_3px_0_0_0_#3b5dff]' : '',
                           esCorte ? 'border-b-2 border-dashed border-emerald-400' : 'border-b border-slate-50 last:border-b-0',
-                          clickable ? 'cursor-pointer hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 focus-visible:ring-inset' : '',
+                          clickable ? 'cursor-pointer hover:bg-slate-50' : '',
                         ].filter(Boolean).join(' ')}
                       >
                         <td className="py-1.5 px-2 text-[11px] font-bold text-muted">
@@ -282,7 +279,19 @@ export const TablaPosiciones: React.FC<TablaPosicionesProps> = ({ faseId, partic
                                 es consistente entre zonas, así que trunca al espacio que le
                                 queda de verdad (flex-1 + min-w-0, no un límite arbitrario que
                                 podía sobrar o quedarse corto según la columna). */}
-                            <span className="min-w-0 flex-1 truncate">{p.nombre}</span>
+                            {clickable ? (
+                              <button
+                                type="button"
+                                className="min-w-0 flex-1 truncate rounded text-left hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
+                              >
+                                {p.nombre}
+                              </button>
+                            ) : (
+                              <span className="min-w-0 flex-1 truncate">{p.nombre}</span>
+                            )}
+                            {/* El estado se ve sólo por el color de fondo de la fila: lo decimos en texto. */}
+                            {p.clasificado && <span className="sr-only">(clasifica)</span>}
+                            {!p.clasificado && p.eliminado && <span className="sr-only">(eliminado)</span>}
                           </div>
                         </td>
                         <td className="py-1.5 px-2 text-center text-[12.5px] text-slate-600">{p.partidosJugados}</td>
@@ -299,7 +308,7 @@ export const TablaPosiciones: React.FC<TablaPosicionesProps> = ({ faseId, partic
               </table>
             </div>
             {(hayClasificados || hayEliminados) && (
-              <div className="flex flex-wrap gap-3 border-t border-slate-100 bg-slate-50 px-3 py-1.5 text-[10.5px] text-slate-500">
+              <div className="flex flex-wrap gap-3 border-t border-slate-100 bg-slate-50 px-3 py-1.5 text-2xs text-slate-500">
                 {hayClasificados && (
                   <span className="flex items-center gap-1.5">
                     <i className="inline-block h-2 w-2 rounded-sm bg-emerald-200" />

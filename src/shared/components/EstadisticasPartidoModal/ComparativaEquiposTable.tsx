@@ -63,19 +63,19 @@ export const ComparativaEquiposTable: FC<ComparativaEquiposTableProps> = ({ esta
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Equipo
               </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+              <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
                 Lanzamientos
               </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+              <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
                 Golpes
               </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+              <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
                 Efectividad
               </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+              <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
                 Jugadores
               </th>
             </tr>

@@ -44,12 +44,12 @@ const JugadorList = ({
         <table className="min-w-full divide-y divide-slate-200">
           <thead className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
             <tr>
-              <th className="px-6 py-3">Nombre</th>
-              <th className="px-6 py-3">Rol</th>
-              <th className="px-6 py-3">Número</th>
-              <th className="px-6 py-3">Estado</th>
-              <th className="px-6 py-3">Contrato</th>
-              <th className="px-6 py-3 text-right">Acciones</th>
+              <th scope="col" className="px-6 py-3">Nombre</th>
+              <th scope="col" className="px-6 py-3">Rol</th>
+              <th scope="col" className="px-6 py-3">Número</th>
+              <th scope="col" className="px-6 py-3">Estado</th>
+              <th scope="col" className="px-6 py-3">Contrato</th>
+              <th scope="col" className="px-6 py-3 text-right">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 bg-white text-sm text-slate-700">

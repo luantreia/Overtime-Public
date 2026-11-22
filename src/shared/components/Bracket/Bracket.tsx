@@ -104,7 +104,7 @@ export const Bracket: React.FC<BracketProps> = ({ matches, onMatchClick }) => {
         </svg>
         {rondas.map((ronda) => (
           <div key={ronda.etapa} className="flex min-w-[176px] flex-1 flex-col">
-            <h3 className="mb-3 rounded-md bg-slate-100 py-1.5 text-center text-[9.5px] font-extrabold uppercase tracking-wide text-slate-500">
+            <h3 className="mb-3 rounded-md bg-slate-100 py-1.5 text-center text-2xs font-extrabold uppercase tracking-wide text-slate-500">
               {ronda.label}
             </h3>
             <div className="flex flex-1 flex-col justify-around gap-3">
@@ -124,7 +124,7 @@ export const Bracket: React.FC<BracketProps> = ({ matches, onMatchClick }) => {
             sigue después. Antes esta pantalla no lo mostraba en absoluto. */}
         {tercerPuesto && (
           <div className="flex min-w-[176px] flex-1 flex-col">
-            <h3 className="mb-3 rounded-md bg-amber-100 py-1.5 text-center text-[9.5px] font-extrabold uppercase tracking-wide text-amber-700">
+            <h3 className="mb-3 rounded-md bg-amber-100 py-1.5 text-center text-2xs font-extrabold uppercase tracking-wide text-amber-700">
               3er Puesto
             </h3>
             <div className="flex flex-1 flex-col justify-around gap-3">

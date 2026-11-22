@@ -45,7 +45,7 @@ export const NotificacionesTable: React.FC<NotificacionesTableProps> = ({
         <table className="w-full text-left text-sm">
           <thead className="text-xs uppercase tracking-wide text-slate-500">
             <tr>
-              <th className="px-3 py-2">
+              <th scope="col" className="px-3 py-2">
                 {canApprove && seleccionablesIds.length > 0 && (
                   <input
                     type="checkbox"
@@ -56,10 +56,10 @@ export const NotificacionesTable: React.FC<NotificacionesTableProps> = ({
                   />
                 )}
               </th>
-              <th className="px-3 py-2">Tipo</th>
-              <th className="px-3 py-2">Estado</th>
-              <th className="px-3 py-2">Fecha</th>
-              <th className="px-3 py-2">Acciones</th>
+              <th scope="col" className="px-3 py-2">Tipo</th>
+              <th scope="col" className="px-3 py-2">Estado</th>
+              <th scope="col" className="px-3 py-2">Fecha</th>
+              <th scope="col" className="px-3 py-2">Acciones</th>
             </tr>
           </thead>
           <tbody>
