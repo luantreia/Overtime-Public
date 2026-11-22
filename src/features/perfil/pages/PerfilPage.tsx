@@ -218,7 +218,7 @@ const PerfilPage = () => {
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Email</label>
-                <p className="mt-1 text-sm text-slate-400">{user.email} <span className="text-xs">(no editable)</span></p>
+                <p className="mt-1 text-sm text-muted">{user.email} <span className="text-xs">(no editable)</span></p>
               </div>
               <div className="flex gap-2 pt-1">
                 <button
@@ -290,7 +290,7 @@ const PerfilPage = () => {
 
         {/* Mi perfil de jugador */}
         <div className="rounded-2xl bg-white p-6 shadow-sm border border-slate-100">
-          <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4">Mi perfil de jugador</h2>
+          <h2 className="text-sm font-black text-muted uppercase tracking-widest mb-4">Mi perfil de jugador</h2>
           {miJugador ? (
             <>
               <button
@@ -298,7 +298,7 @@ const PerfilPage = () => {
                 onClick={openEditJugador}
                 className="flex w-full items-center gap-4 p-4 rounded-xl border border-slate-200 hover:border-brand-300 hover:bg-brand-50 transition-all group text-left"
               >
-                <div className="h-12 w-12 rounded-xl bg-slate-100 flex items-center justify-center text-xl font-bold text-slate-400 overflow-hidden flex-shrink-0">
+                <div className="h-12 w-12 rounded-xl bg-slate-100 flex items-center justify-center text-xl font-bold text-muted overflow-hidden flex-shrink-0">
                   {miJugador.foto
                     ? <img src={miJugador.foto} alt={miJugador.nombre} className="h-full w-full object-cover" />
                     : miJugador.nombre.charAt(0)
@@ -307,14 +307,14 @@ const PerfilPage = () => {
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-slate-900 group-hover:text-brand-700 transition-colors">{miJugador.nombre}</p>
                   {miJugador.alias && <p className="text-sm text-brand-600 font-medium">@{miJugador.alias}</p>}
-                  <p className="text-xs text-slate-400 capitalize">{miJugador.genero} · {miJugador.nacionalidad}</p>
+                  <p className="text-xs text-muted capitalize">{miJugador.genero} · {miJugador.nacionalidad}</p>
                 </div>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-300 group-hover:text-brand-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-muted group-hover:text-brand-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </button>
               <div className="mt-2 text-right">
-                <Link to={`/jugadores/${miJugador._id || miJugador.id}`} className="text-xs font-semibold text-slate-400 hover:text-brand-600">
+                <Link to={`/jugadores/${miJugador._id || miJugador.id}`} className="text-xs font-semibold text-muted hover:text-brand-600">
                   Ver perfil público →
                 </Link>
               </div>
@@ -367,7 +367,7 @@ const PerfilPage = () => {
                       onChange={(e) => setJugadorForm((f) => ({ ...f, foto: e.target.value }))}
                       placeholder="https://…"
                     />
-                    <p className="mt-1 text-xs text-slate-400">
+                    <p className="mt-1 text-xs text-muted">
                       Subí la imagen a{' '}
                       <a href="https://postimages.org/" target="_blank" rel="noopener noreferrer" className="underline">
                         postimages.org
@@ -403,7 +403,7 @@ const PerfilPage = () => {
             </>
           ) : (
             <div className="flex items-start gap-3 p-4 rounded-xl bg-slate-50 border border-dashed border-slate-200">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-muted mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <div>
@@ -438,7 +438,7 @@ const PerfilPage = () => {
                 {solicitudesPendientes} pendiente{solicitudesPendientes > 1 ? 's' : ''}
               </span>
             )}
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-300 group-hover:text-brand-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-muted group-hover:text-brand-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </div>
@@ -446,7 +446,7 @@ const PerfilPage = () => {
 
         {/* Crear entidades */}
         <div className="rounded-2xl bg-white p-6 shadow-sm border border-slate-100">
-          <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-1">Crear entidades</h2>
+          <h2 className="text-sm font-black text-muted uppercase tracking-widest mb-1">Crear entidades</h2>
           <p className="text-xs text-slate-500 mb-5">Las solicitudes son revisadas por administradores antes de publicarse.</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {[

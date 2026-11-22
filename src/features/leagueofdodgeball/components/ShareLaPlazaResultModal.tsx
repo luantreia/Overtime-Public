@@ -27,7 +27,7 @@ const PlayerAvatars: React.FC<{ players: LaPlazaPlayer[] }> = ({ players }) => (
       return (
         <div
           key={i}
-          className="w-9 h-9 rounded-full border-2 border-white/60 bg-white/20 flex items-center justify-center text-[10px] font-black overflow-hidden shrink-0"
+          className="w-9 h-9 rounded-full border-2 border-white/60 bg-white/20 flex items-center justify-center text-2xs font-black overflow-hidden shrink-0"
         >
           {p.player.foto ? <img src={p.player.foto} alt={name} className="w-full h-full object-cover" /> : initials}
         </div>
@@ -70,7 +70,7 @@ export const ShareLaPlazaResultModal: React.FC<ShareLaPlazaResultModalProps> = (
             <div className="text-[11px] font-black uppercase tracking-[0.25em] opacity-70">LoD</div>
             <div className="text-lg font-bold uppercase tracking-wide mt-0.5">La Plaza</div>
             {locationName && <div className="text-xs font-semibold opacity-80 mt-0.5">{locationName}</div>}
-            <div className="text-[10px] uppercase tracking-widest opacity-60 mt-1">{fecha}</div>
+            <div className="text-2xs uppercase tracking-widest opacity-60 mt-1">{fecha}</div>
           </div>
 
           <div className="my-auto flex flex-col items-center text-center">
@@ -78,12 +78,12 @@ export const ShareLaPlazaResultModal: React.FC<ShareLaPlazaResultModalProps> = (
 
             <div className="grid grid-cols-3 items-center w-full gap-2 mb-6">
               <div className="flex flex-col items-center gap-2">
-                <span className="text-[10px] font-black uppercase tracking-widest opacity-70">Rojo</span>
+                <span className="text-2xs font-black uppercase tracking-widest opacity-70">Rojo</span>
                 <PlayerAvatars players={teamA} />
               </div>
               <div className="text-3xl font-black">{scoreA} - {scoreB}</div>
               <div className="flex flex-col items-center gap-2">
-                <span className="text-[10px] font-black uppercase tracking-widest opacity-70">Azul</span>
+                <span className="text-2xs font-black uppercase tracking-widest opacity-70">Azul</span>
                 <PlayerAvatars players={teamB} />
               </div>
             </div>

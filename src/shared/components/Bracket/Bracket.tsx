@@ -57,7 +57,7 @@ const TarjetaCruce = React.forwardRef<HTMLDivElement, { match: PartidoConIds; on
         <LineaEquipo nombre={match.equipoLocal?.nombre || 'Local'} marcador={match.marcadorLocal} gano={localGana} />
         <LineaEquipo nombre={match.equipoVisitante?.nombre || 'Visitante'} marcador={match.marcadorVisitante} gano={visitaGana} />
       </div>
-      <div className="border-t border-slate-100 bg-slate-50/60 px-2.5 py-1 text-center text-[10px] text-slate-400">
+      <div className="border-t border-slate-100 bg-slate-50/60 px-2.5 py-1 text-center text-2xs text-muted">
         {match.fecha ? formatFechaPartido(match.fecha) : 'Fecha por definir'}
       </div>
     </div>

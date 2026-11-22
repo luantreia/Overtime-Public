@@ -54,7 +54,7 @@ const PartidoCard = ({ partido, variante = 'proximo', actions, onClick, eloDelta
       return <img src={equipo.escudo} alt={equipo.nombre} className="h-9 w-9 sm:h-12 sm:w-12 object-contain" />;
     }
     return (
-      <div className="flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-slate-100 text-base sm:text-lg font-bold text-slate-400">
+      <div className="flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-slate-100 text-base sm:text-lg font-bold text-muted">
         {equipo?.nombre?.charAt(0) || fallback}
       </div>
     );
@@ -76,11 +76,11 @@ const PartidoCard = ({ partido, variante = 'proximo', actions, onClick, eloDelta
           <span className="text-xs font-bold uppercase tracking-wider text-slate-500 truncate">
             {partido.competencia?.nombre ?? 'Amistoso'}
           </span>
-          <span className="text-[11px] sm:text-xs text-slate-400 font-medium truncate">
+          <span className="text-[11px] sm:text-xs text-muted font-medium truncate">
             {fechaTexto}
           </span>
         </div>
-        <span className={`flex-shrink-0 inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${badge.className}`}>
+        <span className={`flex-shrink-0 inline-flex rounded-full px-2 py-0.5 text-2xs font-bold uppercase tracking-wide ${badge.className}`}>
           {badge.label}
         </span>
       </div>
@@ -100,20 +100,20 @@ const PartidoCard = ({ partido, variante = 'proximo', actions, onClick, eloDelta
           {mostrarMarcador ? (
             <div className="flex items-center gap-1.5 sm:gap-3 text-lg sm:text-2xl font-bold text-slate-900">
               <span>{partido.marcadorLocal ?? 0}</span>
-              <span className="text-slate-300">-</span>
+              <span className="text-muted">-</span>
               <span>{partido.marcadorVisitante ?? 0}</span>
             </div>
           ) : (
-            <span className="text-base sm:text-xl font-bold text-slate-300">VS</span>
+            <span className="text-base sm:text-xl font-bold text-muted">VS</span>
           )}
           {partido.escenario && (
-            <span className="mt-1 text-[10px] text-slate-400 text-center line-clamp-1">
+            <span className="mt-1 text-2xs text-muted text-center line-clamp-1">
               {partido.escenario}
             </span>
           )}
           {typeof eloDelta === 'number' && (
             <span
-              className={`mt-1 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-tight ${
+              className={`mt-1 inline-flex items-center rounded-full px-2 py-0.5 text-2xs font-black uppercase tracking-tight ${
                 eloDelta > 0
                   ? 'bg-emerald-100 text-emerald-700'
                   : eloDelta < 0

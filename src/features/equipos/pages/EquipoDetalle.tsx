@@ -78,7 +78,7 @@ const EquipoDetalle: React.FC = () => {
                 <button
                   key={tab.key}
                   onClick={() => updateParams({ tab: tab.key })}
-                  className={`px-2 py-2.5 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wide sm:tracking-widest transition-all text-center ${
+                  className={`px-2 py-2.5 rounded-xl text-2xs sm:text-xs font-black uppercase tracking-wide sm:tracking-widest transition-all text-center ${
                     activeTab === tab.key ? 'bg-white text-brand-700 shadow-sm shadow-brand-100 ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700'
                   }`}
                 >

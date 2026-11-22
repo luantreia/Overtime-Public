@@ -136,12 +136,12 @@ export const PlazaMatchControl: React.FC<PlazaMatchControlProps> = ({
       {/* Main Scoreboard */}
       <div className="flex items-center justify-around mb-8 p-6 bg-slate-800/50 rounded-2xl border border-slate-700/50 relative overflow-hidden">
         <div className="text-center z-10">
-          <div className="text-[10px] font-black text-red-500 uppercase mb-1">EQUIPO A</div>
+          <div className="text-2xs font-black text-red-500 uppercase mb-1">EQUIPO A</div>
           <div className="text-6xl font-black">{scoreA}</div>
         </div>
         <div className="text-3xl font-black text-slate-600 z-10">VS</div>
         <div className="text-center z-10">
-          <div className="text-[10px] font-black text-blue-500 uppercase mb-1">EQUIPO B</div>
+          <div className="text-2xs font-black text-blue-500 uppercase mb-1">EQUIPO B</div>
           <div className="text-6xl font-black">{scoreB}</div>
         </div>
         

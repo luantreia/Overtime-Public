@@ -13,7 +13,7 @@ export const EloExplanationModal: React.FC<EloExplanationModalProps> = ({ trigge
     <>
       <div onClick={() => setIsOpen(true)} className="cursor-pointer inline-flex items-center">
         {trigger || (
-          <button className="text-slate-400 hover:text-brand-600 transition-colors" aria-label="Información sobre el sistema de ranking">
+          <button className="text-muted hover:text-brand-600 transition-colors" aria-label="Información sobre el sistema de ranking">
             <InformationCircleIcon className="h-5 w-5" />
           </button>
         )}

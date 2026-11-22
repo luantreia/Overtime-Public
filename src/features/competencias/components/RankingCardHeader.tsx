@@ -27,7 +27,7 @@ const RankingCardHeader: React.FC<RankingCardHeaderProps> = ({ scope }) => {
       <div className="text-[11px] font-black uppercase tracking-[0.25em] opacity-70">LoD</div>
       <div className="text-lg font-bold uppercase tracking-wide mt-0.5">{tituloRanking(scope)}</div>
       {org && <div className="text-xs font-semibold opacity-80 mt-0.5">{org}</div>}
-      <div className="text-[10px] uppercase tracking-widest opacity-60 mt-1">
+      <div className="text-2xs uppercase tracking-widest opacity-60 mt-1">
         {scope.tipo === 'global' ? `${scope.categoria} · ` : ''}{scope.modalidad} · {hoy}
       </div>
     </div>

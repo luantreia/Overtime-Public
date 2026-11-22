@@ -35,7 +35,7 @@ export const FilterCombobox: React.FC<FilterComboboxProps> = ({ items, value, on
       >
         <div className="relative">
           {compact && (
-            <svg xmlns="http://www.w3.org/2000/svg" className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 10.5a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z" />
             </svg>
           )}
@@ -51,7 +51,7 @@ export const FilterCombobox: React.FC<FilterComboboxProps> = ({ items, value, on
             placeholder={placeholder}
           />
           {!compact && (
-            <ChevronUpDownIcon className="pointer-events-none absolute right-2 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+            <ChevronUpDownIcon className="pointer-events-none absolute right-2 top-1/2 h-5 w-5 -translate-y-1/2 text-muted" />
           )}
         </div>
         <ComboboxOptions
@@ -78,7 +78,7 @@ export const FilterCombobox: React.FC<FilterComboboxProps> = ({ items, value, on
             </ComboboxOption>
           ))}
           {filtered.length === 0 && (
-            <div className="px-3 py-2 text-sm text-slate-400">Sin resultados</div>
+            <div className="px-3 py-2 text-sm text-muted">Sin resultados</div>
           )}
         </ComboboxOptions>
       </Combobox>

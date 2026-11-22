@@ -158,7 +158,7 @@ export const CompetenciaResultadosTab: React.FC<CompetenciaResultadosTabProps> =
                 </div>
               ) : (
                 <>
-                  <p className="text-xs text-slate-400 mb-3">{filteredPartidos.length} partido{filteredPartidos.length !== 1 ? 's' : ''}</p>
+                  <p className="text-xs text-muted mb-3">{filteredPartidos.length} partido{filteredPartidos.length !== 1 ? 's' : ''}</p>
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {filteredPartidos.map((partido) => (
                       <PartidoCard

@@ -71,7 +71,7 @@ export const ShareVSModal: React.FC<ShareVSModalProps> = ({ isOpen, onClose, pla
 
             {headToHead && headToHead.matches > 0 && (
               <div className="mt-6 pt-5 border-t border-white/20 text-center">
-                <div className="text-[9px] font-bold uppercase tracking-widest opacity-70 mb-1.5">
+                <div className="text-2xs font-bold uppercase tracking-widest opacity-70 mb-1.5">
                   Enfrentamientos directos · {headToHead.matches} {headToHead.matches === 1 ? 'partido' : 'partidos'}
                 </div>
                 <div className="text-2xl font-black">

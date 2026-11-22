@@ -122,7 +122,7 @@ const Cancha: React.FC<CanchaProps> = React.memo(({ formato, mostrarActivacion, 
           <Linea x={-spec.zonaNeutra} largoX={GROSOR_LINEA * 1.4} largoZ={ANCHO} color="#6366f1" />
           <Linea x={spec.zonaNeutra} largoX={GROSOR_LINEA * 1.4} largoZ={ANCHO} color="#6366f1" />
           {rotularZonaNeutra && (
-            <Rotulo x={0} z={MEDIO_ANCHO + 0.5} className="text-[9px] font-bold text-indigo-600">
+            <Rotulo x={0} z={MEDIO_ANCHO + 0.5} className="text-2xs font-bold text-indigo-600">
               zona neutra
             </Rotulo>
           )}
@@ -140,10 +140,10 @@ const Cancha: React.FC<CanchaProps> = React.memo(({ formato, mostrarActivacion, 
           <Linea x={-spec.activacion} largoX={GROSOR_LINEA * 1.4} largoZ={ANCHO} color="#b91c1c" />
           <Linea x={spec.activacion} largoX={GROSOR_LINEA * 1.4} largoZ={ANCHO} color="#1d4ed8" />
           {/* Abajo, entre la línea lateral y las colas: arriba chocaban con los shaggers. */}
-          <Rotulo x={-spec.activacion} z={MEDIO_ANCHO + 0.5} className="text-[9px] font-bold text-red-700">
+          <Rotulo x={-spec.activacion} z={MEDIO_ANCHO + 0.5} className="text-2xs font-bold text-red-700">
             {spec.nombreLinea}
           </Rotulo>
-          <Rotulo x={spec.activacion} z={MEDIO_ANCHO + 0.5} className="text-[9px] font-bold text-blue-700">
+          <Rotulo x={spec.activacion} z={MEDIO_ANCHO + 0.5} className="text-2xs font-bold text-blue-700">
             {spec.nombreLinea}
           </Rotulo>
         </>
@@ -153,19 +153,19 @@ const Cancha: React.FC<CanchaProps> = React.memo(({ formato, mostrarActivacion, 
       <Zona x={-6.7} z={Z_COLA} largoX={4.7} largoZ={1.2} color="#fecdd3" />
       <Zona x={6.7} z={Z_COLA} largoX={4.7} largoZ={1.2} color="#c7d8fb" />
 
-      <Rotulo x={-10} z={0} className="text-[10px] font-black tracking-wide text-red-700">
+      <Rotulo x={-10} z={0} className="text-2xs font-black tracking-wide text-red-700">
         ROJO
       </Rotulo>
-      <Rotulo x={10} z={0} className="text-[10px] font-black tracking-wide text-blue-700">
+      <Rotulo x={10} z={0} className="text-2xs font-black tracking-wide text-blue-700">
         AZUL
       </Rotulo>
-      <Rotulo x={-6.7} z={Z_COLA + 1.5} className="text-[9px] font-bold text-slate-500">
+      <Rotulo x={-6.7} z={Z_COLA + 1.5} className="text-2xs font-bold text-slate-500">
         cola
       </Rotulo>
-      <Rotulo x={6.7} z={Z_COLA + 1.5} className="text-[9px] font-bold text-slate-500">
+      <Rotulo x={6.7} z={Z_COLA + 1.5} className="text-2xs font-bold text-slate-500">
         cola
       </Rotulo>
-      <Rotulo x={0} z={Z_SHAGGERS - 1.1} className="text-[9px] font-bold text-slate-400">
+      <Rotulo x={0} z={Z_SHAGGERS - 1.1} className="text-2xs font-bold text-muted">
         shaggers
       </Rotulo>
     </group>

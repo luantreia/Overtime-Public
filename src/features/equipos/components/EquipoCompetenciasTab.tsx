@@ -105,7 +105,7 @@ export const EquipoCompetenciasTab: React.FC<EquipoCompetenciasTabProps> = ({ eq
                         </Link>
                       )}
                     </div>
-                    <span className="flex-shrink-0 text-xs text-slate-400">
+                    <span className="flex-shrink-0 text-xs text-muted">
                       {temporadas.length} temporada{temporadas.length !== 1 ? 's' : ''}
                     </span>
                   </div>
@@ -128,7 +128,7 @@ export const EquipoCompetenciasTab: React.FC<EquipoCompetenciasTabProps> = ({ eq
                         >
                           {p.temporada?.nombre}
                           {gano && <span title="Campeón de esta temporada">🏆</span>}
-                          <span className="text-slate-400 capitalize">· {p.estado || 'activo'}</span>
+                          <span className="text-muted capitalize">· {p.estado || 'activo'}</span>
                         </button>
                       );
                     })}

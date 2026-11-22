@@ -209,7 +209,7 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
           <Link to={`/equipos/${partido.equipoLocal?._id || partido.equipoLocal?.id}`} className="text-center flex flex-col items-center flex-1 group">
             {/* Logo Local */}
             <div className="mb-2 h-16 w-16 sm:h-24 sm:w-24 flex items-center justify-center bg-slate-50 rounded-xl p-1.5 sm:p-2 border border-slate-100 shadow-sm relative overflow-hidden group-hover:border-brand-200 transition-colors">
-              <div className="absolute inset-0 flex items-center justify-center text-slate-300 font-bold text-xl sm:text-3xl z-0">
+              <div className="absolute inset-0 flex items-center justify-center text-muted font-bold text-xl sm:text-3xl z-0">
                 {partido.equipoLocal?.nombre?.charAt(0) || 'L'}
               </div>
               {partido.equipoLocal?.escudo && (
@@ -225,12 +225,12 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
             <div className="text-sm sm:text-lg font-semibold text-slate-700 line-clamp-1 group-hover:text-brand-600 group-hover:underline">{partido.equipoLocal?.nombre || 'Local'}</div>
           </Link>
 
-          <div className="text-lg sm:text-3xl font-bold text-slate-300 mt-0 sm:mt-10 self-center">VS</div>
+          <div className="text-lg sm:text-3xl font-bold text-muted mt-0 sm:mt-10 self-center">VS</div>
 
           <Link to={`/equipos/${partido.equipoVisitante?._id || partido.equipoVisitante?.id}`} className="text-center flex flex-col items-center flex-1 group">
             {/* Logo Visitante */}
             <div className="mb-2 h-16 w-16 sm:h-24 sm:w-24 flex items-center justify-center bg-slate-50 rounded-xl p-1.5 sm:p-2 border border-slate-100 shadow-sm relative overflow-hidden group-hover:border-brand-200 transition-colors">
-              <div className="absolute inset-0 flex items-center justify-center text-slate-300 font-bold text-xl sm:text-3xl z-0">
+              <div className="absolute inset-0 flex items-center justify-center text-muted font-bold text-xl sm:text-3xl z-0">
                 {partido.equipoVisitante?.nombre?.charAt(0) || 'V'}
               </div>
               {partido.equipoVisitante?.escudo && (
@@ -330,16 +330,16 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
                 </div>
                 <dl className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   <div>
-                    <dt className="text-[10px] font-medium uppercase text-slate-400">{partido.equipoLocal?.nombre || 'Local'}</dt>
+                    <dt className="text-2xs font-medium uppercase text-muted">{partido.equipoLocal?.nombre || 'Local'}</dt>
                     <dd className="text-sm font-bold text-slate-900 tabular-nums">{set.marcadorLocal} pts</dd>
                   </div>
                   <div>
-                    <dt className="text-[10px] font-medium uppercase text-slate-400">{partido.equipoVisitante?.nombre || 'Visitante'}</dt>
+                    <dt className="text-2xs font-medium uppercase text-muted">{partido.equipoVisitante?.nombre || 'Visitante'}</dt>
                     <dd className="text-sm font-bold text-slate-900 tabular-nums">{set.marcadorVisitante} pts</dd>
                   </div>
                   {set.tiempo && (
                     <div>
-                      <dt className="text-[10px] font-medium uppercase text-slate-400">Duración</dt>
+                      <dt className="text-2xs font-medium uppercase text-muted">Duración</dt>
                       <dd className="text-sm font-bold text-slate-900 tabular-nums">{set.tiempo}</dd>
                     </div>
                   )}
@@ -394,11 +394,11 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
                         </div>
                         <div className="overflow-hidden">
                           <div className="font-medium text-slate-900 text-sm sm:text-base truncate">{jugador.nombre}</div>
-                          {jugador.posicion && <div className="text-[10px] sm:text-sm text-slate-500 truncate">{jugador.posicion}</div>}
+                          {jugador.posicion && <div className="text-2xs sm:text-sm text-slate-500 truncate">{jugador.posicion}</div>}
                         </div>
                       </div>
                       {jugador.stats && (
-                        <div className="text-[10px] sm:text-sm text-slate-600 ml-2 whitespace-nowrap">
+                        <div className="text-2xs sm:text-sm text-slate-600 ml-2 whitespace-nowrap">
                           {partido.esRanked && jugador.stats.delta !== undefined ? (
                             <span className={`font-bold ${jugador.stats.delta >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                               {jugador.stats.delta > 0 ? `+${Number(jugador.stats.delta).toFixed(3)}` : Number(jugador.stats.delta).toFixed(3)} ELO
@@ -456,11 +456,11 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
                         </div>
                         <div className="overflow-hidden">
                           <div className="font-medium text-slate-900 text-sm sm:text-base truncate">{jugador.nombre}</div>
-                          {jugador.posicion && <div className="text-[10px] sm:text-sm text-slate-500 truncate">{jugador.posicion}</div>}
+                          {jugador.posicion && <div className="text-2xs sm:text-sm text-slate-500 truncate">{jugador.posicion}</div>}
                         </div>
                       </div>
                       {jugador.stats && (
-                        <div className="text-[10px] sm:text-sm text-slate-600 ml-2 whitespace-nowrap">
+                        <div className="text-2xs sm:text-sm text-slate-600 ml-2 whitespace-nowrap">
                           {partido.esRanked && jugador.stats.delta !== undefined ? (
                             <span className={`font-bold ${jugador.stats.delta >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                               {jugador.stats.delta > 0 ? `+${Number(jugador.stats.delta).toFixed(3)}` : Number(jugador.stats.delta).toFixed(3)} ELO
@@ -487,7 +487,7 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
         <h2 className="text-lg sm:text-xl font-semibold text-slate-900 mb-3 sm:mb-4">Información del Partido</h2>
         <dl className="grid grid-cols-2 gap-x-2 gap-y-4 sm:gap-x-4 sm:gap-y-6 sm:grid-cols-2">
           <div>
-            <dt className="text-[10px] sm:text-sm font-medium text-slate-500 uppercase">Competencia</dt>
+            <dt className="text-2xs sm:text-sm font-medium text-slate-500 uppercase">Competencia</dt>
             <dd className="mt-0.5 text-xs sm:text-sm font-medium truncate">
               {partido.competenciaId ? (
                 <Link to={`/competencias/${partido.competenciaId}`} className="text-brand-600 hover:underline">
@@ -499,20 +499,20 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
             </dd>
           </div>
           <div>
-            <dt className="text-[10px] sm:text-sm font-medium text-slate-500 uppercase">Fase</dt>
+            <dt className="text-2xs sm:text-sm font-medium text-slate-500 uppercase">Fase</dt>
             <dd className="mt-0.5 text-xs sm:text-sm text-slate-900 font-medium truncate">{partido.fase?.nombre || 'N/A'}</dd>
           </div>
           <div>
-            <dt className="text-[10px] sm:text-sm font-medium text-slate-500 uppercase">Escenario</dt>
+            <dt className="text-2xs sm:text-sm font-medium text-slate-500 uppercase">Escenario</dt>
             <dd className="mt-0.5 text-xs sm:text-sm text-slate-900 font-medium truncate">{partido.escenario || 'N/A'}</dd>
           </div>
           <div>
-            <dt className="text-[10px] sm:text-sm font-medium text-slate-500 uppercase">Estado</dt>
+            <dt className="text-2xs sm:text-sm font-medium text-slate-500 uppercase">Estado</dt>
             <dd className="mt-0.5 text-xs sm:text-sm text-slate-900 font-medium capitalize">{partido.estado?.replace('_', ' ') || 'N/A'}</dd>
           </div>
           {partido.sede && (
             <div className="col-span-2">
-              <dt className="text-[10px] sm:text-sm font-medium text-slate-500 uppercase">Sede</dt>
+              <dt className="text-2xs sm:text-sm font-medium text-slate-500 uppercase">Sede</dt>
               <dd className="mt-0.5 text-xs sm:text-sm font-medium truncate">
                 <Link to={`/sedes/${partido.sede._id}`} className="text-brand-600 hover:underline">
                   {partido.sede.nombre}

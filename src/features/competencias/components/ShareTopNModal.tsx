@@ -42,7 +42,7 @@ export const ShareTopNModal: React.FC<ShareTopNModalProps> = ({ isOpen, onClose,
                     <div className="w-8 text-lg font-black opacity-80 shrink-0 text-center">#{rank}</div>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-bold truncate">{playerName}</div>
-                      <div className="text-[10px] opacity-70">
+                      <div className="text-2xs opacity-70">
                         PJ {player.matchesPlayed ?? 0} · G {player.wins ?? 0} · E {player.draws ?? 0} · P {player.losses ?? 0}
                       </div>
                     </div>

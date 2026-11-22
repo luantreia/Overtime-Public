@@ -307,11 +307,11 @@ const Jugadores: React.FC = () => {
               {hasMore && (
                 <div className="flex flex-col items-center gap-2">
                   <div className="h-6 w-6 animate-spin rounded-full border-2 border-brand-200 border-t-brand-600"></div>
-                  <p className="text-xs text-slate-400 font-medium">Cargando más jugadores...</p>
+                  <p className="text-xs text-muted font-medium">Cargando más jugadores...</p>
                 </div>
               )}
               {!hasMore && filteredAndSortedItems.length > 0 && (
-                <p className="text-sm text-slate-400 font-medium">✨ Has llegado al final del directorio</p>
+                <p className="text-sm text-muted font-medium">✨ Has llegado al final del directorio</p>
               )}
             </div>
           </>

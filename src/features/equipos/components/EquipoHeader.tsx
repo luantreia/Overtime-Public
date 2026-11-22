@@ -87,7 +87,7 @@ export const EquipoHeader: React.FC<EquipoHeaderProps> = ({ equipo }) => {
       <div className="px-4 sm:px-8 pb-6 sm:pb-8">
         <div className="flex items-end gap-4 -mt-8 sm:-mt-14 mb-4">
           <div className="p-2 bg-white rounded-3xl shadow-md border border-slate-100 w-fit flex-shrink-0">
-            <div className="h-[72px] w-[72px] sm:h-32 sm:w-32 rounded-2xl bg-slate-50 flex items-center justify-center text-2xl sm:text-4xl font-bold text-slate-300 overflow-hidden border border-slate-100">
+            <div className="h-[72px] w-[72px] sm:h-32 sm:w-32 rounded-2xl bg-slate-50 flex items-center justify-center text-2xl sm:text-4xl font-bold text-muted overflow-hidden border border-slate-100">
               {escudo ? (
                 <img src={escudo} alt={equipo.nombre} className="h-full w-full object-cover" />
               ) : (
@@ -112,7 +112,7 @@ export const EquipoHeader: React.FC<EquipoHeaderProps> = ({ equipo }) => {
           <div className="flex flex-wrap items-center gap-2 mt-2">
             {equipo.ciudad && (
               <span className="text-sm sm:text-lg text-slate-500 flex items-center gap-1">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400 flex-shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5 text-muted flex-shrink-0">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
                 </svg>
@@ -129,7 +129,7 @@ export const EquipoHeader: React.FC<EquipoHeaderProps> = ({ equipo }) => {
           {(equipo.miembros ?? 0) > 0 && (
             <div className="flex flex-wrap items-center gap-4 mt-3 text-xs sm:text-sm text-slate-500">
               <span className="flex items-center gap-1.5">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-muted" viewBox="0 0 20 20" fill="currentColor">
                   <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
                 </svg>
                 <span><strong className="text-slate-700">{equipo.miembros}</strong> en el plantel</span>
@@ -180,7 +180,7 @@ export const EquipoHeader: React.FC<EquipoHeaderProps> = ({ equipo }) => {
 
         {!esAdmin && (equipo.administradores?.length ?? 0) < MAX_ADMINS && (
           <details className="pt-4 border-t border-slate-100 group">
-            <summary className="text-xs text-slate-400 hover:text-slate-600 cursor-pointer list-none flex items-center gap-1.5">
+            <summary className="text-xs text-muted hover:text-slate-600 cursor-pointer list-none flex items-center gap-1.5">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>

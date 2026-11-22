@@ -141,7 +141,7 @@ export const ShareRelationsModal: React.FC<ShareRelationsModalProps> = ({
           <div className="mb-4 w-full rounded-xl border border-slate-200 bg-slate-50 p-3">
             <div className="mb-2 flex items-center justify-between gap-2">
               <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Elegí quiénes aparecen</p>
-              <span className={`text-[11px] font-bold ${atMax ? 'text-brand-600' : 'text-slate-400'}`}>
+              <span className={`text-[11px] font-bold ${atMax ? 'text-brand-600' : 'text-muted'}`}>
                 {currentSelected.size}/{max}
               </span>
             </div>
@@ -175,7 +175,7 @@ export const ShareRelationsModal: React.FC<ShareRelationsModalProps> = ({
             {(showAll || search.trim()) && (
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {visibleList.length === 0 && (
-                  <p className="text-xs text-slate-400 italic py-1">Sin resultados para "{search}".</p>
+                  <p className="text-xs text-muted italic py-1">Sin resultados para "{search}".</p>
                 )}
                 {visibleList.map((item) => {
                   const active = currentSelected.has(item.id);
@@ -191,7 +191,7 @@ export const ShareRelationsModal: React.FC<ShareRelationsModalProps> = ({
                         active
                           ? 'border-brand-600 bg-brand-600 text-white'
                           : disabled
-                            ? 'border-slate-200 bg-slate-100 text-slate-300 cursor-not-allowed'
+                            ? 'border-slate-200 bg-slate-100 text-muted cursor-not-allowed'
                             : 'border-slate-300 bg-white text-slate-500 hover:border-slate-400'
                       }`}
                     >
@@ -222,7 +222,7 @@ export const ShareRelationsModal: React.FC<ShareRelationsModalProps> = ({
 
             <div className="my-auto flex flex-col w-full">
               <h2 className="text-center text-xl font-black mb-1">{playerName}</h2>
-              <p className="text-center text-[10px] font-bold uppercase tracking-widest opacity-70 mb-4">
+              <p className="text-center text-2xs font-bold uppercase tracking-widest opacity-70 mb-4">
                 {REL_LABEL[relType]}
               </p>
 
@@ -237,7 +237,7 @@ export const ShareRelationsModal: React.FC<ShareRelationsModalProps> = ({
                       <div key={item.id} className="flex items-center gap-3 rounded-xl bg-white/10 px-4 py-2.5">
                         <div className="flex-1 min-w-0">
                           <div className="text-sm font-bold truncate">{item.name}</div>
-                          <div className="text-[9px] opacity-70">
+                          <div className="text-2xs opacity-70">
                             {item.matches} PJ · {item.wins}G {item.draws ?? 0}E {losses}P
                           </div>
                         </div>

@@ -218,14 +218,14 @@ export const EquipoCompetenciaModal: React.FC<EquipoCompetenciaModalProps> = ({
             <div className="grid gap-3 sm:grid-cols-2">
               {stats.map((s) => (
                 <div key={s._id} className="rounded-lg border border-slate-200 bg-white p-4">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted mb-2">
                     {s.fase?.nombre || 'Fase'}{typeof s.posicion === 'number' ? ` · #${s.posicion}` : ''}
                   </p>
                   <div className="grid grid-cols-4 gap-2 text-center">
-                    <div><p className="text-lg font-bold text-slate-900">{s.partidosJugados}</p><p className="text-[10px] text-slate-400">PJ</p></div>
-                    <div><p className="text-lg font-bold text-emerald-600">{s.partidosGanados}</p><p className="text-[10px] text-slate-400">PG</p></div>
-                    <div><p className="text-lg font-bold text-red-600">{s.partidosPerdidos}</p><p className="text-[10px] text-slate-400">PP</p></div>
-                    <div><p className="text-lg font-bold text-brand-600">{s.puntos}</p><p className="text-[10px] text-slate-400">Pts</p></div>
+                    <div><p className="text-lg font-bold text-slate-900">{s.partidosJugados}</p><p className="text-2xs text-muted">PJ</p></div>
+                    <div><p className="text-lg font-bold text-emerald-600">{s.partidosGanados}</p><p className="text-2xs text-muted">PG</p></div>
+                    <div><p className="text-lg font-bold text-red-600">{s.partidosPerdidos}</p><p className="text-2xs text-muted">PP</p></div>
+                    <div><p className="text-lg font-bold text-brand-600">{s.puntos}</p><p className="text-2xs text-muted">Pts</p></div>
                   </div>
                 </div>
               ))}

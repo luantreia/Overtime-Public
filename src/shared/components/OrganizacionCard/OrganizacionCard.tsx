@@ -31,7 +31,7 @@ const OrganizacionCard = ({ organizacion, actions, onClick }: OrganizacionCardPr
     >
       <header className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-wide text-slate-400">
+          <p className="text-xs uppercase tracking-wide text-muted">
             Organización
           </p>
           <h3 className="text-lg font-semibold text-slate-900">

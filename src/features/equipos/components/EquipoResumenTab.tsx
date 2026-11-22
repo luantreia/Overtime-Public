@@ -236,7 +236,7 @@ export const EquipoResumenTab: React.FC<EquipoResumenTabProps> = ({ equipo, equi
             >
               <div className="text-2xl mb-2">📊</div>
               <div className="font-bold text-slate-500">Comparativas avanzadas</div>
-              <div className="text-sm text-slate-400 mt-1">Próximamente — rendimiento por set entre equipos</div>
+              <div className="text-sm text-muted mt-1">Próximamente — rendimiento por set entre equipos</div>
             </div>
           </div>
         )}

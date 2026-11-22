@@ -39,7 +39,7 @@ export default function LoDLandingPage() {
             El deporte en<br />
             <span className="text-brand-300">modo competitivo.</span>
           </h1>
-          <p className="text-xl text-slate-300 max-w-xl mx-auto leading-relaxed">
+          <p className="text-xl text-muted max-w-xl mx-auto leading-relaxed">
             Jugá, ganá y subí en el ranking.
           </p>
 
@@ -58,7 +58,7 @@ export default function LoDLandingPage() {
           {showProfileFlow && (
             <div className="mx-auto max-w-sm bg-white/10 backdrop-blur border border-white/20 rounded-2xl p-5 space-y-3 text-left">
               <p className="text-sm font-bold text-white">¿Participaste en alguna competencia registrada?</p>
-              <p className="text-xs text-slate-300 leading-relaxed">
+              <p className="text-xs text-muted leading-relaxed">
                 Tu Perfil de Jugador puede ya estar en la plataforma. Buscalo por nombre, asocialo a tu cuenta y empezá a acumular puntos.
               </p>
               <div className="flex flex-col gap-2 pt-1">
@@ -68,7 +68,7 @@ export default function LoDLandingPage() {
                 <Link to="/login" className="text-sm font-bold text-center py-2.5 px-4 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white transition-colors">
                   Ya tengo cuenta, iniciar sesión
                 </Link>
-                <Link to="/register" className="text-xs text-slate-400 hover:text-white text-center transition-colors py-1">
+                <Link to="/register" className="text-xs text-muted hover:text-white text-center transition-colors py-1">
                   No tengo cuenta → Registrarme gratis
                 </Link>
               </div>
@@ -193,19 +193,19 @@ export default function LoDLandingPage() {
 
           <div className="grid sm:grid-cols-3 gap-4">
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
-              <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-1.5">¿Quién puede participar?</p>
+              <p className="text-xs font-black uppercase tracking-widest text-muted mb-1.5">¿Quién puede participar?</p>
               <p className="text-sm text-slate-600 leading-relaxed">
                 Cualquiera. No hace falta pertenecer a un club ni tener experiencia previa — te registrás gratis y ya podés sumarte a un lobby de La Plaza o buscar la Competencia LoD de tu zona.
               </p>
             </div>
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
-              <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-1.5">¿Dónde?</p>
+              <p className="text-xs font-black uppercase tracking-widest text-muted mb-1.5">¿Dónde?</p>
               <p className="text-sm text-slate-600 leading-relaxed">
                 La Plaza es geolocalizada: vos elegís el lugar real al crear o sumarte a un partido. Las Competencias LoD las organizan clubes y ligas ya registrados — buscás la de tu zona en el listado.
               </p>
             </div>
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
-              <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-1.5">¿No sabés jugar todavía?</p>
+              <p className="text-xs font-black uppercase tracking-widest text-muted mb-1.5">¿No sabés jugar todavía?</p>
               <p className="text-sm text-slate-600 leading-relaxed">
                 Te explicamos el objetivo, cómo se elimina a un jugador y cómo se gana un set, en criollo y sin reglamento de por medio.{' '}
                 <Link to="/como-se-juega" className="font-semibold text-brand-600 hover:underline">Ver cómo se juega →</Link>
@@ -288,23 +288,23 @@ export default function LoDLandingPage() {
                 <div className="flex items-center justify-between">
                   <div className="text-center">
                     <p className="text-3xl font-black">Equipo A</p>
-                    <p className="text-xs text-slate-400 mt-1">ELO prom. 1620</p>
+                    <p className="text-xs text-muted mt-1">ELO prom. 1620</p>
                   </div>
                   <div className="text-center px-4">
                     <p className="text-4xl font-black text-brand-300">3 – 1</p>
                   </div>
                   <div className="text-center">
                     <p className="text-3xl font-black">Equipo B</p>
-                    <p className="text-xs text-slate-400 mt-1">ELO prom. 1480</p>
+                    <p className="text-xs text-muted mt-1">ELO prom. 1480</p>
                   </div>
                 </div>
                 <div className="border-t border-white/10 pt-4 grid grid-cols-2 gap-3 text-sm">
                   <div className="bg-white/10 rounded-xl p-3 text-center">
-                    <p className="text-[10px] text-slate-400 uppercase font-bold">Ganadores</p>
+                    <p className="text-2xs text-muted uppercase font-bold">Ganadores</p>
                     <p className="text-xl font-black text-green-400 mt-1">+18 ELO</p>
                   </div>
                   <div className="bg-white/10 rounded-xl p-3 text-center">
-                    <p className="text-[10px] text-slate-400 uppercase font-bold">Perdedores</p>
+                    <p className="text-2xs text-muted uppercase font-bold">Perdedores</p>
                     <p className="text-xl font-black text-red-400 mt-1">−12 ELO</p>
                   </div>
                 </div>

@@ -231,7 +231,7 @@ const OrganizacionDetalle: React.FC = () => {
                   <p className="font-semibold text-slate-900">{sede.nombre}</p>
                   {sede.direccion && <p className="mt-0.5 text-sm text-slate-500">{sede.direccion}</p>}
                   {sede.canchas && sede.canchas.length > 0 && (
-                    <p className="mt-2 text-xs text-slate-400">{sede.canchas.join(' · ')}</p>
+                    <p className="mt-2 text-xs text-muted">{sede.canchas.join(' · ')}</p>
                   )}
                 </button>
               ))}

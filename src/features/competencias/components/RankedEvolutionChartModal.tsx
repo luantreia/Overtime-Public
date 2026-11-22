@@ -562,7 +562,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
       bodyScroll={false}
       title="Evolución de Ranking"
       subtitle={
-        <span className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest">
+        <span className="inline-flex items-center gap-2 text-2xs font-bold uppercase tracking-widest">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
           Temporada: {selectedSeasonLabel}
         </span>
@@ -590,7 +590,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                 <button
                   key={f.id}
                   onClick={() => setTimeFilter(f.id as TimeFilter)}
-                  className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition-all ${timeFilter === f.id ? "bg-brand-600 text-white shadow" : "text-slate-500 hover:bg-slate-100"}`}
+                  className={`flex-1 px-2 py-1.5 rounded-lg text-2xs font-black uppercase tracking-wider whitespace-nowrap transition-all ${timeFilter === f.id ? "bg-brand-600 text-white shadow" : "text-slate-500 hover:bg-slate-100"}`}
                 >
                   {f.label}
                 </button>
@@ -598,7 +598,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
             </div>
 
             <div className="flex items-center gap-1.5 bg-white px-2.5 py-2 rounded-xl border border-slate-200 shadow-sm min-w-0">
-              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Top</span>
+              <span className="text-2xs font-black text-slate-500 uppercase tracking-widest">Top</span>
               <select
                 value={visiblePlayersCount}
                 onChange={(e) => setVisiblePlayersCount(Number(e.target.value))}
@@ -618,10 +618,10 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                 value={playerFilter}
                 onChange={(e) => setPlayerFilter(e.target.value)}
                 placeholder="Buscar jugador"
-                className="w-full text-[11px] font-bold bg-transparent border-none p-0 focus:ring-0 text-slate-600 placeholder:text-slate-400"
+                className="w-full text-[11px] font-bold bg-transparent border-none p-0 focus:ring-0 text-slate-600 placeholder:text-muted"
               />
               {playerFilter && (
-                <button onClick={() => setPlayerFilter("")} className="text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
+                <button onClick={() => setPlayerFilter("")} className="text-muted hover:text-slate-600 text-xs font-bold">✕</button>
               )}
             </div>
 
@@ -630,10 +630,10 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                 value={playerFilter2}
                 onChange={(e) => setPlayerFilter2(e.target.value)}
                 placeholder="Buscar jugador 2"
-                className="w-full text-[11px] font-bold bg-transparent border-none p-0 focus:ring-0 text-slate-600 placeholder:text-slate-400"
+                className="w-full text-[11px] font-bold bg-transparent border-none p-0 focus:ring-0 text-slate-600 placeholder:text-muted"
               />
               {playerFilter2 && (
-                <button onClick={() => setPlayerFilter2("")} className="text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
+                <button onClick={() => setPlayerFilter2("")} className="text-muted hover:text-slate-600 text-xs font-bold">✕</button>
               )}
             </div>
           </div>
@@ -673,7 +673,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
           )}
 
           {onOpenCompareVS && (playerFilter || playerFilter2) && (
-            <p className="text-[10px] font-bold text-slate-500 leading-tight">
+            <p className="text-2xs font-bold text-slate-500 leading-tight">
               {selectedComparePlayers.length === 2
                 ? `Detectados: ${selectedComparePlayers[0].name} vs ${selectedComparePlayers[1].name}`
                 : "Escribe dos nombres para habilitar la comparativa VS."}
@@ -685,7 +685,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
           {isBusy ? (
             <div className="w-full h-full flex flex-col items-center justify-center">
               <div className="w-12 h-12 border-4 border-slate-50 border-t-brand-500 rounded-full animate-spin"></div>
-              <p className="mt-4 text-[10px] font-black text-slate-300 uppercase tracking-widest">Calculando puntos...</p>
+              <p className="mt-4 text-2xs font-black text-muted uppercase tracking-widest">Calculando puntos...</p>
             </div>
           ) : evolutionaryData?.chartData && evolutionaryData.chartData.length > 0 ? (
             <div className="w-full" style={{ height: isMobileView ? 340 : 400, minWidth: 0, minHeight: 300, position: 'relative' }}>
@@ -704,21 +704,21 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                            if (payload[0].payload.isStartNode) {
                               return (
                                   <div className="bg-white px-4 py-2 rounded-xl shadow-xl border border-slate-100">
-                                      <p className="text-[10px] font-black text-slate-400 uppercase">Inicio de periodo</p>
+                                      <p className="text-2xs font-black text-muted uppercase">Inicio de periodo</p>
                                   </div>
                               );
                            }
                            if (payload[0].payload.isEndNode) {
                               return (
                                   <div className="bg-white px-4 py-2 rounded-xl shadow-xl border border-slate-100">
-                                      <p className="text-[10px] font-black text-slate-400 uppercase">Estado Actual</p>
+                                      <p className="text-2xs font-black text-muted uppercase">Estado Actual</p>
                                   </div>
                               );
                            }
 
                            return (
                              <div className="bg-white p-4 rounded-2xl shadow-2xl border border-slate-100 min-w-[200px]">
-                               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{payload[0].payload.fullDate}</p>
+                               <p className="text-2xs font-black text-muted uppercase tracking-widest mb-2">{payload[0].payload.fullDate}</p>
                                <div className="space-y-3">
                                  {payload.map((p: any) => {
                                     const match = p.payload[`${p.dataKey}_match`];
@@ -734,7 +734,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                                           </div>
                                           <div className="flex items-center gap-1.5">
                                             {diff !== undefined && diff !== 0 && (
-                                              <span className={`text-[9px] font-black ${isPositive ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                              <span className={`text-2xs font-black ${isPositive ? 'text-emerald-500' : 'text-rose-500'}`}>
                                                 {isPositive ? '+' : ''}{diff}
                                               </span>
                                             )}
@@ -743,15 +743,15 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
                                         </div>
                                         {match && (
                                           <div className="ml-4 pl-2 border-l-2 border-slate-100 py-1 mt-1 bg-slate-50/50 rounded-r-lg">
-                                             <p className="text-[9px] text-slate-500 font-bold leading-tight">
-                                               <span className="text-slate-400 font-black">VS: </span>
+                                             <p className="text-2xs text-slate-500 font-bold leading-tight">
+                                               <span className="text-muted font-black">VS: </span>
                                                {match.local} vs {match.visitante}
                                              </p>
                                              <div className="flex items-center justify-between mt-0.5">
-                                               <p className="text-[9px] text-emerald-600 font-black">
+                                               <p className="text-2xs text-emerald-600 font-black">
                                                  Result: {match.resultado}
                                                </p>
-                                               {match.fase && <span className="text-[8px] px-1.5 py-0.5 bg-slate-200 text-slate-500 rounded font-bold uppercase tracking-wider">{match.fase}</span>}
+                                               {match.fase && <span className="text-2xs px-1.5 py-0.5 bg-slate-200 text-slate-500 rounded font-bold uppercase tracking-wider">{match.fase}</span>}
                                              </div>
                                           </div>
                                         )}
@@ -787,7 +787,7 @@ export const RankedEvolutionChartModal: React.FC<RankedEvolutionChartModalProps>
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center text-center p-8 bg-slate-50/50 rounded-3xl">
               <h4 className="text-slate-800 font-extrabold text-sm uppercase tracking-wider">Sin partidos registrados en esta temporada</h4>
-              <p className="text-slate-400 text-xs mt-2">Prueba cambiando el filtro de temporada en el leaderboard.</p>
+              <p className="text-muted text-xs mt-2">Prueba cambiando el filtro de temporada en el leaderboard.</p>
             </div>
           )}
         </div>

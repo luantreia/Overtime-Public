@@ -60,30 +60,30 @@ export const ShareRankModal: React.FC<ShareRankModalProps> = ({
 
             <div className="grid grid-cols-2 gap-6 w-full mb-6">
                 <div className="flex flex-col">
-                    <span className="text-[10px] font-bold uppercase tracking-widest opacity-70">Posición</span>
+                    <span className="text-2xs font-bold uppercase tracking-widest opacity-70">Posición</span>
                     <span className="text-4xl font-black">#{rank}</span>
                 </div>
                 <div className="flex flex-col">
-                    <span className="text-[10px] font-bold uppercase tracking-widest opacity-70">Rating ELO</span>
+                    <span className="text-2xs font-bold uppercase tracking-widest opacity-70">Rating ELO</span>
                     <span className="text-4xl font-black">{Number(player.rating).toFixed(0)}</span>
                 </div>
             </div>
 
             <div className="grid grid-cols-4 gap-2 w-full">
                 <div className="flex flex-col">
-                    <span className="text-[9px] font-bold uppercase tracking-widest opacity-70">PJ</span>
+                    <span className="text-2xs font-bold uppercase tracking-widest opacity-70">PJ</span>
                     <span className="text-xl font-black">{player.matchesPlayed ?? 0}</span>
                 </div>
                 <div className="flex flex-col">
-                    <span className="text-[9px] font-bold uppercase tracking-widest opacity-70">G</span>
+                    <span className="text-2xs font-bold uppercase tracking-widest opacity-70">G</span>
                     <span className="text-xl font-black">{player.wins ?? 0}</span>
                 </div>
                 <div className="flex flex-col">
-                    <span className="text-[9px] font-bold uppercase tracking-widest opacity-70">E</span>
+                    <span className="text-2xs font-bold uppercase tracking-widest opacity-70">E</span>
                     <span className="text-xl font-black">{player.draws ?? 0}</span>
                 </div>
                 <div className="flex flex-col">
-                    <span className="text-[9px] font-bold uppercase tracking-widest opacity-70">P</span>
+                    <span className="text-2xs font-bold uppercase tracking-widest opacity-70">P</span>
                     <span className="text-xl font-black">{player.losses ?? 0}</span>
                 </div>
             </div>

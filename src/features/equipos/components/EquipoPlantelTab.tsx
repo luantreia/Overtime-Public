@@ -129,7 +129,7 @@ export const EquipoPlantelTab: React.FC<EquipoPlantelTabProps> = ({ equipo }) =>
                   {jugador?.foto ? (
                     <img src={jugador.foto} alt={jugador.nombre} className="h-full w-full object-cover" />
                   ) : (
-                    <span className="text-xl font-bold text-slate-300">{jugador?.nombre?.charAt(0) || '?'}</span>
+                    <span className="text-xl font-bold text-muted">{jugador?.nombre?.charAt(0) || '?'}</span>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -145,9 +145,9 @@ export const EquipoPlantelTab: React.FC<EquipoPlantelTabProps> = ({ equipo }) =>
                     </div>
                   ) : (
                     <div className="mt-1 space-y-0.5">
-                      <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">{contratos.length} contratos</span>
+                      <span className="text-2xs font-bold text-indigo-600 uppercase tracking-wider">{contratos.length} contratos</span>
                       {contratos.map((c: any) => (
-                        <div key={c._id} className="text-[11px] text-slate-400 flex items-center gap-1.5">
+                        <div key={c._id} className="text-[11px] text-muted flex items-center gap-1.5">
                           <span className="capitalize">{c.rol || 'jugador'}</span>
                           <span>·</span>
                           <span>{c.desde ? formatDate(c.desde) : '—'} – {c.hasta ? formatDate(c.hasta) : 'presente'}</span>
@@ -161,7 +161,7 @@ export const EquipoPlantelTab: React.FC<EquipoPlantelTabProps> = ({ equipo }) =>
           </div>
         ) : (
           <div className="bg-slate-50 rounded-2xl p-12 border border-slate-100 text-center">
-            <div className="mx-auto h-12 w-12 text-slate-300 mb-4 text-center flex justify-center">
+            <div className="mx-auto h-12 w-12 text-muted mb-4 text-center flex justify-center">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.998 5.998 0 00-12 0m12 0c0-1.657-1.343-3-3-3m-3 3c0-1.657-1.343-3-3-3m-3 3c0-1.657-1.343-3-3-3m-3 3a5.998 5.998 0 0112 0" />
               </svg>
@@ -182,7 +182,7 @@ export const EquipoPlantelTab: React.FC<EquipoPlantelTabProps> = ({ equipo }) =>
                 {jugador?.foto ? (
                   <img src={jugador.foto} alt={jugador.nombre} className="h-full w-full object-cover" />
                 ) : (
-                  <span className="text-xl font-bold text-slate-300">{jugador?.nombre?.charAt(0) || '?'}</span>
+                  <span className="text-xl font-bold text-muted">{jugador?.nombre?.charAt(0) || '?'}</span>
                 )}
               </div>
               <div className="flex-1 min-w-0">
@@ -195,9 +195,9 @@ export const EquipoPlantelTab: React.FC<EquipoPlantelTabProps> = ({ equipo }) =>
                   </div>
                 ) : (
                   <div className="mt-1 space-y-0.5">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{contratos.length} contratos anteriores</span>
+                    <span className="text-2xs font-bold text-slate-500 uppercase tracking-wider">{contratos.length} contratos anteriores</span>
                     {contratos.map((c: any) => (
-                      <div key={c._id} className="text-[11px] text-slate-400">
+                      <div key={c._id} className="text-[11px] text-muted">
                         {c.desde ? formatDate(c.desde) : '—'} – {c.hasta ? formatDate(c.hasta) : 'Contrato finalizado'}
                       </div>
                     ))}

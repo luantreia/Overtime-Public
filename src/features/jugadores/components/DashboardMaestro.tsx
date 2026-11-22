@@ -48,7 +48,7 @@ export const DashboardMaestro: React.FC<DashboardMaestroProps> = ({ jugadorId, j
     if (elo >= 1800) return { name: 'Platino', color: 'text-indigo-600', bg: 'bg-indigo-100', border: 'border-indigo-200', badge: 'bg-indigo-600' };
     if (elo >= 1600) return { name: 'Oro', color: 'text-yellow-600', bg: 'bg-yellow-100', border: 'border-yellow-200', badge: 'bg-yellow-600' };
     if (elo >= 1400) return { name: 'Plata', color: 'text-slate-500', bg: 'bg-slate-100', border: 'border-slate-200', badge: 'bg-slate-500' };
-    return { name: 'Iniciante', color: 'text-slate-400', bg: 'bg-slate-50', border: 'border-slate-200', badge: 'bg-slate-400' };
+    return { name: 'Iniciante', color: 'text-muted', bg: 'bg-slate-50', border: 'border-slate-200', badge: 'bg-slate-400' };
   };
 
   const rank = radarData ? getRankName(radarData.elo) : null;
@@ -108,7 +108,7 @@ export const DashboardMaestro: React.FC<DashboardMaestroProps> = ({ jugadorId, j
                     {radarData?.elo || 1500}
                   </span>
                   <div className="flex flex-col">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Rango Actual</span>
+                    <span className="text-2xs text-muted font-bold uppercase tracking-wider">Rango Actual</span>
                     <span className={`text-lg font-black leading-tight ${rank?.color || 'text-slate-900'}`}>{rank?.name || 'Iniciante'}</span>
                   </div>
                 </div>
@@ -119,7 +119,7 @@ export const DashboardMaestro: React.FC<DashboardMaestroProps> = ({ jugadorId, j
 
               <div className="mt-6 flex flex-wrap gap-6">
                 <div className="flex flex-col">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Karma Social</span>
+                  <span className="text-2xs text-muted font-bold uppercase tracking-wider">Karma Social</span>
                   <span className="text-lg font-black text-orange-500 flex items-center gap-1">
                     <StarIconSolid className="h-5 w-5" />
                     {radarData?.karma || 0}
@@ -127,7 +127,7 @@ export const DashboardMaestro: React.FC<DashboardMaestroProps> = ({ jugadorId, j
                 </div>
                 <div className="w-px h-10 bg-slate-100 hidden sm:block" />
                 <div className="flex flex-col">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Win Rate</span>
+                  <span className="text-2xs text-muted font-bold uppercase tracking-wider">Win Rate</span>
                   <span className="text-lg font-black text-emerald-600">{radarData?.winrate || 0}%</span>
                 </div>
               </div>
@@ -135,11 +135,11 @@ export const DashboardMaestro: React.FC<DashboardMaestroProps> = ({ jugadorId, j
               {/* Stats Secundarios */}
               <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
                  <div className="text-center">
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Partidos</p>
+                    <p className="text-2xs text-muted font-bold uppercase tracking-tighter">Partidos</p>
                     <p className="text-lg font-black text-slate-800">{radarData?.totalMatches || 0}</p>
                  </div>
                  <div className="text-center border-l border-slate-200">
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Plaza</p>
+                    <p className="text-2xs text-muted font-bold uppercase tracking-tighter">Plaza</p>
                     <p className="text-lg font-black text-slate-800">{radarData?.plazaMatches || 0}</p>
                  </div>
               </div>
@@ -181,12 +181,12 @@ export const DashboardMaestro: React.FC<DashboardMaestroProps> = ({ jugadorId, j
                   <div key={i} className="space-y-1">
                     <div className="flex justify-between items-end">
                       <div className="flex items-center gap-1 group/info relative">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</span>
+                        <span className="text-2xs font-black text-muted uppercase tracking-widest">{stat.label}</span>
                         <InformationCircleIcon 
-                          className="h-3 w-3 text-slate-300 cursor-help hover:text-brand-500 transition-colors" 
+                          className="h-3 w-3 text-muted cursor-help hover:text-brand-500 transition-colors" 
                         />
                         {/* Custom Tooltip */}
-                        <div className="absolute bottom-full left-0 mb-2 w-56 p-2.5 bg-slate-900/95 text-[10px] leading-relaxed text-slate-200 rounded-xl shadow-2xl opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible transition-all z-50 pointer-events-none border border-slate-700 backdrop-blur-sm">
+                        <div className="absolute bottom-full left-0 mb-2 w-56 p-2.5 bg-slate-900/95 text-2xs leading-relaxed text-slate-200 rounded-xl shadow-2xl opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible transition-all z-50 pointer-events-none border border-slate-700 backdrop-blur-sm">
                           {stat.desc}
                           <div className="absolute top-full left-4 border-4 border-transparent border-t-slate-900" />
                         </div>
@@ -213,11 +213,11 @@ export const DashboardMaestro: React.FC<DashboardMaestroProps> = ({ jugadorId, j
                 <h3 className="font-black text-slate-900 uppercase tracking-wider text-sm">Radar de Atleta</h3>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-[10px] font-bold text-slate-400 italic">Basado en últimos 30 días</span>
+                <span className="text-2xs font-bold text-muted italic">Basado en últimos 30 días</span>
                 {!loading && radarData && (
                   <button
                     onClick={() => setIsShareOpen(true)}
-                    className="text-[10px] font-black uppercase tracking-wider text-brand-600 hover:text-brand-700"
+                    className="text-2xs font-black uppercase tracking-wider text-brand-600 hover:text-brand-700"
                   >
                     Compartir
                   </button>

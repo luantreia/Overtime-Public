@@ -55,7 +55,7 @@ export const ShareRadarModal: React.FC<ShareRadarModalProps> = ({
             <div className="text-center">
               <div className="text-[11px] font-black uppercase tracking-[0.25em] opacity-70">LoD</div>
               <div className="text-lg font-bold uppercase tracking-wide mt-0.5">Radar de Atleta</div>
-              <div className="text-[10px] uppercase tracking-widest opacity-60 mt-1">Últimos 30 días · {hoy}</div>
+              <div className="text-2xs uppercase tracking-widest opacity-60 mt-1">Últimos 30 días · {hoy}</div>
             </div>
 
             <div className="my-auto flex flex-col items-center text-center w-full">

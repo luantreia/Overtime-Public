@@ -156,7 +156,7 @@ export const EquipoHistoriaModal: React.FC<EquipoHistoriaModalProps> = ({
                 className="pointer-events-none absolute inset-y-0 z-10 -translate-x-1/2"
                 style={{ left: `${posicion(ahora)}%` }}
               >
-                <span className="absolute -top-0.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-brand-600 px-1.5 py-0.5 text-[9px] font-bold text-white">
+                <span className="absolute -top-0.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-brand-600 px-1.5 py-0.5 text-2xs font-bold text-white">
                   hoy
                 </span>
                 <div className="mt-4 h-full w-px border-l border-dashed border-brand-300" />
@@ -168,7 +168,7 @@ export const EquipoHistoriaModal: React.FC<EquipoHistoriaModalProps> = ({
               <div className="relative h-6">
                 {years.map(({ year, left }) => (
                   <div key={year} className="absolute top-0 flex h-full flex-col items-center" style={{ left: `${left}%` }}>
-                    <span className="text-[10px] font-medium text-slate-400">{year}</span>
+                    <span className="text-2xs font-medium text-muted">{year}</span>
                     <div className="mt-1 w-px flex-1 bg-slate-100" />
                   </div>
                 ))}
@@ -182,7 +182,7 @@ export const EquipoHistoriaModal: React.FC<EquipoHistoriaModalProps> = ({
                     style={{ left: `${posicion(fundacion)}%` }}
                   >
                     <span className="h-3 w-3 rounded-full bg-slate-700 ring-2 ring-white" />
-                    <span className="mt-1 whitespace-nowrap text-[10px] font-semibold text-slate-600">
+                    <span className="mt-1 whitespace-nowrap text-2xs font-semibold text-slate-600">
                       Fundación · {formatDate(equipo.fechaFormacion)}
                     </span>
                   </div>
@@ -217,7 +217,7 @@ export const EquipoHistoriaModal: React.FC<EquipoHistoriaModalProps> = ({
                               </span>
                             )}
                           </span>
-                          <span className="flex-shrink-0 text-slate-400">
+                          <span className="flex-shrink-0 text-muted">
                             {carril.temporadas.length} temporada{carril.temporadas.length !== 1 ? 's' : ''}
                             {carril.titulos > 0 && ` · ${carril.titulos} 🏆`}
                           </span>
@@ -301,7 +301,7 @@ export const EquipoHistoriaModal: React.FC<EquipoHistoriaModalProps> = ({
                                 )}
                               </>
                             ) : (
-                              <span className="italic text-slate-400">Tocá una temporada para ver el detalle.</span>
+                              <span className="italic text-muted">Tocá una temporada para ver el detalle.</span>
                             )}
                           </div>
                         )}

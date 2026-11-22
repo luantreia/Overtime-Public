@@ -272,7 +272,7 @@ export const TablaPosiciones: React.FC<TablaPosicionesProps> = ({ faseId, partic
                           clickable ? 'cursor-pointer hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 focus-visible:ring-inset' : '',
                         ].filter(Boolean).join(' ')}
                       >
-                        <td className="py-1.5 px-2 text-[11px] font-bold text-slate-400">
+                        <td className="py-1.5 px-2 text-[11px] font-bold text-muted">
                           {p.posicion ?? index + 1}
                         </td>
                         <td className="py-1.5 px-2 text-[12.5px] font-semibold text-slate-900">

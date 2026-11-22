@@ -74,7 +74,7 @@ const LandingPage: React.FC = () => {
         <div className="relative z-10 mx-auto max-w-4xl text-center">
           <img src="/logo.png" alt="Overtime Logo" width={96} height={96} className="mx-auto mb-4 sm:mb-6 h-16 w-auto sm:h-24 drop-shadow-lg" />
           <h1 className="mb-3 text-3xl font-black tracking-tight sm:text-5xl">Overtime Dodgeball</h1>
-          <p className="mb-6 sm:mb-8 text-base sm:text-xl text-slate-300">Ecosistema competitivo y comunitario de dodgeball</p>
+          <p className="mb-6 sm:mb-8 text-base sm:text-xl text-muted">Ecosistema competitivo y comunitario de dodgeball</p>
 
           <div className="mb-8 sm:mb-10 flex min-h-[4.5rem] flex-wrap items-center justify-center gap-x-6 gap-y-3 sm:gap-8">
             {isLoading ? (
@@ -88,7 +88,7 @@ const LandingPage: React.FC = () => {
               ] as { value: number; label: string }[]).map(({ value, label }) => (
                 <div key={label} className="text-center">
                   <p className="text-2xl sm:text-3xl font-black text-white">{value.toLocaleString('es-AR')}</p>
-                  <p className="text-[10px] sm:text-xs uppercase tracking-widest text-slate-300">{label}</p>
+                  <p className="text-2xs sm:text-xs uppercase tracking-widest text-muted">{label}</p>
                 </div>
               ))
             )}
@@ -118,7 +118,7 @@ const LandingPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setInstalarAppAbierto(true)}
-              className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-300 underline decoration-white/30 underline-offset-4 transition hover:text-white"
+              className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-muted underline decoration-white/30 underline-offset-4 transition hover:text-white"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
@@ -153,7 +153,7 @@ const LandingPage: React.FC = () => {
                 <div>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Reviví la historia</p>
+                      <p className="text-xs font-bold uppercase tracking-widest text-muted">Reviví la historia</p>
                       <h3 className="text-xl font-black text-slate-900">Resultados Recientes</h3>
                     </div>
                     <Link to="/partidos" className="text-sm font-semibold text-brand-600 hover:text-brand-700">

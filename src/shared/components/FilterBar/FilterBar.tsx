@@ -56,7 +56,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
           <div className="relative flex-1">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -97,7 +97,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
               />
             </svg>
             {activeFiltersCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-2xs font-bold text-white">
                 {activeFiltersCount}
               </span>
             )}

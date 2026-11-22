@@ -212,7 +212,7 @@ const PlazaCrear: React.FC = () => {
                 />
               </MapContainer>
             </div>
-            <p className="mt-2 text-[10px] text-slate-400">
+            <p className="mt-2 text-2xs text-muted">
               Haz clic en el mapa para marcar el punto exacto del encuentro.
             </p>
           </div>

@@ -429,17 +429,17 @@ const PlazaLobby: React.FC = () => {
                   {player.player.nombre || player.player.alias}
                 </span>
                 {isLobbyHost && (
-                  <span className="px-1.5 py-0.5 bg-brand-600 text-[8px] text-white font-black rounded uppercase tracking-tighter">HOST</span>
+                  <span className="px-1.5 py-0.5 bg-brand-600 text-2xs text-white font-black rounded uppercase tracking-tighter">HOST</span>
                 )}
                 {isRivalCaptain && (
-                  <span className="px-1.5 py-0.5 bg-indigo-600 text-[8px] text-white font-black rounded uppercase tracking-tighter">CAPITÁN</span>
+                  <span className="px-1.5 py-0.5 bg-indigo-600 text-2xs text-white font-black rounded uppercase tracking-tighter">CAPITÁN</span>
                 )}
               </div>
               {player.player.elo !== undefined && (
               <div className="flex gap-2">
-                <span className="text-[10px] text-slate-400 font-bold">ELO: {player.player.elo}</span>
+                <span className="text-2xs text-muted font-bold">ELO: {player.player.elo}</span>
                 {player.player.karma !== undefined && (
-                  <span className="text-[10px] text-orange-400 font-bold flex items-center gap-0.5">
+                  <span className="text-2xs text-orange-400 font-bold flex items-center gap-0.5">
                     <StarIcon className="h-2 w-2" /> {player.player.karma}
                   </span>
                 )}
@@ -449,17 +449,17 @@ const PlazaLobby: React.FC = () => {
           </Link>
         ) : (
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-medium border-2 border-dashed border-slate-200 bg-slate-50 text-slate-400">
+            <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-medium border-2 border-dashed border-slate-200 bg-slate-50 text-muted">
               {index + 1}
             </div>
-            <span className="text-sm text-slate-400 italic">Slot vacío</span>
+            <span className="text-sm text-muted italic">Slot vacío</span>
           </div>
         )}
       <div className="flex items-center gap-1">
         {isHost && player && player.userUid !== userUid && (lobby.status === 'open' || lobby.status === 'full') && (
           <button 
             onClick={() => handleKickPlayer(player.userUid)}
-            className="p-1 text-slate-300 hover:text-red-500 transition-colors mr-2"
+            className="p-1 text-muted hover:text-red-500 transition-colors mr-2"
             title="Expulsar Jugador"
           >
             <TrashIcon className="h-4 w-4" />
@@ -470,7 +470,7 @@ const PlazaLobby: React.FC = () => {
             {player.confirmed ? (
               <ShieldCheckIcon className="h-5 w-5 text-green-500" title="Check-in completado" />
             ) : (
-              <ClockIcon className="h-5 w-5 text-slate-300" title="Pendiente de llegada" />
+              <ClockIcon className="h-5 w-5 text-muted" title="Pendiente de llegada" />
             )}
           </>
         )}
@@ -515,16 +515,16 @@ const PlazaLobby: React.FC = () => {
               {lobby.hostInfo && (
                 <div className="mt-4 flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 max-w-fit">
                   <div className="p-2 bg-white rounded-lg border border-slate-200">
-                    <UserIcon className="h-5 w-5 text-slate-400" />
+                    <UserIcon className="h-5 w-5 text-muted" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Host del Lobby</span>
+                    <span className="text-2xs text-muted font-bold uppercase tracking-wider">Host del Lobby</span>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-bold text-slate-900">{lobby.hostInfo.nombre}</span>
-                      <div className="flex items-center gap-1 bg-brand-100 px-1.5 py-0.5 rounded text-[10px] font-black text-brand-700">
+                      <div className="flex items-center gap-1 bg-brand-100 px-1.5 py-0.5 rounded text-2xs font-black text-brand-700">
                          {lobby.hostInfo.elo} ELO
                       </div>
-                      <div className="flex items-center gap-1 bg-orange-100 px-1.5 py-0.5 rounded text-[10px] font-black text-orange-700">
+                      <div className="flex items-center gap-1 bg-orange-100 px-1.5 py-0.5 rounded text-2xs font-black text-orange-700">
                          <StarIcon className="h-2.5 w-2.5" /> {lobby.hostInfo.karma} Karma
                       </div>
                     </div>
@@ -564,11 +564,11 @@ const PlazaLobby: React.FC = () => {
                   
                   <div className="flex gap-4">
                     <div className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/20 text-center">
-                      <p className="text-[10px] uppercase font-bold opacity-70">Multiplicador ELO</p>
+                      <p className="text-2xs uppercase font-bold opacity-70">Multiplicador ELO</p>
                       <p className="text-xl font-black">{lobby.appliedMultiplier || '0.3'}x</p>
                     </div>
                     <div className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/20 text-center">
-                      <p className="text-[10px] uppercase font-bold opacity-70">Karma Promedio</p>
+                      <p className="text-2xs uppercase font-bold opacity-70">Karma Promedio</p>
                       <p className="text-xl font-black flex items-center justify-center gap-1">
                         <StarIcon className="h-4 w-4 text-orange-400" />
                         {lobby.avgKarma || '0'}
@@ -597,7 +597,7 @@ const PlazaLobby: React.FC = () => {
                     <TrophyIcon className="h-5 w-5 text-brand-600" />
                   </div>
                   <div>
-                    <p className="text-[10px] text-brand-600 font-bold uppercase tracking-wider">
+                    <p className="text-2xs text-brand-600 font-bold uppercase tracking-wider">
                       {(!lobby.result.confirmedByOpponent && !lobby.result.confirmedByHost) ? 'Resultado en Espera' : 'Falta 1 Confirmación'}
                     </p>
                     <p className="text-xl font-black text-slate-900">
@@ -651,7 +651,7 @@ const PlazaLobby: React.FC = () => {
                     🔍 Buscar y Reclamar mi Perfil
                   </button>
                 </div>
-                <p className="text-[10px] text-orange-600 italic text-center">
+                <p className="text-2xs text-orange-600 italic text-center">
                   * Si no encuentras tu perfil, contacta con las ligas oficiales para que se te asigne uno.
                 </p>
               </div>
@@ -756,7 +756,7 @@ const PlazaLobby: React.FC = () => {
                 {/* Mensaje de espera si ya confirmó pero falta el otro */}
                 {((isHost && lobby.result.confirmedByHost && !lobby.result.confirmedByOpponent) || 
                   (userUid === lobby.rivalCaptainUid && lobby.result.confirmedByOpponent && !lobby.result.confirmedByHost)) && (
-                  <div className="flex-1 min-w-[200px] bg-slate-50 text-slate-400 font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 border border-slate-100 italic text-sm">
+                  <div className="flex-1 min-w-[200px] bg-slate-50 text-muted font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 border border-slate-100 italic text-sm">
                     ESPERANDO AL OTRO CAPITÁN...
                   </div>
                 )}
@@ -766,7 +766,7 @@ const PlazaLobby: React.FC = () => {
             {lobby.status === 'playing' && canControl && !lobby.result?.submittedBy && (
               <button 
                 onClick={() => navigate(`/plaza/lobby/${id}/report`)}
-                className="flex-1 min-w-[200px] border border-slate-200 text-slate-400 font-bold py-3 px-6 rounded-xl hover:bg-slate-50 transition-all text-xs"
+                className="flex-1 min-w-[200px] border border-slate-200 text-muted font-bold py-3 px-6 rounded-xl hover:bg-slate-50 transition-all text-xs"
               >
                 REPORTE MANUAL (TRADICIONAL)
               </button>
@@ -775,20 +775,20 @@ const PlazaLobby: React.FC = () => {
             {/* Sistema de Auto-Gobernanza: Reportar Inactividad */}
             {(lobby.status === 'playing' || (lobby.status === 'full' && !canStart)) && (
               <div className="w-full mt-4 p-4 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                <p className="text-[10px] font-bold text-slate-400 uppercase mb-3 text-center">¿Autoridad Inactiva? Reporta para reasignar rol</p>
+                <p className="text-2xs font-bold text-muted uppercase mb-3 text-center">¿Autoridad Inactiva? Reporta para reasignar rol</p>
                 <div className="flex flex-wrap gap-2 justify-center">
                   {!isHost && (
-                    <button onClick={() => handleReportInactivity('host')} className="px-3 py-1.5 bg-white border border-slate-200 text-slate-500 rounded-lg text-[10px] font-bold hover:bg-red-50 hover:text-red-600 transition-colors">
+                    <button onClick={() => handleReportInactivity('host')} className="px-3 py-1.5 bg-white border border-slate-200 text-slate-500 rounded-lg text-2xs font-bold hover:bg-red-50 hover:text-red-600 transition-colors">
                       HOST AUSENTE
                     </button>
                   )}
                   {userUid !== lobby.rivalCaptainUid && (
-                    <button onClick={() => handleReportInactivity('rivalCaptain')} className="px-3 py-1.5 bg-white border border-slate-200 text-slate-500 rounded-lg text-[10px] font-bold hover:bg-red-50 hover:text-red-600 transition-colors">
+                    <button onClick={() => handleReportInactivity('rivalCaptain')} className="px-3 py-1.5 bg-white border border-slate-200 text-slate-500 rounded-lg text-2xs font-bold hover:bg-red-50 hover:text-red-600 transition-colors">
                       CAPITÁN RIVAL AUSENTE
                     </button>
                   )}
                   {lobby.officials.length > 0 && !isOfficial && (
-                    <button onClick={() => handleReportInactivity('official')} className="px-3 py-1.5 bg-white border border-slate-200 text-slate-500 rounded-lg text-[10px] font-bold hover:bg-red-50 hover:text-red-600 transition-colors">
+                    <button onClick={() => handleReportInactivity('official')} className="px-3 py-1.5 bg-white border border-slate-200 text-slate-500 rounded-lg text-2xs font-bold hover:bg-red-50 hover:text-red-600 transition-colors">
                       OFICIAL AUSENTE
                     </button>
                   )}
@@ -820,7 +820,7 @@ const PlazaLobby: React.FC = () => {
                         CONFIRMAR CANCELACIÓN (RIVAL)
                       </button>
                     ) : (
-                      <div className="flex-1 min-w-[200px] border-red-200 bg-red-50 text-red-700 font-bold py-3 px-3 rounded-xl border text-center text-[10px] flex items-center justify-center uppercase">
+                      <div className="flex-1 min-w-[200px] border-red-200 bg-red-50 text-red-700 font-bold py-3 px-3 rounded-xl border text-center text-2xs flex items-center justify-center uppercase">
                         <ExclamationCircleIcon className="h-4 w-4 mr-1 shrink-0" />
                         Cancelación solicitada por Host. Esperando rival.
                       </div>
@@ -875,7 +875,7 @@ const PlazaLobby: React.FC = () => {
                   </div>
                   <div>
                     <div className="text-sm font-bold text-slate-800 group-hover:text-brand-600 group-hover:underline">{p.player.alias || p.player.nombre}</div>
-                    <div className="text-[10px] text-slate-400 uppercase tracking-tighter">
+                    <div className="text-2xs text-muted uppercase tracking-tighter">
                       {p.isOfficialRole ? 'Oficial' : `Equipo ${(p as any).team}`}
                     </div>
                   </div>
@@ -896,7 +896,7 @@ const PlazaLobby: React.FC = () => {
                     <button
                       key={btn.id}
                       onClick={() => setRatingData(prev => ({ ...prev, [p.player._id]: btn.id }))}
-                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all border ${
+                      className={`px-3 py-1.5 rounded-lg text-2xs font-bold transition-all border ${
                         ratingData[p.player._id] === btn.id 
                           ? btn.activeClass
                           : `bg-white text-slate-600 border-slate-200 ${btn.colorClass}`
@@ -945,8 +945,8 @@ const PlazaLobby: React.FC = () => {
                         {o.type.toUpperCase()}: {o.userUid === userUid ? 'Tú' : name}
                       </span>
                       <div className="flex gap-2 mt-1">
-                        <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded font-medium text-slate-600">{elo} ELO</span>
-                        <span className="text-[10px] bg-orange-50 px-1.5 py-0.5 rounded font-bold text-orange-600 flex items-center gap-0.5">
+                        <span className="text-2xs bg-slate-100 px-1.5 py-0.5 rounded font-medium text-slate-600">{elo} ELO</span>
+                        <span className="text-2xs bg-orange-50 px-1.5 py-0.5 rounded font-bold text-orange-600 flex items-center gap-0.5">
                           <StarIcon className="h-2 w-2" /> {karma} Karma
                         </span>
                       </div>
@@ -957,8 +957,8 @@ const PlazaLobby: React.FC = () => {
                         {o.type.toUpperCase()}: {o.userUid === userUid ? 'Tú' : name}
                       </span>
                       <div className="flex gap-2 mt-1">
-                        <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded font-medium text-slate-600">{elo} ELO</span>
-                        <span className="text-[10px] bg-orange-50 px-1.5 py-0.5 rounded font-bold text-orange-600 flex items-center gap-0.5">
+                        <span className="text-2xs bg-slate-100 px-1.5 py-0.5 rounded font-medium text-slate-600">{elo} ELO</span>
+                        <span className="text-2xs bg-orange-50 px-1.5 py-0.5 rounded font-bold text-orange-600 flex items-center gap-0.5">
                           <StarIcon className="h-2 w-2" /> {karma} Karma
                         </span>
                       </div>
@@ -974,7 +974,7 @@ const PlazaLobby: React.FC = () => {
                         <TrashIcon className="h-5 w-5" />
                       </button>
                     )}
-                    {o.confirmed ? <ShieldCheckIcon className="h-5 w-5 text-green-500" /> : <ClockIcon className="h-5 w-5 text-slate-300" />}
+                    {o.confirmed ? <ShieldCheckIcon className="h-5 w-5 text-green-500" /> : <ClockIcon className="h-5 w-5 text-muted" />}
                   </div>
                 </div>
               );

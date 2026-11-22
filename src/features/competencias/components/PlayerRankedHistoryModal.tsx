@@ -203,7 +203,7 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
           {(synergy.length > 0 || rivalry.length > 0) && (
             <button
               onClick={() => setShowRelationsShare(true)}
-              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-muted hover:text-slate-600 transition-colors"
               title="Compartir tarjeta de sinergias / rivalidades"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -214,7 +214,7 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
           <button
             onClick={onClose}
             aria-label="Cerrar"
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-muted hover:text-slate-600 transition-colors"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -226,7 +226,7 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
       {loading ? (
         <div className="py-20 text-center">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600 mx-auto mb-4"></div>
-          <p className="text-slate-400 font-medium">Cargando historial...</p>
+          <p className="text-muted font-medium">Cargando historial...</p>
         </div>
       ) : error ? (
          <div className="py-10 text-center px-4">
@@ -242,11 +242,11 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
         <div className="overflow-auto flex-1 space-y-6 pr-1 custom-scrollbar">
            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 grid grid-cols-2 gap-6">
               <div>
-                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Rating Actual</p>
+                 <p className="text-2xs font-black text-muted uppercase tracking-widest mb-1">Rating Actual</p>
                  <p className="text-3xl font-black text-brand-600">{Math.round(rating?.rating || 1500)}</p>
               </div>
               <div>
-                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Partidos</p>
+                 <p className="text-2xs font-black text-muted uppercase tracking-widest mb-1">Partidos</p>
                  <p className="text-3xl font-black text-slate-800">{history.length}</p>
               </div>
            </div>
@@ -262,14 +262,14 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
                     {selectedFilterId && filterType === 'synergy' && (
                       <button
                         onClick={() => { setSelectedFilterId(null); setFilterType(null); }}
-                        className="text-[10px] font-bold text-red-500 hover:text-red-600 uppercase tracking-tight"
+                        className="text-2xs font-bold text-red-500 hover:text-red-600 uppercase tracking-tight"
                       >
                         Quitar filtro
                       </button>
                     )}
                     <button
                       onClick={() => setShowAllSynergy(!showAllSynergy)}
-                      className="text-[10px] font-bold text-brand-600 hover:text-brand-700 uppercase tracking-tight"
+                      className="text-2xs font-bold text-brand-600 hover:text-brand-700 uppercase tracking-tight"
                     >
                       {showAllSynergy ? 'Reducir' : `Ver todos (${synergy.length})`}
                     </button>
@@ -287,12 +287,12 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
                       onClick={() => handleFilterClick(s.id, 'synergy')}
                     >
                       <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600">
+                        <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-2xs font-bold text-slate-600">
                           {s.name.split(' ').map((n:any) => n[0]).join('').slice(0,2).toUpperCase()}
                         </div>
                         <div className="flex flex-col">
                           <span className="text-xs font-bold text-slate-700">{s.name}</span>
-                          <span className="text-[9px] text-slate-400 font-medium">{s.matches} PJ</span>
+                          <span className="text-2xs text-muted font-medium">{s.matches} PJ</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
@@ -312,7 +312,7 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
                             e.stopPropagation();
                             navigateToPlayer(s.id, s.name);
                           }}
-                          className="p-1.5 hover:bg-white rounded-lg text-slate-400 hover:text-brand-600 transition-all border border-transparent hover:border-brand-200"
+                          className="p-1.5 hover:bg-white rounded-lg text-muted hover:text-brand-600 transition-all border border-transparent hover:border-brand-200"
                           title="Ver perfil completo"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -337,14 +337,14 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
                     {selectedFilterId && filterType === 'rivalry' && (
                       <button
                         onClick={() => { setSelectedFilterId(null); setFilterType(null); }}
-                        className="text-[10px] font-bold text-red-500 hover:text-red-600 uppercase tracking-tight"
+                        className="text-2xs font-bold text-red-500 hover:text-red-600 uppercase tracking-tight"
                       >
                         Quitar filtro
                       </button>
                     )}
                     <button
                       onClick={() => setShowAllRivalry(!showAllRivalry)}
-                      className="text-[10px] font-bold text-brand-600 hover:text-brand-700 uppercase tracking-tight"
+                      className="text-2xs font-bold text-brand-600 hover:text-brand-700 uppercase tracking-tight"
                     >
                       {showAllRivalry ? 'Reducir' : `Ver todos (${rivalry.length})`}
                     </button>
@@ -362,12 +362,12 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
                       onClick={() => handleFilterClick(r.id, 'rivalry')}
                     >
                       <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600">
+                        <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-2xs font-bold text-slate-600">
                           {r.name.split(' ').map((n:any) => n[0]).join('').slice(0,2).toUpperCase()}
                         </div>
                         <div className="flex flex-col">
                           <span className="text-xs font-bold text-slate-700">{r.name}</span>
-                          <span className="text-[9px] text-slate-400 font-medium">{r.matches} PJ</span>
+                          <span className="text-2xs text-muted font-medium">{r.matches} PJ</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
@@ -387,7 +387,7 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
                             e.stopPropagation();
                             navigateToPlayer(r.id, r.name);
                           }}
-                          className="p-1.5 hover:bg-white rounded-lg text-slate-400 hover:text-brand-600 transition-all border border-transparent hover:border-brand-200"
+                          className="p-1.5 hover:bg-white rounded-lg text-muted hover:text-brand-600 transition-all border border-transparent hover:border-brand-200"
                           title="Ver perfil completo"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -410,7 +410,7 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
                   {selectedFilterId ? (filterType === 'synergy' ? 'Con ' : 'Contra ') + filterInfo?.name : 'Historial de Partidos'}
                 </h3>
                 {selectedFilterId && (
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${filterType === 'synergy' ? 'text-emerald-600 bg-emerald-50 border-emerald-100' : 'text-red-600 bg-red-50 border-red-100'}`}>
+                  <span className={`text-2xs font-bold px-2 py-0.5 rounded-full border ${filterType === 'synergy' ? 'text-emerald-600 bg-emerald-50 border-emerald-100' : 'text-red-600 bg-red-50 border-red-100'}`}>
                     {filterInfo?.wins || 0}W - {filterDraws}D - {filterLosses}L
                   </span>
                 )}
@@ -419,7 +419,7 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
               <div className="space-y-2">
                  {filteredHistory.length === 0 ? (
                    <div className="p-10 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                      <p className="text-slate-400 italic text-sm">No se encontraron registros.</p>
+                      <p className="text-muted italic text-sm">No se encontraron registros.</p>
                    </div>
                  ) : (
                    filteredHistory.map((h) => {
@@ -442,7 +442,7 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
                                 <p className="text-xs font-bold text-slate-900 group-hover:text-brand-600 transition-colors">
                                    {h.partidoId?.fecha ? formatFechaPartido(h.partidoId.fecha) : formatDate(h.createdAt)}
                                 </p>
-                                <p className="text-[10px] text-slate-400 flex items-center gap-1">
+                                <p className="text-2xs text-muted flex items-center gap-1">
                                    <span className={`w-2 h-2 rounded-full ${h.teamColor === 'rojo' ? 'bg-red-500' : 'bg-blue-500'}`}></span>
                                    EQUIPO {h.teamColor?.toUpperCase()}
                                 </p>
@@ -456,14 +456,14 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
                                      ? (h.delta > 0 ? `+${h.delta.toFixed(2)}` : h.delta.toFixed(2))
                                      : '0.00'}
                                 </div>
-                                <div className="text-[10px] text-slate-500 font-bold">
+                                <div className="text-2xs text-slate-500 font-bold">
                                    {h.partidoId?.marcadorLocal !== undefined ? `${h.partidoId.marcadorLocal} - ${h.partidoId.marcadorVisitante}` : 'Ver detalles'}
                                 </div>
                                 {h.isAFK && (
                                   <span className="bg-red-500 text-white text-[7px] px-1 rounded font-bold">AFK</span>
                                 )}
                              </div>
-                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-300 group-hover:text-brand-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-muted group-hover:text-brand-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                              </svg>
                           </div>
@@ -477,7 +477,7 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
       )}
 
       <div className="mt-6 pt-4 border-t border-slate-100 text-center">
-         <p className="text-[9px] text-slate-400 font-medium">Los puntos se calculan dinámicamente según el nivel de los oponentes.</p>
+         <p className="text-2xs text-muted font-medium">Los puntos se calculan dinámicamente según el nivel de los oponentes.</p>
       </div>
 
       <ShareRelationsModal

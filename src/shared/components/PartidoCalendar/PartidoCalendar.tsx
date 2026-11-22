@@ -184,13 +184,13 @@ export const PartidoCalendar: React.FC<PartidoCalendarProps> = ({
             {/* Desktop: nombres de los partidos, hay espacio para mostrarlos */}
             <div className="mt-1 hidden space-y-0.5 sm:block">
               {visibles.map((p, i) => (
-                <span key={p.id || p._id || i} className="flex items-center gap-1 truncate text-[10px] font-medium text-slate-600">
+                <span key={p.id || p._id || i} className="flex items-center gap-1 truncate text-2xs font-medium text-slate-600">
                   <span className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${ESTADO_DOT[p.estado || 'programado']}`} />
                   <span className="truncate">{labelFn(p)}</span>
                 </span>
               ))}
               {tieneOverflow && (
-                <span className="block text-[10px] font-semibold text-brand-600">
+                <span className="block text-2xs font-semibold text-brand-600">
                   +{items.length - opts.maxChips} más
                 </span>
               )}
@@ -235,7 +235,7 @@ export const PartidoCalendar: React.FC<PartidoCalendarProps> = ({
           <div className="grid grid-cols-7 gap-0.5 sm:gap-1.5">
             {getWeekDays(cursor).map((date, i) => (
               <div key={i} className="space-y-1">
-                <div className="text-center text-[10px] font-bold uppercase text-slate-400">{WEEKDAYS[i]}</div>
+                <div className="text-center text-2xs font-bold uppercase text-muted">{WEEKDAYS[i]}</div>
                 {renderDayCell(date, { maxChips: MAX_CHIPS_SEMANAL })}
               </div>
             ))}
@@ -250,7 +250,7 @@ export const PartidoCalendar: React.FC<PartidoCalendarProps> = ({
           </h3>
           <div className="grid grid-cols-7 gap-1 text-center mb-1">
             {WEEKDAYS.map((w) => (
-              <div key={w} className="text-[10px] font-bold uppercase text-slate-400">{w}</div>
+              <div key={w} className="text-2xs font-bold uppercase text-muted">{w}</div>
             ))}
           </div>
           <div className="grid grid-cols-7 gap-0.5 sm:gap-1.5">

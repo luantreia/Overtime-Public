@@ -60,11 +60,11 @@ export const ShareSynergyModal: React.FC<ShareSynergyModalProps> = ({ isOpen, on
 
             <div className="grid grid-cols-2 gap-4 w-full mb-4">
               <div className="flex flex-col">
-                <span className="text-[9px] font-bold uppercase tracking-widest opacity-70">Winrate juntos</span>
+                <span className="text-2xs font-bold uppercase tracking-widest opacity-70">Winrate juntos</span>
                 <span className="text-3xl font-black">{pair.winrate}%</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[9px] font-bold uppercase tracking-widest opacity-70">Partidos juntos</span>
+                <span className="text-2xs font-bold uppercase tracking-widest opacity-70">Partidos juntos</span>
                 <span className="text-3xl font-black">{pair.gamesTogether}</span>
               </div>
             </div>

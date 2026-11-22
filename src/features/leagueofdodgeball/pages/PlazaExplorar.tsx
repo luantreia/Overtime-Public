@@ -224,16 +224,16 @@ const PlazaExplorar: React.FC = () => {
             <div className="flex gap-3">
               <div className="flex-1 rounded-lg bg-white border border-slate-200 p-3 text-center">
                 <p className="text-2xl font-black text-slate-700">0.3×</p>
-                <p className="text-[10px] text-slate-500 mt-1">Sin oficial</p>
+                <p className="text-2xs text-slate-500 mt-1">Sin oficial</p>
               </div>
               <div className="flex-1 rounded-lg bg-brand-50 border border-brand-200 p-3 text-center">
                 <p className="text-2xl font-black text-brand-700">0.5×</p>
-                <p className="text-[10px] text-brand-600 mt-1 font-medium flex items-center justify-center gap-1">
+                <p className="text-2xs text-brand-600 mt-1 font-medium flex items-center justify-center gap-1">
                   <ShieldCheckIcon className="h-3 w-3" /> Con oficial
                 </p>
               </div>
             </div>
-            <p className="text-[11px] text-slate-400">El multiplicador se aplica sobre el delta ELO. Sin oficial los partidos valen menos para desincentivar el auto-reporte.</p>
+            <p className="text-[11px] text-muted">El multiplicador se aplica sobre el delta ELO. Sin oficial los partidos valen menos para desincentivar el auto-reporte.</p>
           </div>
           <div className="rounded-xl bg-amber-50 border border-amber-200 p-4">
             <h3 className="text-xs font-black text-amber-700 uppercase tracking-wider mb-2">Auto-gobernanza</h3>
@@ -256,7 +256,7 @@ const PlazaExplorar: React.FC = () => {
           <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
             Dodgeball Calle
             <span className="px-2 py-1 text-xs font-semibold bg-brand-100 text-brand-700 rounded-full">Beta</span>
-            <button onClick={() => setShowInfo(true)} className="text-slate-400 hover:text-brand-600 transition-colors" aria-label="Cómo funciona">
+            <button onClick={() => setShowInfo(true)} className="text-muted hover:text-brand-600 transition-colors" aria-label="Cómo funciona">
               <InformationCircleIcon className="h-6 w-6" />
             </button>
           </h1>
@@ -273,7 +273,7 @@ const PlazaExplorar: React.FC = () => {
                 title="Ver ELO por categoría"
               >
                 <span className="font-black text-brand-700">{myStats.eloGlobal} ELO</span>
-                <span className="text-slate-300">·</span>
+                <span className="text-muted">·</span>
                 <span className="font-black text-orange-500 flex items-center gap-0.5">
                   <StarIcon className="h-3 w-3" />{myStats.karma}
                 </span>
@@ -283,19 +283,19 @@ const PlazaExplorar: React.FC = () => {
                 <div className="absolute right-0 top-full mt-2 z-30 w-64 bg-white border border-slate-200 rounded-2xl shadow-xl">
                   <div className="px-4 py-3 border-b border-slate-100 bg-slate-50 rounded-t-2xl">
                     <div className="flex items-center gap-1.5">
-                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider">ELO por categoría</p>
+                      <p className="text-2xs font-black text-slate-500 uppercase tracking-wider">ELO por categoría</p>
                       <div className="group relative">
-                        <InformationCircleIcon className="h-3.5 w-3.5 text-slate-400 cursor-default" />
+                        <InformationCircleIcon className="h-3.5 w-3.5 text-muted cursor-default" />
                         <div className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 w-52 rounded-xl bg-slate-900 text-white text-[11px] leading-relaxed px-3 py-2.5 opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-xl">
                           El ELO combina tus partidos de <span className="font-bold">La Plaza</span> y de <span className="font-bold">competencias rankeadas</span>. Cada modalidad y categoría tiene su propio rating independiente.
                           <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-900" />
                         </div>
                       </div>
                     </div>
-                    <p className="text-xs text-slate-400 mt-0.5">Plaza + competencias rankeadas</p>
+                    <p className="text-xs text-muted mt-0.5">Plaza + competencias rankeadas</p>
                   </div>
                   {myStats.breakdown.length === 0 ? (
-                    <div className="px-4 py-4 text-xs text-slate-400 text-center">
+                    <div className="px-4 py-4 text-xs text-muted text-center">
                       Todavía no jugaste partidos rankeados.
                     </div>
                   ) : (
@@ -304,7 +304,7 @@ const PlazaExplorar: React.FC = () => {
                         <div key={i} className="flex items-center justify-between px-4 py-2.5">
                           <div>
                             <p className="text-xs font-bold text-slate-800">{b.modalidad} · {b.categoria}</p>
-                            <p className="text-[10px] text-slate-400">{b.matchesPlayed} partidos · {b.wins}G {b.losses}P</p>
+                            <p className="text-2xs text-muted">{b.matchesPlayed} partidos · {b.wins}G {b.losses}P</p>
                           </div>
                           <span className="text-sm font-black text-brand-700">{b.rating}</span>
                         </div>
@@ -312,7 +312,7 @@ const PlazaExplorar: React.FC = () => {
                     </div>
                   )}
                   <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-100 flex justify-between items-center rounded-b-2xl">
-                    <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Promedio global</span>
+                    <span className="text-2xs text-slate-500 uppercase font-bold tracking-wider">Promedio global</span>
                     <span className="text-sm font-black text-brand-700">{myStats.eloGlobal}</span>
                   </div>
                 </div>
@@ -323,11 +323,11 @@ const PlazaExplorar: React.FC = () => {
           {/* Last updated + refresh */}
           <div className="flex items-center gap-1">
             {secondsAgo !== null && (
-              <span className="text-[11px] text-slate-400">hace {secondsAgo}s</span>
+              <span className="text-[11px] text-muted">hace {secondsAgo}s</span>
             )}
             <button
               onClick={() => fetchLobbies(false)}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-brand-600 hover:bg-slate-100 transition-colors"
+              className="p-1.5 rounded-lg text-muted hover:text-brand-600 hover:bg-slate-100 transition-colors"
               title="Actualizar"
             >
               <ArrowPathIcon className="h-4 w-4" />
@@ -352,7 +352,7 @@ const PlazaExplorar: React.FC = () => {
             <FunnelIcon className="h-4 w-4" />
             Filtros
             {activeFiltersCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-brand-500 text-white text-[9px] font-black flex items-center justify-center">
+              <span className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-brand-500 text-white text-2xs font-black flex items-center justify-center">
                 {activeFiltersCount}
               </span>
             )}
@@ -368,7 +368,7 @@ const PlazaExplorar: React.FC = () => {
       {showFilters && (
         <div className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-wrap gap-4">
           <div className="flex flex-col gap-1 min-w-[120px]">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Modalidad</label>
+            <label className="text-2xs font-black text-slate-500 uppercase tracking-wider">Modalidad</label>
             <select value={filterModalidad} onChange={e => setFilterModalidad(e.target.value as Modalidad)} className="text-sm border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:border-brand-400">
               <option value="all">Todas</option>
               <option value="Foam">Foam</option>
@@ -376,7 +376,7 @@ const PlazaExplorar: React.FC = () => {
             </select>
           </div>
           <div className="flex flex-col gap-1 min-w-[130px]">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Categoría</label>
+            <label className="text-2xs font-black text-slate-500 uppercase tracking-wider">Categoría</label>
             <select value={filterCategoria} onChange={e => setFilterCategoria(e.target.value as Categoria)} className="text-sm border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:border-brand-400">
               <option value="all">Todas</option>
               <option value="Masculino">Masculino</option>
@@ -386,7 +386,7 @@ const PlazaExplorar: React.FC = () => {
             </select>
           </div>
           <div className="flex flex-col gap-1 min-w-[130px]">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Estado</label>
+            <label className="text-2xs font-black text-slate-500 uppercase tracking-wider">Estado</label>
             <select value={filterStatus} onChange={e => setFilterStatus(e.target.value as StatusFilter)} className="text-sm border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:border-brand-400">
               <option value="all">Todos</option>
               <option value="open">Buscando jugadores</option>
@@ -395,13 +395,13 @@ const PlazaExplorar: React.FC = () => {
             </select>
           </div>
           <div className="flex flex-col gap-1 min-w-[110px]">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Radio</label>
+            <label className="text-2xs font-black text-slate-500 uppercase tracking-wider">Radio</label>
             <select value={radius} onChange={e => setRadius(Number(e.target.value))} className="text-sm border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:border-brand-400">
               {RADIUS_OPTIONS.map(r => <option key={r} value={r}>{r} km</option>)}
             </select>
           </div>
           <div className="flex flex-col gap-1 min-w-[130px]">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Ordenar por</label>
+            <label className="text-2xs font-black text-slate-500 uppercase tracking-wider">Ordenar por</label>
             <select value={sortBy} onChange={e => setSortBy(e.target.value as SortBy)} className="text-sm border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:border-brand-400">
               <option value="distance">Distancia</option>
               <option value="date">Fecha</option>
@@ -428,7 +428,7 @@ const PlazaExplorar: React.FC = () => {
           className="flex items-center justify-between gap-4 bg-gradient-to-r from-brand-600 to-brand-700 rounded-2xl px-5 py-4 shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2"
         >
           <div>
-            <p className="text-[10px] font-black text-brand-200 uppercase tracking-widest">Ya estás en un lobby</p>
+            <p className="text-2xs font-black text-brand-200 uppercase tracking-widest">Ya estás en un lobby</p>
             <p className="text-white font-black text-lg leading-tight">{myActiveLobby.title}</p>
             <p className="text-brand-200 text-xs mt-0.5">
               {myActiveLobby.players.length}/{myActiveLobby.maxPlayers} jugadores ·{' '}
@@ -444,7 +444,7 @@ const PlazaExplorar: React.FC = () => {
       {/* Lobby list / map */}
       {filteredLobbies.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-xl border-2 border-dashed border-slate-200">
-          <MapPinIcon className="mx-auto h-12 w-12 text-slate-400" />
+          <MapPinIcon className="mx-auto h-12 w-12 text-muted" />
           <h3 className="mt-2 text-sm font-medium text-slate-900">
             {activeFiltersCount > 0 ? 'Sin resultados para estos filtros' : 'No hay partidos cerca'}
           </h3>
@@ -470,7 +470,7 @@ const PlazaExplorar: React.FC = () => {
                       {lobby.title.substring(0, 2).toUpperCase()}
                     </div>
                     <div className="flex items-center gap-2">
-                      {isMyLobby && <span className="text-[9px] font-black text-brand-600 bg-brand-50 px-1.5 py-0.5 rounded uppercase">Tu lobby</span>}
+                      {isMyLobby && <span className="text-2xs font-black text-brand-600 bg-brand-50 px-1.5 py-0.5 rounded uppercase">Tu lobby</span>}
                       <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${status.className} ${lobby.status === 'playing' ? 'animate-pulse' : ''}`}>
                         {status.label}
                       </span>
@@ -496,7 +496,7 @@ const PlazaExplorar: React.FC = () => {
                         <UsersIcon className="h-4 w-4 shrink-0" />
                         <span>{lobby.players.length} / {lobby.maxPlayers}</span>
                         {lobby.categoria && lobby.categoria !== 'Libre' && (
-                          <span className="px-1.5 py-0.5 text-[10px] bg-indigo-50 text-indigo-700 rounded border border-indigo-100 uppercase font-bold">
+                          <span className="px-1.5 py-0.5 text-2xs bg-indigo-50 text-indigo-700 rounded border border-indigo-100 uppercase font-bold">
                             {lobby.categoria === 'Masculino' ? '♂' : lobby.categoria === 'Femenino' ? '♀' : '🚻'} {lobby.categoria}
                           </span>
                         )}
@@ -518,11 +518,11 @@ const PlazaExplorar: React.FC = () => {
                 </div>
 
                 <div className="px-5 py-3 bg-slate-50 border-t border-slate-100 flex justify-between items-center group-hover:bg-brand-50 transition-colors">
-                  <span className="text-xs text-slate-400">{lobby.modalidad} · {slotsLeft > 0 ? `${slotsLeft} slots libres` : 'completo'}</span>
+                  <span className="text-xs text-muted">{lobby.modalidad} · {slotsLeft > 0 ? `${slotsLeft} slots libres` : 'completo'}</span>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={e => handleCopyLink(lobby._id, e)}
-                      className="p-1 text-slate-400 hover:text-brand-600 transition-colors"
+                      className="p-1 text-muted hover:text-brand-600 transition-colors"
                       title="Copiar link"
                     >
                       {copiedId === lobby._id ? <CheckIcon className="h-4 w-4 text-green-500" /> : <LinkIcon className="h-4 w-4" />}
@@ -551,7 +551,7 @@ const PlazaExplorar: React.FC = () => {
                     <div className="space-y-1.5 text-[11px] text-slate-600">
                       <div className="flex items-center gap-1.5"><CalendarIcon className="h-3 w-3 text-brand-600" />{new Date(lobby.scheduledDate).toLocaleString()}</div>
                       <div className="flex items-center gap-1.5"><UsersIcon className="h-3 w-3 text-brand-600" />{lobby.players.length} / {lobby.maxPlayers} Jugadores</div>
-                      <span className={`inline-block px-1.5 py-0.5 rounded text-[9px] uppercase font-bold ${STATUS_CONFIG[lobby.status]?.className}`}>{STATUS_CONFIG[lobby.status]?.label}</span>
+                      <span className={`inline-block px-1.5 py-0.5 rounded text-2xs uppercase font-bold ${STATUS_CONFIG[lobby.status]?.className}`}>{STATUS_CONFIG[lobby.status]?.label}</span>
                     </div>
                     <button onClick={() => navigate(`/plaza/lobby/${lobby._id}`)} className="mt-3 w-full py-2 bg-brand-600 text-white rounded-lg text-xs font-bold hover:bg-brand-700 transition-colors">VER LOBBY</button>
                   </div>
@@ -575,7 +575,7 @@ const PlazaExplorar: React.FC = () => {
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-bold text-slate-800 truncate">{lobby.title}</p>
-                    <p className="text-[11px] text-slate-400">
+                    <p className="text-[11px] text-muted">
                       {new Date(lobby.scheduledDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} · {lobby.modalidad} · {lobby.players.length} jugadores
                     </p>
                   </div>
@@ -586,7 +586,7 @@ const PlazaExplorar: React.FC = () => {
                       {lobby.result.scoreA} – {lobby.result.scoreB}
                     </span>
                     {lobby.appliedMultiplier && (
-                      <span className="text-[10px] text-brand-600 font-bold">{lobby.appliedMultiplier}×</span>
+                      <span className="text-2xs text-brand-600 font-bold">{lobby.appliedMultiplier}×</span>
                     )}
                   </div>
                 )}

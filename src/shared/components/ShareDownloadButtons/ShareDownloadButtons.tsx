@@ -52,7 +52,7 @@ export const ShareDownloadButtons: React.FC<ShareDownloadButtonsProps> = ({
         )}
       </button>
     </div>
-    <p className="mt-1.5 text-[10px] text-slate-400 text-center">{hint}</p>
+    <p className="mt-1.5 text-2xs text-muted text-center">{hint}</p>
   </>
 );
 

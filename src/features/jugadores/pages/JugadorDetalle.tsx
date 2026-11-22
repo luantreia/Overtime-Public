@@ -311,7 +311,7 @@ const JugadorDetalle: React.FC = () => {
           <div className="px-4 sm:px-6 pb-6 sm:pb-8">
             <div className="relative flex flex-col sm:flex-row justify-between items-center sm:items-end -mt-12 mb-6 gap-4">
               <div className="p-1 bg-white rounded-2xl shadow-sm">
-                <div className="h-24 w-24 sm:h-32 sm:w-32 rounded-xl bg-slate-100 flex items-center justify-center text-3xl font-bold text-slate-400 overflow-hidden border border-slate-100">
+                <div className="h-24 w-24 sm:h-32 sm:w-32 rounded-xl bg-slate-100 flex items-center justify-center text-3xl font-bold text-muted overflow-hidden border border-slate-100">
                   {jugador.foto ? (
                     <img src={jugador.foto} alt={jugador.nombre} className="h-full w-full object-cover" />
                   ) : (
@@ -365,7 +365,7 @@ const JugadorDetalle: React.FC = () => {
                       key={equipo?._id || equipo?.id}
                       to={`/equipos/${equipo?._id || equipo?.id}`}
                       title={equipo?.nombre}
-                      className="h-12 w-12 rounded-full bg-slate-100 overflow-hidden flex items-center justify-center text-sm font-bold text-slate-400 flex-shrink-0 border border-slate-200 hover:border-brand-300 transition-colors"
+                      className="h-12 w-12 rounded-full bg-slate-100 overflow-hidden flex items-center justify-center text-sm font-bold text-muted flex-shrink-0 border border-slate-200 hover:border-brand-300 transition-colors"
                     >
                       {equipo?.escudo ? (
                         <img src={equipo.escudo} alt={equipo.nombre} className="h-full w-full object-cover" />
@@ -382,7 +382,7 @@ const JugadorDetalle: React.FC = () => {
             <div className="grid grid-cols-3 gap-1 p-1 bg-slate-100/50 rounded-2xl border border-slate-100 mt-8 mb-8">
                  <button
                   onClick={() => setActiveTab('partidos')}
-                  className={`px-2 py-2.5 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wide sm:tracking-widest transition-all text-center ${
+                  className={`px-2 py-2.5 rounded-xl text-2xs sm:text-xs font-black uppercase tracking-wide sm:tracking-widest transition-all text-center ${
                     activeTab === 'partidos' ? 'bg-white text-brand-700 shadow-sm shadow-brand-100 ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700'
                   }`}
                  >
@@ -390,7 +390,7 @@ const JugadorDetalle: React.FC = () => {
                  </button>
                  <button
                   onClick={() => setActiveTab('torneos')}
-                  className={`px-2 py-2.5 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wide sm:tracking-widest transition-all text-center ${
+                  className={`px-2 py-2.5 rounded-xl text-2xs sm:text-xs font-black uppercase tracking-wide sm:tracking-widest transition-all text-center ${
                     activeTab === 'torneos' ? 'bg-white text-brand-700 shadow-sm shadow-brand-100 ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700'
                   }`}
                  >
@@ -398,7 +398,7 @@ const JugadorDetalle: React.FC = () => {
                  </button>
                  <button
                   onClick={() => setActiveTab('lod')}
-                  className={`px-2 py-2.5 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wide sm:tracking-widest transition-all text-center ${
+                  className={`px-2 py-2.5 rounded-xl text-2xs sm:text-xs font-black uppercase tracking-wide sm:tracking-widest transition-all text-center ${
                     activeTab === 'lod' ? 'bg-white text-brand-700 shadow-sm shadow-brand-100 ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700'
                   }`}
                  >
@@ -451,7 +451,7 @@ const JugadorDetalle: React.FC = () => {
                               {data.competencia.nombre}
                             </div>
                             <div className="flex flex-wrap items-center gap-2 mt-0.5">
-                              <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                              <span className={`px-1.5 py-0.5 rounded text-2xs font-bold uppercase tracking-wider ${
                                 data.isRanked ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700'
                               }`}>
                                 {data.isRanked ? 'Ranked' : 'Liga'}
@@ -488,7 +488,7 @@ const JugadorDetalle: React.FC = () => {
                                     type="button"
                                     onClick={() => handleShowEvolution(data, season)}
                                     title="Ver evolución"
-                                    className="text-[10px] px-1.5 py-1 rounded-full text-slate-400 hover:text-brand-600 hover:bg-brand-50 transition-colors"
+                                    className="text-2xs px-1.5 py-1 rounded-full text-muted hover:text-brand-600 hover:bg-brand-50 transition-colors"
                                   >
                                     📈
                                   </button>
@@ -496,7 +496,7 @@ const JugadorDetalle: React.FC = () => {
                                     type="button"
                                     onClick={() => handleShowVS(data, season)}
                                     title="Comparar"
-                                    className="text-[10px] px-1.5 py-1 rounded-full text-slate-400 hover:text-brand-600 hover:bg-brand-50 transition-colors"
+                                    className="text-2xs px-1.5 py-1 rounded-full text-muted hover:text-brand-600 hover:bg-brand-50 transition-colors"
                                   >
                                     ⚔️
                                   </button>
@@ -506,7 +506,7 @@ const JugadorDetalle: React.FC = () => {
                           ))}
                         </div>
                       ) : (
-                        <p className="mt-3 text-[11px] text-slate-400 italic">Sin temporadas jugadas registradas.</p>
+                        <p className="mt-3 text-[11px] text-muted italic">Sin temporadas jugadas registradas.</p>
                       )}
                     </div>
                   ))}

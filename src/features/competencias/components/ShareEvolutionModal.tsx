@@ -99,15 +99,15 @@ export const ShareEvolutionModal: React.FC<ShareEvolutionModalProps> = ({
 
             <div className="grid grid-cols-3 gap-4 w-full">
               <div className="flex flex-col">
-                <span className="text-[9px] font-bold uppercase tracking-widest opacity-70">Inicial</span>
+                <span className="text-2xs font-bold uppercase tracking-widest opacity-70">Inicial</span>
                 <span className="text-2xl font-black">{Number(startRating).toFixed(0)}</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[9px] font-bold uppercase tracking-widest opacity-70">Actual</span>
+                <span className="text-2xs font-bold uppercase tracking-widest opacity-70">Actual</span>
                 <span className="text-2xl font-black">{Number(currentRating).toFixed(0)}</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[9px] font-bold uppercase tracking-widest opacity-70">Cambio</span>
+                <span className="text-2xs font-bold uppercase tracking-widest opacity-70">Cambio</span>
                 <span className={`text-2xl font-black ${totalDiff >= 0 ? '' : 'text-rose-200'}`}>
                   {totalDiff >= 0 ? '+' : ''}{Number(totalDiff).toFixed(0)}
                 </span>

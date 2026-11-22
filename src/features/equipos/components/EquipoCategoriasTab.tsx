@@ -19,7 +19,7 @@ const JugadorCard: React.FC<{ jugador: EquipoCategoriaJugador; historico?: boole
       {jugador.foto ? (
         <img src={jugador.foto} alt={jugador.nombre} className="h-full w-full object-cover" />
       ) : (
-        <span className="text-xl font-bold text-slate-300">{jugador.nombre?.charAt(0) || '?'}</span>
+        <span className="text-xl font-bold text-muted">{jugador.nombre?.charAt(0) || '?'}</span>
       )}
     </div>
     <div className="flex-1 min-w-0">

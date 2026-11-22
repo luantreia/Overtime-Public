@@ -226,7 +226,7 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
                 className="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
               />
               Incluir lista de jugadores
-              {ratio === 'square' && <span className="italic text-slate-400">(no disponible en 1:1)</span>}
+              {ratio === 'square' && <span className="italic text-muted">(no disponible en 1:1)</span>}
             </label>
           )}
         </div>

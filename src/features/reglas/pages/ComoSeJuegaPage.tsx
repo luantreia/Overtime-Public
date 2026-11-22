@@ -76,18 +76,18 @@ const ComoSeJuegaPage: React.FC = () => {
           onClick={() => setFormato('cloth')}
           aria-pressed={formato === 'cloth'}
           className={`rounded-lg px-3 py-2 text-sm font-bold transition ${
-            formato === 'cloth' ? 'bg-amber-100 text-amber-800' : 'text-slate-400'
+            formato === 'cloth' ? 'bg-amber-100 text-amber-800' : 'text-muted'
           }`}
         >
           🧵 Cloth
         </button>
-        <span className="text-xs text-slate-300">|</span>
+        <span className="text-xs text-muted">|</span>
         <button
           type="button"
           onClick={() => setFormato('foam')}
           aria-pressed={formato === 'foam'}
           className={`rounded-lg px-3 py-2 text-sm font-bold transition ${
-            formato === 'foam' ? 'bg-sky-100 text-sky-800' : 'text-slate-400'
+            formato === 'foam' ? 'bg-sky-100 text-sky-800' : 'text-muted'
           }`}
         >
           🟠 Foam

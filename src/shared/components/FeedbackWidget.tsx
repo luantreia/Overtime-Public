@@ -119,7 +119,7 @@ export default function FeedbackWidget() {
                 />
 
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-slate-400">{message.length}/1000</span>
+                  <span className="text-[11px] text-muted">{message.length}/1000</span>
                   {error && <span className="text-[11px] text-red-500">{error}</span>}
                 </div>
 
@@ -132,7 +132,7 @@ export default function FeedbackWidget() {
                   {loading ? 'Enviando...' : 'Enviar feedback'}
                 </button>
 
-                <p className="text-[11px] text-slate-400 text-center">
+                <p className="text-[11px] text-muted text-center">
                   Página: <span className="font-mono">{window.location.pathname}</span>
                 </p>
               </>

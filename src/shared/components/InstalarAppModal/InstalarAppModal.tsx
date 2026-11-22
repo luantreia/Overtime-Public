@@ -49,7 +49,7 @@ const InstalarAppModal: React.FC<InstalarAppModalProps> = ({ onClose }) => {
                 Confirmá tocando <strong>"Agregar"</strong> arriba a la derecha.
               </Paso>
             </ol>
-            <p className="mt-4 text-xs text-slate-400">
+            <p className="mt-4 text-xs text-muted">
               Nota: esto solo funciona desde Safari. Si estás en Chrome o Instagram, abrí este sitio en Safari primero.
             </p>
           </div>
@@ -87,7 +87,7 @@ const InstalarAppModal: React.FC<InstalarAppModalProps> = ({ onClose }) => {
                 Hacé click y confirmá <strong>"Instalar"</strong>.
               </Paso>
             </ol>
-            <p className="mt-4 text-xs text-slate-400">
+            <p className="mt-4 text-xs text-muted">
               Desde el celular: en iPhone usá Safari y en Android usá Chrome para ver la opción de instalar.
             </p>
           </div>

@@ -118,10 +118,10 @@ const PlazaReportResult: React.FC = () => {
             <div className="space-y-3">
               {sets.map((set, idx) => (
                 <div key={idx} className="flex items-center gap-4 bg-slate-50 p-4 rounded-xl">
-                  <span className="text-sm font-bold text-slate-400 w-8">#{idx + 1}</span>
+                  <span className="text-sm font-bold text-muted w-8">#{idx + 1}</span>
                   <div className="flex-1 grid grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-red-600 uppercase">Team A</span>
+                      <span className="text-2xs font-bold text-red-600 uppercase">Team A</span>
                       <input 
                         type="number"
                         value={set.teamAScore}
@@ -130,7 +130,7 @@ const PlazaReportResult: React.FC = () => {
                       />
                     </div>
                     <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-blue-600 uppercase">Team B</span>
+                      <span className="text-2xs font-bold text-blue-600 uppercase">Team B</span>
                       <input 
                         type="number"
                         value={set.teamBScore}
@@ -140,7 +140,7 @@ const PlazaReportResult: React.FC = () => {
                     </div>
                   </div>
                   {sets.length > 1 && (
-                    <button type="button" onClick={() => removeSet(idx)} className="text-slate-300 hover:text-red-500">×</button>
+                    <button type="button" onClick={() => removeSet(idx)} className="text-muted hover:text-red-500">×</button>
                   )}
                 </div>
               ))}
@@ -162,7 +162,7 @@ const PlazaReportResult: React.FC = () => {
                 'ENVIAR RESULTADO'
               )}
             </button>
-            <p className="mt-4 text-[11px] text-slate-400 text-center leading-relaxed">
+            <p className="mt-4 text-[11px] text-muted text-center leading-relaxed">
               Al enviar, se notificará al capitán rival o al oficial para confirmar. 
               Una vez confirmado, los puntos ELO se aplicarán a todos los perfiles reclamados.
             </p>
@@ -185,7 +185,7 @@ const PlazaReportResult: React.FC = () => {
               <div className="space-y-1">
                 {sets.map((s, idx) => (
                   <div key={idx} className="flex items-center justify-between text-sm">
-                    <span className="text-slate-400">Set {idx + 1}</span>
+                    <span className="text-muted">Set {idx + 1}</span>
                     <span className="font-bold text-slate-800">
                       <span className="text-red-600">{s.teamAScore}</span> - <span className="text-blue-600">{s.teamBScore}</span>
                     </span>

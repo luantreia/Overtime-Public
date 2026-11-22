@@ -97,7 +97,7 @@ export const CompetenciaInfoTab: React.FC<CompetenciaInfoTabProps> = ({
     <div className="p-6 space-y-8">
       {/* Base details */}
       <div>
-        <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">Detalles</h3>
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted mb-3">Detalles</h3>
         <dl className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-3">
           <div>
             <dt className="text-xs font-medium text-slate-500">Inicio</dt>
@@ -144,7 +144,7 @@ export const CompetenciaInfoTab: React.FC<CompetenciaInfoTabProps> = ({
 
           {/* Ranked: top 3 vitrina */}
           <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">Top 3 — Nivel Competencia</h3>
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted mb-3">Top 3 — Nivel Competencia</h3>
             {loadingTop3 ? (
               <div className="flex gap-3">
                 {[0, 1, 2].map(i => (
@@ -152,7 +152,7 @@ export const CompetenciaInfoTab: React.FC<CompetenciaInfoTabProps> = ({
                 ))}
               </div>
             ) : top3Leaderboard.length === 0 ? (
-              <p className="text-sm text-slate-400 italic">No hay datos de ranking disponibles aún.</p>
+              <p className="text-sm text-muted italic">No hay datos de ranking disponibles aún.</p>
             ) : (
               <div className="grid grid-cols-3 gap-3">
                 {top3Leaderboard.slice(0, 3).map((item, idx) => {
@@ -181,7 +181,7 @@ export const CompetenciaInfoTab: React.FC<CompetenciaInfoTabProps> = ({
                       </div>
                       <div className="text-xs font-bold text-slate-800 leading-tight line-clamp-2">{playerName}</div>
                       <div className="text-lg font-black text-brand-700 leading-none">{Number(item.rating).toFixed(0)}</div>
-                      <div className="text-[10px] text-slate-400 font-medium">{winrate}% WR · {item.matchesPlayed}P</div>
+                      <div className="text-2xs text-muted font-medium">{winrate}% WR · {item.matchesPlayed}P</div>
                     </div>
                   );
                 })}
@@ -194,7 +194,7 @@ export const CompetenciaInfoTab: React.FC<CompetenciaInfoTabProps> = ({
           {/* Not ranked: champions vitrina grouped by team */}
           {championsByTeam.length > 0 && (
             <div>
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">Hall of Fame</h3>
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-muted mb-3">Hall of Fame</h3>
               <div className="flex flex-col gap-2">
                 {championsByTeam.map(({ equipo, titulos }, idx) => (
                   <Link
@@ -229,7 +229,7 @@ export const CompetenciaInfoTab: React.FC<CompetenciaInfoTabProps> = ({
                     {/* Title count */}
                     <div className="flex-shrink-0 flex items-center gap-1">
                       <span className="text-lg font-black text-amber-500">{titulos.length}</span>
-                      <span className="text-xs text-slate-400 font-medium">{titulos.length === 1 ? 'título' : 'títulos'}</span>
+                      <span className="text-xs text-muted font-medium">{titulos.length === 1 ? 'título' : 'títulos'}</span>
                     </div>
                   </Link>
                 ))}
@@ -240,8 +240,8 @@ export const CompetenciaInfoTab: React.FC<CompetenciaInfoTabProps> = ({
           {/* Not ranked: participating teams */}
           {teams.length > 0 && (
             <div>
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">
-                Equipos participantes <span className="normal-case font-normal text-slate-400">({teams.length})</span>
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-muted mb-3">
+                Equipos participantes <span className="normal-case font-normal text-muted">({teams.length})</span>
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                 {teams.map(team => (
@@ -254,7 +254,7 @@ export const CompetenciaInfoTab: React.FC<CompetenciaInfoTabProps> = ({
                     {team.escudo ? (
                       <img src={team.escudo} alt={team.nombre} className="h-7 w-7 rounded-full object-cover flex-shrink-0" />
                     ) : (
-                      <div className="h-7 w-7 rounded-full bg-brand-100 flex items-center justify-center text-[10px] font-bold text-brand-700 flex-shrink-0">
+                      <div className="h-7 w-7 rounded-full bg-brand-100 flex items-center justify-center text-2xs font-bold text-brand-700 flex-shrink-0">
                         {getInitials(team.nombre)}
                       </div>
                     )}

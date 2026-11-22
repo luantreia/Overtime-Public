@@ -418,13 +418,13 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({
               {player1.playerName?.slice(0, 2).toUpperCase()}
             </div>
             <div className="text-sm font-bold text-slate-900 truncate w-full">{player1.playerName}</div>
-            <div className="text-[10px] font-black text-brand-600 uppercase tracking-tighter">Player A</div>
-            <div className="text-[10px] font-bold text-slate-500 mt-1">
+            <div className="text-2xs font-black text-brand-600 uppercase tracking-tighter">Player A</div>
+            <div className="text-2xs font-bold text-slate-500 mt-1">
               Sets: {player1SetStats?.won ?? '-'}G / {player1SetStats?.lost ?? '-'}P
             </div>
           </div>
 
-          <div className="text-2xl font-black text-slate-300 italic">VS</div>
+          <div className="text-2xl font-black text-muted italic">VS</div>
 
           {/* Player 2 Card */}
           <div className="flex-1 min-w-[140px] p-4 rounded-2xl bg-indigo-50 border border-indigo-100 flex flex-col items-center text-center">
@@ -432,8 +432,8 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({
               {player2.playerName?.slice(0, 2).toUpperCase()}
             </div>
             <div className="text-sm font-bold text-slate-900 truncate w-full">{player2.playerName}</div>
-            <div className="text-[10px] font-black text-indigo-600 uppercase tracking-tighter">Player B</div>
-            <div className="text-[10px] font-bold text-slate-500 mt-1">
+            <div className="text-2xs font-black text-indigo-600 uppercase tracking-tighter">Player B</div>
+            <div className="text-2xs font-bold text-slate-500 mt-1">
               Sets: {player2SetStats?.won ?? '-'}G / {player2SetStats?.lost ?? '-'}P
             </div>
           </div>
@@ -473,7 +473,7 @@ export const CompareVSModal: React.FC<CompareVSModalProps> = ({
 
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-            <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3 text-center">Highlights</h4>
+            <h4 className="text-xs font-black text-muted uppercase tracking-widest mb-3 text-center">Highlights</h4>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-slate-600">Mejor Rating:</span>

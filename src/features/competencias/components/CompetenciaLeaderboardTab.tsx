@@ -169,7 +169,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                 className="block w-full rounded-md border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 pl-9 border"
               />
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-4 w-4 text-slate-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <svg className="h-4 w-4 text-muted" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                   <path
                     fillRule="evenodd"
                     d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
@@ -180,7 +180,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
               {searchTerm && (
                 <button
                   onClick={() => setSearchTerm('')}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted hover:text-slate-600"
                 >
                   <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                     <path
@@ -284,7 +284,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
               );
             })}
             {comparingPlayers.length < 2 && (
-              <div className="w-10 h-10 rounded-full border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-slate-400">
+              <div className="w-10 h-10 rounded-full border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-muted">
                 <span className="text-xl">+</span>
               </div>
             )}
@@ -306,7 +306,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
             </button>
             <button
               onClick={() => setComparingPlayers([])}
-              className="p-2 text-slate-400 hover:text-red-500 transition-colors"
+              className="p-2 text-muted hover:text-red-500 transition-colors"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
                 <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
@@ -414,7 +414,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                             className={`p-1.5 rounded-full border transition-all ${
                               comparingPlayers.includes(playerId)
                                 ? 'bg-brand-600 border-brand-600 text-white'
-                                : 'bg-white border-slate-200 text-slate-400 hover:border-brand-500 hover:text-brand-500'
+                                : 'bg-white border-slate-200 text-muted hover:border-brand-500 hover:text-brand-500'
                             }`}
                             title="Comparar"
                           >
@@ -471,7 +471,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                                 playerPhoto: playerFoto,
                               });
                             }}
-                            className="p-1.5 rounded-full bg-slate-50 text-slate-400 hover:bg-brand-100 hover:text-brand-600 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+                            className="p-1.5 rounded-full bg-slate-50 text-muted hover:bg-brand-100 hover:text-brand-600 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
                             title="Compartir Rank"
                           >
                             <svg
@@ -492,7 +492,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`text-sm font-black ${winrate >= 50 ? 'text-emerald-500' : 'text-slate-400'}`}>
+                        <span className={`text-sm font-black ${winrate >= 50 ? 'text-emerald-500' : 'text-muted'}`}>
                           {winrate.toFixed(1)}%
                         </span>
                       </td>
@@ -512,7 +512,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                             {Number(item.lastDelta).toFixed(2)}
                           </span>
                         ) : (
-                          <span className="text-slate-400">-</span>
+                          <span className="text-muted">-</span>
                         )}
                       </td>
                     </tr>
@@ -554,7 +554,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                         {initials}
                       </div>
                       <div
-                        className={`absolute -top-1 -left-1 w-5 h-5 text-white text-[10px] font-bold rounded-full flex items-center justify-center z-20 border border-white shadow-sm ${
+                        className={`absolute -top-1 -left-1 w-5 h-5 text-white text-2xs font-bold rounded-full flex items-center justify-center z-20 border border-white shadow-sm ${
                           originalIndex === 0
                             ? 'bg-amber-400'
                             : originalIndex === 1
@@ -570,15 +570,15 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
 
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-bold text-slate-900 truncate">{playerName}</div>
-                      <div className="text-[10px] text-slate-500">{winrate.toFixed(0)}% Winrate</div>
+                      <div className="text-2xs text-slate-500">{winrate.toFixed(0)}% Winrate</div>
                     </div>
 
                     <div className="text-right flex-shrink-0">
                       <div className="text-sm font-black text-brand-600 leading-none">{Number(item.rating).toFixed(1)}</div>
-                      <div className="text-[8px] text-slate-400 font-bold mb-1 uppercase tracking-tighter">RATING</div>
+                      <div className="text-2xs text-muted font-bold mb-1 uppercase tracking-tighter">RATING</div>
                       {item.lastDelta !== undefined ? (
                         <div
-                          className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                          className={`text-2xs font-bold px-1.5 py-0.5 rounded ${
                             item.lastDelta > 0
                               ? 'bg-green-100 text-green-700'
                               : item.lastDelta < 0
@@ -590,7 +590,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                           {Number(item.lastDelta).toFixed(1)}
                         </div>
                       ) : (
-                        <div className="text-[10px] text-slate-400">---</div>
+                        <div className="text-2xs text-muted">---</div>
                       )}
                     </div>
                   </div>
@@ -604,7 +604,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                       className={`p-1.5 rounded-full border transition-all ${
                         comparingPlayers.includes(playerId)
                           ? 'bg-brand-600 border-brand-600 text-white'
-                          : 'bg-white border-slate-200 text-slate-400 hover:border-brand-500 hover:text-brand-500'
+                          : 'bg-white border-slate-200 text-muted hover:border-brand-500 hover:text-brand-500'
                       }`}
                       title="Comparar"
                     >
