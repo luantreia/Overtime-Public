@@ -153,7 +153,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
   };
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       <div className="flex flex-col md:flex-row items-start md:items-end justify-between mb-6 gap-4">
         <div className="flex flex-col sm:flex-row gap-4 w-full md:w-2/3">
           {temporadas.length > 0 && (
@@ -219,11 +219,11 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
           </div>
         </div>
 
-        <div className="mb-1 flex-shrink-0 flex items-center gap-3">
+        <div className="mb-1 flex w-full md:w-auto flex-wrap items-center gap-x-3 gap-y-2 md:flex-shrink-0">
           <button
             onClick={() => setTopNConfig({ isOpen: true, n: 3 })}
             disabled={leaderboard.length === 0}
-            className="text-sm text-brand-600 hover:text-brand-700 font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="text-sm text-brand-600 hover:text-brand-700 font-medium whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             Exportar Top 3
           </button>
@@ -231,19 +231,19 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
           <button
             onClick={() => setTopNConfig({ isOpen: true, n: 10 })}
             disabled={leaderboard.length === 0}
-            className="text-sm text-brand-600 hover:text-brand-700 font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="text-sm text-brand-600 hover:text-brand-700 font-medium whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             Exportar Top 10
           </button>
 
-          <div className="w-px h-4 bg-slate-300" />
+          <div className="hidden sm:block w-px h-4 bg-slate-300" />
 
           <button
             onClick={() => {
               setEvolutionPlayers(comparingPlayers.slice(0, 2));
               setIsChartModalOpen(true);
             }}
-            className="text-sm text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1 transition-colors"
+            className="text-sm text-brand-600 hover:text-brand-700 font-medium whitespace-nowrap flex items-center gap-1 transition-colors"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
               <path
@@ -260,11 +260,11 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
             Ver Evolución
           </button>
 
-          <div className="w-px h-4 bg-slate-300" />
+          <div className="hidden sm:block w-px h-4 bg-slate-300" />
 
           <EloExplanationModal
             trigger={
-              <button className="text-sm text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1 transition-colors">
+              <button className="text-sm text-brand-600 hover:text-brand-700 font-medium whitespace-nowrap flex items-center gap-1 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
                   <path
                     strokeLinecap="round"

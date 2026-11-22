@@ -53,13 +53,13 @@ export default function RankingGlobalPage() {
           <p className="text-xs text-slate-500 mt-1">Figuran quienes tienen al menos {MIN_PARTIDOS} partido rankeado en {modalidad} · {categoria}.</p>
         </div>
 
-        <div className="flex gap-3 sm:ml-auto">
-          <div className="space-y-1">
+        <div className="flex gap-3 sm:ml-auto w-full sm:w-auto">
+          <div className="space-y-1 flex-1 sm:flex-none">
             <label htmlFor="rankingglobalpage-modalidad" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Modalidad</label>
             <select id="rankingglobalpage-modalidad"
               value={modalidad}
               onChange={(e) => setFiltro('modalidad', e.target.value)}
-              className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none"
+              className="w-full sm:w-auto rounded-md border border-slate-300 bg-white pl-3 pr-9 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none"
             >
               {MODALIDADES.map((m) => (
                 <option key={m} value={m}>{m}</option>
@@ -67,12 +67,12 @@ export default function RankingGlobalPage() {
             </select>
           </div>
 
-          <div className="space-y-1">
+          <div className="space-y-1 flex-1 sm:flex-none">
             <label htmlFor="rankingglobalpage-categoria" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Categoría</label>
             <select id="rankingglobalpage-categoria"
               value={categoria}
               onChange={(e) => setFiltro('categoria', e.target.value)}
-              className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none"
+              className="w-full sm:w-auto rounded-md border border-slate-300 bg-white pl-3 pr-9 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none"
             >
               {CATEGORIAS.map((c) => (
                 <option key={c} value={c}>{c}</option>
