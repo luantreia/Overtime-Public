@@ -54,7 +54,7 @@ const getPlayerFoto = (item: LeaderboardItem, jugadoresComp: JugadorCompetencia[
 
 const getInitials = (name: string): string =>
   name
-    .split(/s+/)
+    .split(/\s+/)
     .filter(Boolean)
     .map((token) => token[0])
     .join('')
