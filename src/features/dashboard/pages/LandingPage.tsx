@@ -45,7 +45,7 @@ const EstadoBadge = ({ p }: { p: Partido }) => {
     return (
       <span className="inline-flex items-center gap-1.5 rounded-full bg-red-600 px-2 py-0.5 text-2xs font-black uppercase tracking-wider text-white">
         <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" aria-hidden="true" />
-        En vivo
+        En vivo{setsDe(p).length > 0 && <span className="tabular-nums"> · Set {setsDe(p).length}</span>}
       </span>
     );
   }
@@ -65,11 +65,36 @@ const Escudo = ({ src, nombre }: { src?: string; nombre?: string }) =>
     </span>
   );
 
+// Un SetPartido sólo guarda quién lo ganó (no puntos), así que el desglose es la secuencia de ganadores.
+type SetResumen = { numeroSet: number; ganadorSet?: 'local' | 'visitante' | 'empate' | 'pendiente'; estadoSet?: 'en_juego' | 'finalizado' };
+const setsDe = (p: Partido): SetResumen[] =>
+  (Array.isArray(p.sets) ? (p.sets as SetResumen[]) : []).slice().sort((a, b) => a.numeroSet - b.numeroSet);
+
+const ETIQUETA_GANADOR = { local: 'local', visitante: 'visitante', empate: 'empate', pendiente: 'en juego' } as const;
+
+const CeldasSets = ({ sets, lado }: { sets: SetResumen[]; lado: 'local' | 'visitante' }) => (
+  <span className="flex gap-1" aria-hidden="true">
+    {sets.map((s) => {
+      const gano = s.ganadorSet === lado;
+      const abierto = s.estadoSet === 'en_juego' || s.ganadorSet === 'pendiente' || !s.ganadorSet;
+      return (
+        <span
+          key={s.numeroSet}
+          className={`h-2.5 w-2.5 rounded-full ${
+            abierto ? 'animate-pulse bg-red-300' : gano ? 'bg-slate-900' : s.ganadorSet === 'empate' ? 'bg-slate-400' : 'border border-slate-300'
+          }`}
+        />
+      );
+    })}
+  </span>
+);
+
 const PartidoTile = ({ p }: { p: Partido }) => {
   const conMarcador = p.estado === 'en_juego' || p.estado === 'finalizado';
+  const sets = conMarcador ? setsDe(p) : [];
   const filas = [
-    { eq: p.equipoLocal, pts: p.marcadorLocal },
-    { eq: p.equipoVisitante, pts: p.marcadorVisitante },
+    { eq: p.equipoLocal, pts: p.marcadorLocal, lado: 'local' as const },
+    { eq: p.equipoVisitante, pts: p.marcadorVisitante, lado: 'visitante' as const },
   ];
   return (
     <Link
@@ -83,14 +108,20 @@ const PartidoTile = ({ p }: { p: Partido }) => {
         <span className="truncate text-2xs text-muted">{p.competencia?.nombre || p.sede?.nombre || ''}</span>
       </div>
       <ul className="space-y-2">
-        {filas.map(({ eq, pts }, i) => (
-          <li key={i} className="flex items-center gap-2">
+        {filas.map(({ eq, pts, lado }) => (
+          <li key={lado} className="flex items-center gap-2">
             <Escudo src={eq?.escudo} nombre={eq?.nombre} />
             <span className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-900">{eq?.nombre || 'A definir'}</span>
-            {conMarcador && <span className="text-lg font-black tabular-nums text-slate-900">{pts ?? 0}</span>}
+            {sets.length > 0 && <CeldasSets sets={sets} lado={lado} />}
+            {conMarcador && <span className="w-7 text-right text-lg font-black tabular-nums text-slate-900">{pts ?? 0}</span>}
           </li>
         ))}
       </ul>
+      {sets.length > 0 && (
+        <p className="sr-only">
+          Sets: {sets.map((s) => `set ${s.numeroSet} ${ETIQUETA_GANADOR[s.ganadorSet ?? 'pendiente']}`).join(', ')}.
+        </p>
+      )}
       <p className="mt-3 text-xs font-semibold text-brand-600">Ver partido y planilla →</p>
     </Link>
   );
