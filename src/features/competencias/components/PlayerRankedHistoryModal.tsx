@@ -165,6 +165,7 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
            {playerStack.length > 0 && (
              <button
               onClick={goBack}
+              aria-label="Volver al jugador anterior"
               className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"
              >
                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -212,6 +213,7 @@ export const PlayerRankedHistoryModal: React.FC<PlayerRankedHistoryModalProps> =
           )}
           <button
             onClick={onClose}
+            aria-label="Cerrar"
             className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

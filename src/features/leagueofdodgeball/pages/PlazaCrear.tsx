@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 import { PlazaService } from '../services/plazaService';
 import { LoadingSpinner } from '../../../shared/components/LoadingSpinner';
 import { useToast } from '../../../shared/components/Toast/ToastProvider';
@@ -26,6 +27,7 @@ const LocationPicker = ({ lat, lng, onChange }: { lat: number, lng: number, onCh
 };
 
 const PlazaCrear: React.FC = () => {
+  usePageTitle('Crear lobby');
   const navigate = useNavigate();
   const { addToast } = useToast();
   const [loading, setLoading] = useState(false);

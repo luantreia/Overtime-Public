@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 import { PlazaService } from '../services/plazaService';
 import { PlazaMatchControl } from '../components/PlazaMatchControl';
 import { Lobby } from '../types';
@@ -30,6 +31,7 @@ const PlazaLobby: React.FC = () => {
   const navigate = useNavigate();
   const { addToast } = useToast();
   const [lobby, setLobby] = useState<Lobby | null>(null);
+  usePageTitle(lobby?.title ?? 'Lobby');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);

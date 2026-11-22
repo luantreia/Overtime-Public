@@ -181,6 +181,7 @@ export const PlazaMatchControl: React.FC<PlazaMatchControlProps> = ({
         </button>
         <button
           onClick={removeLastSet}
+          aria-label="Borrar último set"
           disabled={sets.length === 0}
           className="px-6 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-400 border border-slate-700 disabled:opacity-20 transition-all"
         >

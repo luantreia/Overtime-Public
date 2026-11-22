@@ -3,6 +3,7 @@ import { Overlay } from 'overtime-kit';
 import { PlazaService } from '../services/plazaService';
 import { Lobby } from '../types';
 import { Link, useNavigate } from 'react-router-dom';
+import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 import { LoadingSpinner } from '../../../shared/components/LoadingSpinner';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 import { getAuthTokens } from '../../../utils/apiClient';
@@ -41,6 +42,7 @@ const RADIUS_OPTIONS = [5, 10, 20, 50];
 
 const PlazaExplorar: React.FC = () => {
   const navigate = useNavigate();
+  usePageTitle('La Plaza');
 
   // Core data
   const [lobbies, setLobbies] = useState<Lobby[]>([]);
@@ -421,9 +423,9 @@ const PlazaExplorar: React.FC = () => {
 
       {/* Banner: ya estás en un lobby */}
       {myActiveLobby && (
-        <div
-          className="flex items-center justify-between gap-4 bg-gradient-to-r from-brand-600 to-brand-700 rounded-2xl px-5 py-4 shadow-lg cursor-pointer"
-          onClick={() => navigate(`/plaza/lobby/${myActiveLobby._id}`)}
+        <Link
+          to={`/plaza/lobby/${myActiveLobby._id}`}
+          className="flex items-center justify-between gap-4 bg-gradient-to-r from-brand-600 to-brand-700 rounded-2xl px-5 py-4 shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2"
         >
           <div>
             <p className="text-[10px] font-black text-brand-200 uppercase tracking-widest">Ya estás en un lobby</p>
@@ -436,7 +438,7 @@ const PlazaExplorar: React.FC = () => {
           <div className="flex-shrink-0 px-4 py-2 bg-white/20 text-white font-black text-sm rounded-xl hover:bg-white/30 transition-colors">
             IR AL LOBBY →
           </div>
-        </div>
+        </Link>
       )}
 
       {/* Lobby list / map */}
@@ -566,7 +568,7 @@ const PlazaExplorar: React.FC = () => {
           <h2 className="text-sm font-black text-slate-500 uppercase tracking-wider">Últimos partidos</h2>
           <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden divide-y divide-slate-100">
             {recentFinished.map(lobby => (
-              <div key={lobby._id} className="flex items-center justify-between px-4 py-3 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => navigate(`/plaza/lobby/${lobby._id}`)}>
+              <Link key={lobby._id} to={`/plaza/lobby/${lobby._id}`} className="flex items-center justify-between px-4 py-3 hover:bg-slate-50 transition-colors focus-visible:outline-none focus-visible:bg-slate-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="h-8 w-8 rounded-lg bg-slate-100 flex items-center justify-center text-xs font-black text-slate-500 shrink-0">
                     {lobby.title.substring(0, 2).toUpperCase()}
@@ -588,7 +590,7 @@ const PlazaExplorar: React.FC = () => {
                     )}
                   </div>
                 )}
-              </div>
+              </Link>
             ))}
           </div>
         </div>

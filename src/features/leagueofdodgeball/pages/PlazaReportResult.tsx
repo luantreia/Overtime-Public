@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 import { PlazaService } from '../services/plazaService';
 import { Lobby } from '../types';
 import { LoadingSpinner } from '../../../shared/components/LoadingSpinner';
@@ -12,6 +13,7 @@ const PlazaReportResult: React.FC = () => {
   const navigate = useNavigate();
   const { addToast } = useToast();
   const [lobby, setLobby] = useState<Lobby | null>(null);
+  usePageTitle(lobby ? `Resultado · ${lobby.title}` : 'Reportar resultado');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [sets, setSets] = useState([{ teamAScore: 0, teamBScore: 0 }]);

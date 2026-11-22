@@ -1,7 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 
-const NotFoundPage: React.FC = () => (
+const NotFoundPage: React.FC = () => {
+  usePageTitle('Página no encontrada');
+  return (
   <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 text-center">
     <p className="text-7xl font-black text-brand-600">404</p>
     <h1 className="mt-4 text-2xl font-bold text-slate-900">Página no encontrada</h1>
@@ -13,6 +16,7 @@ const NotFoundPage: React.FC = () => (
       Volver al inicio
     </Link>
   </div>
-);
+  );
+};
 
 export default NotFoundPage;

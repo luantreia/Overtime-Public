@@ -70,7 +70,7 @@ export default function FeedbackWidget() {
               <ChatBubbleLeftEllipsisIcon className="h-4 w-4" />
               <span className="text-sm font-bold">¿Tenés alguna sugerencia?</span>
             </div>
-            <button onClick={handleClose} className="hover:bg-white/20 rounded-lg p-1 transition-colors">
+            <button onClick={handleClose} aria-label="Cerrar" className="hover:bg-white/20 rounded-lg p-1 transition-colors">
               <XMarkIcon className="h-4 w-4" />
             </button>
           </div>
