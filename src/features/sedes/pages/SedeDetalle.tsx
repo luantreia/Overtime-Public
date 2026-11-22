@@ -22,7 +22,9 @@ const SedeDetalle: React.FC = () => {
     queryFn: () => SedeService.getById(id!),
     enabled: !!id,
   });
-  usePageTitle(sede?.nombre);
+  usePageTitle(sede?.nombre, sede ? {
+    description: `${sede.nombre}: sede de dodgeball. Partidos y competencias que se juegan en esta sede.`,
+  } : {});
 
   const { data: partidos = [], isLoading: loadingPartidos } = useQuery({
     queryKey: ['partidos-sede', id],

@@ -6,7 +6,7 @@ import { EquipoService, type Equipo } from '../services/equipoService';
 import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 
 const Equipos: React.FC = () => {
-  usePageTitle('Equipos');
+  usePageTitle('Equipos', { description: 'Equipos de dodgeball: planteles, partidos, resultados y estadísticas de cada equipo.' });
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);

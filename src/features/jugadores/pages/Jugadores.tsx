@@ -9,7 +9,7 @@ import { useAuth } from '../../../app/providers/AuthContext';
 import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 
 const Jugadores: React.FC = () => {
-  usePageTitle('Jugadores');
+  usePageTitle('Jugadores', { description: 'Jugadores de dodgeball: perfiles, equipos, partidos jugados y estadísticas individuales.' });
   const navigate = useNavigate();
   const { user } = useAuth();
   // El límite ahora es cuántos mostramos inicialmente y por "batch"

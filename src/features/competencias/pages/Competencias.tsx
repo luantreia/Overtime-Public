@@ -21,7 +21,7 @@ const ESTADO_FILTROS: { value: CompetenciaEstadoVariante | ''; label: string }[]
 ];
 
 const Competencias: React.FC = () => {
-  usePageTitle('Competencias');
+  usePageTitle('Competencias', { description: 'Ligas y torneos de dodgeball: fixture, resultados, tablas de posiciones y estadísticas de cada competencia.' });
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [busqueda, setBusqueda] = useState('');

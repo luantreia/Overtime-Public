@@ -32,7 +32,12 @@ const OrganizacionDetalle: React.FC = () => {
     queryFn: () => OrganizacionService.getById(id!),
     enabled: !!id,
   });
-  usePageTitle(organizacion?.nombre);
+  usePageTitle(organizacion?.nombre, organizacion ? {
+    description: organizacion.descripcion ||
+      `${organizacion.nombre}: organización de dodgeball. Ligas, torneos y competencias que organiza.`,
+    image: organizacion.logoUrl,
+    jsonLd: { '@type': 'SportsOrganization', name: organizacion.nombre, sport: 'Dodgeball', logo: organizacion.logoUrl, url: organizacion.sitioWeb || undefined },
+  } : {});
 
   const { data: sedes = [] } = useQuery({
     queryKey: ['sedes-organizacion', id],

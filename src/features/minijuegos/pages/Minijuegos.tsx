@@ -4,7 +4,7 @@ import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 import { MINIJUEGOS_REGISTRY } from '../registry';
 
 const Minijuegos: React.FC = () => {
-  usePageTitle('Minijuegos');
+  usePageTitle('Minijuegos', { description: 'Minijuegos de dodgeball para jugar en el navegador.' });
 
   return (
     <div className="py-8">

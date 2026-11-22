@@ -51,7 +51,21 @@ const CompetenciaDetalle: React.FC = () => {
     enabled: !!id,
   });
   const error = competenciaQueryError instanceof Error ? competenciaQueryError.message : competenciaQueryError ? String(competenciaQueryError) : null;
-  usePageTitle((competencia as any)?.nombre);
+  const comp = competencia as any;
+  usePageTitle(comp?.nombre, comp ? {
+    description: comp.descripcion ||
+      `${comp.nombre}: ${comp.tipo || 'competencia'} de dodgeball ${comp.modalidad || ''} ${comp.categoria || ''}${comp.organizacion?.nombre ? ` organizado por ${comp.organizacion.nombre}` : ''}. Fixture, resultados, posiciones y estadísticas.`,
+    image: comp.foto,
+    jsonLd: {
+      '@type': 'SportsEvent',
+      name: comp.nombre,
+      sport: 'Dodgeball',
+      startDate: comp.fechaInicio,
+      endDate: comp.fechaFin,
+      image: comp.foto,
+      organizer: comp.organizacion?.nombre ? { '@type': 'Organization', name: comp.organizacion.nombre } : undefined,
+    },
+  } : {});
 
   const isRanked = competencia ? (competencia as any).rankedEnabled === true : false;
 

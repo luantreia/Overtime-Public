@@ -12,7 +12,7 @@ type Modalidad = (typeof MODALIDADES)[number];
 type Categoria = (typeof CATEGORIAS)[number];
 
 export default function RankingGlobalPage() {
-  usePageTitle('Ranking Global');
+  usePageTitle('Ranking Global', { description: 'Ranking global de dodgeball: posiciones y rating de equipos y jugadores según sus resultados.' });
   const [modalidad, setModalidad] = useState<Modalidad>('Foam');
   const [categoria, setCategoria] = useState<Categoria>('Libre');
   const [leaderboard, setLeaderboard] = useState<LeaderboardItem[]>([]);

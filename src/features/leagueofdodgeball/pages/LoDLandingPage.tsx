@@ -20,7 +20,7 @@ const STEPS_COMPETENCIA = [
 ];
 
 export default function LoDLandingPage() {
-  usePageTitle('League of Dodgeball');
+  usePageTitle('League of Dodgeball', { description: 'League of Dodgeball: partidos abiertos, lobbies y ranking competitivo de dodgeball.' });
   const [showProfileFlow, setShowProfileFlow] = useState(false);
   const [howTab, setHowTab] = useState<'plaza' | 'competencia'>('plaza');
 

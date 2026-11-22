@@ -46,7 +46,19 @@ const EquipoDetalle: React.FC = () => {
   });
   const error = equipoQueryError instanceof Error ? equipoQueryError.message : equipoQueryError ? String(equipoQueryError) : null;
 
-  usePageTitle(equipo?.nombre);
+  usePageTitle(equipo?.nombre, equipo ? {
+    description: equipo.descripcion ||
+      `${equipo.nombre}: equipo de dodgeball${equipo.pais ? ` de ${equipo.pais}` : ''}. Plantel, partidos, resultados y estadísticas.`,
+    image: equipo.escudo || equipo.foto,
+    jsonLd: {
+      '@type': 'SportsTeam',
+      name: equipo.nombre,
+      sport: 'Dodgeball',
+      logo: equipo.escudo,
+      url: equipo.sitioWeb || undefined,
+      sameAs: Object.values(equipo.redesSociales || {}).filter(Boolean),
+    },
+  } : {});
 
   const equipoId = equipo?._id || equipo?.id || id || '';
 

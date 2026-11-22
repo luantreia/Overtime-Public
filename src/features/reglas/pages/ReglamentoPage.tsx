@@ -20,7 +20,9 @@ const ReglamentoPage: React.FC = () => {
   const [formato, setFormato] = useState<FormatoDodgeball>('foam');
   const [mostrarTexto, setMostrarTexto] = useState(false);
   const reglamento = REGLAMENTOS[formato];
-  usePageTitle(`Reglamento ${formato === 'cloth' ? 'Cloth' : 'Foam'}`);
+  usePageTitle(`Reglamento ${formato === 'cloth' ? 'Cloth' : 'Foam'}`, {
+    description: `Reglamento oficial de dodgeball ${formato === 'cloth' ? 'cloth' : 'foam'}: reglas de juego, faltas, sets y arbitraje.`,
+  });
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">

@@ -28,7 +28,7 @@ const REFERENCIAS = [
 ];
 
 const ComoSeJuegaPage: React.FC = () => {
-  usePageTitle('Cómo se juega');
+  usePageTitle('Cómo se juega', { description: 'Cómo se juega al dodgeball: reglas básicas, cantidad de jugadores, pelotas, cancha y cómo se gana un set.' });
   const [abierta, setAbierta] = useState(0);
   const [formato, setFormato] = useState<Formato>('foam');
   const [corriendo, setCorriendo] = useState(

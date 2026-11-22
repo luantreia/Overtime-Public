@@ -167,7 +167,17 @@ const JugadorDetalle: React.FC = () => {
 
   const equiposActivosAgrupados = useMemo(() => groupByEquipo(equiposActivos), [equiposActivos]);
 
-  usePageTitle(jugador?.nombre);
+  usePageTitle(jugador?.nombre, jugador ? {
+    description: `${jugador.nombre}${jugador.alias ? ` (${jugador.alias})` : ''}: jugador de dodgeball${jugador.nacionalidad ? ` de ${jugador.nacionalidad}` : ''}. Equipos, partidos y estadísticas individuales.`,
+    image: jugador.foto,
+    jsonLd: {
+      '@type': 'Person',
+      name: jugador.nombre,
+      alternateName: jugador.alias || undefined,
+      nationality: jugador.nacionalidad || undefined,
+      image: jugador.foto,
+    },
+  } : {});
   const [actionLoading, setActionLoading] = useState(false);
   const [showAllComps, setShowAllComps] = useState(false);
   const activeTab = (searchParams.get('tab') as Tab) || 'partidos';

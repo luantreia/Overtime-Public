@@ -27,7 +27,7 @@ const ESTADO_OPTIONS = [
 ];
 
 const Partidos: React.FC = () => {
-  usePageTitle('Partidos');
+  usePageTitle('Partidos', { description: 'Partidos de dodgeball: próximos encuentros, resultados en vivo y marcadores finales de ligas y torneos.' });
   const navigate = useNavigate();
   const [vista, setVista] = useState<Vista>('lista');
   // Filtros
