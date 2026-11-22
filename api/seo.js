@@ -102,6 +102,7 @@ module.exports = async (req, res) => {
   const htmlRes = await fetch(`${base}/index.html`);
   let html = await htmlRes.text();
 
+  if (!id && tipo === 'ranking') return ranking(res, base, html);
   if (!id && LISTADOS[tipo]) return listado(req, res, tipo, base, html);
 
   const armar = TIPOS[tipo];
@@ -146,6 +147,46 @@ function aplicarMeta(html, titulo, descripcion, url, jsonLd) {
   html = setMeta(html, 'name', 'twitter:description', descripcion);
   const ld = JSON.stringify({ '@context': 'https://schema.org', ...jsonLd, url }).replace(/</g, '\\u003c');
   return html.replace('</head>', `    <script type="application/ld+json">${ld}</script>\n  </head>`);
+}
+
+// /ranking para bots: mismas tablas que RankingGlobalPage (categoría Libre, la que abre por defecto).
+const RANKING_MODALIDADES = ['Foam', 'Cloth'];
+const RANKING_TOP = 50;
+
+async function ranking(res, base, html) {
+  const tablas = await Promise.all(RANKING_MODALIDADES.map(async (modalidad) => ({
+    modalidad,
+    filas: items(await getJson(`/ranked/leaderboard?modalidad=${modalidad}&categoria=Libre&minMatches=0&limit=${RANKING_TOP}`))
+      .filter((f) => f?.playerId && f.playerName),
+  })));
+  const hayDatos = tablas.some((t) => t.filas.length);
+  const h1 = 'Ranking ELO de dodgeball';
+  const descripcion = 'Ranking ELO de jugadores de dodgeball en foam y cloth: rating, partidos jugados, victorias y derrotas según los partidos rankeados.';
+
+  html = aplicarMeta(html, `${h1} | Overtime Dodgeball`, descripcion, `${base}/ranking`, {
+    '@type': 'CollectionPage', name: h1,
+    hasPart: tablas.filter((t) => t.filas.length).map((t) => ({
+      '@type': 'ItemList', name: `Ranking ${t.modalidad}`, numberOfItems: t.filas.length,
+      itemListElement: t.filas.map((f, i) => ({ '@type': 'ListItem', position: i + 1, name: f.playerName, url: `${base}/jugadores/${f.playerId}` })),
+    })),
+  });
+
+  const num = (n) => (Number.isFinite(Number(n)) ? Math.round(Number(n)) : '—');
+  const secciones = tablas.map(({ modalidad, filas }) => {
+    if (!filas.length) return `<h2>Ranking ${modalidad}</h2><p>Todavía no hay jugadores rankeados en ${modalidad}.</p>`;
+    const trs = filas.map((f, i) =>
+      `<tr><td>${i + 1}</td><td><a href="/jugadores/${esc(f.playerId)}">${esc(f.playerName)}</a></td>` +
+      `<td>${num(f.rating)}</td><td>${num(f.matchesPlayed)}</td><td>${num(f.wins ?? 0)}-${num(f.draws ?? 0)}-${num(f.losses ?? 0)}</td></tr>`).join('');
+    return `<h2>Ranking ${modalidad}</h2><table><caption>Top ${filas.length} ${modalidad}, categoría libre</caption>` +
+      `<thead><tr><th scope="col">Pos.</th><th scope="col">Jugador</th><th scope="col">ELO</th><th scope="col">PJ</th><th scope="col">V-E-D</th></tr></thead><tbody>${trs}</tbody></table>`;
+  }).join('');
+
+  html = html.replace(/<main([^>]*)>[\s\S]*?<\/main>/,
+    `<main$1><h1>${h1}</h1><p>${descripcion} Cada partido rankeado suma o resta puntos según el rating del rival; el ranking se separa por modalidad y categoría.</p>` +
+    `${secciones}<p><a href="/jugadores">Jugadores</a> · <a href="/competencias">Competencias</a> · <a href="/">Overtime Dodgeball</a></p></main>`);
+
+  // Sin datos (Render dormido) igual mandamos h1/canonical propios, con cache corto para reintentar.
+  enviar(res, html, hayDatos);
 }
 
 async function listado(req, res, tipo, base, html) {

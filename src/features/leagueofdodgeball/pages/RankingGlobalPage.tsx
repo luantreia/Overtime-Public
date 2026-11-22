@@ -12,7 +12,7 @@ type Modalidad = (typeof MODALIDADES)[number];
 type Categoria = (typeof CATEGORIAS)[number];
 
 export default function RankingGlobalPage() {
-  usePageTitle('Ranking Global', { description: 'Ranking global de dodgeball: posiciones y rating de equipos y jugadores según sus resultados.' });
+  usePageTitle('Ranking ELO de dodgeball', { description: 'Ranking ELO de jugadores de dodgeball en foam y cloth: rating, partidos jugados, victorias y derrotas según los partidos rankeados.' });
   const [modalidad, setModalidad] = useState<Modalidad>('Foam');
   const [categoria, setCategoria] = useState<Categoria>('Libre');
   const [leaderboard, setLeaderboard] = useState<LeaderboardItem[]>([]);
@@ -39,7 +39,7 @@ export default function RankingGlobalPage() {
     <div className="mx-auto max-w-6xl space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-end gap-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Ranking Global</h1>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Ranking ELO de dodgeball</h1>
           <p className="text-sm text-slate-500 mt-0.5">Los mejores jugadores de toda la plataforma</p>
         </div>
 

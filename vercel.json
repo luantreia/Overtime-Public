@@ -61,6 +61,17 @@
       "destination": "/api/seo?tipo=:tipo"
     },
     {
+      "source": "/ranking",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*([Bb]ot|[Cc]rawler|[Ss]pider|facebookexternalhit|Facebot|WhatsApp|Slack|Discord|Telegram|LinkedIn|Pinterest|Embedly|Google-InspectionTool|Applebot|redditbot|Iframely|SkypeUriPreview|vkShare).*"
+        }
+      ],
+      "destination": "/api/seo?tipo=ranking"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "https://overtime-ddyl.onrender.com/api/$1"
     },
