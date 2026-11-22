@@ -69,6 +69,27 @@ const TIPOS = {
   }),
 };
 
+// Listados para bots: HTML con un link por entidad, así el buscador ve (y sigue) el contenido real.
+const LISTADOS = {
+  equipos: {
+    titulo: 'Equipos de dodgeball',
+    descripcion: (n) => `${n} equipos de dodgeball registrados en Overtime: clubes y selecciones con plantel, partidos y estadísticas.`,
+    item: (e) => [e.nombre, [e.esSeleccionNacional ? 'Selección nacional' : e.tipo === 'club' ? 'Club' : e.tipo, e.pais].filter(Boolean).join(' · ')],
+  },
+  competencias: {
+    titulo: 'Competencias de dodgeball',
+    descripcion: (n) => `${n} ligas y torneos de dodgeball en Overtime: fixture, resultados, posiciones y estadísticas.`,
+    item: (c) => [c.nombre, [c.modalidad, c.categoria, c.organizacion?.nombre].filter(Boolean).join(' · ')],
+  },
+  jugadores: {
+    titulo: 'Jugadores de dodgeball',
+    descripcion: (n) => `${n} jugadores de dodgeball en Overtime: equipos, partidos y estadísticas individuales.`,
+    item: (j) => [j.nombre + (j.alias ? ` (${j.alias})` : ''), j.nacionalidad || ''],
+  },
+};
+
+const items = (r) => (Array.isArray(r) ? r : r?.items || r?.data || []);
+
 function setMeta(html, attr, key, value) {
   const re = new RegExp(`<meta ${attr}="${key}" content="[^"]*"\\s*/?>`);
   const tag = `<meta ${attr}="${key}" content="${esc(value)}" />`;
@@ -81,6 +102,8 @@ module.exports = async (req, res) => {
   const htmlRes = await fetch(`${base}/index.html`);
   let html = await htmlRes.text();
 
+  if (!id && LISTADOS[tipo]) return listado(req, res, tipo, base, html);
+
   const armar = TIPOS[tipo];
   const dato = armar && /^[a-f0-9]{24}$/i.test(String(id)) ? await getJson(`/${tipo}/${id}`) : null;
 
@@ -90,20 +113,11 @@ module.exports = async (req, res) => {
     const descripcion = resumir(m.descripcion);
     const url = `${base}/${tipo}/${id}`;
 
-    html = html.replace(/<title>[^<]*<\/title>/, `<title>${esc(titulo)}</title>`);
-    html = html.replace(/<link rel="canonical" href="[^"]*"\s*\/?>/, `<link rel="canonical" href="${esc(url)}" />`);
-    html = setMeta(html, 'name', 'description', descripcion);
-    html = setMeta(html, 'property', 'og:title', titulo);
-    html = setMeta(html, 'property', 'og:description', descripcion);
-    html = setMeta(html, 'property', 'og:url', url);
-    html = setMeta(html, 'name', 'twitter:title', titulo);
-    html = setMeta(html, 'name', 'twitter:description', descripcion);
+    html = aplicarMeta(html, titulo, descripcion, url, m.jsonLd);
     if (m.imagen) {
       html = setMeta(html, 'property', 'og:image', m.imagen);
       html = setMeta(html, 'name', 'twitter:image', m.imagen);
     }
-    const jsonLd = JSON.stringify({ '@context': 'https://schema.org', ...m.jsonLd, url }).replace(/</g, '\\u003c');
-    html = html.replace('</head>', `    <script type="application/ld+json">${jsonLd}</script>\n  </head>`);
     html = html.replace(
       /<main([^>]*)>[\s\S]*?<\/main>/,
       `<main$1><h1>${esc(m.titulo)}</h1><p>${esc(m.descripcion)}</p>` +
@@ -111,8 +125,47 @@ module.exports = async (req, res) => {
     );
   }
 
+  enviar(res, html, Boolean(dato));
+};
+
+function enviar(res, html, ok) {
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   // Cache en el CDN de Vercel: los bots no esperan a Render en cada visita.
-  res.setHeader('Cache-Control', dato ? 'public, s-maxage=3600, stale-while-revalidate=86400' : 'public, s-maxage=60');
+  res.setHeader('Cache-Control', ok ? 'public, s-maxage=3600, stale-while-revalidate=86400' : 'public, s-maxage=60');
   res.status(200).send(html);
-};
+}
+
+function aplicarMeta(html, titulo, descripcion, url, jsonLd) {
+  html = html.replace(/<title>[^<]*<\/title>/, `<title>${esc(titulo)}</title>`);
+  html = html.replace(/<link rel="canonical" href="[^"]*"\s*\/?>/, `<link rel="canonical" href="${esc(url)}" />`);
+  html = setMeta(html, 'name', 'description', descripcion);
+  html = setMeta(html, 'property', 'og:title', titulo);
+  html = setMeta(html, 'property', 'og:description', descripcion);
+  html = setMeta(html, 'property', 'og:url', url);
+  html = setMeta(html, 'name', 'twitter:title', titulo);
+  html = setMeta(html, 'name', 'twitter:description', descripcion);
+  const ld = JSON.stringify({ '@context': 'https://schema.org', ...jsonLd, url }).replace(/</g, '\\u003c');
+  return html.replace('</head>', `    <script type="application/ld+json">${ld}</script>\n  </head>`);
+}
+
+async function listado(req, res, tipo, base, html) {
+  const L = LISTADOS[tipo];
+  const lista = items(await getJson(`/${tipo}?limit=1000`)).filter((x) => x?._id && x.nombre)
+    .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+  if (lista.length) {
+    const titulo = `${L.titulo} | Overtime Dodgeball`;
+    const url = `${base}/${tipo}`;
+    html = aplicarMeta(html, titulo, L.descripcion(lista.length), url, {
+      '@type': 'CollectionPage', name: L.titulo,
+      mainEntity: { '@type': 'ItemList', numberOfItems: lista.length,
+        itemListElement: lista.map((x, i) => ({ '@type': 'ListItem', position: i + 1, name: x.nombre, url: `${base}/${tipo}/${x._id}` })) },
+    });
+    const lis = lista.map((x) => {
+      const [nombre, detalle] = L.item(x);
+      return `<li><a href="/${tipo}/${x._id}">${esc(nombre)}</a>${detalle ? ` — ${esc(detalle)}` : ''}</li>`;
+    }).join('');
+    html = html.replace(/<main([^>]*)>[\s\S]*?<\/main>/,
+      `<main$1><h1>${esc(L.titulo)}</h1><p>${esc(L.descripcion(lista.length))}</p><ul>${lis}</ul><p><a href="/">Overtime Dodgeball</a></p></main>`);
+  }
+  enviar(res, html, lista.length > 0);
+}

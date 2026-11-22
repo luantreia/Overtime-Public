@@ -1,6 +1,8 @@
 {
   "functions": {
-    "api/sitemap.js": { "maxDuration": 30 }
+    "api/sitemap.js": {
+      "maxDuration": 30
+    }
   },
   "headers": [
     {
@@ -46,6 +48,17 @@
         }
       ],
       "destination": "/api/seo?tipo=:tipo&id=:id"
+    },
+    {
+      "source": "/:tipo(equipos|jugadores|competencias)",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*([Bb]ot|[Cc]rawler|[Ss]pider|facebookexternalhit|Facebot|WhatsApp|Slack|Discord|Telegram|LinkedIn|Pinterest|Embedly|Google-InspectionTool|Applebot|redditbot|Iframely|SkypeUriPreview|vkShare).*"
+        }
+      ],
+      "destination": "/api/seo?tipo=:tipo"
     },
     {
       "source": "/api/(.*)",

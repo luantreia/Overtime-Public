@@ -6,9 +6,19 @@ const ENTIDADES = ['competencias', 'equipos', 'jugadores', 'partidos', 'organiza
 
 const items = (r) => (Array.isArray(r) ? r : r?.items || r?.data || []);
 
+// La API corta en limit=1000 (partidos ya pasa los 2000): seguir pidiendo páginas mientras haya.
+async function todas(e) {
+  const primera = await getJson(`/${e}?limit=1000&page=1`, 25000);
+  if (!primera || Array.isArray(primera) || !(primera.pages > 1)) return primera;
+  const resto = await Promise.all(
+    Array.from({ length: primera.pages - 1 }, (_, i) => getJson(`/${e}?limit=1000&page=${i + 2}`, 25000)));
+  if (resto.some((r) => !r)) return null;
+  return [...items(primera), ...resto.flatMap(items)];
+}
+
 module.exports = async (req, res) => {
   const base = origen(req);
-  const listas = await Promise.all(ENTIDADES.map((e) => getJson(`/${e}?limit=1000`, 25000)));
+  const listas = await Promise.all(ENTIDADES.map(todas));
 
   const urls = FIJAS.map((p) => `  <url><loc>${base}${p}</loc></url>`);
   ENTIDADES.forEach((e, i) => {
