@@ -7,6 +7,7 @@ import { CompetenciaService, type Competencia } from '../../competencias/service
 import { RankedService, type LeaderboardItem } from '../../competencias/services/rankedService';
 import { PlazaService } from '../../leagueofdodgeball/services/plazaService';
 import type { Lobby } from '../../leagueofdodgeball/types';
+import { useEquiposSeguidos } from '../../../shared/hooks/useEquiposSeguidos';
 import InstalarAppModal from '../../../shared/components/InstalarAppModal/InstalarAppModal';
 
 /**
@@ -239,6 +240,76 @@ const TopRanking = () => {
   );
 };
 
+// ── Tus equipos (seguidos desde la página de cada equipo) ──────────────────
+/**
+ * Un partido por equipo seguido, el más relevante "ahora": en juego > el próximo > el último
+ * resultado. No se muestran todos: la home responde "¿qué pasa con los míos?", el calendario
+ * completo sigue estando en la página del equipo.
+ */
+const elegirPartido = (lista: Partido[]): Partido | null => {
+  const t = (p: Partido) => new Date(p.fecha || 0).getTime();
+  const vivo = lista.find((p) => p.estado === 'en_juego');
+  if (vivo) return vivo;
+  const prox = lista
+    .filter((p) => p.estado === 'programado' && t(p) > Date.now() - 3 * 3600e3)
+    .sort((a, b) => t(a) - t(b))[0];
+  if (prox) return prox;
+  return lista.filter((p) => p.estado === 'finalizado').sort((a, b) => t(b) - t(a))[0] ?? null;
+};
+
+const TusEquipos = () => {
+  const { seguidos } = useEquiposSeguidos();
+  const ids = seguidos.map((e) => e.id);
+  const { data, isLoading } = useQuery({
+    queryKey: ['home-tus-equipos', ids],
+    queryFn: async () =>
+      Promise.all(
+        seguidos.map(async (eq) => ({
+          equipo: eq,
+          partido: elegirPartido(await PartidoService.getAll({ equipo: eq.id }).catch(() => [] as Partido[])),
+        }))
+      ),
+    enabled: ids.length > 0,
+    staleTime: 1000 * 60,
+    refetchInterval: 1000 * 60,
+  });
+
+  if (ids.length === 0) return null;
+
+  return (
+    <section aria-labelledby="home-tus-equipos">
+      <div className="mb-4 flex items-end justify-between gap-4">
+        <div className="min-w-0">
+          <h2 id="home-tus-equipos" className="text-lg font-black tracking-tight text-slate-900 sm:text-xl">Tus equipos</h2>
+          <p className="truncate text-sm text-slate-500">Lo último y lo próximo de los equipos que seguís.</p>
+        </div>
+      </div>
+      {isLoading ? (
+        <div className="flex gap-4 overflow-hidden sm:grid sm:grid-cols-2 lg:grid-cols-3">
+          {seguidos.slice(0, 3).map((e) => <Skeleton key={e.id} className="h-40 w-[82%] flex-shrink-0 sm:w-auto" />)}
+        </div>
+      ) : (
+        <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-3">
+          {(data ?? []).map(({ equipo, partido }) =>
+            partido ? (
+              <PartidoTile key={equipo.id} p={partido} />
+            ) : (
+              <Link
+                key={equipo.id}
+                to={`/equipos/${equipo.id}`}
+                className="flex w-[82%] flex-shrink-0 snap-start items-center gap-3 rounded-2xl border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-600 hover:border-brand-600 sm:w-auto"
+              >
+                <span className="font-bold text-slate-900">{equipo.nombre}</span>
+                <span>no tiene partidos cargados.</span>
+              </Link>
+            )
+          )}
+        </div>
+      )}
+    </section>
+  );
+};
+
 // ── Página ──────────────────────────────────────────────────────────────────
 const LandingPage: React.FC = () => {
   usePageTitle();
@@ -307,6 +378,8 @@ const LandingPage: React.FC = () => {
       </section>
 
       <div className="mx-auto max-w-6xl space-y-6 px-4 pt-6 sm:space-y-10 sm:pt-8">
+        <TusEquipos />
+
         {/* En juego / Próximos */}
         <section aria-label="Partidos">
           <SectionHeader

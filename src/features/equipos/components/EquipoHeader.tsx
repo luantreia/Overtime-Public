@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../app/providers/AuthContext';
 import { useToast } from '../../../shared/components/Toast/ToastProvider';
 import { crearSolicitudEdicion } from '../../solicitudes/services/solicitudesEdicionService';
+import { useEquiposSeguidos } from '../../../shared/hooks/useEquiposSeguidos';
 import type { Equipo, RedesSociales } from '../services/equipoService';
 
 interface EquipoHeaderProps {
@@ -53,6 +54,8 @@ export const EquipoHeader: React.FC<EquipoHeaderProps> = ({ equipo }) => {
 
   const escudo = equipo.escudo || equipo.imagen;
   const equipoId = equipo._id || equipo.id;
+  const { sigue, alternar } = useEquiposSeguidos();
+  const siguiendo = !!equipoId && sigue(equipoId);
   const esAdmin = user && (
     equipo.administradores?.some((a) => a?.toString() === user.id) ||
     equipo.creadoPor?.toString() === user.id
@@ -100,6 +103,29 @@ export const EquipoHeader: React.FC<EquipoHeaderProps> = ({ equipo }) => {
         <div className="pb-4 sm:pb-5">
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-xl sm:text-4xl font-extrabold text-slate-900 break-words">{equipo.nombre}</h1>
+            {equipoId && (
+              <button
+                type="button"
+                onClick={() => {
+                  const ahora = alternar({ id: equipoId, nombre: equipo.nombre, escudo: escudo || undefined });
+                  addToast({
+                    type: 'success',
+                    message: ahora ? `Seguís a ${equipo.nombre}: sus partidos aparecen en el inicio.` : `Dejaste de seguir a ${equipo.nombre}.`,
+                  });
+                }}
+                aria-pressed={siguiendo}
+                className={`inline-flex min-h-[36px] items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold transition ${
+                  siguiendo
+                    ? 'border-brand-600 bg-brand-600 text-white hover:bg-brand-700'
+                    : 'border-slate-300 bg-white text-slate-800 hover:border-brand-600 hover:text-brand-700'
+                }`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 24 24" fill={siguiendo ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.5a.56.56 0 011.04 0l2.13 5.11 5.52.44c.5.04.7.66.32.99l-4.2 3.6 1.28 5.38a.56.56 0 01-.84.61L12 16.77l-4.73 2.86a.56.56 0 01-.84-.61l1.28-5.38-4.2-3.6a.56.56 0 01.32-.99l5.52-.44 2.13-5.11z" />
+                </svg>
+                {siguiendo ? 'Siguiendo' : 'Seguir'}
+              </button>
+            )}
             {!equipo.fechaDisolucion && (
               <span className="inline-flex items-center gap-1 bg-green-100 text-green-800 text-[11px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
