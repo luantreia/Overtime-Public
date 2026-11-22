@@ -1,9 +1,10 @@
 import { useEffect } from 'react';
 
 const SITE = 'Overtime Dodgeball';
-const DEFAULT_TITLE = `${SITE} · Ligas, torneos y estadísticas de dodgeball`;
+// Mismos valores que public/index.html (título ≤60 y descripción ~125 caracteres).
+const DEFAULT_TITLE = `${SITE} · Ligas, torneos y estadísticas`;
 const DEFAULT_DESCRIPTION =
-  'Overtime Dodgeball: seguí ligas y torneos de dodgeball, fixture, resultados en vivo, tablas de posiciones y estadísticas de equipos y jugadores.';
+  'Seguí ligas y torneos de dodgeball: fixture, resultados en vivo, tablas de posiciones y estadísticas de equipos y jugadores.';
 const DEFAULT_IMAGE = `${window.location.origin}/logo.png`;
 const JSON_LD_ID = 'page-jsonld';
 
