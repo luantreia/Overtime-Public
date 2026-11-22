@@ -21,7 +21,7 @@
     "@types/leaflet": "^1.9.21",
     "html-to-image": "^1.11.13",
     "leaflet": "^1.9.4",
-    "overtime-kit": "github:luantreia/overtime-kit#v0.2.1",
+    "overtime-kit": "github:luantreia/overtime-kit#v0.3.0",
     "postprocessing": "^6.39.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
