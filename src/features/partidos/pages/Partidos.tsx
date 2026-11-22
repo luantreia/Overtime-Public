@@ -259,8 +259,8 @@ const Partidos: React.FC = () => {
 
               {competenciaId && (
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Temporada</label>
-                  <select
+                  <label htmlFor="partidos-temporada" className="block text-sm font-medium text-slate-700 mb-1">Temporada</label>
+                  <select id="partidos-temporada"
                     value={temporadaId}
                     onChange={(e) => setTemporadaId(e.target.value)}
                     className="w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 border"
@@ -275,8 +275,8 @@ const Partidos: React.FC = () => {
 
               {temporadaId && (
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Fase</label>
-                  <select
+                  <label htmlFor="partidos-fase" className="block text-sm font-medium text-slate-700 mb-1">Fase</label>
+                  <select id="partidos-fase"
                     value={faseId}
                     onChange={(e) => setFaseId(e.target.value)}
                     className="w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-2 border"

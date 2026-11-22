@@ -131,8 +131,8 @@ const PlazaCrear: React.FC = () => {
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-1">Nombre del Evento</label>
-            <input
+            <label htmlFor="plazacrear-nombre-del-evento" className="block text-sm font-bold text-slate-700 mb-1">Nombre del Evento</label>
+            <input id="plazacrear-nombre-del-evento"
               type="text"
               required
               placeholder="Ej: Madrugón de Dodgeball - Parque Central"
@@ -144,8 +144,8 @@ const PlazaCrear: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1">Fecha y Hora</label>
-              <input
+              <label htmlFor="plazacrear-fecha-y-hora" className="block text-sm font-bold text-slate-700 mb-1">Fecha y Hora</label>
+              <input id="plazacrear-fecha-y-hora"
                 type="datetime-local"
                 required
                 className="w-full border-slate-200 rounded-lg focus:ring-brand-500 focus:border-brand-500 text-sm"
@@ -154,8 +154,8 @@ const PlazaCrear: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1">Categoría</label>
-              <select 
+              <label htmlFor="plazacrear-categoria" className="block text-sm font-bold text-slate-700 mb-1">Categoría</label>
+              <select id="plazacrear-categoria" 
                 className="w-full border-slate-200 rounded-lg focus:ring-brand-500 focus:border-brand-500 text-sm"
                 value={formData.categoria}
                 onChange={e => {
@@ -177,13 +177,14 @@ const PlazaCrear: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1">Modalidad</label>
-              <div className="flex gap-2">
+              <p id="plazacrear-modalidad" className="block text-sm font-bold text-slate-700 mb-1">Modalidad</p>
+              <div className="flex gap-2" role="group" aria-labelledby="plazacrear-modalidad">
                 {['Cloth', 'Foam'].map(m => (
                   <button
                     key={m}
                     type="button"
                     onClick={() => setFormData({...formData, modalidad: m as any})}
+                    aria-pressed={formData.modalidad === m}
                     className={`flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all ${
                       formData.modalidad === m 
                       ? 'bg-brand-600 text-white shadow-md' 
@@ -201,7 +202,7 @@ const PlazaCrear: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-2">Selecciona Ubicación en el Mapa</label>
+            <p className="block text-sm font-bold text-slate-700 mb-2">Selecciona Ubicación en el Mapa</p>
             <div className="h-44 sm:h-64 rounded-xl overflow-hidden border border-slate-200 shadow-inner z-0">
               <MapContainer center={[formData.lat, formData.lng]} zoom={13} style={{ height: '100%', width: '100%' }}>
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
@@ -218,8 +219,8 @@ const PlazaCrear: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-1">Nombre del Lugar / Dirección</label>
-            <input
+            <label htmlFor="plazacrear-nombre-del-lugar-direccion" className="block text-sm font-bold text-slate-700 mb-1">Nombre del Lugar / Dirección</label>
+            <input id="plazacrear-nombre-del-lugar-direccion"
               type="text"
               required
               placeholder="Ej: Plaza Mayor - Cancha Norte"

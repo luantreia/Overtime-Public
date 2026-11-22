@@ -209,15 +209,15 @@ const PerfilPage = () => {
           {isEditingProfile && (
             <div className="border-t border-slate-100 pt-5 space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nombre</label>
-                <input
+                <label htmlFor="perfilpage-nombre" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nombre</label>
+                <input id="perfilpage-nombre"
                   className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                   value={profileForm.nombre}
                   onChange={e => setProfileForm(p => ({ ...p, nombre: e.target.value }))}
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Email</label>
+                <p className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Email</p>
                 <p className="mt-1 text-sm text-muted">{user.email} <span className="text-xs">(no editable)</span></p>
               </div>
               <div className="flex gap-2 pt-1">
@@ -322,24 +322,24 @@ const PerfilPage = () => {
               {isEditingJugador && (
                 <div className="mt-4 border-t border-slate-100 pt-5 space-y-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nombre</label>
-                    <input
+                    <label htmlFor="perfilpage-nombre-2" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nombre</label>
+                    <input id="perfilpage-nombre-2"
                       className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                       value={jugadorForm.nombre ?? ''}
                       onChange={(e) => setJugadorForm((f) => ({ ...f, nombre: e.target.value }))}
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Alias</label>
-                    <input
+                    <label htmlFor="perfilpage-alias" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Alias</label>
+                    <input id="perfilpage-alias"
                       className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                       value={jugadorForm.alias ?? ''}
                       onChange={(e) => setJugadorForm((f) => ({ ...f, alias: e.target.value }))}
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Fecha de nacimiento</label>
-                    <input
+                    <label htmlFor="perfilpage-fecha-de-nacimiento" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Fecha de nacimiento</label>
+                    <input id="perfilpage-fecha-de-nacimiento"
                       type="date"
                       className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                       value={typeof jugadorForm.fechaNacimiento === 'string' ? jugadorForm.fechaNacimiento : ''}
@@ -347,8 +347,8 @@ const PerfilPage = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Género</label>
-                    <select
+                    <label htmlFor="perfilpage-genero" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Género</label>
+                    <select id="perfilpage-genero"
                       className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                       value={jugadorForm.genero ?? ''}
                       onChange={(e) => setJugadorForm((f) => ({ ...f, genero: e.target.value as Jugador['genero'] }))}
@@ -360,8 +360,8 @@ const PerfilPage = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Foto (URL)</label>
-                    <input
+                    <label htmlFor="perfilpage-foto-url" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Foto (URL)</label>
+                    <input id="perfilpage-foto-url"
                       className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                       value={jugadorForm.foto ?? ''}
                       onChange={(e) => setJugadorForm((f) => ({ ...f, foto: e.target.value }))}
@@ -376,8 +376,8 @@ const PerfilPage = () => {
                     </p>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nacionalidad</label>
-                    <input
+                    <label htmlFor="perfilpage-nacionalidad" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nacionalidad</label>
+                    <input id="perfilpage-nacionalidad"
                       className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                       value={jugadorForm.nacionalidad ?? ''}
                       onChange={(e) => setJugadorForm((f) => ({ ...f, nacionalidad: e.target.value }))}

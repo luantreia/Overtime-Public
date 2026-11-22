@@ -368,16 +368,16 @@ const PlazaExplorar: React.FC = () => {
       {showFilters && (
         <div className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-wrap gap-4">
           <div className="flex flex-col gap-1 min-w-[120px]">
-            <label className="text-2xs font-black text-slate-500 uppercase tracking-wider">Modalidad</label>
-            <select value={filterModalidad} onChange={e => setFilterModalidad(e.target.value as Modalidad)} className="text-sm border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:border-brand-400">
+            <label htmlFor="plazaexplorar-modalidad" className="text-2xs font-black text-slate-500 uppercase tracking-wider">Modalidad</label>
+            <select id="plazaexplorar-modalidad" value={filterModalidad} onChange={e => setFilterModalidad(e.target.value as Modalidad)} className="text-sm border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:border-brand-400">
               <option value="all">Todas</option>
               <option value="Foam">Foam</option>
               <option value="Cloth">Cloth</option>
             </select>
           </div>
           <div className="flex flex-col gap-1 min-w-[130px]">
-            <label className="text-2xs font-black text-slate-500 uppercase tracking-wider">Categoría</label>
-            <select value={filterCategoria} onChange={e => setFilterCategoria(e.target.value as Categoria)} className="text-sm border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:border-brand-400">
+            <label htmlFor="plazaexplorar-categoria" className="text-2xs font-black text-slate-500 uppercase tracking-wider">Categoría</label>
+            <select id="plazaexplorar-categoria" value={filterCategoria} onChange={e => setFilterCategoria(e.target.value as Categoria)} className="text-sm border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:border-brand-400">
               <option value="all">Todas</option>
               <option value="Masculino">Masculino</option>
               <option value="Femenino">Femenino</option>
@@ -386,8 +386,8 @@ const PlazaExplorar: React.FC = () => {
             </select>
           </div>
           <div className="flex flex-col gap-1 min-w-[130px]">
-            <label className="text-2xs font-black text-slate-500 uppercase tracking-wider">Estado</label>
-            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value as StatusFilter)} className="text-sm border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:border-brand-400">
+            <label htmlFor="plazaexplorar-estado" className="text-2xs font-black text-slate-500 uppercase tracking-wider">Estado</label>
+            <select id="plazaexplorar-estado" value={filterStatus} onChange={e => setFilterStatus(e.target.value as StatusFilter)} className="text-sm border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:border-brand-400">
               <option value="all">Todos</option>
               <option value="open">Buscando jugadores</option>
               <option value="full">Completos</option>
@@ -395,14 +395,14 @@ const PlazaExplorar: React.FC = () => {
             </select>
           </div>
           <div className="flex flex-col gap-1 min-w-[110px]">
-            <label className="text-2xs font-black text-slate-500 uppercase tracking-wider">Radio</label>
-            <select value={radius} onChange={e => setRadius(Number(e.target.value))} className="text-sm border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:border-brand-400">
+            <label htmlFor="plazaexplorar-radio" className="text-2xs font-black text-slate-500 uppercase tracking-wider">Radio</label>
+            <select id="plazaexplorar-radio" value={radius} onChange={e => setRadius(Number(e.target.value))} className="text-sm border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:border-brand-400">
               {RADIUS_OPTIONS.map(r => <option key={r} value={r}>{r} km</option>)}
             </select>
           </div>
           <div className="flex flex-col gap-1 min-w-[130px]">
-            <label className="text-2xs font-black text-slate-500 uppercase tracking-wider">Ordenar por</label>
-            <select value={sortBy} onChange={e => setSortBy(e.target.value as SortBy)} className="text-sm border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:border-brand-400">
+            <label htmlFor="plazaexplorar-ordenar-por" className="text-2xs font-black text-slate-500 uppercase tracking-wider">Ordenar por</label>
+            <select id="plazaexplorar-ordenar-por" value={sortBy} onChange={e => setSortBy(e.target.value as SortBy)} className="text-sm border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:border-brand-400">
               <option value="distance">Distancia</option>
               <option value="date">Fecha</option>
               <option value="slots">Slots disponibles</option>

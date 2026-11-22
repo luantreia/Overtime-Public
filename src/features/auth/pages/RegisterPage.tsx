@@ -91,8 +91,8 @@ const RegisterPage: React.FC = () => {
 
         <form className="space-y-5" onSubmit={handleSubmit}>
           <div>
-            <label className="mb-1 block text-sm text-white">Nombre completo</label>
-            <input
+            <label htmlFor="registerpage-nombre-completo" className="mb-1 block text-sm text-white">Nombre completo</label>
+            <input id="registerpage-nombre-completo"
               className="w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-white placeholder-slate-300 focus:border-brand-500 focus:outline-none"
               type="text"
               name="nombre"
@@ -105,8 +105,8 @@ const RegisterPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="mb-1 block text-sm text-white">Email</label>
-            <input
+            <label htmlFor="registerpage-email" className="mb-1 block text-sm text-white">Email</label>
+            <input id="registerpage-email"
               className="w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-white placeholder-slate-300 focus:border-brand-500 focus:outline-none"
               type="email"
               name="email"
@@ -119,8 +119,8 @@ const RegisterPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="mb-1 block text-sm text-white">Contraseña</label>
-            <input
+            <label htmlFor="registerpage-contrasena" className="mb-1 block text-sm text-white">Contraseña</label>
+            <input id="registerpage-contrasena"
               className="w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-white placeholder-slate-300 focus:border-brand-500 focus:outline-none"
               type="password"
               name="password"
@@ -133,8 +133,8 @@ const RegisterPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="mb-1 block text-sm text-white">Confirmar contraseña</label>
-            <input
+            <label htmlFor="registerpage-confirmar-contrasena" className="mb-1 block text-sm text-white">Confirmar contraseña</label>
+            <input id="registerpage-confirmar-contrasena"
               className="w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-white placeholder-slate-300 focus:border-brand-500 focus:outline-none"
               type="password"
               name="confirmPassword"

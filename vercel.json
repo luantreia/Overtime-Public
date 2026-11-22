@@ -30,6 +30,21 @@
   ],
   "rewrites": [
     {
+      "source": "/sitemap.xml",
+      "destination": "/api/sitemap"
+    },
+    {
+      "source": "/:tipo(equipos|jugadores|competencias|partidos|organizaciones|sedes)/:id",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*([Bb]ot|[Cc]rawler|[Ss]pider|facebookexternalhit|Facebot|WhatsApp|Slack|Discord|Telegram|LinkedIn|Pinterest|Embedly|Google-InspectionTool|Applebot|redditbot|Iframely|SkypeUriPreview|vkShare).*"
+        }
+      ],
+      "destination": "/api/seo?tipo=:tipo&id=:id"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "https://overtime-ddyl.onrender.com/api/$1"
     },

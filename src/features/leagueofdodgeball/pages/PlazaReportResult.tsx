@@ -83,13 +83,14 @@ const PlazaReportResult: React.FC = () => {
         <form onSubmit={handleSubmit} className="p-6 space-y-8">
           {/* Winner Selector */}
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-3 uppercase tracking-wider">Ganador Final</label>
-            <div className="grid grid-cols-3 gap-3">
+            <p id="plazareport-ganador" className="block text-sm font-bold text-slate-700 mb-3 uppercase tracking-wider">Ganador Final</p>
+            <div className="grid grid-cols-3 gap-3" role="group" aria-labelledby="plazareport-ganador">
               {(['teamA', 'draw', 'teamB'] as const).map((opt) => (
                 <button
                   key={opt}
                   type="button"
                   onClick={() => setWinner(opt)}
+                  aria-pressed={winner === opt}
                   className={`py-3 px-4 rounded-xl text-sm font-bold border-2 transition-all ${
                     winner === opt 
                       ? 'border-brand-600 bg-brand-50 text-brand-700' 
@@ -105,7 +106,7 @@ const PlazaReportResult: React.FC = () => {
           {/* Sets Score */}
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <label className="block text-sm font-bold text-slate-700 uppercase tracking-wider">Marcador por Sets</label>
+              <p className="block text-sm font-bold text-slate-700 uppercase tracking-wider">Marcador por Sets</p>
               <button 
                 type="button" 
                 onClick={addSet}
