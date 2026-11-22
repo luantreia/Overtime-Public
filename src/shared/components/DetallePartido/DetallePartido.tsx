@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { PartidoService } from '../../../features/partidos/services/partidoService';
-import { formatDate, formatDateTime } from '../../../shared/utils/formatDate';
+import { formatDateTime, formatFechaPartido } from '../../../shared/utils/formatDate';
 import { PlayerRankedHistoryModal } from '../../../features/competencias/components/PlayerRankedHistoryModal';
 import { SharePartidoModal } from '../SharePartidoModal/SharePartidoModal';
 import SedeMap from '../SedeMap/SedeMap';
@@ -166,7 +166,7 @@ const DetallePartido: React.FC<DetallePartidoProps> = ({ partidoId }) => {
   const fechaTexto = partido.fecha && partido.hora
     ? formatDateTime(`${partido.fecha}T${partido.hora}`)
     : partido.fecha
-    ? formatDate(partido.fecha)
+    ? formatFechaPartido(partido.fecha)
     : 'Fecha no disponible';
 
   const sets = ((partido as any).sets || []) as SetData[];

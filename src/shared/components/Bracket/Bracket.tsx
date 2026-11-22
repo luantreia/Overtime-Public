@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Partido } from '../../../features/partidos/services/partidoService';
-import { formatDate } from '../../utils/formatDate';
+import { formatFechaPartido } from '../../utils/formatDate';
 import { derivarRondas, extraerTercerPuesto, construirEnlaces } from './derivarRondas';
 import { useConectoresLlave } from './useConectoresLlave';
 
@@ -58,7 +58,7 @@ const TarjetaCruce = React.forwardRef<HTMLDivElement, { match: PartidoConIds; on
         <LineaEquipo nombre={match.equipoVisitante?.nombre || 'Visitante'} marcador={match.marcadorVisitante} gano={visitaGana} />
       </div>
       <div className="border-t border-slate-100 bg-slate-50/60 px-2.5 py-1 text-center text-[10px] text-slate-400">
-        {match.fecha ? formatDate(match.fecha) : 'Fecha por definir'}
+        {match.fecha ? formatFechaPartido(match.fecha) : 'Fecha por definir'}
       </div>
     </div>
   );

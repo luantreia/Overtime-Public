@@ -5,6 +5,7 @@ import ModalBase from '../ModalBase/ModalBase';
 import { EstadisticasPartidoModal } from '../EstadisticasPartidoModal';
 import SegmentedToggle from '../SegmentedToggle/SegmentedToggle';
 import { type Partido } from '../../../features/partidos/services/partidoService';
+import { diaPartido } from '../../utils/formatDate';
 
 export type Escala = 'anual' | 'mensual' | 'semanal';
 
@@ -23,7 +24,9 @@ const ESTADO_DOT: Record<string, string> = {
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
-const dayKeyFromFecha = (fecha?: string): string => (fecha ? fecha.slice(0, 10) : '');
+// Día en que se jugó (hora argentina, o día UTC si se cargó "solo día"). Antes era
+// `fecha.slice(0, 10)`, el día UTC: un partido de las 21:00 ART caía en la celda de mañana.
+const dayKeyFromFecha = (fecha?: string): string => diaPartido(fecha);
 
 const dayKeyFromDate = (date: Date) => `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`;
 

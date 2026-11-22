@@ -1,6 +1,6 @@
 import type { KeyboardEvent, ReactNode } from 'react';
 import type { Partido } from '../../../types';
-import { formatDate, formatDateTime } from '../../../utils/formatDate';
+import { formatDateTime, formatFechaPartido } from '../../../utils/formatDate';
 
 export interface PartidoCardProps {
   partido: Partido;
@@ -34,7 +34,7 @@ const PartidoCard = ({ partido, variante = 'proximo', actions, onClick, eloDelta
   const fechaTexto = partido.fecha && partido.hora
     ? formatDateTime(`${partido.fecha}T${partido.hora}`)
     : partido.fecha
-    ? formatDate(partido.fecha)
+    ? formatFechaPartido(partido.fecha)
     : 'Fecha no disponible';
 
   const estado = partido.estado || 'programado';

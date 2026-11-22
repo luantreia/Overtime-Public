@@ -8,7 +8,6 @@ export { EstadisticasGeneralesHeader } from './EstadisticasGeneralesHeader';
 export { EstadisticasCards } from './EstadisticasCards';
 export { DistribucionEquiposChart } from './DistribucionEquiposChart';
 export { ComparativaEquiposTable } from './ComparativaEquiposTable';
-export { default as TablaEstadisticasSet } from './TablaEstadisticasSet';
 
 // Exportar servicios
 export * from './estadisticasService';

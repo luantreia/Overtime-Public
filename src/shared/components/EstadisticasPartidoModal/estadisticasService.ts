@@ -1,64 +1,38 @@
-// estadisticasService.ts - Servicio para obtener estadísticas de partidos
-
+import { authFetch } from '../../utils/authFetch';
 import type {
   ResumenEstadisticasAutomaticas,
   ResumenEstadisticasManual,
-  EstadisticaJugadorSetDetalle,
 } from './types';
 
-// Función genérica para hacer requests autenticados
-// Reemplaza con tu implementación de authFetch
-const authFetch = async <T>(url: string, options?: RequestInit): Promise<T> => {
-  const response = await fetch(url, {
-    headers: {
-      'Content-Type': 'application/json',
-      // Agrega headers de autenticación si es necesario
-      ...options?.headers,
-    },
-    ...options,
-  });
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-  return response.json();
-};
+/**
+ * Las estadísticas de un partido para el portal público.
+ *
+ * Este archivo venía con un `authFetch` propio de plantilla —un `fetch` suelto con el comentario
+ * "reemplaza con tu implementación"— que pegaba a rutas relativas sin ninguna base de API. O sea
+ * que las llamadas iban al origen del propio frontend en Vercel y no al backend: nunca llegó un
+ * pedido real. Y como el modal se traga el error, lo que veía el hincha era "sin estadísticas".
+ *
+ * Ahora usa el `authFetch` de la app, que es el que sabe la base de la API, y pega a los endpoints
+ * **públicos**, que no piden token y sólo sirven filas con `estadoPublicacion: 'publica'`.
+ *
+ * Todas las llamadas van con `useAuth: false` a propósito: son rutas anónimas y acá no hay sesión.
+ * Si alguna vez quedara un token viejo en el localStorage de este origen, tampoco se mandaría.
+ */
 
-export const getResumenEstadisticasAutomaticas = async (partidoId: string): Promise<ResumenEstadisticasAutomaticas> => {
-  // 1) Obtener los sets del partido
-  const sets = await authFetch<Array<{ _id: string; numeroSet: number; estadoSet?: string; ganadorSet?: string }>>(`/set-partido?partido=${partidoId}`);
-
-  // 2) Para cada set, obtener las estadísticas de jugador-set directamente
-  const setsConEstadisticas = await Promise.all(
-    (sets || [])
-      .sort((a, b) => (a.numeroSet || 0) - (b.numeroSet || 0))
-      .map(async (set) => {
-        const stats = await authFetch<EstadisticaJugadorSetDetalle[]>(`/estadisticas/jugador-set?set=${set._id}`);
-        // Mapear al tipo resumido esperado por la UI
-        const estadisticas = (stats || []).map((s) => ({
-          _id: s._id,
-          jugadorPartido: s.jugadorPartido,
-          throws: s.throws ?? 0,
-          hits: s.hits ?? 0,
-          outs: s.outs ?? 0,
-          catches: s.catches ?? 0,
-        }));
-        return {
-          _id: set._id,
-          numeroSet: set.numeroSet,
-          estadoSet: set.estadoSet,
-          ganadorSet: set.ganadorSet,
-          estadisticas,
-        };
-      })
+/** Un solo pedido con todos los sets del partido y sus estadísticas públicas. */
+export const getResumenEstadisticasAutomaticas = (
+  partidoId: string,
+): Promise<ResumenEstadisticasAutomaticas> =>
+  authFetch<ResumenEstadisticasAutomaticas>(
+    `/estadisticas/jugador-set/publico/partido/${partidoId}`,
+    { useAuth: false },
   );
 
-  return { sets: setsConEstadisticas };
-};
-
-export const getResumenEstadisticasManual = async (partidoId: string): Promise<ResumenEstadisticasManual> => {
-  return authFetch<ResumenEstadisticasManual>(`/estadisticas/manual?partido=${partidoId}`);
-};
-
-export const getEstadisticasJugadorSet = async (setId: string): Promise<EstadisticaJugadorSetDetalle[]> => {
-  return authFetch<EstadisticaJugadorSetDetalle[]>(`/estadisticas/jugador-set?set=${setId}`);
-};
+/** Los totales del partido, para los partidos cargados sin desglose por set. */
+export const getResumenEstadisticasManual = (
+  partidoId: string,
+): Promise<ResumenEstadisticasManual> =>
+  authFetch<ResumenEstadisticasManual>(
+    `/estadisticas/jugador-partido-manual/publico/partido/${partidoId}`,
+    { useAuth: false },
+  );
