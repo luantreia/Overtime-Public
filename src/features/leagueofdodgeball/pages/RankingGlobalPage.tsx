@@ -6,7 +6,6 @@ import { CompetenciaLeaderboardTab } from '../../competencias/components/Compete
 import { PlayerRankedHistoryModal } from '../../competencias/components/PlayerRankedHistoryModal';
 import { TrophyIcon } from '@heroicons/react/24/outline';
 import { usePageTitle } from '../../../shared/hooks/usePageTitle';
-import { PodioRanking } from '../components/PodioRanking';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 
 // Para figurar hace falta al menos un partido rankeado: el backend guarda filas con 0 PJ.
@@ -91,8 +90,6 @@ export default function RankingGlobalPage() {
         />
       ) : (
       <div className={`space-y-6 transition-opacity ${isFetching && !isPending ? 'opacity-60' : ''}`} aria-busy={isFetching}>
-      <PodioRanking items={leaderboard} loading={loading} />
-
       {!loading && leaderboard.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-slate-200 bg-white py-20 text-center">
           <TrophyIcon className="h-12 w-12 text-muted" />

@@ -52,6 +52,18 @@ const getPlayerFoto = (item: LeaderboardItem, jugadoresComp: JugadorCompetencia[
   return fromJugadorObject || fromJugadorComp || '';
 };
 
+// Podio dentro de la tabla: el top 3 lleva fondo y borde izquierdo del color de su medalla.
+const PODIO_FILA = [
+  'bg-amber-50 border-l-4 border-amber-400 hover:bg-amber-100/70',
+  'bg-slate-100/70 border-l-4 border-slate-400 hover:bg-slate-100',
+  'bg-orange-50 border-l-4 border-amber-600 hover:bg-orange-100/70',
+];
+const PODIO_TARJETA = [
+  'border-amber-300 bg-amber-50 border-l-4 border-l-amber-400',
+  'border-slate-300 bg-slate-50 border-l-4 border-l-slate-400',
+  'border-orange-300 bg-orange-50 border-l-4 border-l-amber-600',
+];
+
 const getInitials = (name: string): string =>
   name
     .split(/\s+/)
@@ -419,7 +431,7 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                       className={`transition-colors cursor-pointer group focus-visible:outline-none focus-visible:bg-brand-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500/40 ${
                         comparingPlayers.includes(playerId)
                           ? 'bg-brand-50 border-l-4 border-brand-500 shadow-inner'
-                          : 'hover:bg-brand-50/50'
+                          : PODIO_FILA[originalIndex] ?? 'hover:bg-brand-50/50'
                       }`}
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -561,10 +573,10 @@ export const CompetenciaLeaderboardTab: React.FC<CompetenciaLeaderboardTabProps>
                 <div
                   key={playerId}
                   {...accionable(() => onPlayerClick({ id: playerId, name: playerName }))}
-                  className={`bg-white border rounded-lg px-3 py-2 shadow-sm active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 ${
+                  className={`border rounded-lg px-3 py-2 shadow-sm motion-safe:active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 ${
                     comparingPlayers.includes(playerId)
-                      ? 'border-brand-400 ring-1 ring-brand-300'
-                      : 'border-slate-200 hover:border-brand-300'
+                      ? 'bg-white border-brand-400 ring-1 ring-brand-300'
+                      : PODIO_TARJETA[originalIndex] ?? 'bg-white border-slate-200 hover:border-brand-300'
                   }`}
                 >
                   <div className="flex items-center gap-3">
