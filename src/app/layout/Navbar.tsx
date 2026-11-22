@@ -35,6 +35,15 @@ const Navbar: React.FC = () => {
   const [isMobileLoDOpen, setIsMobileLoDOpen] = useState(false);
   const location = useLocation();
   const lodRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const masRef = useRef<HTMLButtonElement>(null);
+
+  // Cierre explícito (Escape, botón Cerrar, fondo): devuelve el foco a "Más".
+  // Al navegar no se devuelve: de eso se encarga RouteFocus.
+  const cerrarMenu = () => {
+    setIsMenuOpen(false);
+    masRef.current?.focus();
+  };
 
   const isLoDActive = LOD_PATHS.some(p => location.pathname.startsWith(p));
 
@@ -42,11 +51,36 @@ const Navbar: React.FC = () => {
     setIsMenuOpen(false);
   }, [location.pathname]);
 
+  // Focus trap del panel "Más": al abrir enfoca el primer control, Tab/Shift+Tab ciclan adentro.
   useEffect(() => {
     if (!isMenuOpen) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setIsMenuOpen(false); };
+    const panel = panelRef.current;
+    const focusables = () =>
+      Array.from(panel?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])') ?? []);
+    focusables()[0]?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        cerrarMenu();
+        return;
+      }
+      if (e.key !== 'Tab' || !panel) return;
+      const els = focusables();
+      if (els.length === 0) return;
+      const first = els[0];
+      const last = els[els.length - 1];
+      const dentro = panel.contains(document.activeElement);
+      if (e.shiftKey && (document.activeElement === first || !dentro)) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (document.activeElement === last || !dentro)) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMenuOpen]);
 
   useEffect(() => {
@@ -187,7 +221,8 @@ const Navbar: React.FC = () => {
         <li>
           <button
             type="button"
-            onClick={() => setIsMenuOpen((v) => !v)}
+            ref={masRef}
+            onClick={() => (isMenuOpen ? cerrarMenu() : setIsMenuOpen(true))}
             aria-expanded={isMenuOpen}
             aria-controls="menu-mas"
             className={`flex w-full flex-col items-center gap-0.5 py-2 text-2xs font-semibold ${isMenuOpen ? 'text-brand-600' : 'text-slate-600'}`}
@@ -202,16 +237,21 @@ const Navbar: React.FC = () => {
           {/* Menú móvil */}
           {isMenuOpen && (
             <>
-              {/* Fondo para cerrar con el mouse/toque. Con teclado se cierra con Escape o con "Más",
+              {/* Fondo para cerrar con el mouse/toque. Con teclado se cierra con Escape o con el botón Cerrar,
                   así que no hace falta que esto sea interactivo (y no debe recibir foco). */}
               {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
               <div
                 aria-hidden="true"
                 className="fixed inset-0 z-40 bg-slate-900/30 lg:hidden"
-                onClick={() => setIsMenuOpen(false)}
+                onClick={cerrarMenu}
               />
-              <div id="menu-mas" aria-label="Más secciones" className="fixed inset-x-0 bottom-0 z-40 max-h-[75vh] overflow-y-auto rounded-t-2xl bg-white px-4 pt-2 pb-[calc(4.5rem+env(safe-area-inset-bottom))] shadow-2xl lg:hidden">
-                <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-slate-300" aria-hidden="true" />
+              <div ref={panelRef} id="menu-mas" role="dialog" aria-modal="true" aria-label="Más secciones" className="fixed inset-x-0 bottom-0 z-40 max-h-[75vh] overflow-y-auto rounded-t-2xl bg-white px-4 pt-2 pb-[calc(4.5rem+env(safe-area-inset-bottom))] shadow-2xl lg:hidden">
+                <div className="mx-auto mb-1 h-1 w-10 rounded-full bg-slate-300" aria-hidden="true" />
+                <div className="mb-2 flex justify-end">
+                  <button type="button" onClick={cerrarMenu} className="rounded-md px-2 py-1 text-sm font-semibold text-slate-600 hover:bg-slate-100">
+                    Cerrar
+                  </button>
+                </div>
                 <div className="flex flex-col gap-2">
                   {/* LoD expandable en móvil */}
                   <div>
@@ -235,7 +275,7 @@ const Navbar: React.FC = () => {
                                 isActive ? 'bg-brand-100 text-brand-700' : 'hover:bg-slate-100'
                               }`
                             }
-                            onClick={() => setIsMenuOpen(false)}
+                            onClick={cerrarMenu}
                           >
                             {label}
                           </NavLink>
@@ -253,7 +293,7 @@ const Navbar: React.FC = () => {
                           isActive ? 'bg-brand-100 text-brand-700' : 'hover:bg-slate-100'
                         }`
                       }
-                      onClick={() => setIsMenuOpen(false)}
+                      onClick={cerrarMenu}
                     >
                       {label}
                     </NavLink>
@@ -270,7 +310,7 @@ const Navbar: React.FC = () => {
                             isActive ? 'bg-brand-100 text-brand-700' : 'hover:bg-slate-100'
                           }`
                         }
-                        onClick={() => setIsMenuOpen(false)}
+                        onClick={cerrarMenu}
                       >
                         Mis Solicitudes
                       </NavLink>
@@ -281,7 +321,7 @@ const Navbar: React.FC = () => {
                             isActive ? 'bg-brand-100 text-brand-700' : 'hover:bg-slate-100'
                           }`
                         }
-                        onClick={() => setIsMenuOpen(false)}
+                        onClick={cerrarMenu}
                       >
                         {user?.nombre || 'Perfil'}
                       </NavLink>
@@ -291,14 +331,14 @@ const Navbar: React.FC = () => {
                       <NavLink
                         to="/login"
                         className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
-                        onClick={() => setIsMenuOpen(false)}
+                        onClick={cerrarMenu}
                       >
                         Iniciar sesión
                       </NavLink>
                       <NavLink
                         to="/register"
                         className="rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-brand-700"
-                        onClick={() => setIsMenuOpen(false)}
+                        onClick={cerrarMenu}
                       >
                         Registrarse
                       </NavLink>
