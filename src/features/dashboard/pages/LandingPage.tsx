@@ -71,22 +71,26 @@ const setsDe = (p: Partido): SetResumen[] =>
 
 const ETIQUETA_GANADOR = { local: 'local', visitante: 'visitante', empate: 'empate', pendiente: 'en juego' } as const;
 
-const CeldasSets = ({ sets, lado }: { sets: SetResumen[]; lado: 'local' | 'visitante' }) => (
-  <span className="flex gap-1" aria-hidden="true">
-    {sets.map((s) => {
-      const gano = s.ganadorSet === lado;
-      const abierto = s.estadoSet === 'en_juego' || s.ganadorSet === 'pendiente' || !s.ganadorSet;
-      return (
-        <span
-          key={s.numeroSet}
-          className={`h-2.5 w-2.5 rounded-full ${
-            abierto ? 'animate-pulse bg-red-300' : gano ? 'bg-slate-900' : s.ganadorSet === 'empate' ? 'bg-slate-400' : 'border border-slate-300'
-          }`}
-        />
-      );
-    })}
-  </span>
-);
+// Cloth llega a 12+ sets: con muchos, puntos y separación más chicos para que la fila no desborde la tarjeta.
+const CeldasSets = ({ sets, lado }: { sets: SetResumen[]; lado: 'local' | 'visitante' }) => {
+  const muchos = sets.length > 6;
+  return (
+    <span className={`flex flex-shrink-0 ${muchos ? 'gap-0.5' : 'gap-1'}`} aria-hidden="true">
+      {sets.map((s) => {
+        const gano = s.ganadorSet === lado;
+        const abierto = s.estadoSet === 'en_juego' || s.ganadorSet === 'pendiente' || !s.ganadorSet;
+        return (
+          <span
+            key={s.numeroSet}
+            className={`${muchos ? 'h-2 w-2' : 'h-2.5 w-2.5'} rounded-full ${
+              abierto ? 'animate-pulse bg-red-300' : gano ? 'bg-slate-900' : s.ganadorSet === 'empate' ? 'bg-slate-400' : 'border border-slate-300'
+            }`}
+          />
+        );
+      })}
+    </span>
+  );
+};
 
 const PartidoTile = ({ p }: { p: Partido }) => {
   const conMarcador = p.estado === 'en_juego' || p.estado === 'finalizado' || p.estado === 'suspendido';
@@ -111,12 +115,7 @@ const PartidoTile = ({ p }: { p: Partido }) => {
           <li key={lado} className="flex items-center gap-2">
             <Escudo src={eq?.escudo} nombre={eq?.nombre} />
             <span className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-900">{eq?.nombre || 'A definir'}</span>
-            {sets.length > 0 && sets.length <= 5 && <CeldasSets sets={sets} lado={lado} />}
-            {sets.length > 5 && (
-              <span className="whitespace-nowrap text-xs tabular-nums text-muted" aria-hidden="true">
-                {sets.filter((s) => s.ganadorSet === lado).length} sets
-              </span>
-            )}
+            {sets.length > 0 && <CeldasSets sets={sets} lado={lado} />}
             {conMarcador && <span className="w-7 text-right text-lg font-black tabular-nums text-slate-900">{pts ?? 0}</span>}
           </li>
         ))}
