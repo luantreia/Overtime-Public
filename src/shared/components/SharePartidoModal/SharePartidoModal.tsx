@@ -100,7 +100,7 @@ export const SharePartidoModal: React.FC<SharePartidoModalProps> = ({ isOpen, on
   const localNombre = partido.equipoLocal?.nombre || 'Local';
   const visitanteNombre = partido.equipoVisitante?.nombre || partido.rival || 'Visitante';
   const estado = partido.estado || 'programado';
-  const mostrarMarcador = estado === 'finalizado' || estado === 'en_juego';
+  const mostrarMarcador = estado === 'finalizado' || estado === 'en_juego' || estado === 'suspendido';
   const fechaParsed = parseFecha(partido.fecha, partido.hora);
   const filename = `partido-${localNombre.replace(/\s+/g, '-').toLowerCase()}-vs-${visitanteNombre.replace(/\s+/g, '-').toLowerCase()}.png`;
   const { handleShare, handleDownload, loadingShare, loadingDownload } = useShareImage(cardRef, {

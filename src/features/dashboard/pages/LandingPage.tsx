@@ -91,7 +91,7 @@ const CeldasSets = ({ sets, lado }: { sets: SetResumen[]; lado: 'local' | 'visit
 );
 
 const PartidoTile = ({ p }: { p: Partido }) => {
-  const conMarcador = p.estado === 'en_juego' || p.estado === 'finalizado';
+  const conMarcador = p.estado === 'en_juego' || p.estado === 'finalizado' || p.estado === 'suspendido';
   const sets = conMarcador ? setsDe(p) : [];
   const filas = [
     { eq: p.equipoLocal, pts: p.marcadorLocal, lado: 'local' as const },

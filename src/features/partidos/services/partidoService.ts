@@ -1,13 +1,14 @@
 import { fetchWithAuth } from '../../../utils/apiClient';
 
 /**
- * Único origen de verdad para el estado de un partido en esta app.
- * Refleja exactamente el enum de Mongoose en `overtime/src/models/Partido/Partido.js`.
- * No agregar valores acá sin agregarlos primero en el backend: el filtro `?estado=`
- * va directo a la query de Mongo, así que un valor inventado devuelve 0 resultados
- * en silencio en vez de fallar.
+ * Estado de partido: re-export del tipo generado desde el enum de Mongoose
+ * (`overtime/src/models/Partido/Partido.js`). No redefinir valores acá.
+ * El filtro `?estado=` va directo a la query de Mongo, así que un valor inventado
+ * devuelve 0 resultados en silencio en vez de fallar.
  */
-export type PartidoEstado = 'programado' | 'en_juego' | 'finalizado' | 'cancelado';
+import type { PartidoEstado } from '../../../shared/types/modelos.generado';
+
+export type { PartidoEstado };
 
 export interface Partido {
   id: string;

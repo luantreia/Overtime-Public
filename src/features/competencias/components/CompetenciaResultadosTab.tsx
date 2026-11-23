@@ -29,6 +29,7 @@ const ESTADO_LABELS: Record<EstadoFiltro, string> = {
   programado: 'Próximos',
   en_juego: 'En curso',
   finalizado: 'Finalizados',
+  suspendido: 'Suspendidos',
   cancelado: 'Cancelados',
 };
 
