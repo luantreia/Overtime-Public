@@ -9,6 +9,11 @@
 export interface YTPlayer {
   loadVideoById(opts: { videoId: string; startSeconds?: number }): void;
   playVideo(): void;
+  pauseVideo(): void;
+  seekTo(seconds: number, allowSeekAhead: boolean): void;
+  getCurrentTime(): number;
+  getPlayerState(): number;
+  setPlaybackRate(rate: number): void;
   mute(): void;
   unMute(): void;
   isMuted(): boolean;
@@ -29,7 +34,7 @@ interface YTNamespace {
       };
     },
   ) => YTPlayer;
-  PlayerState: { ENDED: number; PLAYING: number; PAUSED: number };
+  PlayerState: { ENDED: number; PLAYING: number; PAUSED: number; BUFFERING: number };
 }
 
 declare global {
