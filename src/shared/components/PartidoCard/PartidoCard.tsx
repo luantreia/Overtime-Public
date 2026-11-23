@@ -35,8 +35,9 @@ const badgeStyles = {
 } as const;
 
 const PartidoCard = ({ partido, variante = 'proximo', actions, onClick, eloDelta }: PartidoCardProps) => {
-  // Sin fecha real, el fixture se carga con un 31-dic de relleno y la jornada "(fecha a confirmar)".
-  const fechaAConfirmar = /a confirmar/i.test(String(partido.jornada ?? ''));
+  // Sin fecha real el fixture se carga con una fecha de relleno: fechaConfirmada false.
+  // El regex cubre los cargados antes del campo ("3º Fecha (fecha a confirmar)").
+  const fechaAConfirmar = partido.fechaConfirmada === false || /a confirmar/i.test(String(partido.jornada ?? ''));
   const fechaTexto = fechaAConfirmar
     ? 'Fecha a confirmar'
     : partido.fecha && partido.hora
