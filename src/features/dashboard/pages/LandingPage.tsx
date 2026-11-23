@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { usePageTitle } from '../../../shared/hooks/usePageTitle';
-import { PartidoService, type Partido } from '../../partidos/services/partidoService';
+import { PartidoService, type Partido, type PartidoDestacado } from '../../partidos/services/partidoService';
 import { CompetenciaService, type Competencia } from '../../competencias/services/competenciaService';
 import { RankedService, type LeaderboardItem } from '../../competencias/services/rankedService';
 import { useEquiposSeguidos } from '../../../shared/hooks/useEquiposSeguidos';
@@ -125,9 +125,24 @@ const PartidoTile = ({ p }: { p: Partido }) => {
           Sets: {sets.map((s) => `set ${s.numeroSet} ${ETIQUETA_GANADOR[s.ganadorSet ?? 'pendiente']}`).join(', ')}.
         </p>
       )}
-      <p className="mt-3 text-xs font-semibold text-brand-600">Ver partido y planilla →</p>
+      <div className="mt-3 flex flex-wrap items-center gap-1.5 text-2xs font-bold">
+        {chipsDe(p).map((c) => (
+          <span key={c} className="rounded-full bg-brand-50 px-2 py-0.5 text-brand-700">{c}</span>
+        ))}
+        {p.estado === 'finalizado' && p.fecha && <span className="font-semibold text-muted">{fechaCorta(p.fecha)}</span>}
+      </div>
     </Link>
   );
+};
+
+// "Gran final" y no "Final": el badge de estado ya dice "Final" para un partido terminado.
+const ETIQUETA_ETAPA: Record<string, string> = {
+  final: 'Gran final', semifinal: 'Semifinal', tercer_puesto: '3er puesto', cuartos: 'Cuartos', octavos: 'Octavos',
+};
+const chipsDe = (p: Partido | PartidoDestacado): string[] => {
+  const s = (p as PartidoDestacado).destacado?.senales;
+  if (!s) return [];
+  return [s.etapa && ETIQUETA_ETAPA[s.etapa], s.video && 'Video', s.estadisticas && 'Estadísticas'].filter(Boolean) as string[];
 };
 
 // ── Competencias ────────────────────────────────────────────────────────────
@@ -303,32 +318,34 @@ const LandingPage: React.FC = () => {
   const [busqueda, setBusqueda] = useState('');
 
   const { data, isLoading } = useQuery({
-    queryKey: ['home-tablero-v1'],
+    queryKey: ['home-tablero-v2'],
     queryFn: async () => {
-      const [enJuego, proximos, finalizados, competencias] = await Promise.all([
+      const [enJuego, destacados, competencias] = await Promise.all([
         PartidoService.getEnCurso().catch(() => [] as Partido[]),
-        PartidoService.getProximos().catch(() => [] as Partido[]),
-        PartidoService.getFinalizados().catch(() => [] as Partido[]),
+        PartidoService.getDestacados(6).catch(() => [] as PartidoDestacado[]),
         CompetenciaService.getAll().catch(() => [] as Competencia[]),
       ]);
-      return { enJuego, proximos, finalizados, competencias };
+      return { enJuego, destacados, competencias };
     },
     // El tablero muestra "ahora": no puede vivir con el staleTime de 24h global.
     staleTime: 1000 * 60,
     refetchInterval: 1000 * 60,
   });
 
-  // En juego primero, después próximos por fecha; si no alcanza, se completa con los últimos finales.
-  const porFecha = (a: Partido, b: Partido) => new Date(a.fecha || 0).getTime() - new Date(b.fecha || 0).getTime();
-  const proximos = (data?.proximos ?? []).filter((p) => !p.fecha || new Date(p.fecha).getTime() > Date.now() - 3 * 3600e3).sort(porFecha);
-  const finales = (data?.finalizados ?? []).slice().sort((a, b) => porFecha(b, a));
+  // "Próximo" no es una señal confiable (fixtures con fechas de relleno, partidos que no se
+  // cargan): se recomiendan partidos jugados según cuántos datos tienen. Sólo lo realmente
+  // en vivo se adelanta.
   // Un en_juego sin actividad hace horas es un partido que nadie cerró, no uno en vivo: no se muestra.
   const VIVO_MAX_MS = 6 * 3600e3;
   const enJuego = (data?.enJuego ?? []).filter((p) => {
     const t = new Date(p.updatedAt || p.fecha || 0).getTime();
     return Date.now() - t < VIVO_MAX_MS;
   });
-  const partidos = [...enJuego, ...proximos, ...finales].slice(0, 6);
+  const vivos = new Set(enJuego.map(idDe));
+  const partidos: (Partido | PartidoDestacado)[] = [
+    ...enJuego,
+    ...(data?.destacados ?? []).filter((p) => !vivos.has(idDe(p))),
+  ].slice(0, 6);
 
   const competencias = (data?.competencias ?? [])
     .filter((c) => c.estado === 'en_curso')
@@ -365,7 +382,7 @@ const LandingPage: React.FC = () => {
         <section aria-label="Partidos">
           <SectionHeader
             title={hayVivo ? 'En juego ahora' : 'Partidos recomendados'}
-            subtitle={hayVivo ? 'Lo que se está jugando y lo que viene.' : 'Lo próximo y lo último que se jugó.'}
+            subtitle={hayVivo ? 'Lo que se está jugando y los mejores partidos jugados.' : 'Los partidos con más para ver: sets, estadísticas y video.'}
             href="/partidos"
           />
           {isLoading ? (

@@ -65,6 +65,13 @@ export interface Partido {
   [key: string]: any;
 }
 
+export interface PartidoDestacado extends Partido {
+  destacado: {
+    puntaje: number;
+    senales: { marcador: boolean; sets: number; estadisticas: boolean; video: boolean; etapa: string | null };
+  };
+}
+
 export class PartidoService {
   private static readonly API_ENDPOINT = '/partidos';
 
@@ -166,6 +173,12 @@ export class PartidoService {
 
   static async getFinalizados(): Promise<Partido[]> {
     return this.getByEstado('finalizado');
+  }
+
+  /** Finalizados ordenados por cuánta información real tienen (sets, stats, video, instancia). */
+  static async getDestacados(limit = 6): Promise<PartidoDestacado[]> {
+    const data = await fetchWithAuth<PartidoDestacado[]>(`/partidos/destacados?limit=${limit}`);
+    return (Array.isArray(data) ? data : []).map((p) => ({ ...p, id: p.id || p._id || '' }));
   }
 
   static async getMatchPlayers(id: string): Promise<any[]> {
