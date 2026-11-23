@@ -3,13 +3,13 @@ import {
   IdentificationIcon,
   ShieldCheckIcon,
   FireIcon,
-  InformationCircleIcon
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import { AthleteRadar } from './AthleteRadar';
 import { ShareRadarModal } from './ShareRadarModal';
 import { JugadorService, type Jugador } from '../services/jugadorService';
 import { LoadingSpinner } from '../../../shared/components/LoadingSpinner';
+import InfoTip from '../../../shared/components/InfoTip/InfoTip';
 
 interface DashboardMaestroProps {
   jugadorId: string;
@@ -180,16 +180,11 @@ export const DashboardMaestro: React.FC<DashboardMaestroProps> = ({ jugadorId, j
                 ].map((stat, i) => (
                   <div key={i} className="space-y-1">
                     <div className="flex justify-between items-end">
-                      <div className="flex items-center gap-1 group/info relative">
+                      <div className="flex items-center gap-1">
                         <span className="text-2xs font-black text-muted uppercase tracking-widest">{stat.label}</span>
-                        <InformationCircleIcon 
-                          className="h-3 w-3 text-muted cursor-help hover:text-brand-500 transition-colors" 
-                        />
-                        {/* Custom Tooltip */}
-                        <div className="absolute bottom-full left-0 mb-2 w-56 p-2.5 bg-slate-900/95 text-2xs leading-relaxed text-slate-200 rounded-xl shadow-2xl opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible transition-all z-50 pointer-events-none border border-slate-700 backdrop-blur-sm">
+                        <InfoTip label={`Qué mide ${stat.label}`} iconClassName="h-3 w-3">
                           {stat.desc}
-                          <div className="absolute top-full left-4 border-4 border-transparent border-t-slate-900" />
-                        </div>
+                        </InfoTip>
                       </div>
                       <span className="text-xs font-black text-slate-700">{stat.value || 0}%</span>
                     </div>

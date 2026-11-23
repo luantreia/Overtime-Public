@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ChatBubbleLeftEllipsisIcon,
   XMarkIcon,
@@ -26,6 +26,23 @@ export default function FeedbackWidget() {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
+
+  // En mobile el botón flotaba sobre las tarjetas mientras el usuario leía. Se esconde al
+  // scrollear hacia abajo (leyendo) y vuelve al subir o cerca del tope. En lg+ no se mueve.
+  const [oculto, setOculto] = useState(false);
+  const ultimoY = useRef(0);
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY;
+      const delta = y - ultimoY.current;
+      if (Math.abs(delta) > 8) {
+        setOculto(delta > 0 && y > 120);
+        ultimoY.current = y;
+      }
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   const handleSubmit = async () => {
     if (!message.trim()) { setError('Escribí tu mensaje antes de enviar.'); return; }
@@ -63,7 +80,7 @@ export default function FeedbackWidget() {
     <>
       {/* Panel */}
       {open && (
-        <div className="fixed bottom-36 lg:bottom-20 right-6 z-50 w-80 rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden">
+        <div className="fixed bottom-36 lg:bottom-20 inset-x-4 lg:inset-x-auto lg:right-6 z-50 lg:w-80 rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 bg-brand-600 text-white">
             <div className="flex items-center gap-2">
@@ -144,8 +161,11 @@ export default function FeedbackWidget() {
       {/* Floating button */}
       <button
         onClick={() => setOpen(v => !v)}
-        className="fixed bottom-20 lg:bottom-6 right-6 z-50 h-12 w-12 rounded-full bg-brand-600 hover:bg-brand-700 text-white shadow-lg hover:shadow-xl transition-all flex items-center justify-center"
+        className={`fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] lg:bottom-6 right-4 lg:right-6 z-50 h-11 w-11 lg:h-12 lg:w-12 rounded-full bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 motion-reduce:transition-none flex items-center justify-center [touch-action:manipulation] ${
+          oculto && !open ? 'translate-y-24 opacity-0 pointer-events-none lg:translate-y-0 lg:opacity-100 lg:pointer-events-auto' : ''
+        }`}
         aria-label="Feedback"
+        aria-expanded={open}
         title="¿Tenés alguna sugerencia?"
       >
         {open
