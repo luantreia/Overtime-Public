@@ -323,13 +323,19 @@ const LandingPage: React.FC = () => {
   const porFecha = (a: Partido, b: Partido) => new Date(a.fecha || 0).getTime() - new Date(b.fecha || 0).getTime();
   const proximos = (data?.proximos ?? []).filter((p) => !p.fecha || new Date(p.fecha).getTime() > Date.now() - 3 * 3600e3).sort(porFecha);
   const finales = (data?.finalizados ?? []).slice().sort((a, b) => porFecha(b, a));
-  const partidos = [...(data?.enJuego ?? []), ...proximos, ...finales].slice(0, 6);
+  // Un en_juego sin actividad hace horas es un partido que nadie cerró, no uno en vivo: no se muestra.
+  const VIVO_MAX_MS = 6 * 3600e3;
+  const enJuego = (data?.enJuego ?? []).filter((p) => {
+    const t = new Date(p.updatedAt || p.fecha || 0).getTime();
+    return Date.now() - t < VIVO_MAX_MS;
+  });
+  const partidos = [...enJuego, ...proximos, ...finales].slice(0, 6);
 
   const competencias = (data?.competencias ?? [])
     .filter((c) => c.estado === 'en_curso')
     .slice(0, 4);
 
-  const hayVivo = (data?.enJuego?.length ?? 0) > 0;
+  const hayVivo = enJuego.length > 0;
 
   const buscar = (e: React.FormEvent) => {
     e.preventDefault();
