@@ -42,7 +42,11 @@ const PartidoCard = ({ partido, variante = 'proximo', actions, onClick, eloDelta
     : 'Fecha no disponible';
 
   const estado = partido.estado || 'programado';
-  const badge = badgeStyles[estado as keyof typeof badgeStyles] || badgeStyles.programado;
+  // Un programado con fecha pasada no es "próximo": se jugó sin cargarse o no se jugó.
+  const sinResultado = estado === 'programado' && !!partido.fecha && new Date(partido.fecha).getTime() < Date.now() - 6 * 3600e3;
+  const badge = sinResultado
+    ? { label: 'Sin resultado', className: 'bg-slate-100 text-slate-500' }
+    : badgeStyles[estado as keyof typeof badgeStyles] || badgeStyles.programado;
   const mostrarMarcador = estado === 'finalizado' || estado === 'en_juego' || estado === 'suspendido';
 
   const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {

@@ -38,6 +38,10 @@ const Partidos: React.FC = () => {
   const [faseId, setFaseId] = useState('');
   const [equipoId, setEquipoId] = useState('');
   const [estados, setEstados] = useState<string[]>([]);
+  // Por defecto se ocultan los partidos poco confiables (programados vencidos, 0-0 sin sets,
+  // en_juego que nadie cerró): ver `confiables` en GET /partidos.
+  const [verTodos, setVerTodos] = useState(false);
+  const confiables = verTodos ? undefined : 'true';
   const [showFilters, setShowFilters] = useState(false);
 
   // Listas para selects
@@ -91,11 +95,12 @@ const Partidos: React.FC = () => {
       fase: faseId || undefined,
       equipo: equipoId || undefined,
       estado: estados.length ? estados : undefined,
+      confiables,
     }});
-  }, [page, limit, competenciaId, organizacionCompetenciaIds, temporadaId, faseId, equipoId, estados]);
+  }, [page, limit, competenciaId, organizacionCompetenciaIds, temporadaId, faseId, equipoId, estados, confiables]);
 
   const { data: paged, isLoading: loading, error: partidosQueryError, refetch } = useQuery<{ items: Partido[]; page: number; limit: number; total: number } | Partido[]>({
-    queryKey: ['partidos-list', page, limit, competenciaId, organizacionId, temporadaId, faseId, equipoId, estados],
+    queryKey: ['partidos-list', page, limit, competenciaId, organizacionId, temporadaId, faseId, equipoId, estados, confiables],
     queryFn: fetchPartidosPaginated,
   });
   const error = partidosQueryError instanceof Error ? partidosQueryError.message : partidosQueryError ? String(partidosQueryError) : null;
@@ -119,13 +124,14 @@ const Partidos: React.FC = () => {
   const totalPages = useMemo(() => (limit > 0 ? Math.max(1, Math.ceil(total / limit)) : 1), [total, limit]);
 
   const { data: partidosCalendario = [], isLoading: loadingCalendario } = useQuery({
-    queryKey: ['partidos-calendario', competenciaId, organizacionId, temporadaId, faseId, equipoId, estados],
+    queryKey: ['partidos-calendario', competenciaId, organizacionId, temporadaId, faseId, equipoId, estados, confiables],
     queryFn: () => PartidoService.getAll({
       competencia: competenciaId || (organizacionCompetenciaIds.length ? organizacionCompetenciaIds : undefined),
       temporada: temporadaId || undefined,
       fase: faseId || undefined,
       equipo: equipoId || undefined,
       estado: estados.length ? estados : undefined,
+      confiables,
     }),
     enabled: vista === 'calendario',
   });
@@ -301,6 +307,18 @@ const Partidos: React.FC = () => {
               )}
           </div>
         </FilterBar>
+
+        <div className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-600">
+          <span>{verTodos ? 'Mostrando todos los partidos, incluidos los que no tienen resultado.' : 'Mostrando partidos con resultado y próximos.'}</span>
+          <button
+            type="button"
+            aria-pressed={verTodos}
+            onClick={() => { setVerTodos((v) => !v); setPage(1); }}
+            className="font-semibold text-brand-600 hover:text-brand-700"
+          >
+            {verTodos ? 'Ocultar sin resultado' : 'Ver todos'}
+          </button>
+        </div>
 
         {/* Tabla de Posiciones (si hay fase seleccionada) */}
         {faseId && (
