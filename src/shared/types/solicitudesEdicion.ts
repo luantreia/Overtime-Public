@@ -68,6 +68,8 @@ export interface SolicitudCrearPayload {
 export interface SolicitudActualizarPayload {
     estado: SolicitudEdicionEstado;
     motivoRechazo?: string;
+    /** Aprobación parcial: qué partes incorporar (ver overtime/src/utils/seleccionAprobacion.js). */
+    seleccion?: Record<string, unknown>;
 }
 
 export interface SolicitudesPaginadas {
