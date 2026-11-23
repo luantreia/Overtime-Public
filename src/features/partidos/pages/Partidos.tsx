@@ -201,7 +201,7 @@ const Partidos: React.FC = () => {
   }, [equipoId, organizacionId, competenciaId, temporadaId, faseId, estados, equipos, organizacionItems, competencias, temporadas, fases]);
 
   return (
-    <div className="min-h-screen bg-slate-50 pt-3 pb-8 sm:pt-5">
+    <div className="min-h-dvh bg-slate-50 pt-3 pb-8 sm:pt-5">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Filtros */}
         <FilterBar

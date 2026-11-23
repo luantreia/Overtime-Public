@@ -141,11 +141,11 @@ const PerfilPage = () => {
   };
 
   if (!user) {
-    return <div className="flex min-h-screen items-center justify-center"><p>Cargando...</p></div>;
+    return <div className="flex min-h-dvh items-center justify-center"><p>Cargando...</p></div>;
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8">
+    <div className="min-h-dvh bg-slate-50 py-8">
       <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8 space-y-6">
 
         {/* Header */}

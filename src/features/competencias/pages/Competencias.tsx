@@ -81,7 +81,7 @@ const Competencias: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-dvh items-center justify-center">
         <div className="text-center">
           <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600 mx-auto"></div>
           <p className="text-slate-600">
@@ -95,7 +95,7 @@ const Competencias: React.FC = () => {
   if (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-dvh items-center justify-center">
         <div className="text-center">
           <p className="mb-4 text-red-600">
             Error al cargar {vista === 'todas' ? 'competencias' : 'organizaciones'}: {errorMsg}
@@ -112,7 +112,7 @@ const Competencias: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 pt-3 pb-8 sm:pt-5">
+    <div className="min-h-dvh bg-slate-50 pt-3 pb-8 sm:pt-5">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {(() => {
           const viewToggle = (

@@ -104,7 +104,7 @@ const OrganizacionDetalle: React.FC = () => {
 
   if (loadingOrg || loadingComps) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-dvh items-center justify-center">
         <div className="text-center">
           <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600 mx-auto"></div>
           <p className="text-slate-600">Cargando organización...</p>
@@ -115,7 +115,7 @@ const OrganizacionDetalle: React.FC = () => {
 
   if (errorOrg || !organizacion) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-dvh items-center justify-center">
         <div className="text-center">
           <p className="mb-4 text-red-600">No se pudo cargar la organización.</p>
           <button
@@ -134,7 +134,7 @@ const OrganizacionDetalle: React.FC = () => {
   const tieneVideo = !!extraerYoutubeId(organizacion.videoFondoUrl);
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8">
+    <div className="min-h-dvh bg-slate-50 py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <button
           onClick={() => navigate('/competencias?vista=organizaciones')}

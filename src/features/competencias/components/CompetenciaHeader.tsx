@@ -27,7 +27,7 @@ export const CompetenciaHeader: React.FC<CompetenciaHeaderProps> = ({ competenci
           )}
           <p className="mt-1 text-slate-600">{competencia.descripcion || 'Sin descripción'}</p>
           <div className="mt-2 flex gap-2">
-            <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
+            <span className="inline-flex items-center rounded-full bg-brand-50 px-2 py-1 text-xs font-medium text-brand-700 ring-1 ring-inset ring-brand-700/10">
               {(competencia as any).modalidad || 'General'}
             </span>
             <span className="inline-flex items-center rounded-full bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 ring-1 ring-inset ring-purple-700/10">

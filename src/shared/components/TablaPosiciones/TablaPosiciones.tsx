@@ -264,7 +264,7 @@ export const TablaPosiciones: React.FC<TablaPosicionesProps> = ({ faseId, partic
                         onClick={handleClick}
                         className={[
                           p.clasificado ? 'bg-emerald-50/60' : p.eliminado ? 'bg-red-50/50' : '',
-                          esPropio ? 'bg-indigo-50 shadow-[inset_3px_0_0_0_#3b5dff]' : '',
+                          esPropio ? 'bg-brand-50 shadow-[inset_3px_0_0_0_#3b5dff]' : '',
                           esCorte ? 'border-b-2 border-dashed border-emerald-400' : 'border-b border-slate-50 last:border-b-0',
                           clickable ? 'cursor-pointer hover:bg-slate-50' : '',
                         ].filter(Boolean).join(' ')}

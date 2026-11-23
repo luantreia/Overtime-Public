@@ -300,7 +300,7 @@ const JugadorDetalle: React.FC = () => {
 
   if (error || !jugador) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-dvh items-center justify-center">
         <div className="text-center">
           <p className="mb-4 text-red-600">
             Error al cargar jugador: {error instanceof Error ? error.message : (error || 'No encontrado')}
@@ -312,12 +312,12 @@ const JugadorDetalle: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 sm:py-8">
+    <div className="min-h-dvh bg-slate-50 sm:py-8">
       <div className="mx-auto max-w-4xl px-4 sm:px-4 sm:px-6 lg:px-8">
         <BackButton fallback="/jugadores" className="mb-4 sm:mb-6" />
         <div className="bg-white sm:rounded-2xl shadow-none sm:shadow-sm border-0 sm:border sm:border-slate-200 overflow-hidden">
           {/* Header/Cover color */}
-          <div className="h-24 sm:h-32 bg-gradient-to-r from-brand-600 to-indigo-600"></div>
+          <div className="h-24 sm:h-32 bg-gradient-to-r from-brand-600 to-brand-800"></div>
 
           <div className="px-4 sm:px-6 pb-6 sm:pb-8">
             <div className="relative flex flex-col sm:flex-row justify-between items-center sm:items-end -mt-12 mb-6 gap-4">
@@ -449,7 +449,7 @@ const JugadorDetalle: React.FC = () => {
                             </div>
                             <div className="flex flex-wrap items-center gap-2 mt-0.5">
                               <span className={`px-1.5 py-0.5 rounded text-2xs font-bold uppercase tracking-wider ${
-                                data.isRanked ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700'
+                                data.isRanked ? 'bg-brand-100 text-brand-700' : 'bg-emerald-100 text-emerald-700'
                               }`}>
                                 {data.isRanked ? 'Ranked' : 'Liga'}
                               </span>

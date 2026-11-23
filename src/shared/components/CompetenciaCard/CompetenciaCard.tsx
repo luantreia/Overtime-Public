@@ -74,7 +74,7 @@ const CompetenciaCard = ({ competencia, variante = 'proximamente', actions, onCl
               {badge.label}
             </span>
             {isRanked && (
-              <span className="inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-2xs font-bold uppercase tracking-wide text-indigo-600 border border-indigo-100">
+              <span className="inline-flex items-center rounded-full bg-brand-50 px-2 py-0.5 text-2xs font-bold uppercase tracking-wide text-brand-600 border border-brand-100">
                 Ranked
               </span>
             )}

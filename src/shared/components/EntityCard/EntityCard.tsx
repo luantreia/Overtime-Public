@@ -138,7 +138,7 @@ export const EntityCard: React.FC<EntityCardProps> = ({
                     ? 'bg-red-100 text-red-700 hover:bg-red-200'
                     : action.variant === 'secondary'
                       ? 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                      : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                      : 'bg-brand-100 text-brand-700 hover:bg-brand-200'
                 }`}
               >
                 {action.label}

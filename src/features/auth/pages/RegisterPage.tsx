@@ -81,7 +81,7 @@ const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="flex min-h-dvh items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/10 p-6 sm:p-8 backdrop-blur">
         <div className="mb-6 flex flex-col items-center">
           <img src="/logo.png" alt="Overtime Logo" className="h-20 w-auto mb-2" />

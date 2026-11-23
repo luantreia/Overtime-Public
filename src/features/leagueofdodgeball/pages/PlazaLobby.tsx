@@ -412,7 +412,7 @@ const PlazaLobby: React.FC = () => {
           <Link to={`/jugadores/${player.player._id}`} className="flex items-center gap-3 group">
             <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-medium border-2 ${
               isLobbyHost ? 'border-brand-500 bg-brand-50' :
-              isRivalCaptain ? 'border-indigo-500 bg-indigo-50' :
+              isRivalCaptain ? 'border-brand-500 bg-brand-50' :
               'border-slate-100 bg-brand-100 text-brand-700'
             }`}>
               {player.player.foto ? (
@@ -432,7 +432,7 @@ const PlazaLobby: React.FC = () => {
                   <span className="px-1.5 py-0.5 bg-brand-600 text-2xs text-white font-black rounded uppercase tracking-tighter">HOST</span>
                 )}
                 {isRivalCaptain && (
-                  <span className="px-1.5 py-0.5 bg-indigo-600 text-2xs text-white font-black rounded uppercase tracking-tighter">CAPITÁN</span>
+                  <span className="px-1.5 py-0.5 bg-brand-600 text-2xs text-white font-black rounded uppercase tracking-tighter">CAPITÁN</span>
                 )}
               </div>
               {player.player.elo !== undefined && (
@@ -544,7 +544,7 @@ const PlazaLobby: React.FC = () => {
 
           <div className="mt-8 flex flex-col gap-4">
             {lobby.status === 'finished' && (
-              <div className="w-full bg-gradient-to-r from-brand-600 to-indigo-600 rounded-xl p-5 text-white shadow-lg overflow-hidden relative">
+              <div className="w-full bg-gradient-to-r from-brand-600 to-brand-800 rounded-xl p-5 text-white shadow-lg overflow-hidden relative">
                 <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
                     <div className="p-3 bg-white/20 backdrop-blur-md rounded-xl border border-white/30">
@@ -691,7 +691,7 @@ const PlazaLobby: React.FC = () => {
               <button 
                 onClick={handleBalance}
                 disabled={actionLoading}
-                className="flex-1 min-w-[200px] bg-indigo-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-indigo-700 transition-all disabled:opacity-50"
+                className="flex-1 min-w-[200px] bg-brand-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-brand-700 transition-all disabled:opacity-50"
               >
                 Auto-Equilibrar Teams (ELO)
               </button>

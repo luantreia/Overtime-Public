@@ -24,7 +24,7 @@ const ClaimRedirect = () => {
   }, [destino, token]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-900 px-4">
+    <div className="flex min-h-dvh items-center justify-center bg-slate-900 px-4">
       <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/10 p-8 text-center backdrop-blur">
         {destino ? (
           <>

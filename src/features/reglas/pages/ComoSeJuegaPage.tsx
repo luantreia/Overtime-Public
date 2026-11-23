@@ -58,7 +58,7 @@ const ComoSeJuegaPage: React.FC = () => {
 
   return (
     <div className="mx-auto max-w-md space-y-5 sm:max-w-xl">
-      <div className="rounded-2xl bg-gradient-to-br from-brand-600 to-indigo-700 px-4 py-4 text-white shadow-lg">
+      <div className="rounded-2xl bg-gradient-to-br from-brand-600 to-brand-700 px-4 py-4 text-white shadow-lg">
         <h1 className="text-xl font-black tracking-tight">🏐 ¿Cómo se juega al dodgeball?</h1>
         <p className="mt-1 text-sm text-brand-50">
           Ocho jugadas animadas. Deslizá para pasar de una a otra.{' '}

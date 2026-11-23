@@ -496,7 +496,7 @@ const PlazaExplorar: React.FC = () => {
                         <UsersIcon className="h-4 w-4 shrink-0" />
                         <span>{lobby.players.length} / {lobby.maxPlayers}</span>
                         {lobby.categoria && lobby.categoria !== 'Libre' && (
-                          <span className="px-1.5 py-0.5 text-2xs bg-indigo-50 text-indigo-700 rounded border border-indigo-100 uppercase font-bold">
+                          <span className="px-1.5 py-0.5 text-2xs bg-brand-50 text-brand-700 rounded border border-brand-100 uppercase font-bold">
                             {lobby.categoria === 'Masculino' ? '♂' : lobby.categoria === 'Femenino' ? '♀' : '🚻'} {lobby.categoria}
                           </span>
                         )}

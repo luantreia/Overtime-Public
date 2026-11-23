@@ -123,7 +123,7 @@ export const EquipoCalendarioTab: React.FC<EquipoCalendarioTabProps> = ({ equipo
           <section>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                <span className="h-8 w-1 bg-indigo-600 rounded-full"></span>
+                <span className="h-8 w-1 bg-brand-600 rounded-full"></span>
                 Resultados recientes
               </h2>
               {resultados.length > 3 && (

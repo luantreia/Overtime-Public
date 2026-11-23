@@ -68,7 +68,7 @@ const EquipoDetalle: React.FC = () => {
 
   if (error || !equipo) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-dvh items-center justify-center">
         <div className="text-center">
           <p className="mb-4 text-red-600">Error al cargar equipo: {error || 'No encontrado'}</p>
           <BackButton fallback="/equipos" label="Volver a la lista" className="justify-center" />
@@ -78,7 +78,7 @@ const EquipoDetalle: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 sm:py-8">
+    <div className="min-h-dvh bg-slate-50 sm:py-8">
       <div className="mx-auto max-w-4xl px-4 sm:px-4 sm:px-6 lg:px-8">
         <BackButton fallback="/equipos" className="mb-4 sm:mb-6" />
         <div className="bg-white sm:rounded-2xl shadow-none sm:shadow-sm border-0 sm:border sm:border-slate-200 overflow-hidden">

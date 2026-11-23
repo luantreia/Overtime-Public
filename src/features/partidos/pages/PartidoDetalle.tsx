@@ -29,7 +29,7 @@ const PartidoDetalle: React.FC = () => {
 
   if (!id) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-dvh items-center justify-center">
         <div className="text-center">
           <p className="mb-4 text-red-600">ID de partido no proporcionado</p>
           <BackButton fallback="/partidos" label="Volver a la lista" className="justify-center" />
@@ -39,7 +39,7 @@ const PartidoDetalle: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8">
+    <div className="min-h-dvh bg-slate-50 py-8">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <BackButton fallback="/partidos" className="mb-6" />
 

@@ -113,7 +113,7 @@ export const DashboardMaestro: React.FC<DashboardMaestroProps> = ({ jugadorId, j
                   </div>
                 </div>
                 {jugador.perfilReclamado && (
-                  <ShieldCheckIcon className="h-5 w-5 text-blue-500 shrink-0" title="Perfil Verificado" />
+                  <ShieldCheckIcon className="h-5 w-5 text-brand-500 shrink-0" title="Perfil Verificado" />
                 )}
               </div>
 

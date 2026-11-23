@@ -113,7 +113,7 @@ export const EquipoPlantelTab: React.FC<EquipoPlantelTabProps> = ({ equipo }) =>
               <Link
                 key={jugador?._id || jugador?.id}
                 to={`/jugadores/${jugador?._id || jugador?.id}`}
-                className="flex items-center gap-4 p-4 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-indigo-200 transition-colors"
+                className="flex items-center gap-4 p-4 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-brand-200 transition-colors"
               >
                 <div className="h-12 w-12 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden border border-slate-100 flex-shrink-0">
                   {jugador?.foto ? (
@@ -135,7 +135,7 @@ export const EquipoPlantelTab: React.FC<EquipoPlantelTabProps> = ({ equipo }) =>
                     </div>
                   ) : (
                     <div className="mt-1 space-y-0.5">
-                      <span className="text-2xs font-bold text-indigo-600 uppercase tracking-wider">{contratos.length} contratos</span>
+                      <span className="text-2xs font-bold text-brand-600 uppercase tracking-wider">{contratos.length} contratos</span>
                       {contratos.map((c: any) => (
                         <div key={c._id} className="text-[11px] text-muted flex items-center gap-1.5">
                           <span className="capitalize">{c.rol || 'jugador'}</span>
