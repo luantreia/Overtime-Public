@@ -96,9 +96,9 @@ const Navbar: React.FC = () => {
   return (
     <>
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/70 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-2 sm:px-6 sm:py-4">
         <NavLink to="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
-          <img src="/logo.png" alt="Overtime Logo" className="h-10 w-auto" />
+          <img src="/logo.png" alt="Overtime Logo" className="h-8 w-auto sm:h-10" />
           <div className="hidden sm:block">
             <p className="text-sm font-semibold text-slate-900">Overtime Dodgeball</p>
             <p className="text-xs text-slate-500">Comunidad de Dodgeball</p>

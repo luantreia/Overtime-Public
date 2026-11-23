@@ -5,8 +5,6 @@ import { usePageTitle } from '../../../shared/hooks/usePageTitle';
 import { PartidoService, type Partido } from '../../partidos/services/partidoService';
 import { CompetenciaService, type Competencia } from '../../competencias/services/competenciaService';
 import { RankedService, type LeaderboardItem } from '../../competencias/services/rankedService';
-import { PlazaService } from '../../leagueofdodgeball/services/plazaService';
-import type { Lobby } from '../../leagueofdodgeball/types';
 import { useEquiposSeguidos } from '../../../shared/hooks/useEquiposSeguidos';
 import InstalarAppModal from '../../../shared/components/InstalarAppModal/InstalarAppModal';
 
@@ -44,7 +42,7 @@ const Skeleton = ({ className = '' }: { className?: string }) => (
 const EstadoBadge = ({ p }: { p: Partido }) => {
   if (p.estado === 'en_juego') {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-red-600 px-2 py-0.5 text-2xs font-black uppercase tracking-wider text-white">
+      <span className="inline-flex flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-red-600 px-2 py-0.5 text-2xs font-black uppercase tracking-wider text-white">
         <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" aria-hidden="true" />
         En vivo{setsDe(p).length > 0 && <span className="tabular-nums"> · Set {setsDe(p).length}</span>}
       </span>
@@ -100,7 +98,7 @@ const PartidoTile = ({ p }: { p: Partido }) => {
   return (
     <Link
       to={`/partidos/${idDe(p)}`}
-      className={`block w-[82%] flex-shrink-0 snap-start rounded-2xl border bg-white p-4 shadow-sm transition hover:shadow-md sm:w-auto ${
+      className={`block w-[82%] min-w-0 flex-shrink-0 snap-start rounded-2xl border bg-white p-4 shadow-sm transition hover:shadow-md sm:w-auto ${
         p.estado === 'en_juego' ? 'border-red-200' : 'border-slate-200 hover:border-brand-300'
       }`}
     >
@@ -113,7 +111,12 @@ const PartidoTile = ({ p }: { p: Partido }) => {
           <li key={lado} className="flex items-center gap-2">
             <Escudo src={eq?.escudo} nombre={eq?.nombre} />
             <span className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-900">{eq?.nombre || 'A definir'}</span>
-            {sets.length > 0 && <CeldasSets sets={sets} lado={lado} />}
+            {sets.length > 0 && sets.length <= 5 && <CeldasSets sets={sets} lado={lado} />}
+            {sets.length > 5 && (
+              <span className="whitespace-nowrap text-xs tabular-nums text-muted" aria-hidden="true">
+                {sets.filter((s) => s.ganadorSet === lado).length} sets
+              </span>
+            )}
             {conMarcador && <span className="w-7 text-right text-lg font-black tabular-nums text-slate-900">{pts ?? 0}</span>}
           </li>
         ))}
@@ -128,31 +131,31 @@ const PartidoTile = ({ p }: { p: Partido }) => {
   );
 };
 
-// ── La Plaza ────────────────────────────────────────────────────────────────
-const LobbyTile = ({ l }: { l: Lobby }) => {
-  const libres = Math.max(0, l.maxPlayers - l.players.length);
+// ── Competencias ────────────────────────────────────────────────────────────
+const capitalizar = (s?: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '');
+
+const CompetenciaFila = ({ c }: { c: Competencia }) => {
+  const img: string | undefined = c.foto || c.imagen || c.organizacion?.logo;
+  const chips = [c.modalidad, c.categoria].filter(Boolean).map((v) => capitalizar(String(v)));
   return (
-    <Link
-      to={`/plaza/lobby/${l._id}`}
-      className="flex flex-col gap-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-brand-300 hover:shadow-md"
-    >
-      <div className="flex items-start justify-between gap-2">
-        <p className="min-w-0 truncate font-bold text-slate-900">{l.title}</p>
-        <span className="flex-shrink-0 rounded-full bg-brand-50 px-2 py-0.5 text-2xs font-bold text-brand-700">{l.modalidad}</span>
-      </div>
-      <p className="truncate text-sm text-slate-500">
-        {l.location?.name} · <span className="tabular-nums">{fechaCorta(l.scheduledDate)} {hora(l.scheduledDate)}</span>
-      </p>
-      <div className="flex items-center justify-between text-sm">
-        <span className="tabular-nums text-slate-700">
-          <strong className="text-slate-900">{l.players.length}/{l.maxPlayers}</strong> · {libres} {libres === 1 ? 'lugar' : 'lugares'}
-        </span>
-        {typeof l.averageElo === 'number' && (
-          <span className="tabular-nums text-xs text-muted">ELO ~{Math.round(l.averageElo)}</span>
+    <li>
+      <Link to={`/competencias/${c.id}`} className="flex items-center gap-3 p-3 transition hover:bg-slate-50">
+        {img ? (
+          <img src={img} alt="" className="h-11 w-11 flex-shrink-0 rounded-xl object-cover" loading="lazy" />
+        ) : (
+          <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-brand-50 text-xs font-black text-brand-700" aria-hidden="true">
+            {(c.nombre || '?').slice(0, 2).toUpperCase()}
+          </span>
         )}
-      </div>
-      <span className="mt-1 rounded-lg bg-brand-600 py-2 text-center text-sm font-bold text-white">Ver partido / Sumarme</span>
-    </Link>
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-bold text-slate-900">{c.nombre}</p>
+          <p className="truncate text-xs text-slate-500">
+            {[c.organizacion?.nombre, ...chips].filter(Boolean).join(' · ')}
+          </p>
+        </div>
+        <span className="flex-shrink-0 text-slate-400" aria-hidden="true">›</span>
+      </Link>
+    </li>
   );
 };
 
@@ -202,37 +205,19 @@ const TopRanking = () => {
         ) : items.length === 0 ? (
           <p className="p-6 text-center text-sm text-slate-500">Todavía no hay jugadores rankeados en {modalidad}.</p>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="sr-only sm:not-sr-only">
-              <tr className="border-b border-slate-100 text-left text-2xs uppercase tracking-wider text-muted">
-                <th scope="col" className="w-10 px-4 py-2">#</th>
-                <th scope="col" className="py-2">Jugador</th>
-                <th scope="col" className="hidden py-2 text-right lg:table-cell">PJ</th>
-                <th scope="col" className="hidden py-2 text-right lg:table-cell">Win%</th>
-                <th scope="col" className="py-2 text-right">ELO</th>
-                <th scope="col" className="px-4 py-2 text-right">Δ</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((it, i) => {
-                const wr = it.matchesPlayed ? Math.round(((it.wins ?? 0) / it.matchesPlayed) * 100) : null;
-                return (
-                  <tr key={it.playerId} className="border-b border-slate-100 last:border-0">
-                    <td className="px-4 py-2.5 font-black tabular-nums text-slate-500">{i + 1}</td>
-                    <td className="max-w-0 truncate py-2.5">
-                      <Link to={`/jugadores/${it.playerId}`} className="font-semibold text-slate-900 hover:text-brand-600">
-                        {it.playerName || 'Jugador'}
-                      </Link>
-                    </td>
-                    <td className="hidden py-2.5 text-right tabular-nums text-slate-600 lg:table-cell">{it.matchesPlayed}</td>
-                    <td className="hidden py-2.5 text-right tabular-nums text-slate-600 lg:table-cell">{wr === null ? '—' : `${wr}%`}</td>
-                    <td className="py-2.5 text-right font-black tabular-nums text-slate-900">{Math.round(it.rating)}</td>
-                    <td className="px-4 py-2.5 text-right"><Delta v={it.lastDelta} /></td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <ol className="divide-y divide-slate-100 text-sm">
+            {items.map((it, i) => (
+              <li key={it.playerId} className="flex items-center gap-3 px-4 py-2.5">
+                <span className="w-5 flex-shrink-0 font-black tabular-nums text-slate-500">{i + 1}</span>
+                <Link to={`/jugadores/${it.playerId}`} className="min-w-0 flex-1 truncate font-semibold text-slate-900 hover:text-brand-600">
+                  {it.playerName || 'Jugador'}
+                </Link>
+                <span className="hidden flex-shrink-0 text-xs tabular-nums text-muted sm:inline">{it.matchesPlayed} PJ</span>
+                <span className="flex-shrink-0 font-black tabular-nums text-slate-900">{Math.round(it.rating)}</span>
+                <Delta v={it.lastDelta} />
+              </li>
+            ))}
+          </ol>
         )}
       </div>
       <Link to="/ranking" className="mt-3 inline-block text-sm font-semibold text-brand-600 hover:text-brand-700">Ver ranking completo →</Link>
@@ -321,14 +306,13 @@ const LandingPage: React.FC = () => {
   const { data, isLoading } = useQuery({
     queryKey: ['home-tablero-v1'],
     queryFn: async () => {
-      const [enJuego, proximos, finalizados, competencias, lobbies] = await Promise.all([
+      const [enJuego, proximos, finalizados, competencias] = await Promise.all([
         PartidoService.getEnCurso().catch(() => [] as Partido[]),
         PartidoService.getProximos().catch(() => [] as Partido[]),
         PartidoService.getFinalizados().catch(() => [] as Partido[]),
         CompetenciaService.getAll().catch(() => [] as Competencia[]),
-        PlazaService.getLobbies().catch(() => [] as Lobby[]),
       ]);
-      return { enJuego, proximos, finalizados, competencias, lobbies };
+      return { enJuego, proximos, finalizados, competencias };
     },
     // El tablero muestra "ahora": no puede vivir con el staleTime de 24h global.
     staleTime: 1000 * 60,
@@ -341,12 +325,8 @@ const LandingPage: React.FC = () => {
   const finales = (data?.finalizados ?? []).slice().sort((a, b) => porFecha(b, a));
   const partidos = [...(data?.enJuego ?? []), ...proximos, ...finales].slice(0, 6);
 
-  const lobbies = (data?.lobbies ?? [])
-    .filter((l) => l.status === 'open')
-    .sort((a, b) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime());
-
   const competencias = (data?.competencias ?? [])
-    .filter((c) => String(c.estado || '').toLowerCase().includes('curso'))
+    .filter((c) => c.estado === 'en_curso')
     .slice(0, 4);
 
   const hayVivo = (data?.enJuego?.length ?? 0) > 0;
@@ -361,19 +341,15 @@ const LandingPage: React.FC = () => {
     // Anula el padding del <main> para que el hero llegue a los bordes.
     <div className="-mx-4 -mt-6 lg:pb-4">
       {/* Hero compacto */}
-      <section className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-4 py-6 text-white sm:py-8">
-        <div className="mx-auto flex max-w-6xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h1 className="text-xl font-black tracking-tight sm:text-2xl">
-            Dodgeball en vivo: partidos, ligas y ranking en un solo lugar.
+      {/* En mobile es una sola línea: la barra inferior ya da acceso a Partidos, así que el CTA sólo va en desktop. */}
+      <section className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-4 py-3 text-white sm:py-6">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
+          <h1 className="text-base font-black tracking-tight sm:text-2xl">
+            Dodgeball en vivo: partidos, ligas y ranking.
           </h1>
-          <div className="flex flex-shrink-0 gap-3">
-            <Link to="/partidos" className="flex-1 rounded-lg bg-white px-4 py-2.5 text-center text-sm font-bold text-slate-900 hover:bg-slate-100 sm:flex-none">
-              Explorar partidos
-            </Link>
-            <Link to="/plaza" className="flex-1 rounded-lg bg-brand-600 px-4 py-2.5 text-center text-sm font-bold text-white hover:bg-brand-700 sm:flex-none">
-              Abrir La Plaza
-            </Link>
-          </div>
+          <Link to="/partidos" className="hidden flex-shrink-0 rounded-lg bg-white px-4 py-2.5 text-sm font-bold text-slate-900 hover:bg-slate-100 sm:block">
+            Explorar partidos
+          </Link>
         </div>
       </section>
 
@@ -383,8 +359,8 @@ const LandingPage: React.FC = () => {
         {/* En juego / Próximos */}
         <section aria-label="Partidos">
           <SectionHeader
-            title={hayVivo ? 'En juego ahora' : 'Partidos'}
-            subtitle="Lo que se está jugando, lo que viene y lo último que terminó."
+            title={hayVivo ? 'En juego ahora' : 'Partidos recomendados'}
+            subtitle={hayVivo ? 'Lo que se está jugando y lo que viene.' : 'Lo próximo y lo último que se jugó.'}
             href="/partidos"
           />
           {isLoading ? (
@@ -400,51 +376,24 @@ const LandingPage: React.FC = () => {
           )}
         </section>
 
-        {/* La Plaza 7 / Ranking 5 */}
+        {/* Competencias 7 / Ranking 5 */}
         <div className="grid gap-6 lg:grid-cols-12">
-          <section aria-label="La Plaza" className="lg:col-span-7">
-            <SectionHeader
-              title="La Plaza: partidos abiertos"
-              subtitle={lobbies.length ? `${lobbies.length} ${lobbies.length === 1 ? 'partido busca' : 'partidos buscan'} jugadores` : 'Armá un partido rankeado con quien sea.'}
-              href="/plaza"
-              cta="Ver todos"
-            />
+          <section aria-label="Competencias activas" className="min-w-0 lg:col-span-7">
+            <SectionHeader title="Competencias activas" subtitle="Ligas y torneos en curso." href="/competencias" />
             {isLoading ? (
-              <div className="grid gap-4 sm:grid-cols-2">{[0, 1].map((i) => <Skeleton key={i} className="h-40" />)}</div>
-            ) : lobbies.length === 0 ? (
-              <Link to="/plaza/crear" className="flex items-center justify-center rounded-2xl border-2 border-dashed border-brand-200 p-6 text-sm font-bold text-brand-700 hover:bg-brand-50">
-                No hay partidos abiertos. Armá el primero →
-              </Link>
+              <div className="space-y-2">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-16" />)}</div>
+            ) : competencias.length === 0 ? (
+              <p className="rounded-2xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500">No hay competencias en curso ahora mismo.</p>
             ) : (
-              <div className="grid gap-4 sm:grid-cols-2">
-                {lobbies.slice(0, 4).map((l) => <LobbyTile key={l._id} l={l} />)}
-              </div>
+              <ul className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                {competencias.map((c) => <CompetenciaFila key={c.id} c={c} />)}
+              </ul>
             )}
           </section>
-          <div className="lg:col-span-5">
+          <div className="min-w-0 lg:col-span-5">
             <TopRanking />
           </div>
         </div>
-
-        {/* Competencias activas */}
-        <section aria-label="Competencias activas">
-          <SectionHeader title="Competencias activas" subtitle="Ligas y torneos en curso." href="/competencias" />
-          {isLoading ? (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-24" />)}</div>
-          ) : competencias.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500">No hay competencias en curso ahora mismo.</p>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {competencias.map((c) => (
-                <Link key={c.id} to={`/competencias/${c.id}`} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-brand-300 hover:shadow-md">
-                  <p className="truncate font-bold text-slate-900">{c.nombre}</p>
-                  <p className="truncate text-sm text-slate-500">{c.organizacion?.nombre || 'En curso'}</p>
-                  <p className="mt-2 text-xs font-semibold text-brand-600">Fixture y tabla →</p>
-                </Link>
-              ))}
-            </div>
-          )}
-        </section>
 
         {/* Explorador */}
         <section aria-labelledby="home-explorar" className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
