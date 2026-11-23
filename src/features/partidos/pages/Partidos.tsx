@@ -41,7 +41,11 @@ const Partidos: React.FC = () => {
   // Por defecto se ocultan los partidos poco confiables (programados vencidos, 0-0 sin sets,
   // en_juego que nadie cerró): ver `confiables` en GET /partidos.
   const [verTodos, setVerTodos] = useState(false);
-  const confiables = verTodos ? undefined : 'true';
+  // Fecha a confirmar (fixture sin día definido): nunca se mezclan con el resto, ni con "Ver todos";
+  // sólo se ven pidiéndolos con el filtro.
+  const [soloAConfirmar, setSoloAConfirmar] = useState(false);
+  const confiables = verTodos || soloAConfirmar ? undefined : 'true';
+  const fechaAConfirmar = soloAConfirmar ? 'solo' : 'excluir';
   const [showFilters, setShowFilters] = useState(false);
 
   // Listas para selects
@@ -96,11 +100,12 @@ const Partidos: React.FC = () => {
       equipo: equipoId || undefined,
       estado: estados.length ? estados : undefined,
       confiables,
+      fechaAConfirmar,
     }});
-  }, [page, limit, competenciaId, organizacionCompetenciaIds, temporadaId, faseId, equipoId, estados, confiables]);
+  }, [page, limit, competenciaId, organizacionCompetenciaIds, temporadaId, faseId, equipoId, estados, confiables, fechaAConfirmar]);
 
   const { data: paged, isLoading: loading, error: partidosQueryError, refetch } = useQuery<{ items: Partido[]; page: number; limit: number; total: number } | Partido[]>({
-    queryKey: ['partidos-list', page, limit, competenciaId, organizacionId, temporadaId, faseId, equipoId, estados, confiables],
+    queryKey: ['partidos-list', page, limit, competenciaId, organizacionId, temporadaId, faseId, equipoId, estados, confiables, fechaAConfirmar],
     queryFn: fetchPartidosPaginated,
   });
   const error = partidosQueryError instanceof Error ? partidosQueryError.message : partidosQueryError ? String(partidosQueryError) : null;
@@ -124,7 +129,7 @@ const Partidos: React.FC = () => {
   const totalPages = useMemo(() => (limit > 0 ? Math.max(1, Math.ceil(total / limit)) : 1), [total, limit]);
 
   const { data: partidosCalendario = [], isLoading: loadingCalendario } = useQuery({
-    queryKey: ['partidos-calendario', competenciaId, organizacionId, temporadaId, faseId, equipoId, estados, confiables],
+    queryKey: ['partidos-calendario', competenciaId, organizacionId, temporadaId, faseId, equipoId, estados, confiables, fechaAConfirmar],
     queryFn: () => PartidoService.getAll({
       competencia: competenciaId || (organizacionCompetenciaIds.length ? organizacionCompetenciaIds : undefined),
       temporada: temporadaId || undefined,
@@ -132,6 +137,7 @@ const Partidos: React.FC = () => {
       equipo: equipoId || undefined,
       estado: estados.length ? estados : undefined,
       confiables,
+      fechaAConfirmar,
     }),
     enabled: vista === 'calendario',
   });
@@ -174,6 +180,8 @@ const Partidos: React.FC = () => {
     setCompetenciaId('');
     setEquipoId('');
     setEstados([]);
+    setSoloAConfirmar(false);
+    setSoloAConfirmar(false);
     setPage(1);
   };
 
@@ -203,8 +211,11 @@ const Partidos: React.FC = () => {
       const label = ESTADO_OPTIONS.find((o) => o.value === val)?.label || val;
       items.push({ key: `estado-${val}`, label, onRemove: () => setEstados((prev) => prev.filter((v) => v !== val)) });
     });
+    if (soloAConfirmar) {
+      items.push({ key: 'a-confirmar', label: 'Fecha a confirmar', onRemove: () => setSoloAConfirmar(false) });
+    }
     return items;
-  }, [equipoId, organizacionId, competenciaId, temporadaId, faseId, estados, equipos, organizacionItems, competencias, temporadas, fases]);
+  }, [equipoId, organizacionId, competenciaId, temporadaId, faseId, estados, soloAConfirmar, equipos, organizacionItems, competencias, temporadas, fases]);
 
   return (
     <div className="min-h-dvh bg-slate-50 pt-3 pb-8 sm:pt-5">
@@ -244,6 +255,19 @@ const Partidos: React.FC = () => {
                 selected={estados}
                 onChange={setEstados}
               />
+
+              <label className="flex items-start gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={soloAConfirmar}
+                  onChange={(e) => { setSoloAConfirmar(e.target.checked); setPage(1); }}
+                  className="mt-0.5 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                />
+                <span>
+                  <span className="font-medium">Sólo fecha a confirmar</span>
+                  <span className="block text-xs text-muted">Partidos del fixture que todavía no tienen día definido.</span>
+                </span>
+              </label>
 
               <FilterCombobox
                 items={organizacionItems}
@@ -309,7 +333,13 @@ const Partidos: React.FC = () => {
         </FilterBar>
 
         <div className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-600">
-          <span>{verTodos ? 'Mostrando todos los partidos, incluidos los que no tienen resultado.' : 'Mostrando partidos con resultado y próximos.'}</span>
+          <span>
+            {soloAConfirmar
+              ? 'Mostrando sólo partidos con fecha a confirmar.'
+              : verTodos
+                ? 'Mostrando todos los partidos, incluidos los que no tienen resultado (sin los de fecha a confirmar).'
+                : 'Mostrando partidos con resultado y próximos.'}
+          </span>
           <button
             type="button"
             aria-pressed={verTodos}
