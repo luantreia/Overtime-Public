@@ -53,6 +53,7 @@ const OrganizacionDetalle = lazy(() => import('./features/competencias/pages/Org
 const SedeDetalle = lazy(() => import('./features/sedes/pages/SedeDetalle'));
 const Partidos = lazy(() => import('./features/partidos/pages/Partidos'));
 const PartidoDetalle = lazy(() => import('./features/partidos/pages/PartidoDetalle'));
+const TvPage = lazy(() => import('./features/tv/pages/TvPage'));
 const PlazaExplorar = lazy(() => import('./features/leagueofdodgeball/pages/PlazaExplorar'));
 const PlazaLobby = lazy(() => import('./features/leagueofdodgeball/pages/PlazaLobby'));
 const PlazaCrear = lazy(() => import('./features/leagueofdodgeball/pages/PlazaCrear'));
@@ -104,6 +105,7 @@ const App: React.FC = () => (
             <Route path="/sedes/:id" element={<SedeDetalle />} />
             <Route path="/partidos" element={<Partidos />} />
             <Route path="/partidos/:id" element={<PartidoDetalle />} />
+            <Route path="/tv" element={<TvPage />} />
             <Route path="/como-se-juega" element={<ComoSeJuegaPage />} />
             <Route path="/reglamento" element={<ReglamentoPage />} />
             
