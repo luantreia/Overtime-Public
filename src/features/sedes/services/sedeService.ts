@@ -19,6 +19,11 @@ export interface Sede {
 export class SedeService {
   private static readonly API_ENDPOINT = '/sedes';
 
+  static async getAll(): Promise<Sede[]> {
+    const data = await fetchWithAuth<any[]>(this.API_ENDPOINT);
+    return data.map(item => ({ ...item, id: item._id || item.id }));
+  }
+
   static async getById(id: string): Promise<Sede> {
     const data = await fetchWithAuth<any>(`${this.API_ENDPOINT}/${id}`);
     return { ...data, id: data._id || data.id };

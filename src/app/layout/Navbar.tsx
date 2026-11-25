@@ -17,6 +17,7 @@ const links = [
   { to: '/equipos', label: 'Equipos' },
   { to: '/competencias', label: 'Competencias' },
   { to: '/partidos', label: 'Partidos' },
+  { to: '/sedes', label: 'Sedes' },
   { to: '/tv', label: 'TV' },
   { to: '/como-se-juega', label: 'Cómo se juega' },
 ];
