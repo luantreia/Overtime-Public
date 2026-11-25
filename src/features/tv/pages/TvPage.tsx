@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   ArrowPathIcon,
+  ArrowsPointingInIcon,
   ArrowsPointingOutIcon,
   SignalIcon,
   SpeakerWaveIcon,
@@ -50,30 +51,63 @@ const Escudo: React.FC<{ src?: string; nombre: string }> = ({ src, nombre }) =>
     </span>
   );
 
+/** Escudo + nombre; si el equipo tiene ficha, todo el bloque lleva a ella. */
+const LadoEquipo: React.FC<{ equipo?: VideoTv['equipoLocal']; fallback: string; invertido?: boolean }> = ({
+  equipo,
+  fallback,
+  invertido,
+}) => {
+  const nombre = equipo?.nombre ?? fallback;
+  const clase = `flex min-w-0 flex-1 items-center gap-2 ${invertido ? 'flex-row-reverse text-right' : ''}`;
+  const contenido = (
+    <>
+      <Escudo src={equipo?.escudo} nombre={nombre} />
+      <span className="truncate font-semibold">{nombre}</span>
+    </>
+  );
+  return equipo?._id ? (
+    <Link to={`/equipos/${equipo._id}`} className={`${clase} rounded hover:underline`} title={`Ver ${nombre}`}>
+      {contenido}
+    </Link>
+  ) : (
+    <div className={clase}>{contenido}</div>
+  );
+};
+
 const Marcador: React.FC<{ video: VideoTv; mostrarResultado: boolean }> = ({ video, mostrarResultado }) => {
-  const local = video.equipoLocal?.nombre ?? 'Local';
-  const visitante = video.equipoVisitante?.nombre ?? 'Visitante';
   const hay = mostrarResultado && typeof video.marcadorLocal === 'number' && typeof video.marcadorVisitante === 'number';
   return (
-    <div className="flex items-center justify-center gap-3">
-      <div className="flex min-w-0 items-center gap-2">
-        <Escudo src={video.equipoLocal?.escudo} nombre={local} />
-        <span className="truncate font-semibold">{local}</span>
-      </div>
+    <div className="flex min-w-0 items-center gap-3">
+      <LadoEquipo equipo={video.equipoLocal} fallback="Local" />
       <span className="shrink-0 font-bold tabular-nums text-brand-300">
         {hay ? `${video.marcadorLocal} – ${video.marcadorVisitante}` : 'vs'}
       </span>
-      <div className="flex min-w-0 flex-row-reverse items-center gap-2">
-        <Escudo src={video.equipoVisitante?.escudo} nombre={visitante} />
-        <span className="truncate font-semibold">{visitante}</span>
-      </div>
+      <LadoEquipo equipo={video.equipoVisitante} fallback="Visitante" invertido />
     </div>
   );
 };
 
 const BotonIcono: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({ className = '', ...props }) => (
-  <button type="button" className={`rounded-lg p-2 hover:bg-white/10 disabled:opacity-40 ${className}`} {...props} />
+  <button
+    type="button"
+    className={`flex h-11 w-11 items-center justify-center rounded-lg hover:bg-white/10 disabled:opacity-40 ${className}`}
+    {...props}
+  />
 );
+
+/** Celular en horizontal: el video pasa a ocupar toda la pantalla. */
+const CONSULTA_APAISADO = '(orientation: landscape) and (max-height: 500px)';
+const useApaisado = () => {
+  const [apaisado, setApaisado] = useState(() => window.matchMedia?.(CONSULTA_APAISADO).matches ?? false);
+  useEffect(() => {
+    const mq = window.matchMedia?.(CONSULTA_APAISADO);
+    if (!mq) return;
+    const alCambiar = () => setApaisado(mq.matches);
+    mq.addEventListener('change', alCambiar);
+    return () => mq.removeEventListener('change', alCambiar);
+  }, []);
+  return apaisado;
+};
 
 const TvPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -119,6 +153,8 @@ const TvPage: React.FC = () => {
   const [silenciado, setSilenciado] = useState(true);
   const [repitiendo, setRepitiendo] = useState(false);
   const [mostrarResultado, setMostrarResultado] = useState(false);
+  /** Clave (`cargado`) del video que YouTube no pudo reproducir: privado, borrado o sin embed. */
+  const [fallido, setFallido] = useState<string | null>(null);
 
   const segundoEsperado = useCallback((e: Emision) => e.video.inicio + (reloj() - e.desde) / 1000, [reloj]);
 
@@ -187,7 +223,10 @@ const TvPage: React.FC = () => {
                 volverAlVivoRef.current();
               }
             },
-            onError: (e) => console.warn('[Overtime TV] error del reproductor', e.data, video.videoId),
+            onError: (e) => {
+              console.warn('[Overtime TV] error del reproductor', e.data, cargado.current);
+              setFallido(cargado.current);
+            },
           },
         });
       })
@@ -279,11 +318,50 @@ const TvPage: React.FC = () => {
     }
   };
 
+  // --- Expandir / horizontal ------------------------------------------------------------------
+  // Pantalla completa nativa donde se puede (Android, desktop); en iPhone Safari no deja poner
+  // en fullscreen un div, así que el mismo estado lo resuelve por CSS (fixed inset-0).
   const pantalla = useRef<HTMLDivElement>(null);
+  const [expandido, setExpandido] = useState(false);
+  const apaisado = useApaisado();
+  const inmersivo = expandido || apaisado;
+
   const pantallaCompleta = () => {
-    if (document.fullscreenElement) void document.exitFullscreen();
-    else void pantalla.current?.requestFullscreen?.();
+    if (expandido) {
+      if (document.fullscreenElement) void document.exitFullscreen().catch(() => undefined);
+      setExpandido(false);
+      return;
+    }
+    setExpandido(true);
+    pantalla.current
+      ?.requestFullscreen?.()
+      .then(() => {
+        const o = window.screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> };
+        return o?.lock?.('landscape');
+      })
+      .catch(() => undefined);
   };
+
+  useEffect(() => {
+    const alSalir = () => !document.fullscreenElement && setExpandido(false);
+    const alTeclear = (e: KeyboardEvent) => e.key === 'Escape' && setExpandido(false);
+    document.addEventListener('fullscreenchange', alSalir);
+    window.addEventListener('keydown', alTeclear);
+    return () => {
+      document.removeEventListener('fullscreenchange', alSalir);
+      window.removeEventListener('keydown', alTeclear);
+    };
+  }, []);
+
+  // Sin scroll de fondo mientras el video ocupa toda la pantalla.
+  useEffect(() => {
+    if (!inmersivo) return;
+    const previo = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previo;
+    };
+  }, [inmersivo]);
 
   const cambiarCanal = (nuevo: string) => {
     const next = new URLSearchParams(searchParams);
@@ -341,126 +419,189 @@ const TvPage: React.FC = () => {
   }
 
   const restante = actual ? actual.hasta - ahora : Infinity;
+  const claveEnPantalla = vod ? `vod-${vod._id}` : actual ? `${actual.desde}-${actual.video._id}` : null;
+  const noDisponible = fallido !== null && fallido === claveEnPantalla;
 
   return (
-    <div className="space-y-4">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="flex items-center gap-2 text-2xl font-bold text-slate-900">
-          <TvIcon className="h-7 w-7 text-brand-600" aria-hidden="true" /> Overtime TV
+    <div className="min-w-0 space-y-3 sm:space-y-4">
+      <header className="flex min-w-0 items-center justify-between gap-3">
+        <h1 className="flex shrink-0 items-center gap-2 text-xl font-bold text-slate-900 sm:text-2xl">
+          <TvIcon className="h-6 w-6 text-brand-600 sm:h-7 sm:w-7" aria-hidden="true" /> Overtime TV
         </h1>
-        <div className="flex items-center gap-3">
-          {modo === 'vod' && (
-            <button
-              type="button"
-              onClick={volverAlVivo}
-              className="flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-red-700"
-            >
-              <SignalIcon className="h-4 w-4" aria-hidden="true" /> Volver al vivo
-            </button>
-          )}
-          <label className="flex items-center gap-2 text-sm text-slate-700">
-            Canal
-            <select
-              value={canal}
-              onChange={(e) => cambiarCanal(e.target.value)}
-              className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm"
-            >
-              <option value="">Todo ({items.length})</option>
-              {canales.map(([nombre, n]) => (
-                <option key={nombre} value={nombre}>
-                  {nombre} ({n})
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
+        <label className="flex min-w-0 items-center gap-2 text-sm text-slate-700">
+          <span className="sr-only sm:not-sr-only">Canal</span>
+          <select
+            value={canal}
+            onChange={(e) => cambiarCanal(e.target.value)}
+            className="min-w-0 max-w-full truncate rounded-lg border border-slate-300 bg-white py-2 pl-3 pr-8 text-sm sm:max-w-xs"
+          >
+            <option value="">Todos los canales ({items.length})</option>
+            {canales.map(([nombre, n]) => (
+              <option key={nombre} value={nombre}>
+                {nombre} ({n})
+              </option>
+            ))}
+          </select>
+        </label>
       </header>
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_20rem]">
-        <div ref={pantalla} className="relative overflow-hidden rounded-xl bg-black text-white">
-          <div className="relative aspect-video w-full [&_iframe]:absolute [&_iframe]:inset-0 [&_iframe]:h-full [&_iframe]:w-full">
+      <div className="grid min-w-0 gap-3 sm:gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div
+          ref={pantalla}
+          className={`min-w-0 overflow-hidden bg-black text-white ${
+            inmersivo ? 'fixed inset-0 z-50 flex flex-col' : 'relative rounded-xl'
+          }`}
+        >
+          <div
+            className={`relative w-full [&_iframe]:absolute [&_iframe]:inset-0 [&_iframe]:h-full [&_iframe]:w-full ${
+              inmersivo ? 'min-h-0 flex-1' : 'aspect-video'
+            }`}
+          >
             <div ref={contenedor} className="absolute inset-0" />
 
-            {/* En vivo, una capa transparente evita pausar o adelantar clickeando el video. */}
-            {modo === 'vivo' && <div className="absolute inset-0 z-[5]" aria-hidden="true" />}
+            {/* En vivo, una capa transparente evita pausar o adelantar clickeando el video;
+                mientras está silenciado, tocarla activa el sonido. */}
+            {modo === 'vivo' &&
+              (silenciado && listo ? (
+                <button
+                  type="button"
+                  onClick={alternarSonido}
+                  className="absolute inset-0 z-[5] cursor-pointer"
+                  aria-label="Activar sonido"
+                />
+              ) : (
+                <div className="absolute inset-0 z-[5]" aria-hidden="true" />
+              ))}
 
             <span
-              className={`absolute left-3 top-3 z-10 flex items-center gap-1.5 rounded px-2 py-0.5 text-xs font-bold uppercase tracking-wider ${
-                modo === 'vivo' ? 'bg-red-600' : 'bg-slate-800/90'
+              className={`absolute left-2 top-2 z-10 max-w-[60%] truncate rounded px-2 py-0.5 text-xs font-bold uppercase tracking-wider sm:left-3 sm:top-3 ${
+                modo === 'vivo' ? 'bg-brand-600' : 'bg-slate-800/90'
               }`}
             >
-              {modo === 'vivo' ? (
-                <>
-                  <span className="h-2 w-2 animate-pulse rounded-full bg-white" aria-hidden="true" /> En el aire
-                </>
-              ) : (
-                'On demand'
-              )}
+              {modo === 'vivo' ? `Repetición${enPantalla?.fecha ? ` · ${fechaCorta(enPantalla.fecha)}` : ''}` : 'On demand'}
             </span>
 
-            {repitiendo && (
-              <span className="absolute right-3 top-3 z-10 rounded bg-brand-600 px-2 py-0.5 text-xs font-bold uppercase tracking-wider">
-                Repetición · cámara lenta
-              </span>
-            )}
-
-            {silenciado && listo && (
+            {modo === 'vod' && (
               <button
                 type="button"
-                onClick={alternarSonido}
-                className="absolute left-1/2 top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-full bg-brand-600 px-5 py-3 font-semibold shadow-lg hover:bg-brand-700"
+                onClick={volverAlVivo}
+                className="absolute right-2 top-2 z-10 flex items-center gap-1.5 rounded-lg bg-slate-950/80 px-3 py-1.5 text-xs font-semibold hover:bg-slate-950 sm:right-3 sm:top-3"
               >
-                <SpeakerWaveIcon className="h-5 w-5" aria-hidden="true" /> Activar sonido
+                <SignalIcon className="h-4 w-4" aria-hidden="true" /> Volver a la TV
               </button>
             )}
 
-            {modo === 'vivo' && proxima && restante < AVISO_PROXIMO_MS && (
-              <div className="absolute bottom-3 right-3 z-10 max-w-[80%] rounded-lg bg-slate-950/90 px-3 py-2 text-right text-sm shadow-lg">
+            {repitiendo && (
+              <span className="absolute left-1/2 top-10 z-10 -translate-x-1/2 whitespace-nowrap rounded bg-slate-950/80 px-2 py-0.5 text-xs font-bold uppercase tracking-wider sm:top-3">
+                Cámara lenta
+              </span>
+            )}
+
+            {silenciado && listo && !noDisponible && (
+              <button
+                type="button"
+                onClick={alternarSonido}
+                className={`absolute left-2 z-10 flex items-center gap-1.5 rounded-full bg-slate-950/80 px-3 py-1.5 text-xs font-semibold hover:bg-slate-950 sm:left-3 ${
+                  modo === 'vod' ? 'bottom-14' : 'bottom-2 sm:bottom-3'
+                }`}
+              >
+                <SpeakerXMarkIcon className="h-4 w-4" aria-hidden="true" /> Tocá para activar el sonido
+              </button>
+            )}
+
+            {modo === 'vivo' && proxima && restante < AVISO_PROXIMO_MS && !noDisponible && (
+              <div className="absolute bottom-2 right-2 z-10 max-w-[45%] rounded-lg bg-slate-950/90 px-3 py-2 text-right text-sm shadow-lg sm:bottom-3 sm:right-3">
                 <p className="text-xs font-semibold uppercase tracking-wider text-brand-300">A continuación</p>
                 <p className="truncate font-semibold">{titulo(proxima.video)}</p>
+              </div>
+            )}
+
+            {noDisponible && (
+              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-slate-950 p-4 text-center">
+                <p className="font-semibold">Este video no está disponible.</p>
+                {modo === 'vivo' ? (
+                  <p className="text-sm text-slate-300">
+                    {proxima ? `A las ${hora(proxima.desde)}: ${titulo(proxima.video)}` : 'Sigue en un momento.'}
+                  </p>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={volverAlVivo}
+                    className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold hover:bg-brand-700"
+                  >
+                    Volver a la TV
+                  </button>
+                )}
               </div>
             )}
           </div>
 
           {enPantalla && (
-            <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-900 px-4 py-3">
+            <div
+              className={`flex min-w-0 bg-slate-900 ${
+                inmersivo ? 'items-center gap-2 px-2 py-1' : 'flex-col gap-2 px-3 py-3 sm:px-4'
+              }`}
+            >
               <div className="min-w-0 flex-1">
                 <Marcador video={enPantalla} mostrarResultado={mostrarResultado} />
-                <p className="mt-1 truncate text-center text-xs text-slate-400">{subtitulo(enPantalla)}</p>
+                {!inmersivo && <p className="mt-1 truncate text-center text-xs text-slate-400">{subtitulo(enPantalla)}</p>}
               </div>
-              <div className="flex items-center gap-1">
+              <div
+                className={`flex shrink-0 items-center gap-1 ${
+                  inmersivo ? '' : 'justify-between border-t border-white/10 pt-2'
+                }`}
+              >
                 <button
                   type="button"
                   onClick={() => setMostrarResultado((v) => !v)}
-                  className="rounded-lg px-2 py-1.5 text-xs font-semibold text-slate-300 hover:bg-white/10"
+                  className="h-11 rounded-lg px-3 text-xs font-semibold text-slate-300 hover:bg-white/10"
                   aria-pressed={mostrarResultado}
                 >
                   {mostrarResultado ? 'Ocultar resultado' : 'Ver resultado'}
                 </button>
-                <BotonIcono
-                  onClick={repetir}
-                  disabled={!listo || repitiendo}
-                  aria-label="Repetición: últimos 10 segundos en cámara lenta"
-                  title="Repetición (últimos 10 s en cámara lenta)"
-                >
-                  <ArrowPathIcon className="h-5 w-5" aria-hidden="true" />
-                </BotonIcono>
-                <BotonIcono onClick={alternarSonido} aria-label={silenciado ? 'Activar sonido' : 'Silenciar'}>
-                  {silenciado ? (
-                    <SpeakerXMarkIcon className="h-5 w-5" aria-hidden="true" />
-                  ) : (
-                    <SpeakerWaveIcon className="h-5 w-5" aria-hidden="true" />
+                <div className="flex items-center">
+                  <BotonIcono
+                    onClick={repetir}
+                    disabled={!listo || repitiendo}
+                    aria-label="Repetición: últimos 10 segundos en cámara lenta"
+                    title="Repetición (últimos 10 s en cámara lenta)"
+                  >
+                    <ArrowPathIcon className="h-5 w-5" aria-hidden="true" />
+                  </BotonIcono>
+                  <BotonIcono onClick={alternarSonido} aria-label={silenciado ? 'Activar sonido' : 'Silenciar'}>
+                    {silenciado ? (
+                      <SpeakerXMarkIcon className="h-5 w-5" aria-hidden="true" />
+                    ) : (
+                      <SpeakerWaveIcon className="h-5 w-5" aria-hidden="true" />
+                    )}
+                  </BotonIcono>
+                  {!apaisado && (
+                    <BotonIcono
+                      onClick={pantallaCompleta}
+                      aria-label={expandido ? 'Salir de pantalla completa' : 'Pantalla completa'}
+                    >
+                      {expandido ? (
+                        <ArrowsPointingInIcon className="h-5 w-5" aria-hidden="true" />
+                      ) : (
+                        <ArrowsPointingOutIcon className="h-5 w-5" aria-hidden="true" />
+                      )}
+                    </BotonIcono>
                   )}
-                </BotonIcono>
-                <BotonIcono onClick={pantallaCompleta} aria-label="Pantalla completa">
-                  <ArrowsPointingOutIcon className="h-5 w-5" aria-hidden="true" />
-                </BotonIcono>
+                </div>
               </div>
+              {!inmersivo && (
+                <Link
+                  to={`/partidos/${enPantalla._id}`}
+                  className="border-t border-white/10 pt-2 text-center text-sm font-semibold text-brand-300 hover:underline"
+                >
+                  Ver ficha del partido →
+                </Link>
+              )}
             </div>
           )}
         </div>
 
-        <aside className="flex max-h-[36rem] flex-col rounded-xl border border-slate-200 bg-white">
+        <aside className="flex min-w-0 flex-col rounded-xl border border-slate-200 bg-white lg:max-h-[36rem]">
           <div role="tablist" aria-label="Programación" className="flex border-b border-slate-200">
             {(
               [
@@ -474,7 +615,7 @@ const TvPage: React.FC = () => {
                 role="tab"
                 aria-selected={pestana === id}
                 onClick={() => setPestana(id)}
-                className={`flex-1 px-4 py-2.5 text-sm font-semibold ${
+                className={`min-h-11 flex-1 px-4 py-2.5 text-sm font-semibold ${
                   pestana === id ? 'border-b-2 border-brand-600 text-brand-700' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -483,7 +624,7 @@ const TvPage: React.FC = () => {
             ))}
           </div>
 
-          <div className="overflow-y-auto p-2">
+          <div className="min-w-0 p-2 lg:overflow-y-auto">
             {pestana === 'guia' ? (
               <ol>
                 {emisiones.map((e) => {
@@ -494,7 +635,7 @@ const TvPage: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => (esActual ? volverAlVivo() : verOnDemand(e.video._id))}
-                        className={`flex w-full gap-3 rounded-lg px-2 py-2 text-left text-sm hover:bg-slate-50 ${
+                        className={`flex w-full min-w-0 gap-3 rounded-lg px-2 py-2 text-left text-sm hover:bg-slate-50 ${
                           esActual ? 'bg-red-50' : ''
                         }`}
                       >
@@ -529,7 +670,7 @@ const TvPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => verOnDemand(v._id)}
-                      className={`w-full rounded-lg px-2 py-2 text-left text-sm hover:bg-slate-50 ${
+                      className={`w-full min-w-0 rounded-lg px-2 py-2 text-left text-sm hover:bg-slate-50 ${
                         vod?._id === v._id ? 'bg-brand-50' : ''
                       }`}
                     >
@@ -543,15 +684,6 @@ const TvPage: React.FC = () => {
               </ul>
             )}
           </div>
-
-          {enPantalla && (
-            <Link
-              to={`/partidos/${enPantalla._id}`}
-              className="border-t border-slate-200 px-4 py-3 text-sm font-semibold text-brand-700 hover:underline"
-            >
-              Ver ficha del partido →
-            </Link>
-          )}
         </aside>
       </div>
     </div>
