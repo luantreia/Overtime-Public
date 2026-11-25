@@ -35,6 +35,17 @@
   ],
   "rewrites": [
     {
+      "source": "/tv",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*([Bb]ot|[Cc]rawler|[Ss]pider|facebookexternalhit|Facebot|WhatsApp|Slack|Discord|Telegram|LinkedIn|Pinterest|Embedly|Google-InspectionTool|Applebot|redditbot|Iframely|SkypeUriPreview|vkShare).*"
+        }
+      ],
+      "destination": "/api/seo?tipo=tv"
+    },
+    {
       "source": "/sitemap.xml",
       "destination": "/api/sitemap"
     },

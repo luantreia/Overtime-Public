@@ -5,6 +5,7 @@ import {
   ArrowPathIcon,
   ArrowsPointingInIcon,
   ArrowsPointingOutIcon,
+  ShareIcon,
   SignalIcon,
   SpeakerWaveIcon,
   SpeakerXMarkIcon,
@@ -90,7 +91,7 @@ const Marcador: React.FC<{ video: VideoTv; mostrarResultado: boolean }> = ({ vid
 const BotonIcono: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({ className = '', ...props }) => (
   <button
     type="button"
-    className={`flex h-11 w-11 items-center justify-center rounded-lg hover:bg-white/10 disabled:opacity-40 ${className}`}
+    className={`flex h-11 w-10 items-center justify-center rounded-lg sm:w-11 hover:bg-white/10 disabled:opacity-40 ${className}`}
     {...props}
   />
 );
@@ -315,6 +316,26 @@ const TvPage: React.FC = () => {
       p.mute();
       sessionStorage.removeItem('tv-sonido');
       setSilenciado(true);
+    }
+  };
+
+  // --- Compartir ---------------------------------------------------------------------------
+  // El link abre ese partido on demand; la vista previa (OG) la arma api/seo.js para los bots.
+  const [copiado, setCopiado] = useState(false);
+  const compartir = async () => {
+    if (!enPantalla) return;
+    const url = `${window.location.origin}/tv?ver=${enPantalla._id}`;
+    const title = `${titulo(enPantalla)} en Overtime TV`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, text: `Mirá ${titulo(enPantalla)} en Overtime TV`, url });
+        return;
+      }
+      await navigator.clipboard.writeText(url);
+      setCopiado(true);
+      window.setTimeout(() => setCopiado(false), 2000);
+    } catch (err) {
+      if ((err as Error)?.name !== 'AbortError') console.warn('[Overtime TV] no se pudo compartir', err);
     }
   };
 
@@ -557,9 +578,20 @@ const TvPage: React.FC = () => {
                   className="h-11 rounded-lg px-3 text-xs font-semibold text-slate-300 hover:bg-white/10"
                   aria-pressed={mostrarResultado}
                 >
-                  {mostrarResultado ? 'Ocultar resultado' : 'Ver resultado'}
+                  {mostrarResultado ? 'Ocultar resultado' : 'Resultado'}
                 </button>
-                <div className="flex items-center">
+                <div className="relative flex items-center">
+                  {copiado && (
+                    <span
+                      role="status"
+                      className="absolute -top-8 left-0 whitespace-nowrap rounded bg-slate-950 px-2 py-1 text-xs font-semibold"
+                    >
+                      ¡Link copiado!
+                    </span>
+                  )}
+                  <BotonIcono onClick={compartir} aria-label="Compartir este partido" title="Compartir">
+                    <ShareIcon className="h-5 w-5" aria-hidden="true" />
+                  </BotonIcono>
                   <BotonIcono
                     onClick={repetir}
                     disabled={!listo || repitiendo}

@@ -137,6 +137,7 @@ module.exports = async (req, res) => {
   const htmlRes = await fetch(`${base}/index.html`);
   let html = await htmlRes.text();
 
+  if (tipo === 'tv') return tv(req, res, base, html);
   if (!id && ESTATICAS[tipo]) return estatica(res, tipo, base, html);
   if (!id && tipo === 'ranking') return ranking(res, base, html);
   if (!id && LISTADOS[tipo]) return listado(req, res, tipo, base, html);
@@ -245,4 +246,46 @@ async function listado(req, res, tipo, base, html) {
       `<main$1><h1>${esc(L.titulo)}</h1><p>${esc(L.descripcion(lista.length))}</p><ul>${lis}</ul><p><a href="/">Overtime Dodgeball</a></p></main>`);
   }
   enviar(res, html, lista.length > 0);
+}
+
+// /tv y /tv?ver=<partidoId> para bots: la vista previa del link que arma el botón Compartir de
+// Overtime TV. Con partido, la imagen es la miniatura de YouTube (más vistosa que el escudo).
+const youtubeId = (url) =>
+  String(url || "").match(/(?:youtu\.be\/|[?&]v=|\/embed\/|\/shorts\/|\/live\/)([\w-]{11})/)?.[1] || null;
+
+async function tv(req, res, base, html) {
+  const ver = String(req.query.ver || '');
+  const p = /^[a-f0-9]{24}$/i.test(ver) ? await getJson(`/partidos/${ver}`) : null;
+
+  if (!p) {
+    const descripcion = 'Overtime TV: partidos de dodgeball las 24 horas, con un canal por liga. Entrá y mirá lo que está en el aire.';
+    html = aplicarMeta(html, 'Overtime TV | Overtime Dodgeball', descripcion, `${base}/tv`, { '@type': 'WebPage', name: 'Overtime TV' });
+    html = html.replace(/<main([^>]*)>[\s\S]*?<\/main>/, `<main$1><h1>Overtime TV</h1><p>${esc(descripcion)}</p><p><a href="/">Overtime Dodgeball</a></p></main>`);
+    return enviar(res, html, !ver);
+  }
+
+  const local = p.equipoLocal?.nombre || 'Local';
+  const visitante = p.equipoVisitante?.nombre || 'Visitante';
+  const competencia = typeof p.competencia === 'object' ? p.competencia?.nombre : '';
+  const titulo = `${local} vs ${visitante} en Overtime TV`;
+  // Sin resultado en la descripción: la TV oculta el marcador para no spoilear.
+  const descripcion = resumir(`Mirá el partido completo de dodgeball${competencia ? ` de la ${competencia}` : ''}. Sin spoilers: el resultado está oculto hasta que lo quieras ver.`);
+  const url = `${base}/tv?ver=${p._id}`;
+  const vid = youtubeId(p.videoUrl);
+  const imagen = vid ? `https://i.ytimg.com/vi/${vid}/hqdefault.jpg` : p.equipoLocal?.escudo;
+
+  html = aplicarMeta(html, titulo, descripcion, url, {
+    '@type': 'VideoObject', name: `${local} vs ${visitante}`, description: descripcion,
+    thumbnailUrl: imagen, uploadDate: p.fecha, embedUrl: vid ? `https://www.youtube.com/embed/${vid}` : undefined,
+  });
+  if (imagen) {
+    html = setMeta(html, 'property', 'og:image', imagen);
+    html = setMeta(html, 'name', 'twitter:image', imagen);
+  }
+  html = setMeta(html, 'property', 'og:type', 'video.other');
+  html = setMeta(html, 'name', 'twitter:card', 'summary_large_image');
+  html = html.replace(/<main([^>]*)>[\s\S]*?<\/main>/,
+    `<main$1><h1>${esc(`${local} vs ${visitante}`)}</h1><p>${esc(descripcion)}</p>` +
+    `<p><a href="/partidos/${esc(p._id)}">Ficha del partido</a> · <a href="/tv">Overtime TV</a></p></main>`);
+  enviar(res, html, true);
 }
