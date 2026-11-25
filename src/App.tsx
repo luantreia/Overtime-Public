@@ -65,6 +65,8 @@ const LoDLanding = lazy(() => import('./features/leagueofdodgeball/pages/LoDLand
 const SolicitudesPage = lazy(() => import('./features/solicitudes/pages/SolicitudesPage'));
 const Perfil = lazy(() => import('./features/perfil/pages/PerfilPage'));
 const LoginPage = lazy(() => import('./features/auth/pages/LoginPage'));
+const OlvidePasswordPage = lazy(() => import('./features/auth/pages/OlvidePasswordPage'));
+const ResetPasswordPage = lazy(() => import('./features/auth/pages/ResetPasswordPage'));
 const RegisterPage = lazy(() => import('./features/auth/pages/RegisterPage'));
 // El canje se mudó a Overtime-Manager. Esto sólo redirige las invitaciones ya enviadas.
 const ClaimRedirect = lazy(() => import('./features/auth/pages/ClaimRedirect'));
@@ -94,6 +96,8 @@ const App: React.FC = () => (
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/olvide-password" element={<OlvidePasswordPage />} />
+            <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/claim/:token" element={<ClaimRedirect />} />
             <Route path="/jugadores" element={<Jugadores />} />
