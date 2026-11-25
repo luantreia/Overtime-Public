@@ -102,7 +102,7 @@ const PartidoTile = ({ p }: { p: Partido }) => {
   return (
     <Link
       to={`/partidos/${idDe(p)}`}
-      className={`block w-[82%] min-w-0 flex-shrink-0 snap-start rounded-2xl border bg-white p-4 shadow-sm transition hover:shadow-md sm:w-auto ${
+      className={`relative block w-[82%] min-w-0 flex-shrink-0 snap-start rounded-2xl border bg-white p-4 shadow-sm transition hover:shadow-md sm:w-auto ${
         p.estado === 'en_juego' ? 'border-red-200' : 'border-slate-200 hover:border-brand-300'
       }`}
     >
