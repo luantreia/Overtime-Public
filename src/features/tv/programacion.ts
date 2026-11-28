@@ -8,7 +8,11 @@
  */
 
 export interface VideoTv {
+  /** Id del partido (los links compartidos lo usan) o del video, si es suelto. */
   _id: string;
+  /** null = video suelto (highlights, clínicas): no tiene equipos ni ficha de partido. */
+  partidoId?: string | null;
+  titulo?: string;
   videoId: string;
   /** Segundo del video donde arranca el partido (el `t=` del link). */
   inicio: number;
@@ -21,6 +25,15 @@ export interface VideoTv {
   equipoVisitante?: { _id: string; nombre: string; escudo?: string };
   competencia?: { _id: string; nombre: string };
   fase?: { _id: string; nombre: string };
+}
+
+/** Canal armado en Overtime-Admin: qué items (por `_id`) programa. */
+export interface CanalTv {
+  _id: string;
+  slug: string;
+  nombre: string;
+  descripcion?: string;
+  ids: string[];
 }
 
 export interface Emision {
@@ -67,9 +80,22 @@ const mezclarConSemilla = <T,>(arr: T[], semilla: string): T[] => {
   return a;
 };
 
+/**
+ * Los videos de un canal. Con canales de Admin, `canal` es un slug; sin ninguno (todavía no se
+ * armaron), cada competencia es un canal y `canal` es su nombre. '' = todos.
+ */
+export const videosDelCanal = (videos: VideoTv[], canal: string, canales: CanalTv[] = []): VideoTv[] => {
+  if (!canal) return videos;
+  if (canales.length) {
+    const ids = new Set(canales.find((c) => c.slug === canal)?.ids ?? []);
+    return videos.filter((v) => ids.has(v._id));
+  }
+  return videos.filter((v) => nombreCompetencia(v) === canal);
+};
+
 /** Orden del día para un canal. `videos` debe venir en el mismo orden para todos (el backend ordena por _id). */
-export const ordenDelDia = (videos: VideoTv[], canal: string, ahora: number): VideoTv[] => {
-  const delCanal = videos.filter((v) => !canal || nombreCompetencia(v) === canal);
+export const ordenDelDia = (videos: VideoTv[], canal: string, ahora: number, canales: CanalTv[] = []): VideoTv[] => {
+  const delCanal = videosDelCanal(videos, canal, canales);
   const dia = new Date(inicioDelDia(ahora)).toISOString().slice(0, 10);
   return mezclarConSemilla(delCanal, `${dia}|${canal}`);
 };
@@ -84,8 +110,9 @@ export const grilla = (
   ahora: number,
   antes = 0,
   despues = 0,
+  canales: CanalTv[] = [],
 ): { actual: Emision | null; emisiones: Emision[] } => {
-  const orden = ordenDelDia(videos, canal, ahora);
+  const orden = ordenDelDia(videos, canal, ahora, canales);
   const ciclo = orden.reduce((s, v) => s + v.duracion * 1000, 0);
   if (orden.length === 0 || ciclo <= 0) return { actual: null, emisiones: [] };
 

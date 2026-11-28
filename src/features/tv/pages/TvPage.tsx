@@ -13,7 +13,7 @@ import {
 } from '@heroicons/react/24/solid';
 import { fetchWithAuth } from '../../../utils/apiClient';
 import { cargarYoutubeIframeApi, type YTPlayer } from '../../../shared/utils/youtubeIframeApi';
-import { grilla, nombreCompetencia, type Emision, type VideoTv } from '../programacion';
+import { grilla, nombreCompetencia, videosDelCanal, type CanalTv, type Emision, type VideoTv } from '../programacion';
 
 /**
  * Overtime TV.
@@ -32,6 +32,8 @@ const AVISO_PROXIMO_MS = 20_000;
 
 interface CatalogoTv {
   items: VideoTv[];
+  /** Canales de Overtime-Admin. Vacío = un canal por competencia. */
+  canales: CanalTv[];
   /** Diferencia entre el reloj del servidor y el local, para que todos vean el mismo segundo. */
   desfase: number;
 }
@@ -39,8 +41,11 @@ interface CatalogoTv {
 const hora = (ms: number) => new Date(ms).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
 const fechaCorta = (f?: string) =>
   f ? new Date(f).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
-const titulo = (v: VideoTv) => `${v.equipoLocal?.nombre ?? 'Local'} vs ${v.equipoVisitante?.nombre ?? 'Visitante'}`;
-const subtitulo = (v: VideoTv) => [nombreCompetencia(v), v.fase?.nombre, fechaCorta(v.fecha)].filter(Boolean).join(' · ');
+const esPartido = (v: VideoTv) => v.partidoId !== null;
+const titulo = (v: VideoTv) =>
+  esPartido(v) ? `${v.equipoLocal?.nombre ?? 'Local'} vs ${v.equipoVisitante?.nombre ?? 'Visitante'}` : v.titulo || 'Video';
+const subtitulo = (v: VideoTv) =>
+  (esPartido(v) ? [nombreCompetencia(v), v.fase?.nombre, fechaCorta(v.fecha)] : [v.competencia?.nombre]).filter(Boolean).join(' · ');
 const claveVod = (id: string) => `tv-vod-${id}`;
 
 const Escudo: React.FC<{ src?: string; nombre: string }> = ({ src, nombre }) =>
@@ -76,6 +81,7 @@ const LadoEquipo: React.FC<{ equipo?: VideoTv['equipoLocal']; fallback: string; 
 };
 
 const Marcador: React.FC<{ video: VideoTv; mostrarResultado: boolean }> = ({ video, mostrarResultado }) => {
+  if (!esPartido(video)) return <p className="truncate text-center font-semibold">{titulo(video)}</p>;
   const hay = mostrarResultado && typeof video.marcadorLocal === 'number' && typeof video.marcadorVisitante === 'number';
   return (
     <div className="flex min-w-0 items-center gap-3">
@@ -118,12 +124,13 @@ const TvPage: React.FC = () => {
   const { data, isLoading, isError, refetch } = useQuery<CatalogoTv>({
     queryKey: ['tv', 'catalogo'],
     queryFn: async () => {
-      const r = await fetchWithAuth<{ ahora: number; items: VideoTv[] }>('/tv/videos');
-      return { items: r.items ?? [], desfase: (r.ahora ?? Date.now()) - Date.now() };
+      const r = await fetchWithAuth<{ ahora: number; items: VideoTv[]; canales?: CanalTv[] }>('/tv/videos');
+      return { items: r.items ?? [], canales: r.canales ?? [], desfase: (r.ahora ?? Date.now()) - Date.now() };
     },
     staleTime: 1000 * 60 * 5,
   });
   const items = useMemo(() => data?.items ?? [], [data]);
+  const canalesAdmin = useMemo(() => data?.canales ?? [], [data]);
   const desfase = data?.desfase ?? 0;
   const reloj = useCallback(() => Date.now() + desfase, [desfase]);
 
@@ -133,13 +140,17 @@ const TvPage: React.FC = () => {
     return () => window.clearInterval(t);
   }, [reloj]);
 
-  const canales = useMemo(() => {
+  // [valor del <select>, nombre, cantidad]. Con canales de Admin el valor es el slug.
+  const canales = useMemo((): [string, string, number][] => {
+    if (canalesAdmin.length) return canalesAdmin.map((c) => [c.slug, c.nombre, c.ids.length]);
     const conteo = new Map<string, number>();
     items.forEach((v) => conteo.set(nombreCompetencia(v), (conteo.get(nombreCompetencia(v)) ?? 0) + 1));
-    return Array.from(conteo.entries()).sort((a, b) => b[1] - a[1]);
-  }, [items]);
+    return Array.from(conteo.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([nombre, n]): [string, string, number] => [nombre, nombre, n]);
+  }, [items, canalesAdmin]);
 
-  const { actual, emisiones } = useMemo(() => grilla(items, canal, ahora, 4, 10), [items, canal, ahora]);
+  const { actual, emisiones } = useMemo(() => grilla(items, canal, ahora, 4, 10, canalesAdmin), [items, canal, ahora, canalesAdmin]);
   const vod = ver ? items.find((v) => v._id === ver) ?? null : null;
   const modo: 'vivo' | 'vod' = vod ? 'vod' : 'vivo';
   const enPantalla: VideoTv | null = vod ?? actual?.video ?? null;
@@ -401,10 +412,10 @@ const TvPage: React.FC = () => {
   const [pestana, setPestana] = useState<'guia' | 'ondemand'>('guia');
   const catalogoCanal = useMemo(
     () =>
-      items
-        .filter((v) => !canal || nombreCompetencia(v) === canal)
+      videosDelCanal(items, canal, canalesAdmin)
+        .slice()
         .sort((a, b) => String(b.fecha ?? '').localeCompare(String(a.fecha ?? ''))),
-    [items, canal],
+    [items, canal, canalesAdmin],
   );
 
   // --- Render -----------------------------------------------------------------------------
@@ -457,8 +468,8 @@ const TvPage: React.FC = () => {
             className="min-w-0 max-w-full truncate rounded-lg border border-slate-300 bg-white py-2 pl-3 pr-8 text-sm sm:max-w-xs"
           >
             <option value="">Todos los canales ({items.length})</option>
-            {canales.map(([nombre, n]) => (
-              <option key={nombre} value={nombre}>
+            {canales.map(([valor, nombre, n]) => (
+              <option key={valor} value={valor}>
                 {nombre} ({n})
               </option>
             ))}
@@ -621,7 +632,7 @@ const TvPage: React.FC = () => {
                   )}
                 </div>
               </div>
-              {!inmersivo && (
+              {!inmersivo && esPartido(enPantalla) && (
                 <Link
                   to={`/partidos/${enPantalla._id}`}
                   className="border-t border-white/10 pt-2 text-center text-sm font-semibold text-brand-300 hover:underline"
