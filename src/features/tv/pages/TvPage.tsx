@@ -13,7 +13,8 @@ import {
 } from '@heroicons/react/24/solid';
 import { fetchWithAuth } from '../../../utils/apiClient';
 import { cargarYoutubeIframeApi, type YTPlayer } from '../../../shared/utils/youtubeIframeApi';
-import { grilla, nombreCompetencia, videosDelCanal, type CanalTv, type Emision, type VideoTv } from '../programacion';
+import { grilla, nombreCompetencia, videosDelCanal, type CanalTv, type Emision, type VideoTv, type VivoTv } from '../programacion';
+import EnVivo from '../components/EnVivo';
 
 /**
  * Overtime TV.
@@ -131,6 +132,28 @@ const TvPage: React.FC = () => {
   });
   const items = useMemo(() => data?.items ?? [], [data]);
   const canalesAdmin = useMemo(() => data?.canales ?? [], [data]);
+
+  // --- En vivo (YouTube) ------------------------------------------------------------------
+  // Se pide aparte y seguido: la programación grabada cambia poco, un vivo empieza y termina.
+  const { data: vivoData, dataUpdatedAt: vivoActualizado } = useQuery<{
+    canales: { slug: string; vivos: VivoTv[] }[];
+    vivos: VivoTv[];
+  }>({
+    queryKey: ['tv', 'vivo'],
+    queryFn: () => fetchWithAuth('/tv/vivo'),
+    staleTime: 60_000,
+    refetchInterval: 120_000,
+    enabled: canalesAdmin.some((c) => c.conVivo),
+  });
+  // Lo persistido en localStorage puede ser de un vivo que ya terminó: si es viejo, no se usa.
+  const vivosCanal = useMemo((): VivoTv[] => {
+    if (!vivoData || Date.now() - vivoActualizado > 5 * 60_000) return [];
+    return canal ? vivoData.canales.find((c) => c.slug === canal)?.vivos ?? [] : vivoData.vivos;
+  }, [vivoData, vivoActualizado, canal]);
+  const [verGrabado, setVerGrabado] = useState(false);
+  const [senal, setSenal] = useState<string | null>(null);
+  useEffect(() => setVerGrabado(false), [canal]);
+  const enVivoVisible = vivosCanal.length > 0 && !verGrabado && !ver;
   const desfase = data?.desfase ?? 0;
   const reloj = useCallback(() => Date.now() + desfase, [desfase]);
 
@@ -187,7 +210,7 @@ const TvPage: React.FC = () => {
   // El player se recrea al cambiar de modo: en vivo no lleva controles, on demand sí, y
   // YouTube no deja cambiar eso sobre un player ya creado.
   useEffect(() => {
-    if (!hayContenido || !contenedor.current) return;
+    if (enVivoVisible || !hayContenido || !contenedor.current) return;
     let cancelado = false;
     const destino = document.createElement('div');
     contenedor.current.appendChild(destino);
@@ -255,7 +278,7 @@ const TvPage: React.FC = () => {
     // Se recrea sólo al cambiar de modo o de partido on demand; en vivo, los cambios de
     // emisión se cargan sobre el mismo player (efecto de abajo).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [modo, vod?._id, hayContenido]);
+  }, [modo, vod?._id, hayContenido, enVivoVisible]);
 
   // En vivo: al cambiar la emisión, cargar el siguiente partido en el segundo que corresponde.
   useEffect(() => {
@@ -419,6 +442,29 @@ const TvPage: React.FC = () => {
   );
 
   // --- Render -----------------------------------------------------------------------------
+  const encabezado = (
+    <header className="flex min-w-0 items-center justify-between gap-3">
+      <h1 className="flex shrink-0 items-center gap-2 text-xl font-bold text-slate-900 sm:text-2xl">
+        <TvIcon className="h-6 w-6 text-brand-600 sm:h-7 sm:w-7" aria-hidden="true" /> Overtime TV
+      </h1>
+      <label className="flex min-w-0 items-center gap-2 text-sm text-slate-700">
+        <span className="sr-only sm:not-sr-only">Canal</span>
+        <select
+          value={canal}
+          onChange={(e) => cambiarCanal(e.target.value)}
+          className="min-w-0 max-w-full truncate rounded-lg border border-slate-300 bg-white py-2 pl-3 pr-8 text-sm sm:max-w-xs"
+        >
+          <option value="">Todos los canales ({items.length})</option>
+          {canales.map(([valor, nombre, n]) => (
+            <option key={valor} value={valor}>
+              {nombre} ({n})
+            </option>
+          ))}
+        </select>
+      </label>
+    </header>
+  );
+
   if (isLoading) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center text-slate-600">
@@ -442,6 +488,20 @@ const TvPage: React.FC = () => {
     );
   }
 
+  if (enVivoVisible) {
+    return (
+      <div className="min-w-0 space-y-3 sm:space-y-4">
+        {encabezado}
+        <EnVivo
+          vivos={vivosCanal}
+          senal={senal}
+          onSenal={setSenal}
+          onVerGrabado={items.length > 0 ? () => setVerGrabado(true) : undefined}
+        />
+      </div>
+    );
+  }
+
   if (items.length === 0) {
     return (
       <div className="mx-auto max-w-md py-16 text-center text-slate-700">
@@ -456,26 +516,7 @@ const TvPage: React.FC = () => {
 
   return (
     <div className="min-w-0 space-y-3 sm:space-y-4">
-      <header className="flex min-w-0 items-center justify-between gap-3">
-        <h1 className="flex shrink-0 items-center gap-2 text-xl font-bold text-slate-900 sm:text-2xl">
-          <TvIcon className="h-6 w-6 text-brand-600 sm:h-7 sm:w-7" aria-hidden="true" /> Overtime TV
-        </h1>
-        <label className="flex min-w-0 items-center gap-2 text-sm text-slate-700">
-          <span className="sr-only sm:not-sr-only">Canal</span>
-          <select
-            value={canal}
-            onChange={(e) => cambiarCanal(e.target.value)}
-            className="min-w-0 max-w-full truncate rounded-lg border border-slate-300 bg-white py-2 pl-3 pr-8 text-sm sm:max-w-xs"
-          >
-            <option value="">Todos los canales ({items.length})</option>
-            {canales.map(([valor, nombre, n]) => (
-              <option key={valor} value={valor}>
-                {nombre} ({n})
-              </option>
-            ))}
-          </select>
-        </label>
-      </header>
+      {encabezado}
 
       <div className="grid min-w-0 gap-3 sm:gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div

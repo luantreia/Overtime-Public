@@ -34,6 +34,19 @@ export interface CanalTv {
   nombre: string;
   descripcion?: string;
   ids: string[];
+  /** Tiene canales de YouTube asociados: puede tener transmisiones en vivo. */
+  conVivo?: boolean;
+}
+
+/** Transmisión en vivo de YouTube que está al aire (GET /tv/vivo). */
+export interface VivoTv {
+  videoId: string;
+  channelId: string;
+  titulo: string;
+  canalYoutube: string;
+  /** ISO de cuándo arrancó, si YouTube lo informa. */
+  desde: string | null;
+  espectadores: number | null;
 }
 
 export interface Emision {
